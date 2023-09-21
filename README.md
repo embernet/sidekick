@@ -13,6 +13,7 @@
     - [Login](#login)
     - [Chat with OpenAI GPT-4 or GPT-3.5-turbo](#chat-with-openai-gpt-4-or-gpt-35-turbo)
     - [Pick from different AI personas](#pick-from-different-ai-personas)
+    - [Ask again with different personas](#ask-again-with-different-personas)
     - [Change the AI model settings](#change-the-ai-model-settings)
     - [Sidekick Prompt Composer](#sidekick-prompt-composer)
   - [Prerequisites](#prerequisites)
@@ -76,13 +77,19 @@ All your chats will be stored in Sidekick and you can edit them and use them to 
 
 Personas lets you change the persona of the AI to the response can be provided from a perspective that suits your purpose.
 
-![Sidekick AI Personas](image.png)
+![Sidekick AI Personas](docs/images/Sidekick_Personas.png)
+
+### Ask again with different personas
+
+Different personas can give you different perspectives on the same prompt.
+
+![Sidekick ask again with persona](docs/images/Sidekick_Ask_Again_With_Persona.png)
 
 ### Change the AI model settings
 
 Model settings lets you change the model and the temperature and other settings to alter (creativity / consistency) of the response.
 
-![Sidekick Model Settings](docs/images/Sidekick_Model_Settings.png.png)
+![Sidekick Model Settings](docs/images/Sidekick_Model_Settings.png)
 
 ### Sidekick Prompt Composer
 
