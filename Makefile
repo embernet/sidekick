@@ -1,9 +1,9 @@
 # Makefile for the Sidekick project
 # Make web_ui and server_api docker images
 
-.PHONY: init build-docker local run-dev-locally run-prod-locally all locally
+.PHONY: init local run-dev-locally run-prod-locally all test web_ui server_api test-locally
 
-all: local build run-docker
+all: local build
 
 init:
 	$(MAKE) -C web_ui init
@@ -12,10 +12,6 @@ init:
 test: init
 	$(MAKE) -C web_ui test
 	$(MAKE) -C server test
-
-build-docker:
-	docker build --tag sidekick-web-ui ./web_ui
-	docker build --tag sidekick-server ./server
 
 run-dev-locally: init
 	$(MAKE) -C server run-dev-locally &

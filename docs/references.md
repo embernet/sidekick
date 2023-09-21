@@ -1,9 +1,5 @@
 # References
 
-## Dev Container
-
-- [VSCode Dev container](https://code.visualstudio.com/docs/devcontainers/containers)
-
 ## OpenAI API
 
 - [OpenAI API](https://beta.openai.com/docs/api-reference/introduction)
@@ -38,4 +34,3 @@
 
 - [Testing in Python](https://docs.pytest.org/en/7.4.x/)
 - [Testing Flask Applications](https://flask.palletsprojects.com/en/2.3.x/testing/)
-

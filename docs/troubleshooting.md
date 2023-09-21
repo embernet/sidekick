@@ -13,16 +13,9 @@ rm -rf node_modules
 npm install
 ```
 
-## Docker
-
-### I want to start the application
-
-From the sidekick folder run `docker-compose up`
-
 ## Processes
 
 ### I want to see which processes are running
 
 Run `ps -ef | grep sidekick` if running locally.
-Run `docker ps` if running in a docker container.
 

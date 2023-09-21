@@ -10,11 +10,16 @@
   - [Why Sidekick?](#why-sidekick)
   - [Features](#features)
   - [Guided tour](#guided-tour)
-  - [Quick start](#quick-start)
+    - [Login](#login)
+    - [Chat with OpenAI GPT-4 or GPT-3.5-turbo](#chat-with-openai-gpt-4-or-gpt-35-turbo)
+    - [Pick from different AI personas](#pick-from-different-ai-personas)
+    - [Change the AI model settings](#change-the-ai-model-settings)
+    - [Sidekick Prompt Composer](#sidekick-prompt-composer)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
   - [About](#about)
   - [License](#license)
-  - [Prerequisites](#prerequisites)
-  - [More detailed installation options](#more-detailed-installation-options)
   - [Usage](#usage)
   - [Roadmap](#roadmap)
 
@@ -52,40 +57,53 @@ You can either just deploy this and let it run, or you can use it as a starting 
   - Ask for a summary of your notes
   - Ask for a summary of your notes on a specific topic
 
-
 ## Guided tour
+
+### Login
+
+Login, or create a new account if you don't already have one.
+
 ![Logon page](docs/images/Sidekick_Login.png)
 
-## Quick start
+### Chat with OpenAI GPT-4 or GPT-3.5-turbo
 
-> [!IMPORTANT]
-> You will need an OpenAI API key to use the AI features. You can get an OpenAI API key [here](https://beta.openai.com/).
+Once you have configured the app with your OpenAI API key, you can chat with the AI using the API.
+All your chats will be stored in Sidekick and you can edit them and use them to create notes.
 
-Clone the repository, e.g.:
+![Sidekick AI Chat](docs/images/Sidekick_Chat.png)
 
-- With GitHub CLI: `gh repo clone embernet/sidekick`
-- With Git: `git clone git@github.com:embernet/sidekick.git`
+### Pick from different AI personas
 
-Create a `.env` file in the `sidekick/server` directory with the following contents:
+Personas lets you change the persona of the AI to the response can be provided from a perspective that suits your purpose.
 
-  ```bash
-  OPENAI_API_KEY=<your OpenAI API key>
-  ```
+![Sidekick AI Personas](image.png)
 
-Build the docker containers and start the application.
+### Change the AI model settings
 
-  ```bash
-  cd sidekick
-  make build && docker-compose up -d
-  ```
+Model settings lets you change the model and the temperature and other settings to alter (creativity / consistency) of the response.
 
-Using -d will run the docker containers as deamons in the background. In this case, you can close the terminal window and the application keeps running. Currently this application is in pre-release, and both server processes provide logs to their console. If you want to see this, run them in the foreground by omitting the `-d` flag; in this case, you will need to keep the terminal window open while you are using it.
+![Sidekick Model Settings](docs/images/Sidekick_Model_Settings.png.png)
 
-You should now have two docker containers running: `sidekick-server` and `sidekick-web-ui`. You can check this with `docker ps`.
+### Sidekick Prompt Composer
 
-> [!NOTE]
-> When the application is run from docker containers as above, the server is running on [http://localhost:5004](http://localhost:5004) and the web UI is running on [http://localhost:8081](http://localhost:8081).
-> If you decide to run the application locally, the server is running on [http://localhost:5003](http://localhost:5003) and the web UI is running on [http://localhost:8080](http://localhost:8080).
+Prompt composer lets you build your prompt from a library of fragments.
+
+![Sidekick Prompt Composer](docs/images/Sidekick_Prompt_Composer.png)
+
+## Prerequisites
+
+- You will need your own OpenAI API key to use this application. You can get one [here](https://beta.openai.com/).
+- Tech stack is: Python Flask NodeJS React MaterialUI, and you will need pipenv, npm, python3
+
+## Installation
+
+See the [Local installation guide](docs/local-installation.md) for how to get this up and running.
+
+## Configuration
+
+The plan is to make all configuration editable from the user interface. For now, you can configure the application by editing the JSON configuration files.
+
+To see how to change the way the application is installed and run and where it stores its settings and data, see the [configuration guide](docs/configuration.md).
 
 ## About
 
@@ -97,52 +115,38 @@ This project is in active development, however each release is intended to be re
 
 [MIT License](LICENSE.txt)
 
-## Prerequisites
-
-- You will need your own OpenAI API key to use this application. You can get one [here](https://beta.openai.com/).
-- pipenv, npm, python3, more details below
-
-## More detailed installation options
-
-1. [Install in a docker container](docs/docker-installation.md)
-2. [Install locally](docs/local-installation.md)
-
-To see how to change the way the application is installed and run and where it stores its settings and data, see the [configuration guide](docs/configuration.md).
-
 ## Usage
 
-1. Getting started
-   1. Start the application by running `docker-compose up` if you are running from a docker container or `npm start` if you installed locally
-   2. The application should automatically open in your browser. Or you can browse to [http://localhost:8081] if you are running from a docker container or [http://localhost:8080] if you installed locally
-2. From the home page
+1. From the home page
    1. Click the `Explore Chats` button to show or hide the Chat Explorer view
    2. Click the `Chat` button to show or hide the Chat Window
    3. Click the `Notes` button to show or hide the Notes Explorer view
    4. Click the `Personas` button to change the persona of the AI
    5. Click the `Prompt Composer` button to show or hide the prompt composer
-3. When in the Chat Window
+2. When in the Chat Window
    1. Enter a prompt
    2. Click the `Chat` button or hit return to chat with the AI
    3. Chats are saved automatically
    4. Click in the name field at the top of the chat if you want to rename it. Escape clears the name so you can enter a new one.
-4. Right click on a chat to
+3. Right click on a chat to:
    1. Copy it to the clipboard
-   2. Append to chat input, e.g. to refer to all or part of a previous response
-   3. Use as chat input, e.g. to edit and continue the conversation
-   4. Append to note, e.g. to save the most interesting and useful parts of the chat
-   5. Append all to note, to save the whole chat into a note along with other chats or your own notes or to edit it
-   6. Delete it from the chat history so it doesn't impact the AI's future responses
-   7. Delete all messages to clear the chat and start again
-5. Click the `Notes` button to show or hide the Notes Explorer view
-6. From the Notes Explorer view
+   2. Copy as HTML to the clipboard, where responses are in markdown formatting
+   3. Append to chat prompt, e.g. to refer to all or part of a previous response
+   4. Use as chat prompt, e.g. to edit and continue the conversation
+   5. Append to note, e.g. to save the most interesting and useful parts of the chat
+   6. Append all to note, to save the whole chat into a note along with other chats or your own notes or to edit it
+   7. Delete it from the chat history so it doesn't impact the AI's future responses
+   8. Delete all messages to clear the chat and start again
+4. Click the `Notes` button to show or hide the Notes Explorer view
+5. From the Notes Explorer view
    1. Filter notes by name
    2. Bulk delete filtered notes that are no longer required
    3. Click on a note to edit it (there is a delete button in the note editor if you want to delete it)
-7. When in a Note
+6. When in a Note
     1. Click the `Export` button to download a note as a local text file
     2. Click the `Import` button to import a local text file into the current note
     3. Enter a prompt at the bottom of the note and click the `Chat` button or hit return to chat with the AI about the note
-8. Click the `Model Settings` button to open the Model Settings, where you can:
+7. Click the `Model Settings` button to open the Model Settings, where you can:
     1. Change the model
     2. Change the temperature and other model settings to alter (creativity / consistency) of the response
 
