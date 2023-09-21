@@ -100,6 +100,7 @@ This project is in active development, however each release is intended to be re
 ## Prerequisites
 
 - You will need your own OpenAI API key to use this application. You can get one [here](https://beta.openai.com/).
+- pipenv, npm, python3, more details below
 
 ## More detailed installation options
 
