@@ -1,0 +1,104 @@
+{
+    "model_settings": {
+        "providers": {
+            "OpenAI": {
+                "models": {
+                    "gpt-4": {
+                        "temperature": 0.7,
+                        "topP": 1,
+                        "frequencyPenalty": 0,
+                        "presencePenalty": 0,
+                        "systemMessage": "You are a helpful advisor."
+                    },
+                    "gpt-3.5-turbo": {
+                        "temperature": 0.7,
+                        "topP": 1,
+                        "frequencyPenalty": 0,
+                        "presencePenalty": 0,
+                        "systemMessage": "You are a helpful advisor."
+                    },
+                    "gpt-3.5-16k": {
+                        "temperature": 0.7,
+                        "topP": 1,
+                        "frequencyPenalty": 0,
+                        "presencePenalty": 0,
+                        "systemMessage": "You are a helpful advisor."
+                    }
+                },
+                "default": "gpt-4"
+            },
+            "Azure OpenAI": {
+                "models": {
+                    "gpt-3.5": {
+                        "temperature": 0.7,
+                        "topP": 1,
+                        "frequencyPenalty": 0,
+                        "presencePenalty": 0,
+                        "systemMessage": "You are a helpful advisor."
+                    }
+                },
+                "default": "gpt-3.5"
+            }
+        },
+        "default": "OpenAI"
+    },
+    "sliders": {
+        "temperature": {
+            "marks": [
+                { "value": 0, "label": "0" },
+                { "value": 0.5, "label": "0.5" },
+                { "value": 1, "label": "1" },
+                { "value": 1.5, "label": "1.5" },
+                { "value": 2, "label": "2" }
+            ],
+            "min": 0,
+            "max": 2,
+            "step": 0.1,
+            "default": 0.7,
+            "caption": "Between 0 and 2. 0 is the most consistent 'best' prediction. Up to 0.9 allows more creativity and variability. Above 1, the model is more 'creative' but can hallucinate more and make spelling and grammar mistakes."
+        },
+        "top_p": {
+            "marks": [
+                { "value": 0, "label": "0" },
+                { "value": 0.25, "label": "0.25" },
+                { "value": 0.5, "label": "0.5" },
+                { "value": 0.75, "label": "0.75" },
+                { "value": 1, "label": "1" }
+            ],
+            "min": 0,
+            "max": 1,
+            "step": 0.1,
+            "default": 1,
+            "caption": "An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered."
+        },
+        "presence_penalty": {
+            "marks": [
+                { "value": -2, "label": "2" },
+                { "value": -1, "label": "-1" },
+                { "value": 0, "label": "0" },
+                { "value": 1, "label": "1" },
+                { "value": 2, "label": "2" }
+            ],
+            "min": -2,
+            "max": 2,
+            "step": 0.1,
+            "default": 0,
+            "caption": "Positive values penalise new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics."
+        },
+        "frequency_penalty": {
+            "label": "frequency_penalty",
+            "marks": [
+                { "value": -2, "label": "2" },
+                { "value": -1, "label": "-1" },
+                { "value": 0, "label": "0" },
+                { "value": 1, "label": "1" },
+                { "value": 2, "label": "2" }
+            ],
+            "min": -2,
+            "max": 2,
+            "step": 0.1,
+            "default": 0,
+            "caption": "Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim."
+        }
+    }
+}

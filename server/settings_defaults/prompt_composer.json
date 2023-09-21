@@ -1,0 +1,53 @@
+{
+    "prompt_parts": {
+        "Intent": [
+            "Provide ",
+            "Explain how ",
+            "Explain why ",
+            "Explain what ",
+            "Explain when ",
+            "Explain where ",
+            "Explain who ",
+            "Explain which ",
+            "Explain whether ",
+            "Ask questions about ",
+            "Compare and contrast ",
+            "Summarise the key points of ",
+            "Predict the outcome of "
+        ],
+        "Detail": [
+            "Provide the response as a single sentence. ",
+            "Provide the response as a single paragraph. ",
+            "Provide the response as a narrative. ",
+            "Make the response concise. ",
+            "Make the response detailed. ",
+            "Provide an outline for a detailed report including sections and sub-sections. ",
+            "Give explanations. ",
+            "Give examples. ",
+            "Give references. Make sure they are relevant and factual. "
+        ],
+        "Voice": [
+            "Use a formal voice. ",
+            "Use an informal voice. ",
+            "Use an assertive voice. ",
+            "Use a friendly voice. ",
+            "Use a professional voice. ",
+            "Use a conversational voice. ",
+            "Use a humorous voice. "
+        ],  
+        "Perspective": [
+            "Do this from the perspective of an expert. ",
+            "Do this from the perspective of a layman. ",
+            "Do this from the perspective of a child. "
+        ],
+        "Format": [
+            "Provide the response as markdown bullets. ",
+            "Provide the response as markdown categorised into sections with sub-bullets. ",
+            "Provide the response as a story. ",
+            "Provide the response as a dialogue between relevant protaganists. ",
+            "Provide the response in the style of a newsletter article. ",
+            "Provide the response as JSON. ",
+            "Provide the response as a CSV. "
+        ]
+    }
+}

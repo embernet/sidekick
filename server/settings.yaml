@@ -1,0 +1,10 @@
+userdb_dir: data
+logindb_dir: etc
+feedbackdb_dir: etc
+settings_dir: settings
+logs_dir: etc/logs
+openai_api_key_env_var: OPENAI_API_KEY
+default_chat_name: New Chat
+port:
+  docker: 5004
+  development: 5003
