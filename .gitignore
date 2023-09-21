@@ -2,7 +2,9 @@
 
 # data from local dev testing
 /server/data/*
-/server/etc/*
+/server/etc/logs/*
+/server/etc/feedback.db
+/server/etc/login.db
 /server/login.db
 /server/data/junk
 /server/.pytest_cache

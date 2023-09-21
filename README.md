@@ -54,7 +54,7 @@ You can either just deploy this and let it run, or you can use it as a starting 
 
 
 ## Guided tour
-![Logon page](Sidekick_Login.png)
+![Logon page](docs/images/Sidekick_Login.png)
 
 ## Quick start
 

@@ -1,4 +1,5 @@
 {
+    "version": "0",
     "model_settings": {
         "providers": {
             "OpenAI": {

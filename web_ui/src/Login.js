@@ -50,6 +50,26 @@ function Login({setUser, serverUrl, setToken}) {
       }
   }, [pageLoaded]);
 
+  const login = () => {
+    axios
+    .post(`${serverUrl}/login`, { user_id: userId, password: password })
+    .then((response) => {
+        console.log(response);
+      if (response.data.success) {
+        console.log(`User ${userId} logged in`);
+        setUser(userId);
+        setToken(response.data.access_token)
+        system.setServerUp(true);
+      } else {
+        console.log(response.data.message);
+        system.error(response.data.message);
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+      system.error(`Server not available: ${error}`);
+    });
+  }
 
   const handleCreateAccount = (event) => {
       event.preventDefault();
@@ -59,6 +79,8 @@ function Login({setUser, serverUrl, setToken}) {
           console.log(response);
         if (response.data.success) {
           console.log(`User ${userId} created`);
+          system.info(`User ${userId} created; logging you in...`);
+          login();
         } else {
           console.log(response.data.message);
         }
@@ -70,24 +92,7 @@ function Login({setUser, serverUrl, setToken}) {
   
   const handleLogin = (event) => {
       event.preventDefault();
-      axios
-      .post(`${serverUrl}/login`, { user_id: userId, password: password })
-      .then((response) => {
-          console.log(response);
-        if (response.data.success) {
-          console.log(`User ${userId} logged in`);
-          setUser(userId);
-          setToken(response.data.access_token)
-          system.setServerUp(true);
-        } else {
-          console.log(response.data.message);
-          system.error(response.data.message);
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        system.error(`Server not available: ${error}`);
-      });
+      login();
   };
 
   
