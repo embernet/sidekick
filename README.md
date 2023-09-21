@@ -1,6 +1,6 @@
 # Sidekick
 
-![Sidekick](docs/images/sidekick.png)
+![Sidekick](docs/images/Sidekick.png)
 
 ## Table of contents
 
