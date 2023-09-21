@@ -49,6 +49,10 @@ FEEDBACKDB_DIR_SETTING = "feedbackdb_dir"
 SETTINGS_DIR_SETTING = "settings_dir"
 LOGS_DIR_SETTING = "logs_dir"
 
+if not os.path.exists("./etc"): os.makedirs("./etc")
+if not os.path.exists("./etc/logs"): os.makedirs("./etc/logs")
+if not os.path.exists("./data"): os.makedirs("./data")
+
 app = Flask(__name__)
 CORS(app)
 app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET"]
@@ -93,10 +97,6 @@ if run_mode == "docker":
     config[LOGINDB_DIR_SETTING] = '/mount/' + config[LOGINDB_DIR_SETTING]
     config[FEEDBACKDB_DIR_SETTING] = '/mount/' + config[FEEDBACKDB_DIR_SETTING]
     config[LOGS_DIR_SETTING] = '/mount/' + config[LOGS_DIR_SETTING]
-
-if not os.path.exists("./etc"): os.makedirs("./etc")
-if not os.path.exists("./etc/logs"): os.makedirs("./etc/logs")
-if not os.path.exists("./data"): os.makedirs("./data")
 
 openai.api_key = os.environ[config["openai_api_key_env_var"]]
 
