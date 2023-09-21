@@ -1,0 +1,45 @@
+npm install
+npm WARN @apideck/better-ajv-errors@0.3.6 requires a peer of ajv@>=8 but none is installed. You must install peer dependencies yourself.
+npm WARN fork-ts-checker-webpack-plugin@6.5.3 requires a peer of typescript@>= 2.7 but none is installed. You must install peer dependencies yourself.
+npm WARN tsutils@3.21.0 requires a peer of typescript@>=2.8.0 || >= 3.2.0-dev || >= 3.3.0-dev || >= 3.4.0-dev || >= 3.5.0-dev || >= 3.6.0-dev || >= 3.6.0-beta || >= 3.7.0-dev || >= 3.7.0-beta but none is installed. You must install peer dependencies yourself.
+npm WARN optional SKIPPING OPTIONAL DEPENDENCY: fsevents@2.3.3 (node_modules/fsevents):
+npm WARN notsup SKIPPING OPTIONAL DEPENDENCY: Unsupported platform for fsevents@2.3.3: wanted {"os":"darwin","arch":"any"} (current: {"os":"linux","arch":"x64"})
+
+audited 1899 packages in 6.365s
+
+336 packages are looking for funding
+  run `npm fund` for details
+
+found 1 high severity vulnerability
+  run `npm audit fix` to fix them, or `npm audit` for details
+npm run build
+
+> sidekick-frontend@0.1.0 build /home/markbur@ilab.local/sidekick/web_ui
+> react-scripts build
+
+/home/markbur@ilab.local/sidekick/web_ui/node_modules/eslint-webpack-plugin/node_modules/jest-worker/build/index.js:110
+  _ending;
+         ^
+
+SyntaxError: Unexpected token ;
+    at Module._compile (internal/modules/cjs/loader.js:723:23)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)
+    at Module.load (internal/modules/cjs/loader.js:653:32)
+    at tryModuleLoad (internal/modules/cjs/loader.js:593:12)
+    at Function.Module._load (internal/modules/cjs/loader.js:585:3)
+    at Module.require (internal/modules/cjs/loader.js:692:17)
+    at require (internal/modules/cjs/helpers.js:25:18)
+    at Object.<anonymous> (/home/markbur@ilab.local/sidekick/web_ui/node_modules/eslint-webpack-plugin/dist/getESLint.js:9:5)
+    at Module._compile (internal/modules/cjs/loader.js:778:30)
+    at Object.Module._extensions..js (internal/modules/cjs/loader.js:789:10)
+npm ERR! code ELIFECYCLE
+npm ERR! errno 1
+npm ERR! sidekick-frontend@0.1.0 build: `react-scripts build`
+npm ERR! Exit status 1
+npm ERR! 
+npm ERR! Failed at the sidekick-frontend@0.1.0 build script.
+npm ERR! This is probably not a problem with npm. There is likely additional logging output above.
+
+npm ERR! A complete log of this run can be found in:
+npm ERR!     /home/markbur@ilab.local/.npm/_logs/2023-09-21T11_59_19_695Z-debug.log
+make: *** [Makefile:10: build-locally] Error 1
