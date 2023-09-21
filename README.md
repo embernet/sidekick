@@ -6,31 +6,71 @@
 
 - [Sidekick](#sidekick)
   - [Table of contents](#table-of-contents)
-  - [Description](#description)
-  - [Why Sidekick?](#why-sidekick)
-  - [Features](#features)
-  - [Guided tour](#guided-tour)
-    - [Login](#login)
-    - [Chat with OpenAI GPT-4 or GPT-3.5-turbo](#chat-with-openai-gpt-4-or-gpt-35-turbo)
-    - [Pick from different AI personas](#pick-from-different-ai-personas)
-    - [Ask again with different personas](#ask-again-with-different-personas)
-    - [Change the AI model settings](#change-the-ai-model-settings)
-    - [Sidekick Prompt Composer](#sidekick-prompt-composer)
+- [Description](#description)
+- [Guided tour](#guided-tour)
+  - [Login](#login)
+  - [Chat with OpenAI GPT-4 or GPT-3.5-turbo](#chat-with-openai-gpt-4-or-gpt-35-turbo)
+  - [Pick from different AI personas](#pick-from-different-ai-personas)
+  - [Ask again with different personas](#ask-again-with-different-personas)
+  - [Change the AI model settings](#change-the-ai-model-settings)
+  - [Sidekick Prompt Composer](#sidekick-prompt-composer)
+- [Why Sidekick?](#why-sidekick)
+- [Sidekick Features](#sidekick-features)
+- [Usage](#usage)
+- [Running Sidekick](#running-sidekick)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
   - [Configuration](#configuration)
-  - [About](#about)
+- [About](#about)
   - [License](#license)
-  - [Usage](#usage)
   - [Roadmap](#roadmap)
 
-## Description
+# Description
 
 Sidekick is an AI powered tool for creativity, thinking, exploring ideas, problem-solving, knowledge-building, and getting things done.
 
 It provides a chat interface to OpenAI's GPT models along with pre-canned AI personas and a prompt fragment library to help you get more out of the AI and a working environment where you can create notes by selecting the most interesting and useful parts of the chat to edit and organise into a more complete text aligned with what you want.
 
-## Why Sidekick?
+# Guided tour
+
+## Login
+
+Login, or create a new account if you don't already have one.
+
+![Logon page](docs/images/Sidekick_Login.png)
+
+## Chat with OpenAI GPT-4 or GPT-3.5-turbo
+
+Once you have configured the app with your OpenAI API key, you can chat with the AI using the API.
+All your chats will be stored in Sidekick and you can edit them and use them to create notes.
+
+![Sidekick AI Chat](docs/images/Sidekick_Chat.png)
+
+## Pick from different AI personas
+
+Personas lets you change the persona of the AI to the response can be provided from a perspective that suits your purpose.
+
+![Sidekick AI Personas](docs/images/Sidekick_Personas.png)
+
+## Ask again with different personas
+
+Different personas can give you different perspectives on the same prompt.
+
+![Sidekick ask again with persona](docs/images/Sidekick_Ask_Again_With_Persona.png)
+
+## Change the AI model settings
+
+Model settings lets you change the model and the temperature and other settings to alter (creativity / consistency) of the response.
+
+![Sidekick Model Settings](docs/images/Sidekick_Model_Settings.png)
+
+## Sidekick Prompt Composer
+
+Prompt composer lets you build your prompt from a library of fragments.
+
+![Sidekick Prompt Composer](docs/images/Sidekick_Prompt_Composer.png)
+
+# Why Sidekick?
 
 Everyone has access to Generative AI in the form of ChatGPT and other tools. However most of these tools are designed for general use and are built on top of APIs that are more powerful under the hood. Many of the out-of-the-box tools also use the prompts users enter to further train their models. This is generally not the case for the APIs.
 
@@ -44,10 +84,11 @@ Sidekick v0 is the beginning of a project to provide a platform for extending an
 
 You can either just deploy this and let it run, or you can use it as a starting point to build your own AI-powered tools.
 
-## Features
+# Sidekick Features
 
 - Chat with an AI
 - Change the persona of the AI
+- Re-ask the same questions of the AI with different personas
 - Compose your prompt from a library of fragments
 - Create and edit notes
 - Augment notes with the best parts from your chats
@@ -58,71 +99,7 @@ You can either just deploy this and let it run, or you can use it as a starting 
   - Ask for a summary of your notes
   - Ask for a summary of your notes on a specific topic
 
-## Guided tour
-
-### Login
-
-Login, or create a new account if you don't already have one.
-
-![Logon page](docs/images/Sidekick_Login.png)
-
-### Chat with OpenAI GPT-4 or GPT-3.5-turbo
-
-Once you have configured the app with your OpenAI API key, you can chat with the AI using the API.
-All your chats will be stored in Sidekick and you can edit them and use them to create notes.
-
-![Sidekick AI Chat](docs/images/Sidekick_Chat.png)
-
-### Pick from different AI personas
-
-Personas lets you change the persona of the AI to the response can be provided from a perspective that suits your purpose.
-
-![Sidekick AI Personas](docs/images/Sidekick_Personas.png)
-
-### Ask again with different personas
-
-Different personas can give you different perspectives on the same prompt.
-
-![Sidekick ask again with persona](docs/images/Sidekick_Ask_Again_With_Persona.png)
-
-### Change the AI model settings
-
-Model settings lets you change the model and the temperature and other settings to alter (creativity / consistency) of the response.
-
-![Sidekick Model Settings](docs/images/Sidekick_Model_Settings.png)
-
-### Sidekick Prompt Composer
-
-Prompt composer lets you build your prompt from a library of fragments.
-
-![Sidekick Prompt Composer](docs/images/Sidekick_Prompt_Composer.png)
-
-## Prerequisites
-
-- You will need your own OpenAI API key to use this application. You can get one [here](https://beta.openai.com/).
-- Tech stack is: Python Flask NodeJS React MaterialUI, and you will need pipenv, npm, python3
-
-## Installation
-
-See the [Local installation guide](docs/local-installation.md) for how to get this up and running.
-
-## Configuration
-
-The plan is to make all configuration editable from the user interface. For now, you can configure the application by editing the JSON configuration files.
-
-To see how to change the way the application is installed and run and where it stores its settings and data, see the [configuration guide](docs/configuration.md).
-
-## About
-
-This project is in active development, however each release is intended to be ready to use and feature complete as far as it has so far been developed.
-
-[Contribution guidelines for this project](docs/CONTRIBUTING.md)
-
-## License
-
-[MIT License](LICENSE.txt)
-
-## Usage
+# Usage
 
 1. From the home page
    1. Click the `Explore Chats` button to show or hide the Chat Explorer view
@@ -156,6 +133,33 @@ This project is in active development, however each release is intended to be re
 7. Click the `Model Settings` button to open the Model Settings, where you can:
     1. Change the model
     2. Change the temperature and other model settings to alter (creativity / consistency) of the response
+
+# Running Sidekick
+
+## Prerequisites
+
+- You will need your own OpenAI API key to use this application. You can get one [here](https://beta.openai.com/).
+- Tech stack is: Python Flask NodeJS React MaterialUI, and you will need pipenv, npm, python3
+
+## Installation
+
+See the [Local installation guide](docs/local-installation.md) for how to get this up and running.
+
+## Configuration
+
+The plan is to make all configuration editable from the user interface. For now, you can configure the application by editing the JSON configuration files.
+
+To see how to change the way the application is installed and run and where it stores its settings and data, see the [configuration guide](docs/configuration.md).
+
+# About
+
+This project is in active development, however each release is intended to be ready to use and feature complete as far as it has so far been developed.
+
+[Contribution guidelines for this project](docs/CONTRIBUTING.md)
+
+## License
+
+[MIT License](LICENSE.txt)
 
 ## Roadmap
 
