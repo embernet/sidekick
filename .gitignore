@@ -26,6 +26,7 @@
 
 # production
 /build
+/web_ui/build
 
 # misc
 .DS_Store

@@ -94,6 +94,10 @@ if run_mode == "docker":
     config[FEEDBACKDB_DIR_SETTING] = '/mount/' + config[FEEDBACKDB_DIR_SETTING]
     config[LOGS_DIR_SETTING] = '/mount/' + config[LOGS_DIR_SETTING]
 
+if not os.path.exists("./etc"): os.makedirs("./etc")
+if not os.path.exists("./etc/logs"): os.makedirs("./etc/logs")
+if not os.path.exists("./data"): os.makedirs("./data")
+
 openai.api_key = os.environ[config["openai_api_key_env_var"]]
 
 def userDB():
