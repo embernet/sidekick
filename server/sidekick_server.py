@@ -4,7 +4,7 @@
 # Description: A Chat server providing a REST interface for interacting with LLMs such as available via the OpenAI API
 
 PROGRAM_NAME = "sidekick_server"
-VERSION = "0.0.1"
+VERSION = "0.0.2"
 
 import logging
 from logging.handlers import RotatingFileHandler

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Card, Paper, Box, IconButton, Tooltip,
-    Typography, TextField, Autocomplete, Slider } from '@mui/material';
+    Typography, TextField, Autocomplete, Slider, Switch, Stack } from '@mui/material';
 import { ClassNames } from "@emotion/react";
 import TuneIcon from '@mui/icons-material/Tune';
 import CloseIcon from '@mui/icons-material/Close';
@@ -10,7 +10,8 @@ import { StyledToolbar } from './theme';
 
 const ModelSettings = ({setModelSettings, setFocusOnPrompt, 
     modelSettingsOpen, setModelSettingsOpen,
-    temperatureText, setTemperatureText, settingsManager}) => {
+    temperatureText, setTemperatureText, settingsManager,
+    chatStreamingOn, setChatStreamingOn}) => {
 
     const [mySettingsManager, setMySettingsManager] = useState(settingsManager);
     const [modelSettingsOptions, setModelSettingsOptions] = useState({});
@@ -165,6 +166,25 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
                 sx={{ mt: 2, mb: 3 }}
                 renderInput={(params) => <TextField {...params} label="Model" />}
             />
+            <Paper sx={{ margin: 1, padding : "6px 20px" }}>
+            <Box sx={{ display: 'flex', flexDirection: "column" }}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between">
+                    <Typography variant="h7">Streaming:</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Switch
+                        checked={chatStreamingOn}
+                        onChange={() => setChatStreamingOn(!chatStreamingOn)}
+                        name="chatStreamingOn"
+                        inputProps={{ 'aria-label': 'toggle chat streaming' }}
+                        />
+                        <Typography>{chatStreamingOn ? "On" : "Off"}</Typography>
+                    </Box>
+                </Stack>
+                { showHelp ? <Typography variant="caption">
+                    When streaming is on, the response is displayed to the user as it is generated. When off, the response is displayed only after the model has finished generating the response. Streaming can be blocked by some network and security setups, so turn this off if you are having problems.
+                </Typography> : null }
+            </Box>
+            </Paper>
             <Paper sx={{ margin: 1, padding : "6px 20px" }}>
                 <Typography variant="h7">temperature {temperature} ({temperatureText})</Typography>
                 <Slider

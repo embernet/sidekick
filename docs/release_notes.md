@@ -1,5 +1,9 @@
 # Release Notes
 
+## v0.0.2
+
+1. Option to toggle streaming of the chat response on or off added to ModelSettings window. If you have an environment you have deployed this in where it looks like the network setup or security perimeter could be getting in the way, this might solve your issue.
+
 ## v0.0.1
 
 1. README.md now has more informative text and images

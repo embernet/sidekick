@@ -43,7 +43,7 @@ const Chat = ({
     focusOnPrompt, setFocusOnPrompt, chatRequest, chatOpen, setChatOpen,
     temperatureText, setTemperatureText, modelSettingsOpen, setModelSettingsOpen,
     onChange, personasOpen, setPersonasOpen, setOpenChatId, shouldAskAgainWithPersona, serverUrl, token, setToken,
-    streamingChatResponse, setStreamingChatResponse}) => {
+    streamingChatResponse, setStreamingChatResponse, chatStreamingOn}) => {
 
     const system = useContext(SystemContext);
     const [id, setId] = useState("");
@@ -393,8 +393,9 @@ const Chat = ({
         showWaiting();
         const chat_api_version = "v2";
         console.log("Using chat_api_version", chat_api_version);   
-        switch (chat_api_version) {
-            case "v1":
+        switch (chatStreamingOn) {
+            case false:
+                setStreamingChatResponse("Waiting for response...");
                 axios.post(`${serverUrl}/chat/v1`, requestData, {
                     headers: {
                         Authorization: 'Bearer ' + token
@@ -402,6 +403,7 @@ const Chat = ({
                 })
                 .then((response) => {
                     console.log("/chat response", response);
+                    setStreamingChatResponse("");
                     response.data.access_token && setToken(response.data.access_token);
                     appendMessage(response.data.chat_response[1]); // 1 is the assistant message, 0 is the user message
                     showReady();
@@ -413,7 +415,7 @@ const Chat = ({
                 });
                 break;
             default:
-            case "v2":
+            case true:
                 getChatStream(requestData);
                 break;
         }

@@ -85,6 +85,7 @@ function App() {
   const [serverUrl, setServerUrl] = useState(runtimeEnvironment.serverHost + ":" + runtimeEnvironment.serverPort);
   const [shouldAskAgainWithPersona, setShouldAskAgainWithPersona] = useState(null);
   const [streamingChatResponse, setStreamingChatResponse] = useState("");
+  const [chatStreamingOn, setChatStreamingOn] = useState(true);
 
   useEffect(()=>{
   }, [loadChat]);
@@ -283,6 +284,8 @@ function App() {
             settingsManager={new SettingsManager(serverUrl, token, setToken)}
             serverUrl={serverUrl}
             token={token} setToken={setToken}
+            chatStreamingOn={chatStreamingOn}
+            setChatStreamingOn={setChatStreamingOn}
             />
             <Personas 
             handleTogglePersonas={handleTogglePersonas} 
@@ -328,6 +331,7 @@ function App() {
               token={token} setToken={setToken}
               streamingChatResponse={streamingChatResponse}
               setStreamingChatResponse={setStreamingChatResponse}
+              chatStreamingOn={chatStreamingOn}
               />
             <Note 
               noteOpen={noteOpen}
