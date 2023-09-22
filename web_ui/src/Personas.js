@@ -15,7 +15,7 @@ import { StyledToolbar } from './theme';
 import { WidthFull } from '@mui/icons-material';
 
 const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, personasOpen, 
-    settingsManager, setShouldAskAgainWithPersona, serverUrl}) => {
+    settingsManager, setShouldAskAgainWithPersona, serverUrl, StreamingChatResponse}) => {
     const system = useContext(SystemContext);
     const [myPersonas, setMyPersonas] = useState([]);
     const [filterText, setFilterText] = useState('');
@@ -228,7 +228,8 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
                             : undefined
                         }
                     >
-                        <MenuItem onClick={(event) => handleAskAgainWithPersona(event)}>Ask again with this persona</MenuItem>
+                        <MenuItem onClick={(event) => handleAskAgainWithPersona(event)}
+                            disabled={StreamingChatResponse !== ""}>Ask again with this persona</MenuItem>
                         <MenuItem onClick={(event) => handleSetAsDefault(event)}>Set as default persona</MenuItem>
                     </Menu>
             </ListItem>

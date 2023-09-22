@@ -27,18 +27,6 @@
                     }
                 },
                 "default": "gpt-4"
-            },
-            "Azure OpenAI": {
-                "models": {
-                    "gpt-3.5": {
-                        "temperature": 0.7,
-                        "topP": 1,
-                        "frequencyPenalty": 0,
-                        "presencePenalty": 0,
-                        "systemMessage": "You are a helpful advisor."
-                    }
-                },
-                "default": "gpt-3.5"
             }
         },
         "default": "OpenAI"

@@ -4,7 +4,7 @@
 # Description: A Chat server providing a REST interface for interacting with LLMs such as available via the OpenAI API
 
 PROGRAM_NAME = "sidekick_server"
-VERSION = "0.0.0"
+VERSION = "0.0.1"
 
 import logging
 from logging.handlers import RotatingFileHandler
@@ -56,7 +56,8 @@ if not os.path.exists("./data"): os.makedirs("./data")
 app = Flask(__name__)
 CORS(app)
 app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET"]
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
+#app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = False
 jwt = JWTManager(app)
 
 print(f"{PROGRAM_NAME} {VERSION}")

@@ -45,16 +45,16 @@ import { runtimeEnvironment } from './ServerUrlThunk';
 import { Toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const VERSION = "0.0.0";
+const VERSION = "0.0.1";
 
 function App() {
   const system = useContext(SystemContext);
   const { token, removeToken, setToken } = useToken();
-  const chatsOpenDefault = localStorage.getItem('chatsOpenDefault') === 'false' ? false : true;
-  const notesOpenDefault = localStorage.getItem('notesOpenDefault') === 'false' ? false : true;
-  const personasOpenDefault = localStorage.getItem('personasOpenDefault') === 'false' ? false : true;
-  const modelSettingsOpenDefault = localStorage.getItem('modelSettingsOpenDefault') === 'false' ? false : true;
-  const promptComposerOpenDefault = localStorage.getItem('promptComposerOpenDefault') === 'false' ? false : true;
+  const chatsOpenDefault = true;
+  const notesOpenDefault = false;
+  const personasOpenDefault = false;
+  const modelSettingsOpenDefault = false;
+  const promptComposerOpenDefault = false;
   const [statusMessage, setStatusMessage] = useState("");
   const [chatOpen, setChatOpen] = useState(false);
   const [generalSettingsOpen, setGeneralSettingsOpen] = useState(false);
@@ -84,6 +84,7 @@ function App() {
   const [openNoteId, setOpenNoteId] = useState(null);
   const [serverUrl, setServerUrl] = useState(runtimeEnvironment.serverHost + ":" + runtimeEnvironment.serverPort);
   const [shouldAskAgainWithPersona, setShouldAskAgainWithPersona] = useState(null);
+  const [streamingChatResponse, setStreamingChatResponse] = useState("");
 
   useEffect(()=>{
   }, [loadChat]);
@@ -124,19 +125,16 @@ function App() {
   const handleToggleChats = () => {
     let newState = !chatsOpen
     setChatsOpen(newState);
-    localStorage.setItem('chatsOpenDefault', newState);
   }
 
   const handleTogglePromptComposer = () => {
     let newState = !promptComposerOpen
     setPromptComposerOpen(newState);
-    localStorage.setItem('promptComposerOpenDefault', newState);
   }
 
   const handleTogglePersonas = () => {
     let newState = !personasOpen
     setPersonasOpen(newState);
-    localStorage.setItem('personasOpenDefault', newState);
   }
 
   const handleCreateNote = () => {
@@ -147,7 +145,6 @@ function App() {
   const handleToggleNotes = () => {
     let newState = !notesOpen
     setNotesOpen(newState);
-    localStorage.setItem('notesOpenDefault', newState);
   }
 
   const handleNoteChange = (change) => {
@@ -297,6 +294,7 @@ function App() {
             setShouldAskAgainWithPersona={setShouldAskAgainWithPersona}
             serverUrl={serverUrl}
             token={token} setToken={setToken}
+            streamingChatResponse={streamingChatResponse}
             />
             { promptComposerOpen ? <PromptComposer 
               handleTogglePromptComposer={handleTogglePromptComposer} 
@@ -328,6 +326,8 @@ function App() {
               shouldAskAgainWithPersona={shouldAskAgainWithPersona}
               serverUrl={serverUrl}
               token={token} setToken={setToken}
+              streamingChatResponse={streamingChatResponse}
+              setStreamingChatResponse={setStreamingChatResponse}
               />
             <Note 
               noteOpen={noteOpen}

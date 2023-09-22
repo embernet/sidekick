@@ -10,6 +10,7 @@
 - [Guided tour](#guided-tour)
   - [Login](#login)
   - [Chat with OpenAI GPT-4 or GPT-3.5-turbo](#chat-with-openai-gpt-4-or-gpt-35-turbo)
+  - [Chat context menu](#chat-context-menu)
   - [Pick from different AI personas](#pick-from-different-ai-personas)
   - [Ask again with different personas](#ask-again-with-different-personas)
   - [Change the AI model settings](#change-the-ai-model-settings)
@@ -35,7 +36,7 @@ It provides a chat interface to OpenAI's GPT models along with pre-canned AI per
 
 ## Login
 
-Login, or create a new account if you don't already have one.
+Login, or create a new account if you don't already have one. Each user has their own database of chats and notes.
 
 ![Logon page](docs/images/Sidekick_Login.png)
 
@@ -46,9 +47,15 @@ All your chats will be stored in Sidekick and you can edit them and use them to 
 
 ![Sidekick AI Chat](docs/images/Sidekick_Chat.png)
 
+## Chat context menu
+
+Right clicking on a message in the chat lets you copy it to the clipboard, copy it as HTML, append it to the prompt, use it as the prompt, append it to a note, append all messages to a note, delete it, or delete all messages. Curating the chat history by deleting individual messages that were not what you wanted can be a useful way to improve the AI's responses.
+
+![Sidekick chat context menu](docs/images/Sidekick_Chat_Context_Menu.png)
+
 ## Pick from different AI personas
 
-Personas lets you change the persona of the AI to the response can be provided from a perspective that suits your purpose.
+Personas lets you change the persona of the AI to the response can be provided from a perspective that suits your purpose. You can filter personas by name, keywords in their profile, and favourite status. So you can search for personas that are good at a particular topic or that have a particular personality. E.g. try searching for expert, creative, logic, company.
 
 ![Sidekick AI Personas](docs/images/Sidekick_Personas.png)
 

@@ -42,7 +42,8 @@ const Chat = ({
     newPromptPart, loadChat, setAppendNoteContent,
     focusOnPrompt, setFocusOnPrompt, chatRequest, chatOpen, setChatOpen,
     temperatureText, setTemperatureText, modelSettingsOpen, setModelSettingsOpen,
-    onChange, personasOpen, setPersonasOpen, setOpenChatId, shouldAskAgainWithPersona, serverUrl, token, setToken}) => {
+    onChange, personasOpen, setPersonasOpen, setOpenChatId, shouldAskAgainWithPersona, serverUrl, token, setToken,
+    streamingChatResponse, setStreamingChatResponse}) => {
 
     const system = useContext(SystemContext);
     const [id, setId] = useState("");
@@ -59,7 +60,6 @@ const Chat = ({
     const [previousPersona, setPreviousPersona] = useState({});
     const [myShouldAskAgainWithPersona, setMyShouldAskAgainWithPersona] = useState(null);
 
-    const [streamedChatResponse, setStreamedChatResponse] = useState("");
     const [newStreamDelta, setNewStreamDelta] = useState({value: "", done: true, timestamp: Date.now()});
     const [stopStreaming, setStopStreaming] = useState(false);
     const [systemPrompt, setSystemPrompt] = useState("");
@@ -212,17 +212,17 @@ const Chat = ({
         }
         if (newStreamDelta.done) {
             console.log("Stream complete");
-            setStreamedChatResponse("");
-            appendMessage({"role": "assistant", "content": streamedChatResponse});
+            setStreamingChatResponse("");
+            appendMessage({"role": "assistant", "content": streamingChatResponse});
             showReady();
         } else {
-            setStreamedChatResponse(r => r + newStreamDelta.value);
+            setStreamingChatResponse(r => r + newStreamDelta.value);
         }
     }, [newStreamDelta]);
 
     useEffect(()=>{
         if (loadChat) {
-            if (streamedChatResponse !== "") {
+            if (streamingChatResponse !== "") {
                 system.info("Please wait for the current chat to finish loading before loading another chat.");
             } else {
                 console.log("loadChat", loadChat);
@@ -538,8 +538,33 @@ const Chat = ({
         setMessageContextMenu(null);
     };
 
+    const messagesAs = (format="markdown") => {
+        let text = "";
+        messages.forEach((message) => {
+            let role = message.role.charAt(0).toUpperCase() + message.role.slice(1)
+            if (format === "markdown") {
+                text += `**${role}:**\n\n`;
+            } else {
+                text += role + ":\n\n" 
+            }
+            text += message.content + "\n\n\n";
+        });
+        return text;
+    }
+
+    const handleCopyAllAsText = () => {
+        navigator.clipboard.writeText(messagesAs("text"));
+        setMessageContextMenu(null);
+    };
+
     const handleCopyMessageAsHTML = () => {
         new ContentFormatter(messageContextMenu.message.content).copyAsHtml();
+        setMessageContextMenu(null);
+    };
+
+    const handleCopyAllAsHTML = () => {
+        let html = messagesAs("markdown");
+        new ContentFormatter(html).copyAsHtml();
         setMessageContextMenu(null);
     };
 
@@ -758,11 +783,13 @@ const Chat = ({
                                     : undefined
                                 }
                             >
-                                <MenuItem onClick={handleCopyMessageAsText}>Copy as text</MenuItem>
-                                <MenuItem onClick={handleCopyMessageAsHTML}>Copy as html</MenuItem>
-                                <MenuItem onClick={handleAppendToChatInput}>Append to chat input</MenuItem>
-                                <MenuItem onClick={handleUseAsChatInput}>Use as chat input</MenuItem>
-                                <MenuItem onClick={handleAppendToNote}>Append to note</MenuItem>
+                                <MenuItem onClick={handleCopyMessageAsText}>Copy message as text</MenuItem>
+                                <MenuItem onClick={handleCopyAllAsText}>Copy all as text</MenuItem>
+                                <MenuItem onClick={handleCopyMessageAsHTML}>Copy message as html</MenuItem>
+                                <MenuItem onClick={handleCopyAllAsHTML}>Copy all as html</MenuItem>
+                                <MenuItem onClick={handleAppendToChatInput}>Append message to chat input</MenuItem>
+                                <MenuItem onClick={handleUseAsChatInput}>Use message as chat input</MenuItem>
+                                <MenuItem onClick={handleAppendToNote}>Append message to note</MenuItem>
                                 <MenuItem onClick={handleAppendAllToNote}>Append all to note</MenuItem>
                                 <MenuItem divider />                                        
                                 <MenuItem onClick={handleDeleteThisMessage}>Delete this message</MenuItem>
@@ -772,7 +799,7 @@ const Chat = ({
                         </div>
                     </ListItem>
                 ))}
-                {streamedChatResponse && streamedChatResponse !== "" && <ListItem>
+                {streamingChatResponse && streamingChatResponse !== "" && <ListItem>
                     <Card sx={{ 
                         padding: 2, 
                         width: "100%", 
@@ -781,7 +808,7 @@ const Chat = ({
                     }}
                     >
                         <Typography sx={{ whiteSpace: 'pre-wrap' }}>
-                            {streamedChatResponse}
+                            {streamingChatResponse}
                         </Typography>
                     </Card>
                 </ListItem>}
@@ -789,12 +816,14 @@ const Chat = ({
         </Box>
         <SecondaryToolbar className={ClassNames.toolbar}>
             <Tooltip title={ "Ask again" }>
-                <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleAskAgain}>
+                <IconButton edge="start" color="inherit" aria-label="menu" 
+                    disabled={streamingChatResponse !== ""} onClick={handleAskAgain}>
                     <ReplayIcon/>
                 </IconButton>
             </Tooltip>
             <Tooltip title={ "Reload last prompt for editing" }>
-                <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleReload}>
+                <IconButton edge="start" color="inherit" aria-label="menu"
+                    disabled={streamingChatResponse !== ""} onClick={handleReload}>
                     <RedoIcon/>
                 </IconButton>
             </Tooltip>
@@ -816,7 +845,7 @@ const Chat = ({
                     </IconButton>
                 </Tooltip>} */}
                 <Tooltip title={ "Send prompt to AI" }>
-                    <IconButton edge="end" color="inherit" aria-label="send"
+                    <IconButton edge="end" color="inherit" aria-label="send" disabled={streamingChatResponse !== ""}
                         onClick={() => { setPromptToSend({prompt: prompt, timestamp: Date.now()}); }}
                     >
                         <SendIcon/>
@@ -833,7 +862,7 @@ const Chat = ({
                 onChange={e => setPrompt(e.target.value)} 
                 onKeyDown={handleSend}
                 placeholder={promptPlaceholder}
-                disabled={streamedChatResponse !== ""}
+                disabled={streamingChatResponse !== ""}
         />
     </Box>
 </Card>;
