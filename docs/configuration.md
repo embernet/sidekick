@@ -2,7 +2,7 @@
 
 ## Server API Configuration
 
-The primary server API configuration file is a YAML file located at `server_api/settings.yml` and is loaded by the application at startup.
+The primary server API configuration file is a YAML file located at `server/settings.yml` and is loaded by the application at startup.
 
 **Example configuration:**
 
@@ -21,8 +21,9 @@ port:
 
 ## Default settings for UI components
 
-The default settings for the UI components are stored in a JSON file located at `server/etc/settings_defaults`. When a new user is created, a new SQLite database is created for them and the default settings are copied into it. Chats and Notes are also stored in the user's database.
+The default settings for the UI components are stored in a JSON file located at `server/settings_defaults`. When a new user is created, a new SQLite database is created for them in `userdb_dir` and the default settings are copied into it. Chats and Notes are also stored in the user's database.
 
 If you want to change available personas or the default prompt fragments, you can edit the corresponding settings files, but will need to do this before creating a new user... or you can edit the SQLite database directly.
 
 These settings will be editable via the UI in a future release.
+A docker implementation is in process and will be available in a future release.

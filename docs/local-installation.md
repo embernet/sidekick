@@ -6,7 +6,7 @@
   - You can get one [here](https://beta.openai.com/).
   - This will enable Sidekick to use the OpenAI API to generate responses to your prompts.
 - You will need to create your own JWT_SECRET.
-  - This should be a randome alphanumeric string of at leat 32 characters
+  - This should be a random alphanumeric string of at leat 32 characters
   - This is for encrypting JSON Web Tokens used to secure the server REST end-points
 
 Create a .env file in the server directory to store the keys
@@ -139,4 +139,4 @@ If you ran them in the background using `make run-locally`, you can stop them by
 
 ### Troubleshooting
 
-If you get an error, check out the [troubleshooting guide](docs/troubleshooting.md).
+If you get an error, check out the [troubleshooting guide](troubleshooting.md).
