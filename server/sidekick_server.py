@@ -4,7 +4,7 @@
 # Description: A Chat server providing a REST interface for interacting with LLMs such as available via the OpenAI API
 
 PROGRAM_NAME = "sidekick_server"
-VERSION = "0.0.2"
+VERSION = "0.0.3"
 
 import logging
 from logging.handlers import RotatingFileHandler
@@ -438,6 +438,7 @@ def chat_v2():
                     chat_streams[tid] = data['id']
                     if 'content' in delta:
                         text = delta['content']
+                        if app.debug: print(f"{text}", end='')
                         yield(text)
                     elif 'role' in delta:
                         # discard

@@ -217,7 +217,7 @@ function App() {
                     <BuildIcon/>
                   </IconButton>
                 </Tooltip>
-                <Tooltip title={ chatOpen ? "Hide chat" : "New chat" }>
+                <Tooltip title="New chat">
                   <IconButton edge="start" color="inherit" aria-label="New chat" onClick={() => { setChatOpen(!chatOpen) }}>
                     <AddCommentIcon/>
                   </IconButton>
@@ -239,11 +239,9 @@ function App() {
                     <FolderIcon/>
                   </IconButton>
                 </Tooltip>
-                <IconButton edge="end" color="inherit" aria-label="Feedback">
-                  <FeedbackButton icon={<RateReviewIcon/>} serverUrl={serverUrl} token={token} setToken={setToken}>
+                <FeedbackButton icon={<RateReviewIcon/>} serverUrl={serverUrl} token={token} setToken={setToken}>
                     <RateReviewIcon/>
-                  </FeedbackButton>
-                </IconButton>
+                </FeedbackButton>
                 <Tooltip title={ generalSettingsOpen ? "Hide general settings" : "Show general setings" }>
                   <IconButton edge="end" color="inherit" aria-label="Settings" onClick={handleToggleGeneralSettings}>
                     <SettingsIcon/>
@@ -269,7 +267,7 @@ function App() {
             docNameChanged={chatNameChanged}
             refresh={refreshChatsExplorer}
             setRefresh={setRefreshChatsExplorer}
-            itemOpen={openChatId}
+            itemOpen={chatOpen}
             setItemOpen={setChatOpen}
             serverUrl={serverUrl}
             token={token} setToken={setToken}

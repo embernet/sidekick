@@ -12,7 +12,7 @@ build-locally: init
 build-docker: build
 	docker build --tag sidekick-web-ui .
 
-run-dev-locally: build-locally
+run-dev-locally: init
 	npm start
 
 run-prod-locally: build-locally

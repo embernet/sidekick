@@ -9,10 +9,10 @@ test: init
 build-docker:
 	docker build --tag sidekick-server .
 
-run-dev-locally:
+run-dev-locally: init
 	pipenv run python sidekick_server.py
 
-run-prod-locally:
+run-prod-locally: init
 	pipenv run gunicorn -w 4 -b 0.0.0.0:5003 sidekick_server:app
 
 run-container:

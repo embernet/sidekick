@@ -1,5 +1,22 @@
 # Release Notes
 
+## v0.0.3
+
+Functional changes:
+
+1. Default persona is now 'Answerer'
+2. Shift-return supported in prompt editor to add a new line without sending the prompt
+3. Chat and Notes explorers now highlight the open item
+
+Code improvements:
+
+1. Corrected a race condition between the streaming completion and updating the chat window that intermittently caused some deltas of the response to be dropped
+2. Removed redundant feedback button wrapper that was giving a warning
+3. project `make run-dev-locally` now no longer does a production build, which is unneccessary and takes longer
+4. server `make run-dev-locally` and `make run-prod-locally` now also do init to ensure any new library dependencies are installed
+5. Fixed bug where if the chat window is closed and a chat is clicked on in the chat explorer, a new chat is created instead of the existing chat being opened
+6. Chat window now resets itself when closed to avoid opening the last chat when the window is reopened from the app toolbar New chat button; now a new chat is created
+
 ## v0.0.2
 
 1. Option to toggle streaming of the chat response on or off added to ModelSettings window. If you have an environment you have deployed this in where it looks like the network setup or security perimeter could be getting in the way, this might solve your issue.

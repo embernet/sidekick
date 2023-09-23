@@ -141,8 +141,9 @@ const Explorer = ({handleToggleExplorer, name, icon, folder, openItemId, setLoad
             <Box  sx={{ overflow: 'auto', flex: 1 }}>
                 <List>
                     {Object.values(filteredDocs).map(doc => (
-                        <ListItem sx={{ padding: 0, pl: 1, cursor: "pointer" }} key={doc.id}>
+                        <ListItem sx={{ padding: 0, pl: 1, cursor: "pointer", backgroundColor: doc.id === openItemId && itemOpen ? "#e0e0e0" : "transparent" }} key={doc.id}>
                             <ListItemText primary={doc.name}
+                            selected={openItemId === doc.id}
                             onClick={() => handleLoadDoc(doc.id)}
                             primaryTypographyProps={{ typography: 'body2' }}
                             sx={{ fontSize: '14px' }} />

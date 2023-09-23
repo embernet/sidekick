@@ -61,6 +61,7 @@ const Chat = ({
     const [myShouldAskAgainWithPersona, setMyShouldAskAgainWithPersona] = useState(null);
 
     const [newStreamDelta, setNewStreamDelta] = useState({value: "", done: true, timestamp: Date.now()});
+    const streamingChatResponseRef = useRef("");
     const [stopStreaming, setStopStreaming] = useState(false);
     const [systemPrompt, setSystemPrompt] = useState("");
     const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady);
@@ -94,7 +95,13 @@ const Chat = ({
     }, []);
 
     useEffect(()=>{
-        chatOpen && create();
+        if (chatOpen) {
+            if (!loadChat) {
+                create();
+            }
+        } else {
+            resetChat();
+        }
     }, [chatOpen]);
 
     useEffect(()=>{
@@ -205,18 +212,13 @@ const Chat = ({
     }, [prompt]);
 
     useEffect(()=>{
-        if (stopStreaming) {
-            console.log("User stopped stream");
-            newStreamDelta.done = true;
-            setStopStreaming(false);
-        }
+        setStreamingChatResponse(r => r + newStreamDelta.value);
         if (newStreamDelta.done) {
             console.log("Stream complete");
+            const chatResponse = streamingChatResponse;
             setStreamingChatResponse("");
-            appendMessage({"role": "assistant", "content": streamingChatResponse});
+            appendMessage({"role": "assistant", "content": chatResponse});
             showReady();
-        } else {
-            setStreamingChatResponse(r => r + newStreamDelta.value);
         }
     }, [newStreamDelta]);
 
@@ -251,7 +253,7 @@ const Chat = ({
                     } catch (err) {
                         console.log(err);
                     }
-                    setChatOpen(true);
+                    if (!chatOpen) { setChatOpen(true); }
                 }).catch(error => {
                     console.error("/docdb/chat error", error);
                     system.error(`Error loading chat: ${error}`);
@@ -316,8 +318,6 @@ const Chat = ({
     const getChatStream = useCallback(async (requestData) => {
         try {
             const url = `${serverUrl}/chat/v2`;
-            let controller = new AbortController(); 
-            let signal = controller.signal;
             const request = {
                 method: 'POST',
                 headers: {
@@ -325,7 +325,6 @@ const Chat = ({
                 Authorization: 'Bearer ' + token
                 },
                 body: JSON.stringify(requestData),
-                signal: signal,
             };
             console.log("getChatStream request", request);
 
@@ -340,16 +339,20 @@ const Chat = ({
             try {
                 while (true) {
                     var {value, done} = await reader.read();
-                    // use effect hooks so the event handlers can take stopStreaming requests into account
-                    if (stopStreaming) {
-                        done = true;
+                    //setNewStreamDelta({value: value, done: done, timestamp:Date.now()});
+                    if (value) { 
+                        streamingChatResponseRef.current += value;
+                        setStreamingChatResponse(streamingChatResponseRef.current);
                     }
-                    setNewStreamDelta({value: value, done: done, timestamp:Date.now()});
-                    if (done || stopStreaming) {
+                    if (done) {
+                        const chatResponse = streamingChatResponseRef.current;
+                        streamingChatResponseRef.current = "";
+                        setStreamingChatResponse("");
+                        appendMessage({"role": "assistant", "content": chatResponse});
+                        showReady();
                         console.log("closing chat stream");
                         reader.cancel();
                         reader.releaseLock();
-                        controller.abort();
                         break;
                     }
                 }
@@ -391,8 +394,6 @@ const Chat = ({
         }
 
         showWaiting();
-        const chat_api_version = "v2";
-        console.log("Using chat_api_version", chat_api_version);   
         switch (chatStreamingOn) {
             case false:
                 setStreamingChatResponse("Waiting for response...");
@@ -422,7 +423,7 @@ const Chat = ({
     }
 
     const handleSend = (event) => {
-        if(event.key === 'Enter' && prompt) {
+        if(event.key === 'Enter'  && !event.shiftKey && prompt) {
             setLastPrompt(prompt);
             setPromptToSend({prompt: prompt, timestamp: Date.now()});
             event.preventDefault();
@@ -801,7 +802,7 @@ const Chat = ({
                         </div>
                     </ListItem>
                 ))}
-                {streamingChatResponse && streamingChatResponse !== "" && <ListItem>
+                {streamingChatResponse && streamingChatResponse !== "" && <ListItem id="streamingChatResponse">
                     <Card sx={{ 
                         padding: 2, 
                         width: "100%", 
