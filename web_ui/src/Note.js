@@ -15,6 +15,7 @@ import { MuiFileInput } from 'mui-file-input';
 
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
+import AI from './AI';
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     backgroundColor: green[300],
@@ -29,8 +30,8 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
     setNewPromptPart, setChatRequest, onChange, setOpenNoteId, serverUrl, token, setToken}) => {
     const system = useContext(SystemContext);
     const [id, setId] = useState("");
-    const [name, setName] = useState("New note");
-    const [previousName, setPreviousName] = useState("New note");
+    const [name, setName] = useState("New Note");
+    const [previousName, setPreviousName] = useState("New Note");
     const [content, setContent] = useState("");
     const [noteContextMenu, setNoteContextMenu] = useState(null);
     const [prompt, setPrompt] = useState("");
@@ -62,6 +63,7 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
                 }
                 newNote += newNotePart.trim();
                 setContent(newNote);
+                considerAutoNaming(newNote);
                 setContentFocus();
             }
         }
@@ -184,6 +186,8 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
 
     const create = () => {
             axios.post(`${serverUrl}/docdb/${folder}/documents`, {
+                "name": "New Note",
+                "tags": [],
                 "content": {
                     "note": ""
                 },
@@ -216,8 +220,8 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
 
     const resetNote = () => {
         setId(null);
-        setName("New note");
-        setPreviousName("New note");
+        setName("New Note");
+        setPreviousName("New Note");
         setTags([]);
         setContent("");
     }
@@ -310,18 +314,39 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
     };
 
     const handleUseAsChatInput = () => {
-        // Just get the selcted text
+        // Just get the selected text
         //TODO to replace whole prompt
         setNewPromptPart(noteContextMenu.note);
         setNoteContextMenu(null);
     };
 
+    const considerAutoNaming = async (content) => {
+        if (name === "New Note") {
+            // Use AI to name the note
+            const ai = new AI(serverUrl, token, setToken, system);
+            let generatedName = await ai.nameTopic(content);
+            // remove surrounding quotes if they are there
+            if ((generatedName.startsWith('"') && generatedName.endsWith('"'))
+            || (generatedName.startsWith("'") && generatedName.endsWith("'"))) {
+                generatedName = generatedName.slice(1, -1);
+            }
+            console.log("AI named note ", generatedName);
+            if (generatedName && generatedName !== "") { setName(generatedName); }
+        }
+    }
+
+    const handleContentChange = async (event) => {
+        if(event.key === 'Enter') {
+            considerAutoNaming(event.target.value);
+        }
+    }
+
     const handleSend = (event) => {
         if(event.key === 'Enter') {
             event.preventDefault();
             console.log("handleSend", prompt);
-            setPrompt("");
             setPromptToSend(prompt);
+            setPrompt("");
         }
     }
 
@@ -384,6 +409,7 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
                 variant="outlined"
                 value={content}
                 onChange={(event) => setContent(event.target.value)}
+                onKeyDown={handleContentChange}
                 />
             <Menu
                 open={noteContextMenu !== null}

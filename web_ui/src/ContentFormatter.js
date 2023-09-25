@@ -1,5 +1,4 @@
 import { marked } from 'marked';
-import { useState } from 'react';
 
 class ContentFormatter {
     constructor(content) {

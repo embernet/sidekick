@@ -14,20 +14,21 @@ import useToken from './useToken';
 import { useEffect, useState } from 'react';
 import { CssBaseline, Box, AppBar, Toolbar, IconButton, Typography, Tooltip } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+
+// Import icons
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
+import ModeCommentIcon from '@mui/icons-material/ModeComment';
 import PersonIcon from '@mui/icons-material/Person';
 import TuneIcon from '@mui/icons-material/Tune';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
-import AddCommentIcon from '@mui/icons-material/AddComment';
 import SettingsIcon from '@mui/icons-material/Settings';
 import BuildIcon from '@mui/icons-material/Build';
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import MinimizeIcon from '@mui/icons-material/Minimize';
 import FolderIcon from '@mui/icons-material/Folder';
-import LoginIcon from '@mui/icons-material/Login';
 import LogoutIcon from '@mui/icons-material/Logout';
-import BoltIcon from '@mui/icons-material/Bolt';
 import RateReviewIcon from '@mui/icons-material/RateReview';
+import HelpIcon from '@mui/icons-material/Help';
 
 import Chat from './Chat';
 import Personas from './Personas';
@@ -38,6 +39,8 @@ import Explorer from './Explorer';
 import SettingsManager from './SettingsManager';
 import Login from './Login';
 import FeedbackButton from './FeedbackButton';
+import AppSettings from './AppSettings';
+import SidekickAI from './SidekickAI';
 
 import { theme } from './theme';
 
@@ -51,13 +54,17 @@ function App() {
   const system = useContext(SystemContext);
   const { token, removeToken, setToken } = useToken();
   const chatsOpenDefault = true;
+  const chatOpenDefault = true;
   const notesOpenDefault = false;
+  const noteOpenDefault = false;
   const personasOpenDefault = false;
   const modelSettingsOpenDefault = false;
   const promptComposerOpenDefault = false;
-  const [statusMessage, setStatusMessage] = useState("");
-  const [chatOpen, setChatOpen] = useState(false);
-  const [generalSettingsOpen, setGeneralSettingsOpen] = useState(false);
+  const appSettingsOpenDefault = false;
+  const sidekickAIOpenDefault = false;
+  const [sidekickAIOpen, setSidekickAIOpen] = useState(sidekickAIOpenDefault);
+  const [chatOpen, setChatOpen] = useState(chatOpenDefault);
+  const [appSettingsOpen, setAppSettingsOpen] = useState(appSettingsOpenDefault);
   const [chatsOpen, setChatsOpen] = useState(chatsOpenDefault);
   const [personasOpen, setPersonasOpen] = useState(personasOpenDefault);
   const [modelSettingsOpen, setModelSettingsOpen] = useState(modelSettingsOpenDefault);
@@ -87,6 +94,18 @@ function App() {
   const [streamingChatResponse, setStreamingChatResponse] = useState("");
   const [chatStreamingOn, setChatStreamingOn] = useState(true);
 
+  useEffect(() => {
+    setChatOpen(chatOpenDefault);
+    setAppSettingsOpen(appSettingsOpenDefault);
+    setChatsOpen(chatsOpenDefault);
+    setPersonasOpen(personasOpenDefault);
+    setModelSettingsOpen(modelSettingsOpenDefault);
+    setPromptComposerOpen(promptComposerOpenDefault);
+    setNoteOpen(noteOpenDefault);
+    setNotesOpen(notesOpenDefault);
+    setSidekickAIOpen(sidekickAIOpenDefault);
+  }, [user]);
+
   useEffect(()=>{
   }, [loadChat]);
 
@@ -98,9 +117,9 @@ function App() {
     }
   }, [appendNoteContent]);
 
-  const handleToggleGeneralSettings = () => {
-    let newState = !generalSettingsOpen
-    setGeneralSettingsOpen(newState);
+  const handleToggleAppSettings = () => {
+    const newState = !appSettingsOpen;
+    setAppSettingsOpen(newState);
   }
 
   const handleLogout = () => {
@@ -168,7 +187,7 @@ function App() {
 
   const minimiseWindows = () => {
     setChatOpen(false);
-    setGeneralSettingsOpen(false);
+    setAppSettingsOpen(false);
     setChatsOpen(false);
     setPromptComposerOpen(false);
     setModelSettingsOpen(false);
@@ -176,6 +195,7 @@ function App() {
     setCreateNote(false);
     setNotesOpen(false);
     setNoteOpen(false);
+    setSidekickAIOpen(false);
   }
 
   // Provide a generic onChange despatcher for the chat and note components
@@ -197,6 +217,11 @@ function App() {
                 <Typography sx={{ display: "flex", alignItems: "center", justifyContent: "center" }} variant="h6">Sidekick</Typography>
                 <Typography sx={{ mr: 2, display: "inline-flex", alignItems: "center", justifyContent: "center" }} variant='subtitle2'>v{VERSION}</Typography>
                 <Typography sx={{ mr: 2, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>({user})</Typography>
+                <Tooltip title="Sidekick AI help">
+                  <IconButton edge="start" color="inherit" aria-label="Sidekick AI help" onClick={() => { setSidekickAIOpen(true) }}>
+                    <HelpIcon/>
+                  </IconButton>                  
+                </Tooltip>
                 <Tooltip title={ chatsOpen ? "Hide chat history" : "Show chat history" }>
                   <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleToggleChats}>
                     <QuestionAnswerIcon/>
@@ -218,8 +243,8 @@ function App() {
                   </IconButton>
                 </Tooltip>
                 <Tooltip title="New chat">
-                  <IconButton edge="start" color="inherit" aria-label="New chat" onClick={() => { setChatOpen(!chatOpen) }}>
-                    <AddCommentIcon/>
+                  <IconButton edge="start" color="inherit" aria-label={ chatOpen ? "Close Chat" : "New chat" } onClick={() => { setChatOpen(!chatOpen) }}>
+                    <ModeCommentIcon/>
                   </IconButton>
                 </Tooltip>
                 <Tooltip title="Minimise windows">
@@ -242,8 +267,8 @@ function App() {
                 <FeedbackButton icon={<RateReviewIcon/>} serverUrl={serverUrl} token={token} setToken={setToken}>
                     <RateReviewIcon/>
                 </FeedbackButton>
-                <Tooltip title={ generalSettingsOpen ? "Hide general settings" : "Show general setings" }>
-                  <IconButton edge="end" color="inherit" aria-label="Settings" onClick={handleToggleGeneralSettings}>
+                <Tooltip title={ appSettingsOpen ? "Hide App Settings" : "Show App Setings" }>
+                  <IconButton edge="end" color="inherit" aria-label="Settings" onClick={handleToggleAppSettings}>
                     <SettingsIcon/>
                   </IconButton>
                 </Tooltip>
@@ -257,6 +282,19 @@ function App() {
           </AppBar>
           <Box display="flex" flexDirection="row" flex="1" overflow-y="hidden" overflow="auto" width="100%">
             <ToastContainer/>
+            <AppSettings 
+              appSettingsOpen={appSettingsOpen}
+              setAppSettingsOpen={setAppSettingsOpen}
+              user={user}
+              setUser={setUser}
+              serverUrl={serverUrl} token={token} setToken={setToken}
+            />
+            <SidekickAI
+              sidekickAIOpen={sidekickAIOpen}
+              setSidekickAIOpen={setSidekickAIOpen}
+              chatStreamingOn={chatStreamingOn} 
+              serverUrl={serverUrl} token={token} setToken={setToken}
+            />
             { chatsOpen ? <Explorer
             handleToggleExplorer={handleToggleChats}
             name="Chats"
@@ -269,8 +307,7 @@ function App() {
             setRefresh={setRefreshChatsExplorer}
             itemOpen={chatOpen}
             setItemOpen={setChatOpen}
-            serverUrl={serverUrl}
-            token={token} setToken={setToken}
+            serverUrl={serverUrl} token={token} setToken={setToken}
             /> : null}
             <ModelSettings 
             setModelSettings={setModelSettings}
@@ -280,8 +317,7 @@ function App() {
             temperatureText={temperatureText}
             setTemperatureText={setTemperatureText}
             settingsManager={new SettingsManager(serverUrl, token, setToken)}
-            serverUrl={serverUrl}
-            token={token} setToken={setToken}
+            serverUrl={serverUrl} token={token} setToken={setToken}
             chatStreamingOn={chatStreamingOn}
             setChatStreamingOn={setChatStreamingOn}
             />
@@ -293,16 +329,14 @@ function App() {
             personasOpen={personasOpen}
             settingsManager={new SettingsManager(serverUrl, token, setToken)}
             setShouldAskAgainWithPersona={setShouldAskAgainWithPersona}
-            serverUrl={serverUrl}
-            token={token} setToken={setToken}
+            serverUrl={serverUrl} token={token} setToken={setToken}
             streamingChatResponse={streamingChatResponse}
             />
             { promptComposerOpen ? <PromptComposer 
               handleTogglePromptComposer={handleTogglePromptComposer} 
               setNewPromptPart={setNewPromptPart}
               settingsManager={new SettingsManager(serverUrl, token, setToken)}
-              serverUrl={serverUrl}
-              token={token} setToken={setToken}
+              serverUrl={serverUrl} token={token} setToken={setToken}
               /> : null }
             <Chat 
               provider = {provider}
@@ -325,8 +359,7 @@ function App() {
               onChange={onChange(handleChatChange)}
               setOpenChatId={setOpenChatId}
               shouldAskAgainWithPersona={shouldAskAgainWithPersona}
-              serverUrl={serverUrl}
-              token={token} setToken={setToken}
+              serverUrl={serverUrl} token={token} setToken={setToken}
               streamingChatResponse={streamingChatResponse}
               setStreamingChatResponse={setStreamingChatResponse}
               chatStreamingOn={chatStreamingOn}
@@ -341,8 +374,7 @@ function App() {
               setChatRequest={setChatRequest}
               onChange={onChange(handleNoteChange)}
               setOpenNoteId={setOpenNoteId}
-              serverUrl={serverUrl}
-              token={token} setToken={setToken}
+              serverUrl={serverUrl} token={token} setToken={setToken}
               />
               { notesOpen ? <Explorer
               handleToggleExplorer={handleToggleNotes}
@@ -356,8 +388,7 @@ function App() {
               setRefresh={setRefreshNotesExplorer}
               itemOpen={noteOpen} // tell the explorer which note is open
               setItemOpen={setNoteOpen}
-              serverUrl={serverUrl}
-              token={token} setToken={setToken}
+              serverUrl={serverUrl} token={token} setToken={setToken}
               /> : null}
         </Box>
       </Box>

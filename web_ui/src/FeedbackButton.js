@@ -74,6 +74,7 @@ const FeedbackButton = ({icon, serverUrl, token, setToken}) => {
     .then(response => {
         console.log('Feedback submitted successfully');
         response.data.access_token && setToken(response.data.access_token);
+        system.info('Thank you for the feedback!');
         setShowModal(false);
     })
     .catch(error => {

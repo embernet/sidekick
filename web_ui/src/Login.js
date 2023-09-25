@@ -13,36 +13,31 @@ function Login({setUser, serverUrl, setToken}) {
   const [pageLoaded, setPageLoaded] = useState(false);
 
   const containerStyle = {
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      height: '100%',
-    };
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    height: '100%',
+  };
+
+  const formContainerStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'top',
+    flex: 1,
+  };
   
-    const formContainerStyle = {
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'top',
-      flex: 1,
-    };
-    
-    const inputContainerStyle = {
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      marginTop: '50px',
-    };
-  
-    const inputStyle = {
-      margin: '10px',
-      padding: '5px',
-    };
-  
-    const buttonStyle = {
-      margin: '10px',
-      padding: '5px',
-    };
+  const inputContainerStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginTop: '50px',
+  };
+
+  const inputStyle = {
+    margin: '10px',
+    padding: '5px',
+  };
 
   useEffect(() => {
       if (!pageLoaded) {
@@ -123,12 +118,12 @@ function Login({setUser, serverUrl, setToken}) {
             )}
             {tabIndex === 1 && (
                 <Box style={inputContainerStyle} component="form">
-                    <TextField type="text" id="new_user_id" placeholder="Username" 
-                        style={inputStyle} onChange={(e) => setUserId(e.target.value)} 
-                        autoComplete="username" />
-                    <TextField type="password" id="new_password" placeholder="Password" 
-                        style={inputStyle} onChange={(e) => setPassword(e.target.value)} 
-                        autoComplete='current-password' />
+                    <TextField type="text" placeholder="Username" 
+                        style={inputStyle} autoComplete="false" onChange={(e) => setUserId(e.target.value)} 
+                        />
+                    <TextField type="password" placeholder="Password" 
+                        style={inputStyle} autoComplete="false" onChange={(e) => setPassword(e.target.value)} 
+                        />
                     <Button onClick={handleCreateAccount} default>Create Account</Button>
                 </Box>
             )}

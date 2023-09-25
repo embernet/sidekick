@@ -1,5 +1,22 @@
 # Release Notes
 
+## v0.0.4
+
+Functional changes:
+
+1. Sidekick Manual added, click the ? icon on the toolbar
+2. Sidekick AI Help added, ask questions of the manual rather than reading it!
+3. Chats are automatically named. New empty chats are named "New Chat". If this is their name when you enter a prompt, they will be automatically given a name based on the text in the prompt.
+4. Notes are automatically named. New empty notes are named "New Note". If the note has that name when you have entered text into it and hit return or have copied text from the chat into the note then the note will be give a name automatically based on that text.
+5. Travel Agent persona added
+6. Settings cog top right now opens the App settings window
+7. Change password option added to App settings window
+8. Delete account option added to App settings window
+
+Code improvements:
+
+1. Add persona button removed as this was not implemented yet; it will be added in a future release
+
 ## v0.0.3
 
 Functional changes:

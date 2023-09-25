@@ -16,6 +16,14 @@ const PromptComposer = ({handleTogglePromptComposer, setNewPromptPart, settingsM
     const [promptPartsLoaded, setPromptPartsLoaded] = useState(false);
     const [loadingPromptPartsMessage, setLoadingPromptPartsMessage] = useState("Loading prompt parts...");
     const [mySettingsManager, setMySettingsManager] = useState(settingsManager);
+    const [openSections, setOpenSections] = useState(() => {
+        let newState = {};
+        Object.keys(promptParts).forEach((key) => {
+          newState[key] = true;
+        });
+        return newState;
+    });
+
 
     useEffect(()=>{
         mySettingsManager.loadSettings("prompt_composer",
@@ -27,16 +35,8 @@ const PromptComposer = ({handleTogglePromptComposer, setNewPromptPart, settingsM
                 console.log("get prompt_parts:", error);
                 setLoadingPromptPartsMessage("Error loading prompt parts: " + error);
             }
-        )
+        );
     }, []);
-
-    const [openSections, setOpenSections] = useState(() => {
-        let newState = {};
-        Object.keys(promptParts).forEach((key) => {
-          newState[key] = true;
-        });
-        return newState;
-    });
 
     const handleExpandCollapse = () => {
         let newState = !expanded;

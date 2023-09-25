@@ -14,6 +14,9 @@ class DocDB_SQLite:
         self.create_tables()
         self.setup_tables()
 
+    def delete(self):
+        os.remove(self.db_path)
+
     def create_tables(self):
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()

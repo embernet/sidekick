@@ -28,7 +28,7 @@
 
 # Description
 
-Sidekick is an AI powered tool for creativity, thinking, exploring ideas, problem-solving, knowledge-building, and getting things done.
+Sidekick is an AI powered tool for creativity, thinking, learning, exploring ideas, problem-solving, knowledge-building, and getting things done.
 
 It provides a chat interface to OpenAI's GPT models along with pre-canned AI personas and a prompt fragment library to help you get more out of the AI and a working environment where you can create notes by selecting the most interesting and useful parts of the chat to edit and organise into a more complete text aligned with what you want.
 
@@ -55,7 +55,7 @@ Right clicking on a message in the chat lets you copy it to the clipboard, copy 
 
 ## Pick from different AI personas
 
-Personas lets you change the persona of the AI to the response can be provided from a perspective that suits your purpose. You can filter personas by name, keywords in their profile, and favourite status. So you can search for personas that are good at a particular topic or that have a particular personality. E.g. try searching for expert, creative, logic, company.
+The Personas tool lets you change the persona of the AI so the response can be provided from a perspective that suits your purpose. You can filter personas by name, keywords in their profile, and favourite status. So you can search for personas that are good at a particular topic or that have a particular personality. E.g. try searching for expert, creative, logic, company.
 
 ![Sidekick AI Personas](docs/images/Sidekick_Personas.png)
 

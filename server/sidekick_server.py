@@ -4,7 +4,7 @@
 # Description: A Chat server providing a REST interface for interacting with LLMs such as available via the OpenAI API
 
 PROGRAM_NAME = "sidekick_server"
-VERSION = "0.0.3"
+VERSION = "0.0.4"
 
 import logging
 from logging.handlers import RotatingFileHandler
@@ -286,7 +286,6 @@ def get_settings(name):
         log_exception(e)
         return str(e), RESULT_INTERNAL_SERVER_ERROR
 
-
 @app.route('/settings/<name>', methods=['PUT'])
 @jwt_required()
 def save_settings(name):
@@ -315,21 +314,54 @@ def save_settings(name):
         log_exception(e)
         return str(e), RESULT_INTERNAL_SERVER_ERROR
 
-def construct_ai_request(request):
-    model_settings = {}
-    if ('chatHistory' in request.json):
-        chatHistory = request.json['chatHistory']
-    else:
-        chatHistory = []
-    model_settings = request.json["model_settings"]
-    system_prompt = request.json["system_prompt"]
-    prompt = request.json["prompt"]
-    chatHistory = request.json["chatHistory"] if ('chatHistory' in request.json) else []
-    ai_request = model_settings["request"]
-    ai_request["messages"] = [{ "role": "system", "content": system_prompt }] +\
-          chatHistory + [{ "role": "user", "content": prompt }]
+def construct_name_topic_request(request):
+    ai_request = {
+        "model": "gpt-3.5-turbo",
+        "temperature": 0.9,
+        "messages": [
+            { "role": "system", "content": "You generate concise names \
+for topics by reading the text and generating a name that is short and \
+reflects what the text is about. Do not surround the name in speech marks." },\
+{ "role": "user", "content": "Provide a short title to name the topic of this text: " + request.json['text']}]
+    }
     if app.debug: print(f"ai_request: {ai_request}")
     return ai_request
+
+# Provide a name for the topic of the provided text
+@app.route('/nametopic', methods=['POST'])
+@jwt_required()
+def name_topic():
+    logger.info(f"/nametopic POST request from:{request.remote_addr}")
+    if app.debug: print("/nametopic request:\n", json.dumps(request.json, indent=4))
+    ai_request = construct_name_topic_request(request)
+    try:
+        response = openai.ChatCompletion.create(**ai_request)
+        ai_response = { 
+            "success": True,
+            "topic_name": response.choices[0]["message"]["content"]
+        }
+        if app.debug: print(f"openai response: {response}")
+        server_stats["chat_interaction_count"] += 1
+        server_stats["prompt_tokens"] += response["usage"]["prompt_tokens"]
+        server_stats["completion_tokens"] += response["usage"]["completion_tokens"]
+        server_stats["total_tokens"] += response["usage"]["total_tokens"]
+        # Usage is metadata about the chat rather than the document that contains the chat, so it goes in the content
+        message_usage = {
+            "prompt_tokens": response["usage"]["prompt_tokens"],
+            "completion_tokens": response["usage"]["completion_tokens"],
+            "total_tokens": response["usage"]["total_tokens"],
+        }
+        ai_response["usage"] = message_usage
+    except Exception as e:
+        log_exception(e)
+        ai_response = {
+            "success": False,
+            "error": str(e)
+        }
+    ai_response_json = jsonify(ai_response)
+    if app.debug: print("/nametopic response:\n", json.dumps(ai_response, indent=4))
+    return ai_response_json
+
 
 def save_chat(folder_name, request):
     name = request.json['name'] if ('name' in request.json) else config["default_chat_name"]
@@ -346,6 +378,24 @@ def save_chat(folder_name, request):
 
     if app.debug: print(f"document: {json.dumps(document, indent=4)}")
     return document
+
+
+def construct_ai_request(request):
+    model_settings = {}
+    if ('chatHistory' in request.json):
+        chatHistory = request.json['chatHistory']
+    else:
+        chatHistory = []
+    model_settings = request.json["model_settings"]
+    system_prompt = request.json["system_prompt"]
+    prompt = request.json["prompt"]
+    chatHistory = request.json["chatHistory"] if ('chatHistory' in request.json) else []
+    ai_request = model_settings["request"]
+    ai_request["messages"] = [{ "role": "system", "content": system_prompt }] +\
+          chatHistory + [{ "role": "user", "content": prompt }]
+    if app.debug: print(f"ai_request: {ai_request}")
+    return ai_request
+
 
 # Route to chat with the AI
 @app.route('/chat/v1', methods=['POST'])
@@ -591,11 +641,11 @@ def login():
 def change_password():
     data = request.get_json()
     user_id = data['user_id']
-    old_password = data['old_password']
+    current_password = data['current_password']
     new_password = data['new_password']
     logger.info(f"/change_password user_id:{user_id} [POST] request from:{request.remote_addr}")
     try:
-        result = auth.change_password(user_id, old_password, new_password)
+        result = auth.change_password(user_id, current_password, new_password)
         return jsonify(result)
     except Exception as e:
         logger.error(f"/change_password user_id:{user_id} error:{str(e)}")
@@ -610,6 +660,10 @@ def delete_user():
     password = data['password']
     logger.info(f"/delete_user user_id:{user_id} [POST] request from:{request.remote_addr}")
     try:
+        # delete the user's db first and then their entry from the login db in case there is an issue,
+        # they will still be able to login to delete the account when the issue is resolved
+        userDB().delete()
+        # delete the user from the login database
         result = auth.delete_user(user_id, password)
         return jsonify(result)
     except Exception as e:

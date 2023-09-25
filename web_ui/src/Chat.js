@@ -25,6 +25,8 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
+import AI from './AI';
+
 
 import { grey } from '@mui/material/colors';
 
@@ -74,8 +76,7 @@ const Chat = ({
     const [myServerUrl, setMyServerUrl] = useState(serverUrl);
 
     const setPromptFocus = () => {
-        let cp = document.getElementById("chat-prompt")
-        if (cp !== null) { cp.focus(); }
+        document.getElementById("chat-prompt")?.focus();
     }
 
     useEffect(()=>{
@@ -366,7 +367,7 @@ const Chat = ({
 
     }, [stopStreaming]);
 
-    const sendPrompt = (prompt) => {
+    const sendPrompt = async (prompt) => {
         // setup as much of the request as we can before calling appendMessage
         // as that will wait for any re-rendering and the id could change in that time
         let requestData = {
@@ -394,6 +395,23 @@ const Chat = ({
         }
 
         showWaiting();
+
+        // Get GPT to name the chat based on the content of the first message
+        if (name === "New Chat") {
+            // Use AI to name the chat
+            const ai = new AI(serverUrl, token, setToken, system);
+            let generatedName = await ai.nameTopic(requestData.prompt);
+            // remove surrounding quotes if they are there
+            if ((generatedName.startsWith('"') && generatedName.endsWith('"'))
+            || (generatedName.startsWith("'") && generatedName.endsWith("'"))) {
+                generatedName = generatedName.slice(1, -1);
+            }
+            console.log("AI named chat ", generatedName);
+            if (generatedName && generatedName !== "") { setName(generatedName); }
+        }
+
+        // Send the chat history and prompt using the streaming/non-streaming API
+        // based on what the user selected in ModelSettings
         switch (chatStreamingOn) {
             case false:
                 setStreamingChatResponse("Waiting for response...");
@@ -458,13 +476,15 @@ const Chat = ({
 
     const create = () => {
         setId("");
-        setName("New chat");
-        setPreviousName("New chat");
+        const newChatName = "New Chat"
+        setName(newChatName);
+        setPreviousName(newChatName);
         setMessages([]);
         setPrompt("");
         setLastPrompt("");
         let request = {
-            name: "New chat",
+            name: newChatName,
+            tags: [],
             content: {
                 chat: [],
             }

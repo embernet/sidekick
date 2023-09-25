@@ -38,14 +38,14 @@ class AuthServer_SQLite:
             conn.commit()
             return {'success': True}
                 
-    def change_password(self, user_id, old_password, new_password):
+    def change_password(self, user_id, current_password, new_password):
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
         c.execute('SELECT * FROM users WHERE id = ?', (user_id,))
         row = c.fetchone()
         if row:
             password_hash = row[1]
-            if bcrypt.checkpw(old_password.encode('utf-8'), password_hash.encode('utf-8')):
+            if bcrypt.checkpw(current_password.encode('utf-8'), password_hash.encode('utf-8')):
                 new_password_hash = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
                 c.execute('UPDATE users SET password_hash = ? WHERE id = ?', (new_password_hash, user_id))
                 conn.commit()
@@ -60,6 +60,7 @@ class AuthServer_SQLite:
         if row:
             password_hash = row[1]
             if bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8')):
+                # remove the user from the login database
                 c.execute('DELETE FROM users WHERE id = ?', (user_id,))
                 conn.commit()
                 return {'success': True}

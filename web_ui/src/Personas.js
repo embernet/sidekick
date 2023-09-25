@@ -247,9 +247,6 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
                         <ExpandIcon/>
                     </IconButton>
                 </Tooltip>
-                <IconButton edge="start" color="inherit" aria-label="Add persona">
-                    <PersonAddIcon/>
-                </IconButton>
                 <Tooltip title="Close window">
                     <IconButton onClick={handleTogglePersonas}>
                         <CloseIcon />
