@@ -48,7 +48,7 @@ import { runtimeEnvironment } from './ServerUrlThunk';
 import { Toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const VERSION = "0.0.1";
+const VERSION = "0.0.4";
 
 function App() {
   const system = useContext(SystemContext);
