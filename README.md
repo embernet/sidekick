@@ -13,11 +13,16 @@
   - [Chat context menu](#chat-context-menu)
   - [Pick from different AI personas](#pick-from-different-ai-personas)
   - [Ask again with different personas](#ask-again-with-different-personas)
+  - [Syntax highlighting of code](#syntax-highlighting-of-code)
   - [Change the AI model settings](#change-the-ai-model-settings)
   - [Sidekick Prompt Composer](#sidekick-prompt-composer)
+  - [Sidekick Manual](#sidekick-manual)
+  - [Sidekick AI Help](#sidekick-ai-help)
 - [Why Sidekick?](#why-sidekick)
 - [Sidekick Features](#sidekick-features)
+- [Sidekick Release Notes](#sidekick-release-notes)
 - [Usage](#usage)
+- [Examples](#examples)
 - [Running Sidekick](#running-sidekick)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
@@ -25,6 +30,7 @@
 - [About](#about)
   - [License](#license)
   - [Roadmap](#roadmap)
+- [References](#references)
 
 # Description
 
@@ -65,6 +71,11 @@ Different personas can give you different perspectives on the same prompt.
 
 ![Sidekick ask again with persona](docs/images/Sidekick_Ask_Again_With_Persona.png)
 
+## Syntax highlighting of code
+
+Code blocks are syntax highlighted.
+
+![Sidekick Syntax Highlighting](docs/images/Sidekick_Syntax_Highlighting.png)
 ## Change the AI model settings
 
 Model settings lets you change the model and the temperature and other settings to alter (creativity / consistency) of the response.
@@ -76,6 +87,20 @@ Model settings lets you change the model and the temperature and other settings 
 Prompt composer lets you build your prompt from a library of fragments.
 
 ![Sidekick Prompt Composer](docs/images/Sidekick_Prompt_Composer.png)
+
+## Sidekick Manual
+
+The Sidekick Manual explains the features of the tool, the ideas behind them, how to use Sidekick and different scenarios you can use it for.
+
+![Sidekick Manual](docs/images/Sidekick_Manual.png)
+
+## Sidekick AI Help
+
+Sidekick AI Help lets you ask questions of the manual rather than reading it!
+
+It also draws on the knowledge of GPT to expand on the principles outlined in the manual, which includes innovation techniques as well as descriptions of how the tool can be used, and provides examples of how to apply the tool to what you are working on.
+
+![Sidekick AI Help](docs/images/Sidekick_AI_Help.png)
 
 # Why Sidekick?
 
@@ -105,6 +130,10 @@ You can either just deploy this and let it run, or you can use it as a starting 
   - Ask questions about your notes
   - Ask for a summary of your notes
   - Ask for a summary of your notes on a specific topic
+
+# Sidekick Release Notes
+
+Go here: [Release notes](docs/release_notes.md)
 
 # Usage
 
@@ -141,6 +170,10 @@ You can either just deploy this and let it run, or you can use it as a starting 
     1. Change the model
     2. Change the temperature and other model settings to alter (creativity / consistency) of the response
 
+# Examples
+
+- [How can I use Sidekick to help me develop an IT Transformation Strategy?](docs/examples/IT_Transformation_Strategy.md)
+
 # Running Sidekick
 
 ## Prerequisites
@@ -171,3 +204,7 @@ This project is in active development, however each release is intended to be re
 ## Roadmap
 
 This project is in active development. You can see the roadmap [here](docs/ROADMAP.md).
+
+# References
+
+Go here: [References](docs/references.md)
