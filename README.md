@@ -203,7 +203,7 @@ This project is in active development, however each release is intended to be re
 
 ## Roadmap
 
-This project is in active development. You can see the roadmap [here](docs/ROADMAP.md).
+This project is in active development. You can see the roadmap [here](docs/roadmap.md).
 
 # References
 
