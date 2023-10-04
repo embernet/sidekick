@@ -17,13 +17,6 @@
                         "frequencyPenalty": 0,
                         "presencePenalty": 0,
                         "systemMessage": "You are a helpful advisor."
-                    },
-                    "gpt-3.5-16k": {
-                        "temperature": 0.7,
-                        "topP": 1,
-                        "frequencyPenalty": 0,
-                        "presencePenalty": 0,
-                        "systemMessage": "You are a helpful advisor."
                     }
                 },
                 "default": "gpt-4"

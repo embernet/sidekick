@@ -47,6 +47,7 @@ USERDB_DIR_SETTING = "userdb_dir"
 LOGINDB_DIR_SETTING = "logindb_dir"
 FEEDBACKDB_DIR_SETTING = "feedbackdb_dir"
 SETTINGS_DIR_SETTING = "settings_dir"
+CUSTOM_SETTINGS_DIR_SETTING = "custom_settings_dir"
 LOGS_DIR_SETTING = "logs_dir"
 
 if not os.path.exists("./etc"): os.makedirs("./etc")
@@ -251,6 +252,25 @@ def get_models():
     models = openai.Model.list()
     return jsonify(models)
 
+
+@app.route('/custom_settings/<name>', methods=['GET'])
+def get_custom_settings(name):
+    logger.info(f"/custom_settings/{name} GET request from:{request.remote_addr}")
+    try:
+        file_path = os.path.join(config[CUSTOM_SETTINGS_DIR_SETTING], f"{name}.json")
+        if app.debug: print(f"Loading custom settings from file_path: {file_path}")
+        if os.path.exists(file_path):
+            with open(file_path, 'r') as f:
+                settings = json.load(f)
+            return jsonify(settings), 200
+        else:
+            # Custom settings are optional; no file, so return empty custom settings
+            return jsonify({}), 200
+    except Exception as e:
+        log_exception(e)
+        return jsonify({'error': str(e)}), 500
+    
+
 class OrderedEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, OrderedDict):
@@ -322,7 +342,7 @@ def construct_name_topic_request(request):
             { "role": "system", "content": "You generate concise names \
 for topics by reading the text and generating a name that is short and \
 reflects what the text is about. Do not surround the name in speech marks." },\
-{ "role": "user", "content": "Provide a short title to name the topic of this text: " + request.json['text']}]
+{ "role": "user", "content": "Provide a short single phrase to use as a title for this text: " + request.json['text']}]
     }
     if app.debug: print(f"ai_request: {ai_request}")
     return ai_request
@@ -336,9 +356,14 @@ def name_topic():
     ai_request = construct_name_topic_request(request)
     try:
         response = openai.ChatCompletion.create(**ai_request)
+        topic_name = response.choices[0]["message"]["content"]
+        if "\n" in topic_name:
+            topic_name = topic_name.split("\n", 1)[0] # if there are multiple lines, just use the first one
+        topic_name = topic_name.strip('"\'') # remove surrounding quotes
+        topic_name = topic_name.lstrip('- ') # remove leading dash or space
         ai_response = { 
             "success": True,
-            "topic_name": response.choices[0]["message"]["content"]
+            "topic_name": topic_name
         }
         if app.debug: print(f"openai response: {response}")
         server_stats["chat_interaction_count"] += 1

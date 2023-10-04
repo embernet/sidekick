@@ -18,17 +18,21 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 // Import icons
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import ModeCommentIcon from '@mui/icons-material/ModeComment';
+import AddCommentIcon from '@mui/icons-material/AddComment';
+
 import PersonIcon from '@mui/icons-material/Person';
 import TuneIcon from '@mui/icons-material/Tune';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import SettingsIcon from '@mui/icons-material/Settings';
 import BuildIcon from '@mui/icons-material/Build';
+import NotesIcon from '@mui/icons-material/Notes';
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import MinimizeIcon from '@mui/icons-material/Minimize';
 import FolderIcon from '@mui/icons-material/Folder';
 import LogoutIcon from '@mui/icons-material/Logout';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import HelpIcon from '@mui/icons-material/Help';
+
 
 import Chat from './Chat';
 import Personas from './Personas';
@@ -48,7 +52,7 @@ import { runtimeEnvironment } from './ServerUrlThunk';
 import { Toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const VERSION = "0.0.4";
+const VERSION = "0.0.5";
 
 function App() {
   const system = useContext(SystemContext);
@@ -63,22 +67,28 @@ function App() {
   const appSettingsOpenDefault = false;
   const sidekickAIOpenDefault = false;
   const [sidekickAIOpen, setSidekickAIOpen] = useState(sidekickAIOpenDefault);
+  const [sidekickAIPinnedOpen, setSidekickAIPinnedOpen] = useState(sidekickAIOpenDefault);
   const [chatOpen, setChatOpen] = useState(chatOpenDefault);
   const [appSettingsOpen, setAppSettingsOpen] = useState(appSettingsOpenDefault);
   const [chatsOpen, setChatsOpen] = useState(chatsOpenDefault);
+  const [chatsPinned, setChatsPinned] = useState(false);
   const [personasOpen, setPersonasOpen] = useState(personasOpenDefault);
+  const [personasPinned, setPersonasPinned] = useState(false);
   const [modelSettingsOpen, setModelSettingsOpen] = useState(modelSettingsOpenDefault);
+  const [modelSettingsPinned, setModelSettingsPinned] = useState(false);
   const [promptComposerOpen, setPromptComposerOpen] = useState(promptComposerOpenDefault);
+  const [promptComposerPinned, setPromptComposerPinned] = useState(false);
   const [createNote, setCreateNote] = useState(false);
-  const [noteOpen, setNoteOpen] = useState(false);
+  const [noteOpen, setNoteOpen] = useState(noteOpenDefault);
   const [notesOpen, setNotesOpen] = useState(notesOpenDefault);
+  const [notesPinned, setNotesPinned] = useState(false);
   const [provider, setProvider] = useState(null);
   const [modelSettings, setModelSettings] = useState({});
   const [persona, setPersona] = useState({});
   const [newPromptPart, setNewPromptPart] = useState({});
   const [loadChat, setLoadChat] = useState("");
   const [refreshChatsExplorer, setRefreshChatsExplorer] = useState(false);
-  const [appendNoteContent, setAppendNoteContent] = useState("");
+  const [appendNoteContent, setAppendNoteContent] = useState({content: "", timestamp: Date.now()});
   const [chatNameChanged, setChatNameChanged] = useState("");
   const [noteNameChanged, setNoteNameChanged] = useState("");
   const [loadNote, setLoadNote] = useState("");
@@ -111,18 +121,21 @@ function App() {
 
   useEffect(()=>{
     if (!noteOpen) {
-      if (appendNoteContent && appendNoteContent !== "") {
-        setCreateNote(Date.now());
+      if (appendNoteContent && appendNoteContent.content !== "") {
+        setCreateNote({content: appendNoteContent.content, timestamp: Date.now()});
       }
     }
   }, [appendNoteContent]);
 
-  const handleToggleAppSettings = () => {
-    const newState = !appSettingsOpen;
-    setAppSettingsOpen(newState);
+  const handleToggleAppSettingsOpen = () => {
+    if (!appSettingsOpen) {
+      closeUnpinnedLeftSideWindows();
+    }
+    setAppSettingsOpen(state => !state);
   }
 
   const handleLogout = () => {
+    minimiseWindows();
     axios({
       method: "POST",
       url:`${serverUrl}/logout`,
@@ -132,6 +145,7 @@ function App() {
     })
     .then((response) => {
         removeToken();
+        window.location.reload();
     }).catch((error) => {
       if (error.response) {
         console.log(error.response)
@@ -142,29 +156,96 @@ function App() {
     setUser(null);
   }
 
-  const handleToggleChats = () => {
-    let newState = !chatsOpen
-    setChatsOpen(newState);
+  const closeUnpinnedLeftSideWindows = () => {
+    if (!sidekickAIPinnedOpen) {
+      setSidekickAIOpen(false);
+    }
+    if (!chatsPinned) {
+      setChatsOpen(false);
+    }
+    if (!personasPinned) {
+      setPersonasOpen(false);
+    }
+    if (!modelSettingsPinned) {
+      setModelSettingsOpen(false);
+    }
+    if (!promptComposerPinned) {
+      setPromptComposerOpen(false);
+    }
   }
 
-  const handleTogglePromptComposer = () => {
-    let newState = !promptComposerOpen
-    setPromptComposerOpen(newState);
+  const closeUnpinnedRightSideWindows = () => {
+    if (!notesPinned) {
+      setNotesOpen(false);
+    }
   }
 
-  const handleTogglePersonas = () => {
-    let newState = !personasOpen
-    setPersonasOpen(newState);
+  const handleToggleChatsOpen = () => {
+    if (chatsOpen) {
+      setChatsPinned(false);
+      setChatsOpen(false);
+    } else {
+      closeUnpinnedLeftSideWindows();
+      setChatsOpen(true);
+    }
   }
 
-  const handleCreateNote = () => {
-    setCreateNote(Date.now());
-    setNoteOpen(Date.now());
+  const handleToggleSidekickAIOpen = () => {  
+    if (sidekickAIOpen) {
+      setSidekickAIPinnedOpen(false);
+      setSidekickAIOpen(false);
+    } else {
+      closeUnpinnedLeftSideWindows();
+      setSidekickAIOpen(true);
+    }
   }
 
-  const handleToggleNotes = () => {
-    let newState = !notesOpen
-    setNotesOpen(newState);
+  const handleTogglePromptComposerOpen = () => {
+    if (promptComposerOpen) {
+      setPromptComposerPinned(false);
+      setPromptComposerOpen(false);
+    } else {
+      closeUnpinnedLeftSideWindows();
+      setPromptComposerOpen(true);
+    }
+  }
+
+  const handleTogglePersonasOpen = () => {
+    if (personasOpen) {
+      setPersonasPinned(false);
+      setPersonasOpen(false);
+    } else {
+      closeUnpinnedLeftSideWindows();
+      setPersonasOpen(true);
+    }
+  }
+
+  const handleToggleModelSettingsOpen = () => {
+    if (modelSettingsOpen) {
+      setModelSettingsPinned(false);
+      setModelSettingsOpen(false);
+    } else {
+      closeUnpinnedLeftSideWindows();
+      setModelSettingsOpen(true);
+    }
+  }
+
+  const handleToggleChatOpen = () => {
+    setChatOpen(state => !state);
+  }
+
+  const handleToggleNoteOpen = () => {
+    setNoteOpen(state => !state);
+  }
+
+  const handleToggleNotesOpen = () => {
+    if (notesOpen) {
+      setNotesPinned(false);
+      setNotesOpen(false);
+    } else {
+      closeUnpinnedRightSideWindows();
+      setNotesOpen(true);
+    }
   }
 
   const handleNoteChange = (change) => {
@@ -189,13 +270,19 @@ function App() {
     setChatOpen(false);
     setAppSettingsOpen(false);
     setChatsOpen(false);
+    setChatsPinned(false);
     setPromptComposerOpen(false);
+    setPromptComposerPinned(false);
     setModelSettingsOpen(false);
+    setModelSettingsPinned(false);
     setPersonasOpen(false);
+    setPersonasPinned(false);
     setCreateNote(false);
     setNotesOpen(false);
+    setNotesPinned(false);
     setNoteOpen(false);
     setSidekickAIOpen(false);
+    setSidekickAIPinnedOpen(false);
   }
 
   // Provide a generic onChange despatcher for the chat and note components
@@ -218,33 +305,33 @@ function App() {
                 <Typography sx={{ mr: 2, display: "inline-flex", alignItems: "center", justifyContent: "center" }} variant='subtitle2'>v{VERSION}</Typography>
                 <Typography sx={{ mr: 2, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>({user})</Typography>
                 <Tooltip title="Sidekick AI help">
-                  <IconButton edge="start" color="inherit" aria-label="Sidekick AI help" onClick={() => { setSidekickAIOpen(true) }}>
+                  <IconButton edge="start" color="inherit" aria-label="Sidekick AI help" onClick={handleToggleSidekickAIOpen}>
                     <HelpIcon/>
                   </IconButton>                  
                 </Tooltip>
                 <Tooltip title={ chatsOpen ? "Hide chat history" : "Show chat history" }>
-                  <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleToggleChats}>
+                  <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleToggleChatsOpen}>
                     <QuestionAnswerIcon/>
                   </IconButton>
                 </Tooltip>
                 <Tooltip title={ modelSettingsOpen ? "Hide model settings" : "Show model settings" }>
-                  <IconButton edge="start" color="inherit" aria-label="Model settings" onClick={() => { setModelSettingsOpen(!modelSettingsOpen) }}>
+                  <IconButton edge="start" color="inherit" aria-label="Model settings" onClick={handleToggleModelSettingsOpen}>
                     <TuneIcon/>
                   </IconButton>
                 </Tooltip>
                 <Tooltip title={ personasOpen ? "Hide AI personas" : "Show AI persons" }>
-                  <IconButton edge="start" color="inherit" aria-label="Personas" onClick={handleTogglePersonas}>
+                  <IconButton edge="start" color="inherit" aria-label="Personas" onClick={handleTogglePersonasOpen}>
                     <PersonIcon/>
                   </IconButton>
                 </Tooltip>
                 <Tooltip title={ promptComposerOpen ? "Hide prompt composer" : "Show prompt composer" }>
-                  <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleTogglePromptComposer}>
+                  <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleTogglePromptComposerOpen}>
                     <BuildIcon/>
                   </IconButton>
                 </Tooltip>
-                <Tooltip title="New chat">
-                  <IconButton edge="start" color="inherit" aria-label={ chatOpen ? "Close Chat" : "New chat" } onClick={() => { setChatOpen(!chatOpen) }}>
-                    <ModeCommentIcon/>
+                <Tooltip title={chatOpen ? "Close Chat" : "New Chat"}>
+                  <IconButton edge="start" color="inherit" aria-label={ chatOpen ? "Close Chat" : "Open chat" } onClick={handleToggleChatOpen}>
+                    { chatOpen ? <ModeCommentIcon/> : <AddCommentIcon/> }
                   </IconButton>
                 </Tooltip>
                 <Tooltip title="Minimise windows">
@@ -254,13 +341,13 @@ function App() {
                 </Tooltip>
               </Box>
               <Box display="flex" ml="auto" gap={2}>
-                <Tooltip title="New note">
-                  <IconButton edge="end" color="inherit" aria-label="New note" onClick={handleCreateNote}>
-                    <PlaylistAddIcon/>
+                <Tooltip title={noteOpen ? "Close Note" : "New Note"}>
+                  <IconButton edge="end" color="inherit" aria-label="New note" onClick={handleToggleNoteOpen}>
+                    { noteOpen ? <NotesIcon/> : <PlaylistAddIcon/> }
                   </IconButton>
                 </Tooltip>
                 <Tooltip title={ notesOpen ? "Hide Notes" : "Show Notes" }>
-                  <IconButton edge="end" color="inherit" aria-label="Hide/Show notes" onClick={handleToggleNotes}>
+                  <IconButton edge="end" color="inherit" aria-label="Hide/Show notes" onClick={handleToggleNotesOpen}>
                     <FolderIcon/>
                   </IconButton>
                 </Tooltip>
@@ -268,7 +355,7 @@ function App() {
                     <RateReviewIcon/>
                 </FeedbackButton>
                 <Tooltip title={ appSettingsOpen ? "Hide App Settings" : "Show App Setings" }>
-                  <IconButton edge="end" color="inherit" aria-label="Settings" onClick={handleToggleAppSettings}>
+                  <IconButton edge="end" color="inherit" aria-label="Settings" onClick={handleToggleAppSettingsOpen}>
                     <SettingsIcon/>
                   </IconButton>
                 </Tooltip>
@@ -282,6 +369,14 @@ function App() {
           </AppBar>
           <Box display="flex" flexDirection="row" flex="1" overflow-y="hidden" overflow="auto" width="100%">
             <ToastContainer/>
+            <SidekickAI
+              sidekickAIOpen={sidekickAIOpen}
+              setSidekickAIOpen={setSidekickAIOpen}
+              windowPinnedOpen = {sidekickAIPinnedOpen}
+              setWindowPinnedOpen = {setSidekickAIPinnedOpen}
+              chatStreamingOn={chatStreamingOn} 
+              serverUrl={serverUrl} token={token} setToken={setToken}
+            />
             <AppSettings 
               appSettingsOpen={appSettingsOpen}
               setAppSettingsOpen={setAppSettingsOpen}
@@ -289,14 +384,8 @@ function App() {
               setUser={setUser}
               serverUrl={serverUrl} token={token} setToken={setToken}
             />
-            <SidekickAI
-              sidekickAIOpen={sidekickAIOpen}
-              setSidekickAIOpen={setSidekickAIOpen}
-              chatStreamingOn={chatStreamingOn} 
-              serverUrl={serverUrl} token={token} setToken={setToken}
-            />
             { chatsOpen ? <Explorer
-            handleToggleExplorer={handleToggleChats}
+            handleToggleExplorer={handleToggleChatsOpen}
             name="Chats"
             icon={<QuestionAnswerIcon />}
             folder="chats"
@@ -307,6 +396,8 @@ function App() {
             setRefresh={setRefreshChatsExplorer}
             itemOpen={chatOpen}
             setItemOpen={setChatOpen}
+            windowPinnedOpen = {chatsPinned}
+            setWindowPinnedOpen = {setChatsPinned}
             serverUrl={serverUrl} token={token} setToken={setToken}
             /> : null}
             <ModelSettings 
@@ -314,6 +405,8 @@ function App() {
             setFocusOnPrompt={setFocusOnPrompt}
             modelSettingsOpen={modelSettingsOpen}
             setModelSettingsOpen={setModelSettingsOpen}
+            windowPinnedOpen = {modelSettingsPinned}
+            setWindowPinnedOpen = {setModelSettingsPinned}
             temperatureText={temperatureText}
             setTemperatureText={setTemperatureText}
             settingsManager={new SettingsManager(serverUrl, token, setToken)}
@@ -322,18 +415,22 @@ function App() {
             setChatStreamingOn={setChatStreamingOn}
             />
             <Personas 
-            handleTogglePersonas={handleTogglePersonas} 
+            handleTogglePersonas={handleTogglePersonasOpen} 
             persona={persona} 
             setPersona={setPersona}
             setFocusOnPrompt={setFocusOnPrompt}
             personasOpen={personasOpen}
+            windowPinnedOpen = {personasPinned}
+            setWindowPinnedOpen = {setPersonasPinned}
             settingsManager={new SettingsManager(serverUrl, token, setToken)}
             setShouldAskAgainWithPersona={setShouldAskAgainWithPersona}
             serverUrl={serverUrl} token={token} setToken={setToken}
             streamingChatResponse={streamingChatResponse}
             />
             { promptComposerOpen ? <PromptComposer 
-              handleTogglePromptComposer={handleTogglePromptComposer} 
+              handleTogglePromptComposer={handleTogglePromptComposerOpen} 
+              windowPinnedOpen={promptComposerPinned}
+              setWindowPinnedOpen={setPromptComposerPinned}
               setNewPromptPart={setNewPromptPart}
               settingsManager={new SettingsManager(serverUrl, token, setToken)}
               serverUrl={serverUrl} token={token} setToken={setToken}
@@ -353,9 +450,9 @@ function App() {
               temperatureText={temperatureText}
               setTemperatureText={setTemperatureText}
               modelSettingsOpen={modelSettingsOpen}
-              setModelSettingsOpen={setModelSettingsOpen}
+              toggleModelSettingsOpen={handleToggleModelSettingsOpen}
               personasOpen={personasOpen}
-              setPersonasOpen={setPersonasOpen}
+              togglePersonasOpen={handleTogglePersonasOpen}
               onChange={onChange(handleChatChange)}
               setOpenChatId={setOpenChatId}
               shouldAskAgainWithPersona={shouldAskAgainWithPersona}
@@ -377,7 +474,9 @@ function App() {
               serverUrl={serverUrl} token={token} setToken={setToken}
               />
               { notesOpen ? <Explorer
-              handleToggleExplorer={handleToggleNotes}
+              handleToggleExplorer={handleToggleNotesOpen}
+              windowPinnedOpen = {notesPinned}
+              setWindowPinnedOpen = {setNotesPinned}
               name="Notes"
               icon={<FolderIcon />}
               folder="notes"

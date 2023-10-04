@@ -140,7 +140,7 @@ useEffect(() => {
     );
   };
 
-  const render = <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "600px"}}>
+  const render = <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "600px", maxWidth: "600px"}}>
     
   <StyledToolbar className={ClassNames.toolbar}>
       <SettingsIcon/>
@@ -187,15 +187,15 @@ useEffect(() => {
                   </Box>
               )}
               {tabIndex === 2 && (
-                  <Box style={inputContainerStyle} component="form">
+                  <Box style={inputContainerStyle} component="form" gap={2}>
                       <Typography margin={6}>Warning: This will delete your account and your database with all your chats and notes.
                       <br/><br/>Make sure you have copies of anything you need before proceeding.</Typography>
                       <TextField type="password" label="Current Password" value={currentPassword} 
-                          style={inputStyle} onChange={handleCurrentPasswordChange} 
-                          sx={{ width: "300px" }} autocomplete="off" /* disable autocomplete of password for deleting accounts *//>
-                      <TextField label="Type your userid to confirm" value={confirmUser} 
-                          style={inputStyle} onChange={handleConfirmNameChange}
-                          sx={{ width: "300px" }} autocomplete="off" />
+                          autocomplete="off" onChange={handleCurrentPasswordChange} 
+                          sx={{ width: "300px" }} /* disable autocomplete of password for deleting accounts *//>
+                      <TextField label="Type your userid to confirm" value={confirmUser} autocomplete="off"
+                          onChange={handleConfirmNameChange}
+                          sx={{ width: "300px" }} />
                       <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
                           <Button type="button" onClick={handleDeleteAccount} sx={{ mr: 1 }}>Delete</Button>
                           <Button type="button" onClick={handleCancel}>Cancel</Button>
