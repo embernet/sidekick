@@ -6,10 +6,13 @@ import { StyledToolbar } from './theme';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
 import ExpandIcon from '@mui/icons-material/Expand';
 import BuildIcon from '@mui/icons-material/Build';
+import PushPinIcon from '@mui/icons-material/PushPin';
+import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 
 import { SystemContext } from './SystemContext';
 
-const PromptComposer = ({handleTogglePromptComposer, setNewPromptPart, settingsManager, serverUrl}) => {
+const PromptComposer = ({handleTogglePromptComposer, setNewPromptPart, settingsManager, serverUrl,
+    windowPinnedOpen, setWindowPinnedOpen}) => {
     const system = useContext(SystemContext);
     const [expanded, setExpanded] = useState(true);
     const [promptParts, setPromptParts] = useState({});
@@ -102,6 +105,11 @@ const render = <Card sx={{display:"flex", flexDirection:"column", padding:"6px",
                 <Tooltip title={ expanded ? "Hide descriptions" : "Show descriptions" }>
                     <IconButton onClick={handleExpandCollapse} color="inherit" aria-label="expand">
                         <ExpandIcon/>
+                    </IconButton>
+                </Tooltip>
+                <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
+                    <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
+                        {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
                     </IconButton>
                 </Tooltip>
                 <Tooltip title="Close window">

@@ -1,5 +1,31 @@
 # Configuration Guide
 
+## Custom settings
+
+Custom settings can be used to customise specific parts of the application by editing the content of files in the `server/etc/custom_settings` directory.
+
+**Example login custom settings:**
+
+File: `server/etc/custom_settings/login.json`
+
+```json
+{
+    "preLogin": {
+        "message": "Welcome to Sidekick.\n\nAlways be careful to not enter personal or sensitive information into the chat."
+    }
+}
+```
+
+**Example chat custom settings:**
+
+File: `server/etc/custom_settings/chat.json`
+
+```json
+{
+    "userPromptReady": "Enter prompt... (Take care to not enter personal or sensitive information.)"
+}
+```
+
 ## Server API Configuration
 
 The primary server API configuration file is a YAML file located at `server/settings.yml` and is loaded by the application at startup.

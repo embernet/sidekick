@@ -32,6 +32,11 @@ class AI {
             this.system.error(`Error naming topic: ${error}`);
             result = "";
         });
+        // remove surrounding quotes if they are there
+        if ((result.startsWith('"') && result.endsWith('"'))
+            || (result.startsWith("'") && result.endsWith("'"))) {
+            result = result.slice(1, -1);
+        }
         return result;
     }
 }

@@ -5,6 +5,9 @@ import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
+import PushPinIcon from '@mui/icons-material/PushPin';
+import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
+
 import axios from 'axios';
 import { indigo } from '@mui/material/colors';
 
@@ -15,7 +18,7 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     gap: 2,
   }));
 
-const Explorer = ({handleToggleExplorer, name, icon, folder, openItemId, setLoadDoc,
+const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, name, icon, folder, openItemId, setLoadDoc,
      docNameChanged, refresh, setRefresh, itemOpen,
     setItemOpen, // to be able to close the item editor if the item is deleted
     serverUrl, token, setToken
@@ -104,11 +107,16 @@ const Explorer = ({handleToggleExplorer, name, icon, folder, openItemId, setLoad
     };
 
     return (
-        <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "200px", maxWidth: "300px"}}>
+        <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "300px", maxWidth: "400px"}}>
             <StyledToolbar className={ClassNames.toolbar}>
                 {icon}
                 <Typography>{name}</Typography>
                 <Box ml="auto">
+                    <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
+                        <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
+                            {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
+                        </IconButton>
+                    </Tooltip>
                     <Tooltip title="Close window">
                         <IconButton onClick={handleToggleExplorer}>
                             <CloseIcon />
@@ -118,6 +126,7 @@ const Explorer = ({handleToggleExplorer, name, icon, folder, openItemId, setLoad
             </StyledToolbar>
             <Box sx={{ display: 'flex', flexDirection: 'row' }}>
                 <TextField
+                    autoComplete='off'
                     label="Filter"
                     value={filterText}
                     onChange={handleFilterTextChange}
