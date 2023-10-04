@@ -1,5 +1,0 @@
-{
-    "preLogin": {
-        "message": "Welcome. This Sidekick instance is in beta test, running from the TIG Innvoation Lab.\nCheck out the #project-sidekick slack channel for more info.\n\nPOLICY: This TEST system is approved for use up to BRONZE; Do not enter prompts containing personal or sensitive information."
-    }
-}
