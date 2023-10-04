@@ -1,6 +1,8 @@
 import axios from 'axios'
+import { debounce } from "lodash";
+
 import { useEffect, useState, useContext, useCallback, useRef } from 'react';
-import { Card, Box, Toolbar, IconButton, Typography, TextField,
+import { Card, Box, Paper, Toolbar, IconButton, Typography, TextField,
     List, ListItem, Menu, MenuItem, Tooltip
      } from '@mui/material';
 import { styled } from '@mui/system';
@@ -8,7 +10,7 @@ import { ClassNames } from "@emotion/react";
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import ReactMarkdown from 'react-markdown';
-import hljs from 'highlight.js';
+import remarkGfm from 'remark-gfm';
 
 // Icons
 import CloseIcon from '@mui/icons-material/Close';
@@ -22,13 +24,13 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CodeIcon from '@mui/icons-material/Code';
 import CodeOffIcon from '@mui/icons-material/CodeOff';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
 import AI from './AI';
 
 
-import { grey } from '@mui/material/colors';
+import { grey, blue } from '@mui/material/colors';
+import { use } from 'marked';
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     backgroundColor: theme.palette.primary.main,
@@ -43,15 +45,33 @@ const Chat = ({
     provider, modelSettings, persona, 
     newPromptPart, loadChat, setAppendNoteContent,
     focusOnPrompt, setFocusOnPrompt, chatRequest, chatOpen, setChatOpen,
-    temperatureText, setTemperatureText, modelSettingsOpen, setModelSettingsOpen,
-    onChange, personasOpen, setPersonasOpen, setOpenChatId, shouldAskAgainWithPersona, serverUrl, token, setToken,
-    streamingChatResponse, setStreamingChatResponse, chatStreamingOn}) => {
+    temperatureText, setTemperatureText, modelSettingsOpen, toggleModelSettingsOpen, togglePersonasOpen,
+    onChange, personasOpen, setOpenChatId, shouldAskAgainWithPersona, serverUrl, token, setToken,
+    streamingChatResponse, setStreamingChatResponse, chatStreamingOn }) => {
+
+    const newChatName = "New Chat"
+
+    const [width, setWidth] = useState(0);
+    const handleResize = useCallback(
+        debounce((entries) => {
+        const { width } = entries[0].contentRect;
+        setWidth(width);
+        }, 100),
+        []
+    );
+
+    useEffect(() => {
+        const element = document.getElementById("chat-panel");
+        const observer = new ResizeObserver(handleResize);
+        element && observer.observe(element);
+        return () => observer.disconnect();
+    }, [handleResize]);
 
     const system = useContext(SystemContext);
     const [id, setId] = useState("");
-    const [name, setName] = useState("New chat");
-    const [previousName, setPreviousName] = useState("New chat");
-    const userPromptReady = "Enter message...";
+    const [name, setName] = useState(newChatName);
+    const [previousName, setPreviousName] = useState(newChatName);
+    const userPromptReady = useRef("Enter prompt...");
     const userPromptWaiting = "Waiting for response...";
     const [prompt, setPrompt] = useState("");
     const [lastPrompt, setLastPrompt] = useState("");
@@ -62,11 +82,11 @@ const Chat = ({
     const [previousPersona, setPreviousPersona] = useState({});
     const [myShouldAskAgainWithPersona, setMyShouldAskAgainWithPersona] = useState(null);
 
-    const [newStreamDelta, setNewStreamDelta] = useState({value: "", done: true, timestamp: Date.now()});
+    const [newStreamDelta, setNewStreamDelta] = useState(null);
     const streamingChatResponseRef = useRef("");
-    const [stopStreaming, setStopStreaming] = useState(false);
+    const stopStreamingRef = useRef(false);
     const [systemPrompt, setSystemPrompt] = useState("");
-    const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady);
+    const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady.current);
     const [messageContextMenu, setMessageContextMenu] = useState(null);
     const [syntaxHighlightingOn, setSyntaxHighlightingOn] = useState(true);
     const [settings, setSettings] = useState({});
@@ -75,6 +95,17 @@ const Chat = ({
     const [tags, setTags] = useState([]);
     const [myServerUrl, setMyServerUrl] = useState(serverUrl);
 
+    const applyCustomSettings = () => {
+        axios.get(`${serverUrl}/custom_settings/chat`).then(response => {
+            if ("userPromptReady" in response.data) {
+                userPromptReady.current = response.data.userPromptReady;
+                setPromptPlaceholder(userPromptReady.current);
+            }
+        }).catch(error => {
+          console.error("Error getting Chat custom settings:", error);
+        });
+      }
+        
     const setPromptFocus = () => {
         document.getElementById("chat-prompt")?.focus();
     }
@@ -93,15 +124,16 @@ const Chat = ({
             console.log("get chat_settings error:", error);
             system.error(`Error loading chat settings: ${error}`);
         });
+        applyCustomSettings();
     }, []);
 
     useEffect(()=>{
         if (chatOpen) {
             if (!loadChat) {
-                create();
+                reset();
             }
         } else {
-            resetChat();
+            closeChatWindow();
         }
     }, [chatOpen]);
 
@@ -111,8 +143,13 @@ const Chat = ({
     }, [id]);
 
     useEffect(()=>{
-        if (id !== "" && id !== null) {
-            save();
+        if (messages.length > 0) {
+            console.log("save chat", messages.length, messages);
+            if (id !== "" && id !== null) {
+                save();
+            } else {
+                create();
+            }
         }
     }, [messages]);
 
@@ -213,13 +250,21 @@ const Chat = ({
     }, [prompt]);
 
     useEffect(()=>{
-        setStreamingChatResponse(r => r + newStreamDelta.value);
-        if (newStreamDelta.done) {
-            console.log("Stream complete");
-            const chatResponse = streamingChatResponse;
-            setStreamingChatResponse("");
-            appendMessage({"role": "assistant", "content": chatResponse});
-            showReady();
+        if (promptPlaceholder === userPromptReady.current) {
+            setPromptFocus();
+        }
+    }, [promptPlaceholder]);
+
+    useEffect(()=>{
+        if (newStreamDelta) {
+            setStreamingChatResponse(r => r + newStreamDelta.value);
+            if (newStreamDelta.done) {
+                console.log("Stream complete");
+                const chatResponse = streamingChatResponse;
+                setStreamingChatResponse("");
+                appendMessage({"role": "assistant", "content": chatResponse});
+                showReady();
+            }
         }
     }, [newStreamDelta]);
 
@@ -267,22 +312,12 @@ const Chat = ({
         setMessages(prevMessages => [...prevMessages, message]);
         setChatOpen(true);
         setTimeout(() => {
-            try {
-                const messageList = document.getElementById("message-list");
-                if (messageList === null) {
-                    return;
-                }
-                const lastMessage = messageList.lastChild;
-                lastMessage.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
-            } catch (err) {
-                console.log(err);
-            } 
-            finally {}
+            document.getElementById("message-list")?.lastChild?.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
         }, 0);
     }
 
     const showReady = () => {
-        setPromptPlaceholder(userPromptReady);
+        setPromptPlaceholder(userPromptReady.current);
     }
 
     const showWaiting = () => {
@@ -290,7 +325,37 @@ const Chat = ({
         setPrompt('');
     }
 
-    const save = (prompt) => {
+    const create = () => {
+        let request = {
+            name: name,
+            tags: tags,
+            content: {
+                chat: messages,
+            }
+        };
+        axios.post(`${serverUrl}/docdb/${folder}/documents`, request, {
+            headers: {
+                Authorization: 'Bearer ' + token
+            }
+        }).then(response => {
+            console.log("New chat Response", response);
+            response.data.access_token && setToken(response.data.access_token);
+            setId(response.data.metadata.id);
+            setName(response.data.metadata.name);
+            setPreviousName(response.data.metadata.name);
+            setTags(response.data.metadata.tags);
+            setMessages(response.data.content.chat);
+            onChange(id, name, "created", "");
+            document.getElementById("chat-name")?.focus();
+            document.getElementById("chat-name")?.select();
+            console.log("create chat Response", response);
+        }).catch(error => {
+            console.log("create chat error", error);
+            system.error(`Error creating chat: ${error}`);
+        });
+    }
+
+    const save = () => {
         let request = {
             metadata: {
                 name: name,
@@ -338,25 +403,24 @@ const Chat = ({
                 .pipeThrough(decoder)
                 .getReader();
             try {
-                while (true) {
+                while (!stopStreamingRef.current) {
                     var {value, done} = await reader.read();
-                    //setNewStreamDelta({value: value, done: done, timestamp:Date.now()});
                     if (value) { 
                         streamingChatResponseRef.current += value;
                         setStreamingChatResponse(streamingChatResponseRef.current);
                     }
-                    if (done) {
-                        const chatResponse = streamingChatResponseRef.current;
+                    if (done || stopStreamingRef.current) {
+                        let chatResponse = streamingChatResponseRef.current;
+                        if (stopStreamingRef.current) { chatResponse += "\n\n(Chat stopped by user)" }
                         streamingChatResponseRef.current = "";
                         setStreamingChatResponse("");
                         appendMessage({"role": "assistant", "content": chatResponse});
                         showReady();
-                        console.log("closing chat stream");
-                        reader.cancel();
                         reader.releaseLock();
                         break;
                     }
                 }
+                stopStreamingRef.current = false;
             } finally {
                 reader.releaseLock();
             }
@@ -365,7 +429,7 @@ const Chat = ({
           system.error(`Error reading chat stream: ${error}`);
         }
 
-    }, [stopStreaming]);
+    }, [stopStreamingRef.current]);
 
     const sendPrompt = async (prompt) => {
         // setup as much of the request as we can before calling appendMessage
@@ -397,16 +461,10 @@ const Chat = ({
         showWaiting();
 
         // Get GPT to name the chat based on the content of the first message
-        if (name === "New Chat") {
+        if (name === newChatName) {
             // Use AI to name the chat
             const ai = new AI(serverUrl, token, setToken, system);
             let generatedName = await ai.nameTopic(requestData.prompt);
-            // remove surrounding quotes if they are there
-            if ((generatedName.startsWith('"') && generatedName.endsWith('"'))
-            || (generatedName.startsWith("'") && generatedName.endsWith("'"))) {
-                generatedName = generatedName.slice(1, -1);
-            }
-            console.log("AI named chat ", generatedName);
             if (generatedName && generatedName !== "") { setName(generatedName); }
         }
 
@@ -451,9 +509,15 @@ const Chat = ({
         }
     }
 
+    const handleRegenerateChatName = async () => {
+        const ai = new AI(serverUrl, token, setToken, system);
+        let generatedName = await ai.nameTopic(messagesAs("text"));
+        if (generatedName && generatedName !== "") { renameChat(generatedName); }
+    }
+
     const handleStopStreaming = (event) => {
         console.log("handleStopStreaming");
-        setStopStreaming(true);
+        stopStreamingRef.current = true;
     }
 
     const handleAskAgain = () => {
@@ -471,63 +535,36 @@ const Chat = ({
     }
 
     const handleNewChat = () => {
-        create();
+        reset();
     }
 
-    const create = () => {
-        setId("");
-        const newChatName = "New Chat"
-        setName(newChatName);
-        setPreviousName(newChatName);
-        setMessages([]);
-        setPrompt("");
-        setLastPrompt("");
-        let request = {
-            name: newChatName,
-            tags: [],
-            content: {
-                chat: [],
-            }
-        };
-        axios.post(`${serverUrl}/docdb/${folder}/documents`, request, {
+    const renameChat = (newName) => {
+        setName(newName);
+        axios.put(`${serverUrl}/docdb/${folder}/documents/${id}/rename`, {
+            name: newName,
+        }, {
             headers: {
                 Authorization: 'Bearer ' + token
-              }
+            }
         }).then(response => {
-            console.log("New chat Response", response);
+            console.log("/renameChat Response", response);
             response.data.access_token && setToken(response.data.access_token);
-            setId(response.data.metadata.id);
-            setName(response.data.metadata.name);
-            setPreviousName(response.data.metadata.name);
-            setTags(response.data.metadata.tags);
-            setMessages(response.data.content.chat);
-            onChange(id, name, "created", "");
-            document.getElementById("chat-name").focus();
-            document.getElementById("chat-name").select();
-            console.log("create chat Response", response);
+            setPreviousName(name);
+            setPromptFocus();
+            onChange(id, name, "renamed", "");
         }).catch(error => {
-            console.log("create chat error", error);
-            system.error(`Error creating chat: ${error}`);
-        });
-}
+            console.log(error);
+            system.error(`Error renaming chat: ${error}`);
+        })
+    }
 
     const handleRenameChat = () => {
         if (name !== previousName && name !== "") {
-            axios.put(`${serverUrl}/docdb/${folder}/documents/${id}/rename`, {
-                name: name,
-            }, {
-                headers: {
-                    Authorization: 'Bearer ' + token
-                  }
-            }).then(response => {
-                console.log("/renameChat Response", response);
-                response.data.access_token && setToken(response.data.access_token);
-                setPreviousName(name);
-                onChange(id, name, "renamed", "");
-            }).catch(error => {
-                console.log(error);
-                system.error(`Error renaming chat: ${error}`);
-            })                                    
+            if (id === "") {
+                create();
+            } else {
+                renameChat(name);
+            }
         } else {
             setName(previousName);
         }
@@ -591,13 +628,17 @@ const Chat = ({
         setMessageContextMenu(null);
     };
 
-    const resetChat = () => {
-        setId(null);
-        setName("New chat");
-        setPreviousName("New chat");
+    const reset = () => {
+        setId("");
+        setName(newChatName);
+        setPreviousName(newChatName);
         setMessages([]);
         setPrompt("");
         setLastPrompt("");
+    }
+
+    const closeChatWindow = () => {
+        reset();
         setChatOpen(false);
     };
 
@@ -610,7 +651,7 @@ const Chat = ({
             console.log("delete chat Response", response);
             response.data.access_token && setToken(response.data.access_token);
             onChange(id, name, "deleted", "");
-            resetChat();
+            closeChatWindow();
         }).catch(error => {
             console.log("delete chat error", error);
             system.error(`Error deleting chat: ${error}`);
@@ -655,7 +696,8 @@ const Chat = ({
     };
 
     const handleAppendToNote = () => {
-        setAppendNoteContent(messageContextMenu.message.content);
+        console.log("handleAppendToNote", messageContextMenu.message.content);
+        setAppendNoteContent({ content: messageContextMenu.message.content, timestamp: Date.now() });
         setMessageContextMenu(null);
     };
 
@@ -664,7 +706,7 @@ const Chat = ({
         messages.forEach((message) => {
             newNoteContent += message.content + "\n\n";
         });
-        setAppendNoteContent(newNoteContent);
+        setAppendNoteContent({ content: newNoteContent, timestamp: Date.now() });
         setMessageContextMenu(null);
     };
 
@@ -686,13 +728,14 @@ const Chat = ({
             const endIndex = codeRegex.lastIndex;
             const before = text.slice(lastIndex, startIndex);
             const after = text.slice(endIndex);
-            highlightedText.push(<ReactMarkdown key={lastIndex} sx={{ whiteSpace: 'pre-wrap' }}>{before}</ReactMarkdown>);
+            highlightedText.push(<ReactMarkdown remarkPlugins={[remarkGfm]} key={lastIndex} sx={{ whiteSpace: 'pre-wrap' }}>{before}</ReactMarkdown>);
             highlightedText.push(
                 <Card>
                     <Toolbar className={ClassNames.toolbar}>
                     <Typography sx={{ mr: 2 }}>{language}</Typography>
                         <Box sx={{ display: "flex", flexDirection: "row", ml: "auto" }}>
-                            <IconButton edge="start" color="inherit" aria-label="menu" onClick={() => { navigator.clipboard.writeText(code); }}>
+                            <IconButton edge="start" color="inherit" aria-label="menu"
+                                onClick={() => { navigator.clipboard.writeText(code); }}>
                                 <ContentCopyIcon/>
                             </IconButton>
                         </Box>
@@ -704,7 +747,7 @@ const Chat = ({
             );
             lastIndex = codeRegex.lastIndex;
             if (lastIndex === text.length) {
-                highlightedText.push(<ReactMarkdown key={lastIndex} sx={{ whiteSpace: 'pre-wrap' }}>{after}</ReactMarkdown>);
+                highlightedText.push(<ReactMarkdown remarkPlugins={[remarkGfm]} key={lastIndex} sx={{ whiteSpace: 'pre-wrap' }}>{after}</ReactMarkdown>);
             }
             }
             if (lastIndex < text.length) {
@@ -718,15 +761,19 @@ const Chat = ({
         }
     };
 
-    const render = <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "400px"}}>
+    const render = <Card id="chat-panel" sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "400px" }}>
     <StyledToolbar className={ClassNames.toolbar}>
         <CommentIcon/>
         <Typography sx={{mr:2}}>Chat</Typography>
-        <IconButton edge="start" color="inherit" aria-label="menu"
-            onClick={handleNewChat}
-        >
-            <AddCommentIcon/>
-        </IconButton>
+        <Tooltip title={ id === "" ? "You are in a new chat" : "New chat"}>
+            <span>
+                <IconButton edge="start" color="inherit" aria-label="menu"
+                    disabled={ id === "" } onClick={handleNewChat}
+                >
+                    <AddCommentIcon/>
+                </IconButton>
+            </span>
+        </Tooltip>
         <Tooltip title={ syntaxHighlightingOn ? "Turn off code highlighting" : "Turn on code highlighting" }>
             <IconButton edge="end" color="inherit" aria-label="delete chat" onClick={handleSyntaxHighlightingChange}>
                 { syntaxHighlightingOn ? <CodeIcon/> : <CodeOffIcon/> }
@@ -746,28 +793,40 @@ const Chat = ({
         </Box>
     </StyledToolbar>
     <Box sx={{ display: "flex", flexDirection: "column", height:"calc(100% - 64px)"}}>
-        <TextField
-            sx={{ mt: 2 }}
-            id="chat-name"
-            autoComplete='off'
-            label="Chat name"
-            variant="outlined"
-            value={name}
-            onKeyDown={
-                (event) => {
-                    if(event.key === 'Enter') {
-                        handleRenameChat()
-                        event.preventDefault();
-                    } else if(event.key === 'Escape') {
-                        setName("");
-                        event.preventDefault();
+        <Box sx={{ display:"flex", direction: "row" }}>
+            <TextField
+                sx={{ mt: 2, flexGrow: 1 }}
+                id="chat-name"
+                autoComplete='off'
+                label="Chat name"
+                variant="outlined"
+                value={name}
+                onKeyDown={
+                    (event) => {
+                        if(event.key === 'Enter') {
+                            handleRenameChat()
+                            event.preventDefault();
+                        } else if(event.key === 'Escape') {
+                            setName("");
+                            event.preventDefault();
+                        }
+                            
                     }
-                        
                 }
-            }
-            onBlur={() => {handleRenameChat();}}
-            onChange={handleTitleChange}
-        />
+                onBlur={() => {handleRenameChat();}}
+                onChange={handleTitleChange}
+            />
+            <Toolbar>
+                <Tooltip title={ "Regenerate chat name" } sx={{ ml: "auto" }}>
+                    <span>
+                        <IconButton edge="end" color="inherit" aria-label="regenerate chat name" 
+                            disabled={name === newChatName} onClick={handleRegenerateChatName}>
+                            <ReplayIcon/>
+                        </IconButton>
+                    </span>
+                </Tooltip>
+            </Toolbar>
+        </Box>
         <Box sx={{ overflow: 'auto', flex: 1 }}>
             <List id="message-list">
                 {messages && messages.map((message, index) => (
@@ -810,11 +869,13 @@ const Chat = ({
                                 <MenuItem onClick={handleCopyAllAsText}>Copy all as text</MenuItem>
                                 <MenuItem onClick={handleCopyMessageAsHTML}>Copy message as html</MenuItem>
                                 <MenuItem onClick={handleCopyAllAsHTML}>Copy all as html</MenuItem>
+                                <MenuItem divider />
                                 <MenuItem onClick={handleAppendToChatInput}>Append message to chat input</MenuItem>
                                 <MenuItem onClick={handleUseAsChatInput}>Use message as chat input</MenuItem>
+                                <MenuItem divider />
                                 <MenuItem onClick={handleAppendToNote}>Append message to note</MenuItem>
                                 <MenuItem onClick={handleAppendAllToNote}>Append all to note</MenuItem>
-                                <MenuItem divider />                                        
+                                <MenuItem divider />
                                 <MenuItem onClick={handleDeleteThisMessage}>Delete this message</MenuItem>
                                 <MenuItem onClick={handleDeleteThisAndPreviousMessage}>Delete this and previous message</MenuItem>
                                 <MenuItem onClick={handleDeleteAllMessages}>Delete all messages</MenuItem>
@@ -850,23 +911,14 @@ const Chat = ({
                     <RedoIcon/>
                 </IconButton>
             </Tooltip>
-            <Typography id="personaname" sx={{ ml:2, mr: 1 }} onClick={() => setPersonasOpen(!personasOpen)}>
-                {myPersona.name}
-            </Typography>
-            <Typography id="temperature" sx={{ mr: 2 }} onClick={() => setModelSettingsOpen(!modelSettingsOpen)}>
-                ({temperatureText})
-            </Typography>
-            <Typography id="modelname" sx={{ mr: 2 }} onClick={() => setModelSettingsOpen(!modelSettingsOpen)}>
-                {myModelSettings.request && myModelSettings.request.model}
-            </Typography>
             <Box ml="auto">
-                {/* TODO: Fix {streamedChatResponse !== "" && <Tooltip title={ "Stop" }>
-                    <IconButton edge="end" color="inherit" aria-label="stop"
+                {streamingChatResponse !== "" && <Tooltip title={ "Stop" }>
+                    <IconButton id="chat-stop" edge="end" color="inherit" aria-label="stop"
                         onClick={() => { handleStopStreaming(); }}
                     >
                         <StopCircleIcon/>
                     </IconButton>
-                </Tooltip>} */}
+                </Tooltip>}
                 <Tooltip title={ "Send prompt to AI" }>
                     <IconButton edge="end" color="inherit" aria-label="send" disabled={streamingChatResponse !== ""}
                         onClick={() => { setPromptToSend({prompt: prompt, timestamp: Date.now()}); }}
@@ -877,7 +929,7 @@ const Chat = ({
             </Box>
         </SecondaryToolbar>
         <TextField 
-            sx={{ width: "100%", mt: "auto"}}
+            sx={{ width: "100%", mt: "auto", overflow: "auto", maxHeight: "40%" }}
                 id="chat-prompt"
                 multiline 
                 variant="outlined" 
@@ -887,6 +939,17 @@ const Chat = ({
                 placeholder={promptPlaceholder}
                 disabled={streamingChatResponse !== ""}
         />
+        <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: grey[100] }}>
+            <Typography id="personaname" sx={{ fontSize: "0.8em" }}>
+                Persona: {myPersona.name}
+            </Typography>
+            <Typography id="temperature" sx={{ fontSize: "0.8em" }}>
+                ({temperatureText})
+            </Typography>
+            <Typography id="modelname" sx={{ fontSize: "0.8em" }}>
+                Model: {myModelSettings.request && myModelSettings.request.model}
+            </Typography>
+        </Paper>
     </Box>
 </Card>;
     return ( chatOpen ? render : null )

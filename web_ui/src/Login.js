@@ -2,7 +2,7 @@ import axios from 'axios'
 import React, { useState, useEffect } from 'react';
 import { useContext } from 'react';
 import { SystemContext } from './SystemContext';
-import { Box, Tabs, Tab, Button, TextField } from '@mui/material';
+import { Box, Tabs, Tab, Button, TextField, Typography } from '@mui/material';
 import Carousel from './Carousel';
 
 function Login({setUser, serverUrl, setToken}) {
@@ -11,6 +11,7 @@ function Login({setUser, serverUrl, setToken}) {
   const [password, setPassword] = useState('');
   const [tabIndex, setTabIndex] = useState(0);
   const [pageLoaded, setPageLoaded] = useState(false);
+  const [preLoginMessage, setPreLoginMessage] = useState('');
 
   const containerStyle = {
     display: 'flex',
@@ -31,18 +32,30 @@ function Login({setUser, serverUrl, setToken}) {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    marginTop: '50px',
+    marginTop: '20px',
   };
 
   const inputStyle = {
-    margin: '10px',
-    padding: '5px',
+    margin: '6px',
+    padding: '4px',
   };
+
+  const applyCustomSettings = () => {
+    axios.get(`${serverUrl}/custom_settings/login`).then(response => {
+      if ("preLogin" in response.data && "message" in response.data.preLogin) {
+        setPreLoginMessage(response.data?.preLogin?.message);
+      }
+      console.log("Login custom settings:", response);
+    }).catch(error => {
+      console.error("Error getting login custom settings:", error);
+    });
+  }
 
   useEffect(() => {
       if (!pageLoaded) {
           setPageLoaded(true);
       }
+      applyCustomSettings();
   }, [pageLoaded]);
 
   const login = () => {
@@ -97,37 +110,41 @@ function Login({setUser, serverUrl, setToken}) {
 
   return ( pageLoaded &&
     <Box style={containerStyle}>
-        <Carousel imageFolderName="./images/logo/" filenamePrefix="sidekick_" 
-        filenameExtension=".png" altText="Sidekick logo"
-        transitions="8" cycleTime="250"/>
-        <Box style={formContainerStyle}>
-            <Tabs value={tabIndex} onChange={handleTabChange}>
-            <Tab label="Login" />
-            <Tab label="Create Account" />
-            </Tabs>
-            {tabIndex === 0 && (
-                <Box style={inputContainerStyle} component="form">
-                    <TextField id="user_id" type="text" placeholder="Username" 
-                        style={inputStyle} onChange={(e) => setUserId(e.target.value)} 
-                        autoComplete="username"/>
-                    <TextField id="password" type="password" placeholder="Password" 
-                        style={inputStyle} onChange={(e) => setPassword(e.target.value)} 
-                        autoComplete='current-password' />
-                    <Button type='submit' onClick={handleLogin} default>Login</Button>
-                </Box>
-            )}
-            {tabIndex === 1 && (
-                <Box style={inputContainerStyle} component="form">
-                    <TextField type="text" placeholder="Username" 
-                        style={inputStyle} autoComplete="false" onChange={(e) => setUserId(e.target.value)} 
-                        />
-                    <TextField type="password" placeholder="Password" 
-                        style={inputStyle} autoComplete="false" onChange={(e) => setPassword(e.target.value)} 
-                        />
-                    <Button onClick={handleCreateAccount} default>Create Account</Button>
-                </Box>
-            )}
+      <Carousel imageFolderName="./images/logo/" filenamePrefix="sidekick_" 
+      filenameExtension=".png" altText="Sidekick logo"
+      transitions="8" cycleTime="250"/>
+      <Box style={formContainerStyle}>
+          <Tabs value={tabIndex} onChange={handleTabChange}>
+          <Tab label="Login" />
+          <Tab label="Create Account" />
+          </Tabs>
+          {tabIndex === 0 && (
+              <Box style={inputContainerStyle} component="form">
+                  <TextField id="user_id" type="text" placeholder="Username" 
+                      style={inputStyle} onChange={(e) => setUserId(e.target.value)} 
+                      autoComplete="username"/>
+                  <TextField id="password" type="password" placeholder="Password" 
+                      style={inputStyle} onChange={(e) => setPassword(e.target.value)} 
+                      autoComplete='current-password' />
+                  <Button onClick={handleLogin} default>Login</Button>
+              </Box>
+          )}
+          {tabIndex === 1 && (
+              <Box style={inputContainerStyle} component="form">
+                  <TextField id="create-account-userid" type="text" placeholder="Enter UserId" 
+                      style={inputStyle} autoComplete="off"  onChange={(e) => setUserId(e.target.value)} 
+                      />
+                  <TextField id="create-account-password" type="password" placeholder="Enter Password" 
+                      style={inputStyle} autoComplete="off" onChange={(e) => setPassword(e.target.value)} 
+                      />
+                  <Button onClick={handleCreateAccount} default>Create Account</Button>
+              </Box>
+          )}
+        <Box variant="body3" color="text.secondary" 
+          sx={{ textAlign: "center", width: "700px", height: "200px", overflow: "auto", whiteSpace: 'pre-line' }}>
+          {preLoginMessage}
         </Box>
+      </Box>
     </Box>
   );
 }
