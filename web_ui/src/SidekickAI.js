@@ -6,7 +6,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { Link } from 'react-router-dom';
 
 
@@ -418,7 +417,6 @@ const SidekickAI = ({
                     <Typography>You could read the manual, which is below, or you could just ask the AI about Sidekick at the bottom of this window.</Typography>
                     <br/>
                     <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
                         components={helpComponents}
                         renderers={{
                             link: ({ href, children }) => (
