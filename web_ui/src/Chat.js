@@ -10,7 +10,6 @@ import { ClassNames } from "@emotion/react";
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 
 // Icons
 import CloseIcon from '@mui/icons-material/Close';
@@ -728,7 +727,7 @@ const Chat = ({
             const endIndex = codeRegex.lastIndex;
             const before = text.slice(lastIndex, startIndex);
             const after = text.slice(endIndex);
-            highlightedText.push(<ReactMarkdown remarkPlugins={[remarkGfm]} key={lastIndex} sx={{ whiteSpace: 'pre-wrap' }}>{before}</ReactMarkdown>);
+            highlightedText.push(<ReactMarkdown key={lastIndex} sx={{ whiteSpace: 'pre-wrap' }}>{before}</ReactMarkdown>);
             highlightedText.push(
                 <Card>
                     <Toolbar className={ClassNames.toolbar}>
@@ -747,7 +746,7 @@ const Chat = ({
             );
             lastIndex = codeRegex.lastIndex;
             if (lastIndex === text.length) {
-                highlightedText.push(<ReactMarkdown remarkPlugins={[remarkGfm]} key={lastIndex} sx={{ whiteSpace: 'pre-wrap' }}>{after}</ReactMarkdown>);
+                highlightedText.push(<ReactMarkdown key={lastIndex} sx={{ whiteSpace: 'pre-wrap' }}>{after}</ReactMarkdown>);
             }
             }
             if (lastIndex < text.length) {
