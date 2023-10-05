@@ -92,14 +92,6 @@ _init_logger()
 logger = logging.getLogger(__name__)
 logger.info(f"Starting:{PROGRAM_NAME} version:{VERSION} mode:{run_mode}")
 
-if run_mode == "docker":
-    # Change paths to absolute paths for the volumes mounted in the container
-    config[USERDB_DIR_SETTING] = '/mount/' + config[USERDB_DIR_SETTING]
-    config[SETTINGS_DIR_SETTING] = '/mount/' + config[SETTINGS_DIR_SETTING]
-    config[LOGINDB_DIR_SETTING] = '/mount/' + config[LOGINDB_DIR_SETTING]
-    config[FEEDBACKDB_DIR_SETTING] = '/mount/' + config[FEEDBACKDB_DIR_SETTING]
-    config[LOGS_DIR_SETTING] = '/mount/' + config[LOGS_DIR_SETTING]
-
 openai.api_key = os.environ[config["openai_api_key_env_var"]]
 
 def userDB():
