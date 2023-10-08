@@ -48,7 +48,6 @@ import SidekickAI from './SidekickAI';
 
 import { theme } from './theme';
 
-import { runtimeEnvironment } from './ServerUrlThunk';
 import { Toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -96,7 +95,7 @@ function App() {
   const [openChatId, setOpenChatId] = useState(null);
   const [openPromptTemplateId, setOpenPromptTemplateId] = useState(null);
   const [openNoteId, setOpenNoteId] = useState(null);
-  const [serverUrl, setServerUrl] = useState(runtimeEnvironment.serverHost + ":" + runtimeEnvironment.serverPort);
+  const [serverUrl, setServerUrl] = useState(process.env.REACT_APP_SERVER_URL || 'http://localhost:5003');
   const [shouldAskAgainWithPersona, setShouldAskAgainWithPersona] = useState(null);
   const [streamingChatResponse, setStreamingChatResponse] = useState("");
   const [chatStreamingOn, setChatStreamingOn] = useState(true);

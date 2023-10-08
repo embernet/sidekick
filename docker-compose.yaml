@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  sidekick-web-ui:
+    image: sidekick/web-ui:latest
+    ports:
+      - "127.0.0.1:8081:8081"
+    environment:
+      - REACT_APP_SERVER_URL=***
+    restart: always
+
+  sidekick-server:
+    image: sidekick/server:latest
+    ports:
+      - "5003:5003"
+    volumes:
+      - ./data:./data
+      - ./settings:./settings
+    environment:
+      - OPENAI_API_KEY=***
+      - JWT_SECRET=***
+    restart: always
+

@@ -91,12 +91,6 @@ _init_logger()
 logger = logging.getLogger(__name__)
 logger.info(f"Starting:{PROGRAM_NAME} version:{VERSION} mode:{run_mode}")
 
-if run_mode == "docker":
-    # Change paths to absolute paths for the volumes mounted in the container
-    config[SIDEKICK_DB_DIR_SETTING] = '/mount/' + config[SIDEKICK_DB_DIR_SETTING]
-    config[SETTINGS_DIR_SETTING] = '/mount/' + config[SETTINGS_DIR_SETTING]
-    config[LOGS_DIR_SETTING] = '/mount/' + config[LOGS_DIR_SETTING]
-
 openai.api_key = os.environ[config["openai_api_key_env_var"]]
 
 def sidekickDB():
