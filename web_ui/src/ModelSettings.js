@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { debounce } from "lodash";
+import { useEffect, useState, useCallback } from 'react';
 import { Card, Paper, Box, IconButton, Tooltip,
     Typography, TextField, Autocomplete, Slider, Switch, Stack } from '@mui/material';
 import { ClassNames } from "@emotion/react";
@@ -28,7 +29,24 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     const [presence_penalty, setpresence_penalty] = useState(null);
     const [frequency_penalty, setfrequency_penalty] = useState(null);
     const [showHelp, setShowHelp] = useState(false);
- 
+
+    const [width, setWidth] = useState(0);
+    const handleResize = useCallback( 
+        // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
+        debounce((entries) => {
+        const { width } = entries[0].contentRect;
+        setWidth(width);
+        }, 100),
+        []
+    );
+
+    useEffect(() => {
+        const element = document.getElementById("chat-panel");
+        const observer = new ResizeObserver(handleResize);
+        element && observer.observe(element);
+        return () => observer.disconnect();
+    }, [handleResize]);
+
     useEffect(()=>{
         mySettingsManager.loadSettings("model_settings",
             (data) => {
@@ -131,7 +149,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     }, [selectedProvider, selectedModel, temperature, top_p, presence_penalty, frequency_penalty]);
 
     const loadingRender =
-        <Card sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "300px", maxWidth: "400px" }}>
+        <Card sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "350px", maxWidth: "450px" }}>
             <Typography>{loadingModelSettingsOptionsMessage}</Typography>
         </Card>;
 
@@ -268,8 +286,8 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
         </Box>
 
     const render =
-        <Card sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth:"300px", maxWidth: "400px" }}>
-            <StyledToolbar className={ClassNames.toolbar}>
+        <Card sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth:"350px", maxWidth: "450px" }}>
+            <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
                 <TuneIcon/>
                 <Typography>Settings</Typography>
                 <Box ml="auto">

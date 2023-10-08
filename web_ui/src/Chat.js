@@ -3,14 +3,10 @@ import { debounce } from "lodash";
 
 import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Box, Paper, Toolbar, IconButton, Typography, TextField,
-    List, ListItem, Menu, MenuItem, Tooltip
+    List, ListItem, Menu, MenuItem, Tooltip, Button
      } from '@mui/material';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
-import SyntaxHighlighter from 'react-syntax-highlighter';
-import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 
 // Icons
 import CloseIcon from '@mui/icons-material/Close';
@@ -23,6 +19,7 @@ import SendIcon from '@mui/icons-material/Send';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CodeIcon from '@mui/icons-material/Code';
 import CodeOffIcon from '@mui/icons-material/CodeOff';
+import SaveIcon from '@mui/icons-material/Save';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
@@ -30,11 +27,10 @@ import AI from './AI';
 
 
 import { grey, blue } from '@mui/material/colors';
-import { use } from 'marked';
+import SidekickMarkdown from './SidekickMarkdown';
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     backgroundColor: theme.palette.primary.main,
-    gap: 2,
   }));
 
 const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
@@ -43,16 +39,17 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
 
 const Chat = ({
     provider, modelSettings, persona, 
-    newPromptPart, loadChat, setAppendNoteContent,
+    newPromptPart, newPrompt, loadChat, setAppendNoteContent,
     focusOnPrompt, setFocusOnPrompt, chatRequest, chatOpen, setChatOpen,
     temperatureText, setTemperatureText, modelSettingsOpen, toggleModelSettingsOpen, togglePersonasOpen,
-    onChange, personasOpen, setOpenChatId, shouldAskAgainWithPersona, serverUrl, token, setToken,
+    onChange, personasOpen, promptEngineerOpen, togglePromptEngineerOpen, setOpenChatId, shouldAskAgainWithPersona, serverUrl, token, setToken,
     streamingChatResponse, setStreamingChatResponse, chatStreamingOn }) => {
 
     const newChatName = "New Chat"
 
     const [width, setWidth] = useState(0);
     const handleResize = useCallback(
+        // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
         debounce((entries) => {
         const { width } = entries[0].contentRect;
         setWidth(width);
@@ -88,7 +85,7 @@ const Chat = ({
     const [systemPrompt, setSystemPrompt] = useState("");
     const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady.current);
     const [messageContextMenu, setMessageContextMenu] = useState(null);
-    const [syntaxHighlightingOn, setSyntaxHighlightingOn] = useState(true);
+    const [markdownRenderingOn, setMarkdownRenderingOn] = useState(true);
     const [settings, setSettings] = useState({});
     const [settingsLoaded, setSettingsLoaded] = useState(false);
     const [folder, setFolder] = useState("chats");
@@ -154,7 +151,7 @@ const Chat = ({
     }, [messages]);
 
     useEffect(()=>{
-        settings["rendered"] = syntaxHighlightingOn;
+        settings["rendered"] = markdownRenderingOn;
         if (settingsLoaded) {
             axios.put(`${serverUrl}/settings/chat_settings`, settings, {
                 headers: {
@@ -170,11 +167,11 @@ const Chat = ({
                 }
             )
         }
-    }, [syntaxHighlightingOn]);
+    }, [markdownRenderingOn]);
 
     useEffect(()=>{
-        if ("rendered" in settings) {
-            setSyntaxHighlightingOn(settings.rendered);
+        if (settings.hasOwnProperty("rendered")) {
+            setMarkdownRenderingOn(settings.rendered);
         }
     }, [settings]);
 
@@ -223,6 +220,35 @@ const Chat = ({
             setPromptFocus();
         }
     }, [newPromptPart]);
+
+    useEffect(()=>{
+        console.log("newPrompt", newPrompt);
+        if (!chatOpen) { setChatOpen(true); }
+        if (newPrompt) {
+            if (streamingChatResponse !== "") {
+                system.info("Please wait for the current chat to finish loading before loading a prompt template.");
+            } else {
+                axios.get(`${serverUrl}/docdb/prompt_templates/documents/${newPrompt["id"]}`, {
+                    headers: {
+                        Authorization: 'Bearer ' + token
+                    }
+                }).then(response => {
+                    console.log("/docdb/prompt_templates GET Response:", response);
+                    response.data.access_token && setToken(response.data.access_token);
+                    setLastPrompt(prompt);
+                    setPrompt("# " + response.data.metadata.name + "\n" + response.data.content.prompt_template);
+                }).catch(error => {
+                    console.error("/docdb/prompt_templates GET error", error);
+                    system.error(`Error loading prompt_template: ${error}`);
+                });
+            }
+        }
+
+        if(typeof newPrompt === "string") {
+            setPrompt(newPrompt);
+            setPromptFocus();
+        }
+    }, [newPrompt]);
 
     useEffect(()=>{
         if(promptToSend) {
@@ -529,6 +555,43 @@ const Chat = ({
     const handleReload = () => {
         setPrompt(lastPrompt);
     }
+
+    const extractNameFromPrompt = (prompt) => {
+        if (prompt.startsWith("# ")) {
+          const newlineIndex = prompt.indexOf("\n");
+          if (newlineIndex !== -1 && newlineIndex > 2 && newlineIndex < 50) {
+            return prompt.substring(2, newlineIndex).trim();
+          }
+        }
+        return null;
+    };
+
+    const handleSavePromptAsTemplate = () => {
+        const promptTemplateName = extractNameFromPrompt(prompt);
+        if (promptTemplateName) {
+            axios.post(`${serverUrl}/docdb/prompt_templates/documents`, {
+                "name": promptTemplateName,
+                "tags": [],
+                "content": {
+                    "prompt_template": prompt.replace(/^.*?\n/, '')
+                },
+            }, {
+                headers: {
+                    Authorization: 'Bearer ' + token
+                }
+            }).then(response => {
+                console.log("Create prompt template Response", response);
+                response.data.access_token && setToken(response.data.access_token);
+                onChange(response.data.metadata.id, response.data.metadata.name, "created", "promptTemplate");
+                system.info(`Prompt template ${response.data.metadata.name} created.`);
+            }).catch(error => {
+                console.log("create prompt template error", error);
+                system.error(`Error creating prompt template: ${error}`);
+            });
+        } else {
+            system.error("Please start your prompt template with a heading on the first line, e.g. # My Prompt Template (press Shift+Return to enter a newline). Prompt template not saved. ");
+        }
+    }
     
     const handleTitleChange = (event) => {
         setName(event.target.value);
@@ -536,6 +599,7 @@ const Chat = ({
 
     const handleNewChat = () => {
         reset();
+        setPromptFocus();
     }
 
     const renameChat = (newName) => {
@@ -589,6 +653,14 @@ const Chat = ({
     };
 
     const handleMessageContextMenuClose = () => {
+        setMessageContextMenu(null);
+    };
+
+    const handleCopyHighlightedText = () => {
+        const selection = window.getSelection();
+        const range = selection.getRangeAt(0);
+        const text = range.toString();
+        navigator.clipboard.writeText(text);
         setMessageContextMenu(null);
     };
     
@@ -710,59 +782,13 @@ const Chat = ({
         setMessageContextMenu(null);
     };
 
-    const handleSyntaxHighlightingChange = () => {
-        let newSetting = !syntaxHighlightingOn;
-        setSyntaxHighlightingOn(newSetting);
-    };
-
-      const highlightCodeBlocks = (text) => {
-        try {
-            const codeRegex = /```([a-zA-Z]+)([\s\S]*?)```/g;
-            let lastIndex = 0;
-            const highlightedText = [];
-            let match;
-            while ((match = codeRegex.exec(text)) !== null) {
-            const language = match[1];
-            const code = match[2];
-            const startIndex = match.index;
-            const endIndex = codeRegex.lastIndex;
-            const before = text.slice(lastIndex, startIndex);
-            const after = text.slice(endIndex);
-            highlightedText.push(<ReactMarkdown remarkPlugins={[remarkGfm]} key={lastIndex} sx={{ whiteSpace: 'pre-wrap' }}>{before}</ReactMarkdown>);
-            highlightedText.push(
-                <Card>
-                    <Toolbar className={ClassNames.toolbar}>
-                    <Typography sx={{ mr: 2 }}>{language}</Typography>
-                        <Box sx={{ display: "flex", flexDirection: "row", ml: "auto" }}>
-                            <IconButton edge="start" color="inherit" aria-label="menu"
-                                onClick={() => { navigator.clipboard.writeText(code); }}>
-                                <ContentCopyIcon/>
-                            </IconButton>
-                        </Box>
-                    </Toolbar>
-                    <SyntaxHighlighter key={lastIndex + 1} language={language} style={docco}>
-                        {code}
-                    </SyntaxHighlighter>
-                </Card>
-            );
-            lastIndex = codeRegex.lastIndex;
-            if (lastIndex === text.length) {
-                highlightedText.push(<ReactMarkdown remarkPlugins={[remarkGfm]} key={lastIndex} sx={{ whiteSpace: 'pre-wrap' }}>{after}</ReactMarkdown>);
-            }
-            }
-            if (lastIndex < text.length) {
-            highlightedText.push(<Typography key={lastIndex} sx={{ whiteSpace: 'pre-wrap' }}>{text.slice(lastIndex)}</Typography>);
-            }
-            return <>{highlightedText}</>;
-        } catch (err) {
-            console.log(err);
-            system.error(`Error highlighting code blocks: ${err}`);
-            return <Typography sx={{ whiteSpace: 'pre-wrap' }}>{text}</Typography>;
-        }
+    const handleToggleMarkdownRendering = () => {
+        let newSetting = !markdownRenderingOn;
+        setMarkdownRenderingOn(newSetting);
     };
 
     const render = <Card id="chat-panel" sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "400px" }}>
-    <StyledToolbar className={ClassNames.toolbar}>
+    <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 } }>
         <CommentIcon/>
         <Typography sx={{mr:2}}>Chat</Typography>
         <Tooltip title={ id === "" ? "You are in a new chat" : "New chat"}>
@@ -774,9 +800,9 @@ const Chat = ({
                 </IconButton>
             </span>
         </Tooltip>
-        <Tooltip title={ syntaxHighlightingOn ? "Turn off code highlighting" : "Turn on code highlighting" }>
-            <IconButton edge="end" color="inherit" aria-label="delete chat" onClick={handleSyntaxHighlightingChange}>
-                { syntaxHighlightingOn ? <CodeIcon/> : <CodeOffIcon/> }
+        <Tooltip title={ markdownRenderingOn ? "Turn off markdown and code rendering" : "Turn on markdown and code rendering" }>
+            <IconButton edge="end" color="inherit" aria-label="delete chat" onClick={handleToggleMarkdownRendering}>
+                { markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }
             </IconButton>
         </Tooltip>
         <Box sx={{ display: "flex", flexDirection: "row", ml: "auto" }}>
@@ -841,9 +867,9 @@ const Chat = ({
                             onClick={() => message.role === "user" && setPrompt(message.content)}
                         >
                                 {
-                                    syntaxHighlightingOn
+                                    markdownRenderingOn
                                     ?
-                                        highlightCodeBlocks(message.content)
+                                        <SidekickMarkdown markdown={message.content}/>
                                     :
                                         <Typography sx={{ whiteSpace: 'pre-wrap' }}>
                                             {message.content}
@@ -864,7 +890,8 @@ const Chat = ({
                                      }
                                     : undefined
                                 }
-                            >
+                            > 
+                                <MenuItem disabled={!window.getSelection().toString()} onClick={handleCopyHighlightedText}>Copy highlighted text</MenuItem>
                                 <MenuItem onClick={handleCopyMessageAsText}>Copy message as text</MenuItem>
                                 <MenuItem onClick={handleCopyAllAsText}>Copy all as text</MenuItem>
                                 <MenuItem onClick={handleCopyMessageAsHTML}>Copy message as html</MenuItem>
@@ -898,7 +925,7 @@ const Chat = ({
                 </ListItem>}
             </List>
         </Box>
-        <SecondaryToolbar className={ClassNames.toolbar}>
+        <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
             <Tooltip title={ "Ask again" }>
                 <IconButton edge="start" color="inherit" aria-label="menu" 
                     disabled={streamingChatResponse !== ""} onClick={handleAskAgain}>
@@ -909,6 +936,12 @@ const Chat = ({
                 <IconButton edge="start" color="inherit" aria-label="menu"
                     disabled={streamingChatResponse !== ""} onClick={handleReload}>
                     <RedoIcon/>
+                </IconButton>
+            </Tooltip>
+            <Tooltip title={ "Save prompt as template" }>
+                <IconButton edge="start" color="inherit" aria-label="save prompt as template"
+                    disabled={streamingChatResponse !== ""} onClick={handleSavePromptAsTemplate}>
+                    <SaveIcon/>
                 </IconButton>
             </Tooltip>
             <Box ml="auto">
@@ -940,15 +973,21 @@ const Chat = ({
                 disabled={streamingChatResponse !== ""}
         />
         <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: grey[100] }}>
-            <Typography id="personaname" sx={{ fontSize: "0.8em" }}>
-                Persona: {myPersona.name}
-            </Typography>
-            <Typography id="temperature" sx={{ fontSize: "0.8em" }}>
-                ({temperatureText})
-            </Typography>
-            <Typography id="modelname" sx={{ fontSize: "0.8em" }}>
-                Model: {myModelSettings.request && myModelSettings.request.model}
-            </Typography>
+            <Tooltip title={ personasOpen ? "Hide AI Personas" : "Show AI Personas"}>
+                <Button id="button-personas" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={togglePersonasOpen}>
+                    {myPersona.name}
+                </Button>
+            </Tooltip>
+            <Tooltip title={ modelSettingsOpen ? "Hide Model Settings" : "Show Model Settings" }>
+                <Button id="button-model-settings" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={toggleModelSettingsOpen}>
+                    {myModelSettings.request && myModelSettings.request.model} ({temperatureText})
+                </Button>
+            </Tooltip>
+            <Tooltip title={ promptEngineerOpen ? "Hide Prompt Engineer" : "Show Prompt Engineer"}>
+                <Button id="button-prompt-engineer" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={togglePromptEngineerOpen}>
+                    Prompt Engineer
+                </Button>
+            </Tooltip>
         </Paper>
     </Box>
 </Card>;

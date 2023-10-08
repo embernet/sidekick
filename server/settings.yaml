@@ -1,6 +1,4 @@
-userdb_dir: data
-logindb_dir: etc
-feedbackdb_dir: etc
+sidekick_db_dir: data
 settings_dir: settings
 custom_settings_dir: etc/custom_settings
 logs_dir: etc/logs

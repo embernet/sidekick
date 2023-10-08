@@ -1,30 +1,18 @@
-# Contents
-
-- [Sidekick overview](#sidekick-overview)
-- [Sidekick Tools](#sidekick-tools)
-- [What can I use Sidekick for?](#what-can-i-use-sidekick-for)
-- [Responsible use](#responsible-use)
-
-
 # Sidekick overview
 
-Sidekick provides a chat interface to OpenAI's GPT models along with pre-canned AI personas and a prompt fragment library to help you get more out of the AI and a working environment where you can create notes by selecting the most interesting and useful parts of the chat to edit and organise into a more complete text aligned with what you want.
+Sidekick provides a chat interface to OpenAI's GPT models along with pre-canned AI personas, a prompt fragment library, and prompt templates to help you get more out of the AI. It also provides a working environment where you can create notes by selecting the most interesting and useful parts of the chat to edit and organise into a more complete text aligned with what you want.
 
 # Sidekick Tools
 
-Sidekick has the following Tools:
-
-- **[Sidekick AI Help](#sidekick-ai-help):** This tool. An AI that helps you use the Sidekick app. Ask questions about the Sidekick app to get simple instructions on how and why to use app features. Ask more general questions and it will suggest approaches to using the app to answer those questions.
-- **[Chat](#chat):** A window that lets you talk to OpenAI's GPT-3.5-turbo and GPT-4 models, curate the message content, resubmit prompts, and copy responses of interest to notes.
-- **[Chat Explorer](#chat-explorer):** A filterable list of chats you have created.
-- **[Model Settings](#model-settings):** A window that lets you change the model settings for the AI to customise its behaviour.
-- **[AI Personas](#ai-personas):** Select from a library of pre-canned AI personas to change the perspective from which the AI responds to your prompts.
-- **[Prompt Engineer](#prompt-engineer):** Create prompts by selecting from a library of prompt fragments.
-- **[Note](#note):** Create and edit notes to gather your thoughts, plan your work, collate the best AI responses from your chats into something more meaninful.
-- **[Notes Explorer](#notes-explorer):** A filterable list of the notes you have created.
-- **[App Settings](#app-settings):** Change general app and account settings.
-
-Each of these is described in more detail below.
+- **Sidekick AI Help:** This tool. An AI that helps you use the Sidekick app. Ask questions about the Sidekick app to get simple instructions on how and why to use app features. Ask more general questions and it will suggest approaches to using the app to answer those questions.
+- **Chat:** Talk to OpenAI's GPT-3.5-turbo and GPT-4 models. Save prompts as templates, save chat messages to Notes, selectively delete AI responses that missed the point from the chat history to improve the AI's future responses.
+- **Chat Explorer:** List historical chats. Click on a chat to open it.
+- **Model Settings:** Model Settings include which AI model to use and values for various parameters that affect the way that model responds to your prompts.
+- **AI Personas:** Select from a library of pre-canned AI personas to change the perspective from which the AI responds to your prompts. Favourite the personas you like, filter by name and keywords.
+- **Prompt Engineer:** Create prompts by selecting from a library of prompt fragments and prompt templates.
+- **Note:** Create and edit notes to gather your thoughts, plan your work, collate the best AI responses from your chats into something more meaninful.
+- **Notes Explorer:** A filterable list of the notes you have created.
+- **App Settings:** Change account settings.
 
 ## Sidekick AI Help
 
@@ -34,28 +22,17 @@ Each of these is described in more detail below.
 
 ### Sidekick AI Help Features
 
-- Read the manual, navigate between sections on how to use app features, creativity methods, problem solving methods, and more
+- Read the manual, navigate between sections on how to use app features, creativity methods, and problem solving methods
 - Ask questions about the Sidekick app and how to use it to get simple instructions on how to use app features
 - Ask more general questions and it will suggest approaches to using the app to answer those questions
-- Right click on a message in the chat to:
-  - Copy the message to the clipboard as text
-  - Copy all messages to the clipboard as text
-  - Copy the message to the clipboard as HTML
-  - Copy all messages to the clipboard as HTML
-  - Delete a message
-  - Delete all messages
-
-Return to [Sidekick Tools](#sidekick-tools)
 
 ## Chat
-
-**What is Chat?** Chat is a window that lets you talk to OpenAI's GPT-3.5-turbo and GPT-4 models. Each time you enter a prompt, the entire chat history is sent to the AI along with the prompt. The AI then responds to the prompt based on the chat history and the prompt.
 
 **How to access Chat:** The Chat window opens by default. If you close it you can create a new chat by clicking on the Chat button, which is the speech bubble with a + icon in the Sidekick toolbar
 
 ### Chat Features
 
-- To talk to OpenAI's GPT-3.5-turb and GPT-4 models, enter a prompt in the prompt box and press Enter, or click on the Send button in the Chat prompt Toolbar
+- Enter a prompt in the prompt box and press Enter, or click on the Send button in the Chat prompt Toolbar
 - To ask the same question again / send the same prompt again: Click the "Ask again" button in the Chat prompt Toolbar
 - To reload your last prompt for editing: Click the "Reload last prompt for editing" button in the Chat prompt Toolbar
 - To clear the prompt box: When in the prompt box, press the Escape key
@@ -79,11 +56,7 @@ Return to [Sidekick Tools](#sidekick-tools)
 - Chats are automatically named. New empty chats are named "New Chat" until you interact with it to create some content. If this is their name when you enter a prompt, they will be automatically given a name based on the text in the prompt.
 - Chat's can change course over time. Click the regenerate name button next to the chat name if you want to update the name to reflect the current content of the chat.
 
-Return to [Sidekick Tools](#sidekick-tools)
-
 ## Chat Explorer
-
-**What is Chat Explorer?** Chat Explorer is a window that lets you explore the chat history. Click on a chat to open it.
 
 **How to access Chat Explorer:** The chat explorer is open by default. If you close it you can click on the Chat Explorer button, which is the double chat bubble icon in the Sidekick toolbar.
 
@@ -94,11 +67,7 @@ Return to [Sidekick Tools](#sidekick-tools)
 - Click on a chat to open it
 - Bulk delete chats by filtering and clicking the trashcan button next to the filter text
 
-Return to [Sidekick Tools](#sidekick-tools)
-
 ## Model Settings
-
-**What are Model Settings?** Model Settings include which AI model to use and values for various parameters that affect the way that model responds to your prompts.
 
 **How to access Model Settings:** Click on the Model Settings button, whcih is the graphic equalizer icon in the Sidekick toolbar.
 
@@ -120,8 +89,6 @@ Return to [Sidekick Tools](#sidekick-tools)
 - **What is presence_penalty?** Presence_penalty is a model setting that takes a value between -2 and 2 inclusive. Positive values penalise new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.
 - **What is frequency_penalty?** Frequency_penalty is a model setting that takes a value between -2 and 2 inclusive. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.
 
-Return to [Sidekick Tools](#sidekick-tools)
-
 ## AI Personas
 
 **What are AI Personas?** AI Personas are pre-canned roles that you can use to change the perspective from which the AI responds to your prompts.
@@ -132,24 +99,11 @@ Return to [Sidekick Tools](#sidekick-tools)
 
 ### AI Personas Features
 
-- Select from a library of pre-canned AI personas; the Personas window lists the persona's name and description
-- Click on the Show/Hide details button in the toolbar to show or hide the the system prompts that tell the AI how to play the role of each persona
-- Filter the list of personas by name, keywords in their profile, and favourite status
-- Favourite personas you use often by clicking on the heart icon next to the persona name
-- You can search for personas that are specialise in a particular topic or that have a particular priorities. E.g. try searching for expert, generalist, creative, logical, CXO.
-- Change the AI Persona to use in subsequent prompts to the AI in the Chat window by clicking on the persona name in the Personas window
-- Right click on a persona in the Personas window to:
-  - "Ask again with this persona" - This will send the last prompt to the AI again using the selected persona. In this way, you can easily get multiple perspectives on the same question.
-  - "Set as default persona" - This will set the selected persona as the default persona to use in subsequent prompts to the AI in the Chat window. This will be remembered across sessions.
+Choose from an AI persona library listed in the Personas window. Use the Show/Hide details button to display or conceal system prompts guiding the AI's role-play. Filter personas using name, profile keywords, and favorite status. Favorite frequently used personas by clicking the heart icon. Search for specialized personas by topic or priorities like 'expert,' 'generalist,' 'creative,' 'logical,' 'CXO.' Change the AI Persona in the Chat window by clicking the persona's name. Right-click a persona to resend the last prompt using that persona or set it as the default for future sessions.
 
 ### AI Personas Tips, Questions and Answers:
 
-- How do I favourite an AI Persona? Click on the heart icon next to the persona name.
-- How do I unfavourite an AI Persona? Click on the heart icon next to the persona name.
-- How do I change the AI Persona? Click on the persona name in the Personas window.
-- How do I search for an AI Persona? Enter a search term in the filter box in the Personas window. You can search by name, keywords in the persona profile. You can filter the list of personas by favourite by clicking the heart next to the filter box in the Personas window.
-
-Return to [Sidekick Tools](#sidekick-tools)
+To favorite or unfavorite an AI Persona, click the heart icon next to the persona's name. Change the AI Persona by clicking its name in the Personas window. Search for a persona using name or profile keywords in the filter box, and filter favorites by clicking the heart next to the box.
 
 ## Prompt Engineer
 
@@ -163,8 +117,6 @@ Return to [Sidekick Tools](#sidekick-tools)
 
 - Click on the category name to expand or collapse the category of prompt fragment.
 - Click on the prompt fragment to add it to the prompt.
-
-Return to [Sidekick Tools](#sidekick-tools)
 
 ## Note
 
@@ -180,16 +132,16 @@ Return to [Sidekick Tools](#sidekick-tools)
 - Collect the best parts of your chats by right clicking on a message in the chat and selecting "Append message to note"
 - Copy your entire chat to a note by right clicking on a message in the chat and selecting "Append all to note"
 - Right click on a note in the Notes window to:
-  - "Copy" - Copy the note to the clipboard as text
-  - "Copy as HTML" - Copy the note to the clipboard as HTML
-  - "Append to chat input" - Append the note to the prompt in the Chat window
-  - "Use as chat input" - Use the note as the prompt in the Chat window
+  - "Copy" 
+  - "Copy as HTML" 
+  - "Append to chat input" 
+  - "Use as chat input" 
 - The primary toolbar at the top of the note provides the following functions:
-  - "New Note" - Create a new note
-  - "Delete Note" - Delete the current note
+  - "New Note" 
+  - "Delete Note" 
 - The secondary toolbar at the bottom of the note provides the following functions:
-  - "Download Note" - Download the current note as a text file
-  - "Upload Note" - Upload a text file as a new note
+  - "Download Note" 
+  - "Upload Note" 
 
 ### Note Tips, Questions and Answers
 
@@ -199,8 +151,6 @@ Return to [Sidekick Tools](#sidekick-tools)
 - How do I upload a note? Click the "Upload Note" button in the Note secondary Toolbar.
 - How do I copy a note to the clipboard? Right click on the note in the Notes window and select "Copy".
 - How do I copy a Chat response into my note? Right click on a message in the chat and select "Append message to note".
-
-Return to [Sidekick Tools](#sidekick-tools)
 
 ## Notes Explorer
 
@@ -217,8 +167,6 @@ Return to [Sidekick Tools](#sidekick-tools)
 - Click on a note to open it
 - Bulk delete notes by filtering and clicking the trashcan button next to the filter text
 
-Return to [Sidekick Tools](#sidekick-tools)
-
 ## App Settings
 
 **What are App Settings?** App Settings include your userid, password, and other settings related to your userid.
@@ -230,8 +178,6 @@ Return to [Sidekick Tools](#sidekick-tools)
 - Change your password
 - Delete your account
 
-Return to [Sidekick Tools](#sidekick-tools)
-
 # What can I use Sidekick for?
 
 - **Creativity**: Sidekick can help you be more creative by helping you explore ideas, and by helping you get more out of the AI by using the persona that is best suited to your purpose.
@@ -242,32 +188,3 @@ Return to [Sidekick Tools](#sidekick-tools)
 - **Knowledge-building**: Use the Note tool to collect the best parts of the Chats, and to edit and organise them into a more complete text aligned with what you want.
 - **Software Engineering**: Software engineering includes requirements analysis, system design, programming, testing, and operations. Use the Chat tool to provide code snippets, explain concepts, and provide examples, design patterns, recommend libraries and languages to use to perform specific tasks. Use the Note tool to collect the parts most relevant to you so you can create your own play book of how to code more effectively.
 
-[Back to top](#sidekick-manual-top)
-
-# Responsible Use
-
-## With great power comes great responsibility
-
-Harnessing the power of Generative AI necessitates thoughtful prompting and responsible usage; it provides vast potential but ultimately, it's the user's responsibility to guide its applications and ensure the validity and appropriateness of its output in specific contexts.
-
-## Tapping into the power of Generative AI conversational chatbots
-
-Generative AI models and chatbots are ground-breaking tools in the realm of AI, offering a wealth of potential for diverse applications across various sectors. As an advanced language model, it's capable of generating human-like text responses, which can range from answering queries and writing essays or code to brainstorming ideas, designing or refactoring code, summarising notes, and more.
-
-However, it's important to understand that while powerful, such models are not a magic bullet. Its performance and the value it provides depend significantly on how effectively you communicate your requirements to it. This means crafting your prompts carefully and thoughtfully to elicit the most useful and relevant responses. For example, remembering that you work in a certain context that you have come to take for granted in terms of how we work or the constraints or enablers that are surrounding you - and recapping what is unique about your situation and why you are asking a ChatBot for help will inform a better prompt. Include appropriate context in your prompt to improve the relevance of the response. Don't share anything sensitive.
-
-## Using Generative AI to augment your skills and judgement
-
-It's essential to remember that any ChatBot is ultimately an AI, relying on patterns and information it has learnt. It doesn't possess human judgement or understanding of specific contexts that you may operate in. Therefore, the answers or recommendations it generates should not be taken at face value or assumed to be absolutely correct, best practice, or necessarily suitable for your particular situation.
-
-Of course, people also rely on patters of information they have learnt, and we all have biases. The difference is that we are self-aware, and should strive to have awareness of our biases. We can take steps to mitigate them biases and knowledge and experience gaps we have. Using AI Chatbots is one of many ways to do that. We can also use our judgement to decide whether to follow the advice of a ChatBot or not. 
-
-In essence, AI Chatbots provide a broad canvas of possibilities inspired by the world's knowledge; It's up to you to interpret, apply, and quality assure these in your context. Its responses should be seen as prompts for you - a springboard that can inspire you, stimulate your thinking, and guide you on the best course of action based on your expert judgement and understanding of your unique circumstances.
-
-Embracing this approach not only empowers you to get the most out of Generative AI, but it also fosters a more ethical, responsible, and effective use of this transformative AI technology.
-
-## Conclusions
-
-Remember, GenAI doesn't replace human skills and judgement, but it can serve as a powerful assistant that can enhance our capabilities, speed up processes, and provide valuable insights. While AI can provide valuable input quickly, you remain responsible for your own work and actions, whichever tools you use to help you.
-
-[Back to top](#sidekick-manual-top)

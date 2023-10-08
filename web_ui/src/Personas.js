@@ -1,5 +1,6 @@
+import { debounce } from "lodash";
 import axios from 'axios';
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState, useContext, Fragment, useCallback } from 'react';
 import { Card, Box, IconButton, Tooltip, Typography, TextField,
     List, ListItem, ListItemText, Menu, MenuItem, Divider } from '@mui/material';
 import { ClassNames } from "@emotion/react";
@@ -14,7 +15,6 @@ import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 
 import { SystemContext } from './SystemContext';
 import { StyledToolbar } from './theme';
-import { WidthFull } from '@mui/icons-material';
 
 const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, personasOpen, 
     settingsManager, setShouldAskAgainWithPersona, serverUrl, StreamingChatResponse,
@@ -31,12 +31,30 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
     const [mySettingsManager, setMySettingsManager] = useState(settingsManager);
     const [filterByFavourite, setFilterByFavourite] = useState(false);
 
+    const [width, setWidth] = useState(0);
+    const handleResize = useCallback(
+        // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
+        debounce((entries) => {
+        const { width } = entries[0].contentRect;
+        setWidth(width);
+        }, 100),
+        []
+    );
+
+    useEffect(() => {
+        const element = document.getElementById("chat-panel");
+        const observer = new ResizeObserver(handleResize);
+        element && observer.observe(element);
+        return () => observer.disconnect();
+    }, [handleResize]);
+
     const setPersonasFilterFocus = () => {
         document.getElementById("personas-filter")?.focus();
     }
     useEffect(()=>{
         mySettingsManager.loadSettings("personas",
             (data) => {
+                console.log("Personas loaded:", data)
                 setMyPersonas(data.personas);
                 const defaultPersona = Object.entries(data.personas).reduce((acc, [key, value]) => {
                     if (value.default) {
@@ -173,7 +191,7 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
       }, {});
 
     const loadingRender = <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
-    flex:1, minWidth: "300px", maxWidth: "400px"}}>
+    flex:1, minWidth: "350px", maxWidth: "450px"}}>
         <Typography>{loadingPersonasMessage}</Typography>
     </Card>
 
@@ -217,14 +235,14 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
                                     </Typography>
                                 }
                                 secondary={
-                                    <Box>
+                                    <Fragment>
                                         <Typography>{persona.description}</Typography>
                                         {
                                             expanded || expandedPersona === persona.name
-                                            ? <Box><Divider/><Typography>{persona.system_prompt}</Typography></Box>
+                                            ? <Typography mt={1}>{persona.system_prompt}</Typography>
                                             : null
                                         } 
-                                    </Box>
+                                    </Fragment>
                                 }
                             />
                         </Card>
@@ -251,8 +269,8 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
         </List>
 
     const render = <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
-    flex:1, minWidth: "300px", maxWidth: "400px"}}>
-        <StyledToolbar className={ClassNames.toolbar}>
+    flex:1, minWidth: "350px", maxWidth: "450px"}}>
+        <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
             <PersonIcon/>
             <Typography>Personas</Typography>
             <Box ml="auto">

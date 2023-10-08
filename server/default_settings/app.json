@@ -1,0 +1,19 @@
+{
+    "version": "0",
+    "app": {
+        "sidekickAIOpenDefault":false,
+        "sidekickAIPinnedOpenDefault":false,
+        "chatsOpenDefault":true,
+        "chatsPinned":false,
+        "modelSettingsOpenDefault":false,
+        "modelSettingsPinned":false,
+        "personasOpenDefault":true,
+        "personasPinned":true,
+        "promptComposerOpenDefault":false,
+        "promptComposerPinned":false,
+        "chatOpenDefault":true,
+        "noteOpenDefault":false,
+        "notesOpenDefault":false,
+        "notesPinned":false
+    }
+}

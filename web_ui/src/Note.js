@@ -9,21 +9,23 @@ import CloseIcon from '@mui/icons-material/Close';
 import ReplayIcon from '@mui/icons-material/Replay';
 import SendIcon from '@mui/icons-material/Send';
 import EditNoteIcon from '@mui/icons-material/EditNote';
+import CodeIcon from '@mui/icons-material/Code';
+import CodeOffIcon from '@mui/icons-material/CodeOff';
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import { green, grey } from '@mui/material/colors';
 import { MuiFileInput } from 'mui-file-input';
+import SidekickMarkdown from './SidekickMarkdown';
 
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
 import AI from './AI';
-import { use } from 'marked';
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     backgroundColor: green[300],
-    gap: 2,
+    marginRight: theme.spacing(2),
   }));
 
 const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
@@ -37,6 +39,7 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
 
     const [width, setWidth] = useState(0);
     const handleResize = useCallback(
+        // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
         debounce((entries) => {
         const { width } = entries[0].contentRect;
         setWidth(width);
@@ -79,13 +82,13 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
     const [tags, setTags] = useState([]);
     const [uploadingFile, setUploadingFile] = useState(false);
     const [fileToUpload, setFileToUpload] = useState(null);
+    const [markdownRenderingOn, setMarkdownRenderingOn] = useState(false);
 
     const focusOnContent = () => {
         document.getElementById("note-content")?.focus();
     }
 
     useEffect(()=>{
-        console.log("createNote", createNote);
         if(createNote) {
             create({content: createNote.content ? createNote.content : ""});
         }
@@ -174,8 +177,8 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
     }, [promptToSend]);        
     
     const save = () => {
-        if (id === "") {
-            create({content: content});
+        if (id === "" && content !== "") {
+            create({name: name, content: content});
         } else {
             if (contentChanged) {
                 const request = {
@@ -246,12 +249,12 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
         if (content === undefined) {
             content = "";
         }
-            axios.post(`${serverUrl}/docdb/${folder}/documents`, {
-                "name": name,
-                "tags": tags,
-                "content": {
-                    "note": content
-                },
+        axios.post(`${serverUrl}/docdb/${folder}/documents`, {
+            "name": name,
+            "tags": tags,
+            "content": {
+                "note": content
+            },
         }, {
             headers: {
                 Authorization: 'Bearer ' + token
@@ -325,7 +328,7 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
     const renameNote = (newName) => {
         setName(newName);
         if (id === "") {
-            create({name: newName});
+            create({name: newName, content: content});
         } else {
             axios.put(`${serverUrl}/docdb/${folder}/documents/${id}/rename`, {
                 id: id,
@@ -364,11 +367,6 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
         const ai = new AI(serverUrl, token, setToken, system);
         let generatedName = await ai.nameTopic(text);
         if (generatedName && generatedName !== "") { 
-            // remove surrounding quotes if they are there
-            if ((generatedName.startsWith('"') && generatedName.endsWith('"'))
-            || (generatedName.startsWith("'") && generatedName.endsWith("'"))) {
-                generatedName = generatedName.slice(1, -1);
-            }
             renameNote(generatedName);
         }
     }
@@ -378,6 +376,9 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
     }
 
     const considerAutoNaming = async (text) => {
+        if (content.trim() === "") {
+            return;
+        }
         if (name === newNoteName) {
             generateNoteName(text);
         }
@@ -398,12 +399,28 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
               // With this behavior we prevent contextmenu from the backdrop re-locating existing context menus.
               null,
         );
+        // Wait a mo for the context menu to close before checking for highlighted text
+        // as it gets deselected when the context menu opens
+        setTimeout(() => {
+            if (window.getSelection().toString()) {
+              setNoteContextMenu((prev) => ({ ...prev, highlightedText: window.getSelection().toString() }));
+            }
+          }, 10);
     };
 
     const handleNoteContextMenuClose = () => {
         setNoteContextMenu(null);
     };
-    
+
+    const handleCopyHighlightedText = () => {
+        const text = noteContextMenu.highlightedText;
+        // const selection = window.getSelection();
+        // const range = selection.getRangeAt(0);
+        // const text = range.toString();
+        navigator.clipboard.writeText(text);
+        setNoteContextMenu(null);
+    };
+
     const handleCopyNote = () => {
         const selectedText = noteContextMenu.note;
         navigator.clipboard.writeText(selectedText);
@@ -448,8 +465,13 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
         }
     }
 
+    const handleToggleMarkdownRendering = () => {
+        let newSetting = !markdownRenderingOn;
+        setMarkdownRenderingOn(newSetting);
+    };
+
     const render = <Card id="note-panel" sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "400px" }}>
-    <StyledToolbar className={ClassNames.toolbar}>
+    <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }} >
         <EditNoteIcon/>
         <Typography>Note</Typography>
             <Tooltip title={ id === "" ? "You are in a new note" : "New note" }>
@@ -460,6 +482,11 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
                         <PlaylistAddIcon/>
                     </IconButton>
                 </span>
+            </Tooltip>
+            <Tooltip title={ markdownRenderingOn ? "Stop rendering as markdown and edit as text" : "Preview markdown and code rendering (read only)" }>
+                <IconButton edge="end" color="inherit" aria-label="delete chat" onClick={handleToggleMarkdownRendering}>
+                    { markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }
+                </IconButton>
             </Tooltip>
                     <Box ml="auto">
             <Tooltip title={ "Delete note" }>
@@ -513,17 +540,24 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
             sx={{ display: "flex", flexDirection: "column", height: "100%", overflow: "auto" }}
             onContextMenu={(event) => { handleNoteContextMenu(event, content, name); }}
         >
-            <TextField
-                sx={{ mt: 2, width: "100%" }}
-                id="note-content"
-                label="Note content"
-                multiline
-                variant="outlined"
-                value={content}
-                onChange={handleContentChange}
-                onKeyDown={handleContentKeyDown}
-                onBlur={save}
-                />
+            { markdownRenderingOn
+                ?
+                    <Box sx={{ height: "fit-content" }}>
+                        <SidekickMarkdown markdown={content}/>
+                    </Box>
+                :
+                    <TextField
+                        sx={{ mt: 2, width: "100%" }}
+                        id="note-content"
+                        label="Note content"
+                        multiline
+                        variant="outlined"
+                        value={content}
+                        onChange={handleContentChange}
+                        onKeyDown={handleContentKeyDown}
+                        onBlur={save}
+                        />
+            }
             <Menu
                 open={noteContextMenu !== null}
                 onClose={handleNoteContextMenuClose}
@@ -539,13 +573,14 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
                     : undefined
                 }
             >
+                <MenuItem disabled={!window.getSelection().toString()} onClick={handleCopyHighlightedText}>Copy highlighted text</MenuItem>
                 <MenuItem onClick={handleCopyNote}>Copy</MenuItem>
                 <MenuItem onClick={handleCopyNoteAsHTML}>Copy as html</MenuItem>
                 <MenuItem onClick={handleAppendToChatInput}>Append to chat input</MenuItem>
                 <MenuItem onClick={handleUseAsChatInput}>Use as chat input</MenuItem>
             </Menu>
         </Box>
-        <SecondaryToolbar className={ClassNames.toolbar}>
+        <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
             <Tooltip title={ "Download note" }>
                 <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleDownload}>
                     <FileDownloadIcon/>
