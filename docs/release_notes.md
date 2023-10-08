@@ -1,5 +1,28 @@
 # Release Notes
 
+## v0.0.6
+
+Functional changes:
+
+1. Added a prompt templates tool with a selection of pre-canned templates
+2. Notes can now render a preview of markdown and code
+3. Chats now render markdown as well as code and markdown interspersed with code
+4. Chat can now save prompts as templates
+5. Now uses a single SQLite database for all users, chats, notes, settings, and feedback rather than one data database per user plus a login and feedback database. This simplifies the deployment and configuration of the app, and makes it easier to share chats, prompts, and notes with other users.
+6. Chat secondary toolbar now has a button to save the current prompt as a template
+7. Added custom_settings for the App to set the instance name, and usage, which are displayed next to the version in the App bar; instanceName is intended to be used to distinguish between different instances of the app, e.g. Dev, Test, Prod. usage is intended to be used to distinguish between how that instance could or should be used, e.g. could state private/public, security classification, geographical region, team, divsion, etc. Both settings are just display strings for information purposes only.
+8. Renamed the Prompt Composer tool to Prompt Engineer to refelect the standard terminolgy used in the AI industry.
+9. Chat and Note context menus now have a copy highlighted text option when text is selected
+10. Other minor UI improvements
+
+Code improvements:
+
+1. Sidekick AI help now uses tabs instead of accordian for the separate sections for a clearer UI
+2. Refactored markdown and syntax rendering into a new SidekickMarkdown component
+3. Code syntax highlighting now defaults to ```code where the language is not specified
+4. Carousel component and Login updated to ensure login and create account headings are visible irrespective of browser window size and zoom state
+
+
 ## v0.0.5
 
 UI changes: side panel swapping and pinning, custom messages for login and chat, stop streaming button, improved manual.

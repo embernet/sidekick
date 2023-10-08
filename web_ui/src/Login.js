@@ -2,7 +2,7 @@ import axios from 'axios'
 import React, { useState, useEffect } from 'react';
 import { useContext } from 'react';
 import { SystemContext } from './SystemContext';
-import { Box, Tabs, Tab, Button, TextField, Typography } from '@mui/material';
+import { Box, Tabs, Tab, Button, TextField } from '@mui/material';
 import Carousel from './Carousel';
 
 function Login({setUser, serverUrl, setToken}) {
@@ -26,6 +26,7 @@ function Login({setUser, serverUrl, setToken}) {
     alignItems: 'center',
     justifyContent: 'top',
     flex: 1,
+    position: 'relative',
   };
   
   const inputContainerStyle = {
@@ -33,6 +34,7 @@ function Login({setUser, serverUrl, setToken}) {
     flexDirection: 'column',
     alignItems: 'center',
     marginTop: '20px',
+    position: 'relative',
   };
 
   const inputStyle = {
@@ -81,8 +83,9 @@ function Login({setUser, serverUrl, setToken}) {
 
   const handleCreateAccount = (event) => {
       event.preventDefault();
+      let properties = "{}";
       axios
-      .post(`${serverUrl}/create_account`, { user_id: userId, password: password })
+      .post(`${serverUrl}/create_account`, { user_id: userId, properties: properties, password: password })
       .then((response) => {
           console.log(response);
         if (response.data.success) {
@@ -90,6 +93,7 @@ function Login({setUser, serverUrl, setToken}) {
           system.info(`User ${userId} created; logging you in...`);
           login();
         } else {
+          system.error(response.data.message);
           console.log(response.data.message);
         }
       })
@@ -114,9 +118,9 @@ function Login({setUser, serverUrl, setToken}) {
       filenameExtension=".png" altText="Sidekick logo"
       transitions="8" cycleTime="250"/>
       <Box style={formContainerStyle}>
-          <Tabs value={tabIndex} onChange={handleTabChange}>
-          <Tab label="Login" />
-          <Tab label="Create Account" />
+          <Tabs value={tabIndex} onChange={handleTabChange} style={{ position: 'relative' }}>
+            <Tab label="Login" />
+            <Tab label="Create Account" />
           </Tabs>
           {tabIndex === 0 && (
               <Box style={inputContainerStyle} component="form">

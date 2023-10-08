@@ -40,6 +40,9 @@ It provides a chat interface to OpenAI's GPT models along with pre-canned AI per
 
 # Guided tour
 
+For more details, see the [Sidekick manual](web_ui/public/sidekick_manual.md)
+For more insights on how to use Sidekick, ask the [Sidekick AI Help](#sidekick-ai-help)
+
 ## Login
 
 Login, or create a new account if you don't already have one. Each user has their own database of chats and notes.

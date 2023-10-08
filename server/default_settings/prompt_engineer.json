@@ -12,9 +12,16 @@
             "Explain which ",
             "Explain whether ",
             "Ask questions about ",
+            "Ask questions to clarify ",
+            "Provide examples of ",
+            "Provide counter-examples to ",
+            "Provide arguments for ",
+            "Provide arguments against ",
             "Compare and contrast ",
             "Summarise the key points of ",
-            "Predict the outcome of "
+            "Predict the outcome of ",
+            "Predict the impact of ",
+            "Hypothesise about what will happen next after "
         ],
         "Detail": [
             "Provide the response as a single sentence. ",
@@ -22,7 +29,8 @@
             "Provide the response as a narrative. ",
             "Make the response concise. ",
             "Make the response detailed. ",
-            "Provide an outline for a detailed report including sections and sub-sections. ",
+            "Provide a table of contents for a report. ",
+            "Provide a detailed report including sections and sub-sections. ",
             "Give explanations. ",
             "Give examples. ",
             "Give references. Make sure they are relevant and factual. "
@@ -39,16 +47,20 @@
         "Perspective": [
             "Do this from the perspective of an expert. ",
             "Do this from the perspective of a layman. ",
-            "Do this from the perspective of a child. "
+            "Do this from the perspective of a child. ",
+            "Do this from the perspective of a teenager. ",
+            "Do this from the perspective of someone who will be deeply personally impacted by this. ",
+            "Do this from the perspective of someone who will not be personally impacted by this. "
         ],
         "Format": [
             "Provide the response as markdown bullets. ",
             "Provide the response as markdown categorised into sections with sub-bullets. ",
             "Provide the response as a story. ",
-            "Provide the response as a dialogue between relevant protaganists. ",
+            "Provide the response as a dialogue between relevant protagonists. ",
             "Provide the response in the style of a newsletter article. ",
             "Provide the response as JSON. ",
-            "Provide the response as a CSV. "
+            "Provide the response as a CSV. ", 
+            "Provide the response as Python code. "
         ]
     }
 }
