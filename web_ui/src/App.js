@@ -7,7 +7,7 @@
 import './App.css';
 import axios from 'axios';
 import { SystemProvider } from './SystemContext';
-import { useContext } from 'react';
+import { useContext, useRef } from 'react';
 import { SystemContext } from './SystemContext';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import useToken from './useToken';
@@ -18,11 +18,14 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 // Import icons
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import ModeCommentIcon from '@mui/icons-material/ModeComment';
+import AddCommentIcon from '@mui/icons-material/AddComment';
+
 import PersonIcon from '@mui/icons-material/Person';
 import TuneIcon from '@mui/icons-material/Tune';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import SettingsIcon from '@mui/icons-material/Settings';
 import BuildIcon from '@mui/icons-material/Build';
+import NotesIcon from '@mui/icons-material/Notes';
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import MinimizeIcon from '@mui/icons-material/Minimize';
 import FolderIcon from '@mui/icons-material/Folder';
@@ -30,10 +33,11 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import HelpIcon from '@mui/icons-material/Help';
 
+
 import Chat from './Chat';
 import Personas from './Personas';
 import ModelSettings from './ModelSettings';
-import PromptComposer from './PromptComposer';
+import PromptEngineer from './PromptEngineer';
 import Note from './Note';
 import Explorer from './Explorer';
 import SettingsManager from './SettingsManager';
@@ -44,42 +48,43 @@ import SidekickAI from './SidekickAI';
 
 import { theme } from './theme';
 
-import { runtimeEnvironment } from './ServerUrlThunk';
 import { Toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const VERSION = "0.0.4";
+const VERSION = "0.0.7";
 
 function App() {
   const system = useContext(SystemContext);
   const { token, removeToken, setToken } = useToken();
-  const chatsOpenDefault = true;
-  const chatOpenDefault = true;
-  const notesOpenDefault = false;
-  const noteOpenDefault = false;
-  const personasOpenDefault = false;
-  const modelSettingsOpenDefault = false;
-  const promptComposerOpenDefault = false;
-  const appSettingsOpenDefault = false;
-  const sidekickAIOpenDefault = false;
-  const [sidekickAIOpen, setSidekickAIOpen] = useState(sidekickAIOpenDefault);
-  const [chatOpen, setChatOpen] = useState(chatOpenDefault);
-  const [appSettingsOpen, setAppSettingsOpen] = useState(appSettingsOpenDefault);
-  const [chatsOpen, setChatsOpen] = useState(chatsOpenDefault);
-  const [personasOpen, setPersonasOpen] = useState(personasOpenDefault);
-  const [modelSettingsOpen, setModelSettingsOpen] = useState(modelSettingsOpenDefault);
-  const [promptComposerOpen, setPromptComposerOpen] = useState(promptComposerOpenDefault);
+  const [sidekickAIOpen, setSidekickAIOpen] = useState(false);
+  const [sidekickAIPinned, setSidekickAIPinned] = useState(false);
+  const [appSettingsOpen, setAppSettingsOpen] = useState(false);
+  const [chatsOpen, setChatsOpen] = useState(true);
+  const [chatsPinned, setChatsPinned] = useState(false);
+  const [promptTemplatesPinned, setPromptTemplatesPinned] = useState(false);
+  const [personasOpen, setPersonasOpen] = useState(false);
+  const [personasPinned, setPersonasPinned] = useState(false);
+  const [modelSettingsOpen, setModelSettingsOpen] = useState(false);
+  const [modelSettingsPinned, setModelSettingsPinned] = useState(false);
+  const [promptEngineerOpen, setPromptEngineerOpen] = useState(false);
+  const [promptEngineerPinned, setPromptEngineerPinned] = useState(false);
+  const [chatOpen, setChatOpen] = useState(true);
+  const [promptTemplateOpen, setPromptTemplateOpen] = useState(false);
   const [createNote, setCreateNote] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
-  const [notesOpen, setNotesOpen] = useState(notesOpenDefault);
+  const [notesOpen, setNotesOpen] = useState(false);
+  const [notesPinned, setNotesPinned] = useState(false);
   const [provider, setProvider] = useState(null);
   const [modelSettings, setModelSettings] = useState({});
   const [persona, setPersona] = useState({});
   const [newPromptPart, setNewPromptPart] = useState({});
   const [loadChat, setLoadChat] = useState("");
+  const [newPrompt, setNewPrompt] = useState("");
   const [refreshChatsExplorer, setRefreshChatsExplorer] = useState(false);
-  const [appendNoteContent, setAppendNoteContent] = useState("");
+  const [refreshPromptTemplateExplorer, setRefreshPromptTemplateExplorer] = useState(false);
+  const [appendNoteContent, setAppendNoteContent] = useState({content: "", timestamp: Date.now()});
   const [chatNameChanged, setChatNameChanged] = useState("");
+  const [promptTemplateNameChanged, setPromptTemplateNameChanged] = useState("");
   const [noteNameChanged, setNoteNameChanged] = useState("");
   const [loadNote, setLoadNote] = useState("");
   const [focusOnPrompt, setFocusOnPrompt] = useState(false);
@@ -88,41 +93,125 @@ function App() {
   const [temperatureText, setTemperatureText] = useState('');
   const [user, setUser] = useState(null);
   const [openChatId, setOpenChatId] = useState(null);
+  const [openPromptTemplateId, setOpenPromptTemplateId] = useState(null);
   const [openNoteId, setOpenNoteId] = useState(null);
-  const [serverUrl, setServerUrl] = useState(runtimeEnvironment.serverHost + ":" + runtimeEnvironment.serverPort);
+  const [serverUrl, setServerUrl] = useState(process.env.REACT_APP_SERVER_URL || 'http://localhost:5003');
   const [shouldAskAgainWithPersona, setShouldAskAgainWithPersona] = useState(null);
   const [streamingChatResponse, setStreamingChatResponse] = useState("");
   const [chatStreamingOn, setChatStreamingOn] = useState(true);
+  const [appLoaded, setAppLoaded] = useState(false);
+  const [appInstanceName, setAppInstanceName] = useState("");
+  const [appUsage, setAppUsage] = useState("");
+  const [appSettings, setAppSettings] = useState({});
+
+  const mySettingsManager = useRef(null);
+
+  const applyCustomSettings = () => {
+    axios.get(`${serverUrl}/custom_settings/app`).then(response => {
+      console.log("App custom settings:", response);
+      if ("instanceName" in response.data) {
+        setAppInstanceName(response.data.instanceName);
+      }
+      if ("usage" in response.data) {
+        setAppUsage(response.data.usage);
+      }
+    }).catch(error => {
+      console.error("Error getting App custom settings:", error);
+    });
+  }
 
   useEffect(() => {
-    setChatOpen(chatOpenDefault);
-    setAppSettingsOpen(appSettingsOpenDefault);
-    setChatsOpen(chatsOpenDefault);
-    setPersonasOpen(personasOpenDefault);
-    setModelSettingsOpen(modelSettingsOpenDefault);
-    setPromptComposerOpen(promptComposerOpenDefault);
-    setNoteOpen(noteOpenDefault);
-    setNotesOpen(notesOpenDefault);
-    setSidekickAIOpen(sidekickAIOpenDefault);
+      if (!appLoaded) {
+          setAppLoaded(true);
+          applyCustomSettings();
+      }
+  }, [appLoaded]);
+
+  useEffect(() => {
+    if (user) {
+      mySettingsManager.current = new SettingsManager(serverUrl, token, setToken);
+      mySettingsManager.current.loadSettings("app",
+      (data) => {
+        setAppSettings(data);
+        console.log("get app settings:", data);
+        setSidekickAIOpen(data.sidekickAIOpenDefault);
+        setSidekickAIPinned(data.sidekickAIPinnedOpenDefault);
+        setChatsOpen(data.chatsOpenDefault);
+        setChatsPinned(data.chatsPinned);
+        setModelSettingsOpen(data.modelSettingsOpenDefault);
+        setModelSettingsPinned(data.modelSettingsPinned);
+        setPersonasOpen(data.personasOpenDefault);
+        setPersonasPinned(data.personasPinned);
+        setPromptEngineerOpen(data.promptEngineerOpenDefault);
+        setPromptEngineerPinned(data.promptEngineerPinned);
+        setChatOpen(data.chatOpenDefault);
+        setNoteOpen(data.noteOpenDefault);
+        setNotesOpen(data.notesOpenDefault);
+        setNotesPinned(data.notesPinned);
+        setAppSettingsOpen(false);
+      },
+      (error) => {
+          console.log("get app settings:", error);
+          system.error("Error loading app settings: " + error);
+      }
+      );
+    }
   }, [user]);
+
+  useEffect(() => {
+    if (appLoaded && mySettingsManager.current) {
+      console.log("Saving app settings");
+      let newAppSettings = {...appSettings,
+        sidekickAIOpenDefault: sidekickAIOpen,
+        sidekickAIPinnedOpenDefault: sidekickAIPinned,
+        chatsOpenDefault: chatsOpen,
+        chatsPinned: chatsPinned,
+        modelSettingsOpenDefault: modelSettingsOpen,
+        modelSettingsPinned: modelSettingsPinned,
+        personasOpenDefault: personasOpen,
+        personasPinned: personasPinned,
+        promptEngineerOpenDefault: promptEngineerOpen,
+        promptEngineerPinned: promptEngineerPinned,
+        chatOpenDefault: chatOpen,
+        noteOpenDefault: noteOpen,
+        notesOpenDefault: notesOpen,
+        notesPinned: notesPinned
+      };
+      setAppSettings(newAppSettings);
+      mySettingsManager.current.setAll(newAppSettings,
+      (data) => {
+        console.log("Saved app settings:", data);
+      },
+      (error) => {
+          console.log("save app settings:", error);
+          system.error("Error saving app settings: " + error);
+      }
+      );
+    }
+  }, [sidekickAIOpen, sidekickAIPinned, chatsOpen, chatsPinned, modelSettingsOpen,
+      modelSettingsPinned, personasOpen, personasPinned,
+      promptEngineerOpen, promptEngineerPinned, chatOpen, noteOpen, notesOpen, notesPinned]);
 
   useEffect(()=>{
   }, [loadChat]);
 
   useEffect(()=>{
     if (!noteOpen) {
-      if (appendNoteContent && appendNoteContent !== "") {
-        setCreateNote(Date.now());
+      if (appendNoteContent && appendNoteContent.content !== "") {
+        setCreateNote({content: appendNoteContent.content, timestamp: Date.now()});
       }
     }
   }, [appendNoteContent]);
 
-  const handleToggleAppSettings = () => {
-    const newState = !appSettingsOpen;
-    setAppSettingsOpen(newState);
+  const handleToggleAppSettingsOpen = () => {
+    if (!appSettingsOpen) {
+      closeUnpinnedLeftSideWindows();
+    }
+    setAppSettingsOpen(state => !state);
   }
 
   const handleLogout = () => {
+    setUser(null);
     axios({
       method: "POST",
       url:`${serverUrl}/logout`,
@@ -132,6 +221,7 @@ function App() {
     })
     .then((response) => {
         removeToken();
+        window.location.reload();
     }).catch((error) => {
       if (error.response) {
         console.log(error.response)
@@ -139,32 +229,98 @@ function App() {
         console.log(error.response.headers)
         }
     })
-    setUser(null);
   }
 
-  const handleToggleChats = () => {
-    let newState = !chatsOpen
-    setChatsOpen(newState);
+  const closeUnpinnedLeftSideWindows = () => {
+    if (!sidekickAIPinned) {
+      setSidekickAIOpen(false);
+    }
+    if (!chatsPinned) {
+      setChatsOpen(false);
+    }
+    if (!personasPinned) {
+      setPersonasOpen(false);
+    }
+    if (!modelSettingsPinned) {
+      setModelSettingsOpen(false);
+    }
+    if (!promptEngineerPinned) {
+      setPromptEngineerOpen(false);
+    }
   }
 
-  const handleTogglePromptComposer = () => {
-    let newState = !promptComposerOpen
-    setPromptComposerOpen(newState);
+  const closeUnpinnedRightSideWindows = () => {
+    if (!notesPinned) {
+      setNotesOpen(false);
+    }
   }
 
-  const handleTogglePersonas = () => {
-    let newState = !personasOpen
-    setPersonasOpen(newState);
+  const handleToggleChatsOpen = () => {
+    if (chatsOpen) {
+      setChatsPinned(false);
+      setChatsOpen(false);
+    } else {
+      closeUnpinnedLeftSideWindows();
+      setChatsOpen(true);
+    }
   }
 
-  const handleCreateNote = () => {
-    setCreateNote(Date.now());
-    setNoteOpen(Date.now());
+  const handleToggleSidekickAIOpen = () => {  
+    if (sidekickAIOpen) {
+      setSidekickAIPinned(false);
+      setSidekickAIOpen(false);
+    } else {
+      closeUnpinnedLeftSideWindows();
+      setSidekickAIOpen(true);
+    }
   }
 
-  const handleToggleNotes = () => {
-    let newState = !notesOpen
-    setNotesOpen(newState);
+  const handleTogglePromptEngineerOpen = () => {
+    if (promptEngineerOpen) {
+      setPromptEngineerPinned(false);
+      setPromptEngineerOpen(false);
+    } else {
+      closeUnpinnedLeftSideWindows();
+      setPromptEngineerOpen(true);
+    }
+  }
+
+  const handleTogglePersonasOpen = () => {
+    if (personasOpen) {
+      setPersonasPinned(false);
+      setPersonasOpen(false);
+    } else {
+      closeUnpinnedLeftSideWindows();
+      setPersonasOpen(true);
+    }
+  }
+
+  const handleToggleModelSettingsOpen = () => {
+    if (modelSettingsOpen) {
+      setModelSettingsPinned(false);
+      setModelSettingsOpen(false);
+    } else {
+      closeUnpinnedLeftSideWindows();
+      setModelSettingsOpen(true);
+    }
+  }
+
+  const handleToggleChatOpen = () => {
+    setChatOpen(state => !state);
+  }
+
+  const handleToggleNoteOpen = () => {
+    setNoteOpen(state => !state);
+  }
+
+  const handleToggleNotesOpen = () => {
+    if (notesOpen) {
+      setNotesPinned(false);
+      setNotesOpen(false);
+    } else {
+      closeUnpinnedRightSideWindows();
+      setNotesOpen(true);
+    }
   }
 
   const handleNoteChange = (change) => {
@@ -180,22 +336,35 @@ function App() {
     console.log("handleChatChange", change);
     if (change.reason === "renamed") {
       setChatNameChanged(change);
+    } else if (change.detail === "promptTemplate") {
+      handlePromptTemplateChange(change);
     } else {
       setRefreshChatsExplorer(change);
     }
+  }
+
+  const handlePromptTemplateChange = (change) => {
+    console.log("handlePromptTemplateChange", change);
+    setRefreshPromptTemplateExplorer(change);
   }
 
   const minimiseWindows = () => {
     setChatOpen(false);
     setAppSettingsOpen(false);
     setChatsOpen(false);
-    setPromptComposerOpen(false);
+    setChatsPinned(false);
+    setPromptEngineerOpen(false);
+    setPromptEngineerPinned(false);
     setModelSettingsOpen(false);
+    setModelSettingsPinned(false);
     setPersonasOpen(false);
+    setPersonasPinned(false);
     setCreateNote(false);
     setNotesOpen(false);
+    setNotesPinned(false);
     setNoteOpen(false);
     setSidekickAIOpen(false);
+    setSidekickAIPinned(false);
   }
 
   // Provide a generic onChange despatcher for the chat and note components
@@ -204,6 +373,15 @@ function App() {
       xOnChange({"id": id, "name": name, "reason": reason, "detail": detail, timestamp: Date.now()});
     }
   }
+
+  const appInfo =
+    <Box display="flex">
+      <Typography sx={{ mr: 2, display: "inline-flex", alignItems: "center", justifyContent: "center" }} variant="h6">Sidekick</Typography>
+      <Typography sx={{ mr: 1, display: "inline-flex", alignItems: "center", justifyContent: "center" }} variant='subtitle2'>
+        v{VERSION} {appInstanceName} {appUsage}
+      </Typography>
+    </Box>
+
 
   const appRender =
   <SystemProvider>
@@ -214,37 +392,36 @@ function App() {
           <AppBar position="sticky">
             <Toolbar>
               <Box display="flex" gap={2}>
-                <Typography sx={{ display: "flex", alignItems: "center", justifyContent: "center" }} variant="h6">Sidekick</Typography>
-                <Typography sx={{ mr: 2, display: "inline-flex", alignItems: "center", justifyContent: "center" }} variant='subtitle2'>v{VERSION}</Typography>
+                {appInfo}
                 <Typography sx={{ mr: 2, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>({user})</Typography>
                 <Tooltip title="Sidekick AI help">
-                  <IconButton edge="start" color="inherit" aria-label="Sidekick AI help" onClick={() => { setSidekickAIOpen(true) }}>
+                  <IconButton edge="start" color="inherit" aria-label="Sidekick AI help" onClick={handleToggleSidekickAIOpen}>
                     <HelpIcon/>
                   </IconButton>                  
                 </Tooltip>
                 <Tooltip title={ chatsOpen ? "Hide chat history" : "Show chat history" }>
-                  <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleToggleChats}>
+                  <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleToggleChatsOpen}>
                     <QuestionAnswerIcon/>
                   </IconButton>
                 </Tooltip>
                 <Tooltip title={ modelSettingsOpen ? "Hide model settings" : "Show model settings" }>
-                  <IconButton edge="start" color="inherit" aria-label="Model settings" onClick={() => { setModelSettingsOpen(!modelSettingsOpen) }}>
+                  <IconButton edge="start" color="inherit" aria-label="Model settings" onClick={handleToggleModelSettingsOpen}>
                     <TuneIcon/>
                   </IconButton>
                 </Tooltip>
                 <Tooltip title={ personasOpen ? "Hide AI personas" : "Show AI persons" }>
-                  <IconButton edge="start" color="inherit" aria-label="Personas" onClick={handleTogglePersonas}>
+                  <IconButton edge="start" color="inherit" aria-label="Personas" onClick={handleTogglePersonasOpen}>
                     <PersonIcon/>
                   </IconButton>
                 </Tooltip>
-                <Tooltip title={ promptComposerOpen ? "Hide prompt composer" : "Show prompt composer" }>
-                  <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleTogglePromptComposer}>
+                <Tooltip title={ promptEngineerOpen ? "Hide prompt engineer" : "Show prompt engineer" }>
+                  <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleTogglePromptEngineerOpen}>
                     <BuildIcon/>
                   </IconButton>
                 </Tooltip>
-                <Tooltip title="New chat">
-                  <IconButton edge="start" color="inherit" aria-label={ chatOpen ? "Close Chat" : "New chat" } onClick={() => { setChatOpen(!chatOpen) }}>
-                    <ModeCommentIcon/>
+                <Tooltip title={chatOpen ? "Close Chat" : "New Chat"}>
+                  <IconButton edge="start" color="inherit" aria-label={ chatOpen ? "Close Chat" : "Open chat" } onClick={handleToggleChatOpen}>
+                    { chatOpen ? <ModeCommentIcon/> : <AddCommentIcon/> }
                   </IconButton>
                 </Tooltip>
                 <Tooltip title="Minimise windows">
@@ -254,13 +431,13 @@ function App() {
                 </Tooltip>
               </Box>
               <Box display="flex" ml="auto" gap={2}>
-                <Tooltip title="New note">
-                  <IconButton edge="end" color="inherit" aria-label="New note" onClick={handleCreateNote}>
-                    <PlaylistAddIcon/>
+                <Tooltip title={noteOpen ? "Close Note" : "New Note"}>
+                  <IconButton edge="end" color="inherit" aria-label="New note" onClick={handleToggleNoteOpen}>
+                    { noteOpen ? <NotesIcon/> : <PlaylistAddIcon/> }
                   </IconButton>
                 </Tooltip>
                 <Tooltip title={ notesOpen ? "Hide Notes" : "Show Notes" }>
-                  <IconButton edge="end" color="inherit" aria-label="Hide/Show notes" onClick={handleToggleNotes}>
+                  <IconButton edge="end" color="inherit" aria-label="Hide/Show notes" onClick={handleToggleNotesOpen}>
                     <FolderIcon/>
                   </IconButton>
                 </Tooltip>
@@ -268,7 +445,7 @@ function App() {
                     <RateReviewIcon/>
                 </FeedbackButton>
                 <Tooltip title={ appSettingsOpen ? "Hide App Settings" : "Show App Setings" }>
-                  <IconButton edge="end" color="inherit" aria-label="Settings" onClick={handleToggleAppSettings}>
+                  <IconButton edge="end" color="inherit" aria-label="Settings" onClick={handleToggleAppSettingsOpen}>
                     <SettingsIcon/>
                   </IconButton>
                 </Tooltip>
@@ -282,6 +459,14 @@ function App() {
           </AppBar>
           <Box display="flex" flexDirection="row" flex="1" overflow-y="hidden" overflow="auto" width="100%">
             <ToastContainer/>
+            <SidekickAI
+              sidekickAIOpen={sidekickAIOpen}
+              setSidekickAIOpen={setSidekickAIOpen}
+              windowPinnedOpen = {sidekickAIPinned}
+              setWindowPinnedOpen = {setSidekickAIPinned}
+              chatStreamingOn={chatStreamingOn} 
+              serverUrl={serverUrl} token={token} setToken={setToken}
+            />
             <AppSettings 
               appSettingsOpen={appSettingsOpen}
               setAppSettingsOpen={setAppSettingsOpen}
@@ -289,14 +474,8 @@ function App() {
               setUser={setUser}
               serverUrl={serverUrl} token={token} setToken={setToken}
             />
-            <SidekickAI
-              sidekickAIOpen={sidekickAIOpen}
-              setSidekickAIOpen={setSidekickAIOpen}
-              chatStreamingOn={chatStreamingOn} 
-              serverUrl={serverUrl} token={token} setToken={setToken}
-            />
             { chatsOpen ? <Explorer
-            handleToggleExplorer={handleToggleChats}
+            handleToggleExplorer={handleToggleChatsOpen}
             name="Chats"
             icon={<QuestionAnswerIcon />}
             folder="chats"
@@ -307,13 +486,17 @@ function App() {
             setRefresh={setRefreshChatsExplorer}
             itemOpen={chatOpen}
             setItemOpen={setChatOpen}
+            windowPinnedOpen = {chatsPinned}
+            setWindowPinnedOpen = {setChatsPinned}
             serverUrl={serverUrl} token={token} setToken={setToken}
-            /> : null}
+            /> : null }
             <ModelSettings 
             setModelSettings={setModelSettings}
             setFocusOnPrompt={setFocusOnPrompt}
             modelSettingsOpen={modelSettingsOpen}
             setModelSettingsOpen={setModelSettingsOpen}
+            windowPinnedOpen = {modelSettingsPinned}
+            setWindowPinnedOpen = {setModelSettingsPinned}
             temperatureText={temperatureText}
             setTemperatureText={setTemperatureText}
             settingsManager={new SettingsManager(serverUrl, token, setToken)}
@@ -322,27 +505,41 @@ function App() {
             setChatStreamingOn={setChatStreamingOn}
             />
             <Personas 
-            handleTogglePersonas={handleTogglePersonas} 
+            handleTogglePersonas={handleTogglePersonasOpen} 
             persona={persona} 
             setPersona={setPersona}
             setFocusOnPrompt={setFocusOnPrompt}
             personasOpen={personasOpen}
+            windowPinnedOpen = {personasPinned}
+            setWindowPinnedOpen = {setPersonasPinned}
             settingsManager={new SettingsManager(serverUrl, token, setToken)}
             setShouldAskAgainWithPersona={setShouldAskAgainWithPersona}
             serverUrl={serverUrl} token={token} setToken={setToken}
             streamingChatResponse={streamingChatResponse}
             />
-            { promptComposerOpen ? <PromptComposer 
-              handleTogglePromptComposer={handleTogglePromptComposer} 
-              setNewPromptPart={setNewPromptPart}
-              settingsManager={new SettingsManager(serverUrl, token, setToken)}
-              serverUrl={serverUrl} token={token} setToken={setToken}
-              /> : null }
+            { promptEngineerOpen ? 
+              <PromptEngineer
+                handleTogglePromptEngineer={handleTogglePromptEngineerOpen} 
+                windowPinnedOpen={promptEngineerPinned}
+                setWindowPinnedOpen={setPromptEngineerPinned}
+                setNewPromptPart={setNewPromptPart}
+                setNewPrompt={setNewPrompt}
+                openPromptTemplateId={openPromptTemplateId}
+                promptTemplateNameChanged={promptTemplateNameChanged}
+                refreshPromptTemplateExplorer={refreshPromptTemplateExplorer}
+                setRefreshPromptTemplateExplorer={setRefreshPromptTemplateExplorer}
+                setPromptTemplateOpen={setPromptTemplateOpen}
+                promptTemplateOpen={promptTemplateOpen}
+                settingsManager={new SettingsManager(serverUrl, token, setToken)}
+                serverUrl={serverUrl} token={token} setToken={setToken}
+                />
+              : null }
             <Chat 
               provider = {provider}
               modelSettings={modelSettings} 
               persona={persona} 
-              newPromptPart={newPromptPart} 
+              newPromptPart={newPromptPart}
+              newPrompt={newPrompt} 
               loadChat={loadChat} 
               setAppendNoteContent={setAppendNoteContent}
               focusOnPrompt={focusOnPrompt}
@@ -353,9 +550,11 @@ function App() {
               temperatureText={temperatureText}
               setTemperatureText={setTemperatureText}
               modelSettingsOpen={modelSettingsOpen}
-              setModelSettingsOpen={setModelSettingsOpen}
+              toggleModelSettingsOpen={handleToggleModelSettingsOpen}
               personasOpen={personasOpen}
-              setPersonasOpen={setPersonasOpen}
+              togglePersonasOpen={handleTogglePersonasOpen}
+              promptEngineerOpen={promptEngineerOpen}
+              togglePromptEngineerOpen={handleTogglePromptEngineerOpen}
               onChange={onChange(handleChatChange)}
               setOpenChatId={setOpenChatId}
               shouldAskAgainWithPersona={shouldAskAgainWithPersona}
@@ -377,7 +576,9 @@ function App() {
               serverUrl={serverUrl} token={token} setToken={setToken}
               />
               { notesOpen ? <Explorer
-              handleToggleExplorer={handleToggleNotes}
+              handleToggleExplorer={handleToggleNotesOpen}
+              windowPinnedOpen = {notesPinned}
+              setWindowPinnedOpen = {setNotesPinned}
               name="Notes"
               icon={<FolderIcon />}
               folder="notes"
@@ -404,9 +605,7 @@ const loginRender =
         <Box sx={{display:"flex", height:"100vh", flexDirection:"column", overflow:"hidden"}}>
           <AppBar position="sticky">
             <Toolbar>
-              <Box display="flex" gap={2}>
-                <Typography sx={{ mr: 2, display: "flex", alignItems: "center", justifyContent: "center" }} variant="h6">Sidekick</Typography>
-              </Box>
+              {appInfo}
             </Toolbar>
           </AppBar>
           <Box sx={{display:"flex", flexDirection:"row", flex:"1",

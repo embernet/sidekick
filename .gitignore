@@ -5,6 +5,9 @@
 /server/etc/logs/*
 /server/etc/feedback.db
 /server/etc/login.db
+/server/etc/custom_settings/login.json
+/server/etc/custom_settings/chat.json
+/server/etc/custom_settings/app.json
 /server/login.db
 /server/data/junk
 /server/.pytest_cache
@@ -37,6 +40,7 @@
 .env.development.local
 .env.test.local
 .env.production.local
+nohup.out
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

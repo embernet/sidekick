@@ -1,17 +1,23 @@
 import axios from 'axios'
-import { useEffect, useState, useContext } from 'react';
+import { debounce } from "lodash";
+
+import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Box, Toolbar, IconButton, Typography, TextField, Menu, MenuItem, Tooltip } from '@mui/material';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
 import CloseIcon from '@mui/icons-material/Close';
+import ReplayIcon from '@mui/icons-material/Replay';
 import SendIcon from '@mui/icons-material/Send';
 import EditNoteIcon from '@mui/icons-material/EditNote';
+import CodeIcon from '@mui/icons-material/Code';
+import CodeOffIcon from '@mui/icons-material/CodeOff';
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import { green, grey } from '@mui/material/colors';
 import { MuiFileInput } from 'mui-file-input';
+import SidekickMarkdown from './SidekickMarkdown';
 
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
@@ -19,7 +25,7 @@ import AI from './AI';
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     backgroundColor: green[300],
-    gap: 2,
+    marginRight: theme.spacing(2),
   }));
 
 const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
@@ -28,11 +34,66 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
 
   const Note = ({noteOpen, setNoteOpen, appendNoteContent, loadNote, createNote,
     setNewPromptPart, setChatRequest, onChange, setOpenNoteId, serverUrl, token, setToken}) => {
+
+    const newNoteName = "New Note";
+
+    const [width, setWidth] = useState(0);
+    const handleResize = useCallback(
+        // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
+        debounce((entries) => {
+        const { width } = entries[0].contentRect;
+        setWidth(width);
+        }, 100),
+        []
+    );
+
+    const applyCustomSettings = () => {
+        axios.get(`${serverUrl}/custom_settings/note`).then(response => {
+            if ("userPromptReady" in response.data) {
+                userPromptReady.current = defaultUserPromptReady + " (" + response.data.userPromptReady + ")";
+                setPromptPlaceholder(userPromptReady.current);
+            }
+        }).catch(error => {
+          console.error("Error getting Chat custom settings:", error);
+        });
+      }
+
+    useEffect(() => {
+        applyCustomSettings();
+        showReady();
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+              // The app has lost focus, save the note
+              save();
+            }
+          };
+      
+          document.addEventListener("visibilitychange", handleVisibilityChange);
+      
+          return () => {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+          };
+    }, []);
+
+    useEffect(() => {
+        const element = document.getElementById("note-panel");
+        const observer = new ResizeObserver(handleResize);
+        element && observer.observe(element);
+        return () => observer.disconnect();
+    }, [handleResize]);
+
     const system = useContext(SystemContext);
     const [id, setId] = useState("");
-    const [name, setName] = useState("New Note");
-    const [previousName, setPreviousName] = useState("New Note");
+    const [name, setName] = useState(newNoteName);
+    const [previousName, setPreviousName] = useState(newNoteName);
+    const defaultUserPromptReady = "What do you want to add to your note?";
+    const userPromptReady = useRef(defaultUserPromptReady);
+    const userPromptWaiting = "Waiting for response...";
+    const [contentDisabled, setContentDisabled] = useState(false);
+    const [promptDisabled, setPromptDisabled] = useState(false);
+    const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady.current);
     const [content, setContent] = useState("");
+    const [contentChanged, setContentChanged] = useState(false);
     const [noteContextMenu, setNoteContextMenu] = useState(null);
     const [prompt, setPrompt] = useState("");
     const [promptToSend, setPromptToSend] = useState("");
@@ -40,37 +101,48 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
     const [tags, setTags] = useState([]);
     const [uploadingFile, setUploadingFile] = useState(false);
     const [fileToUpload, setFileToUpload] = useState(null);
+    const [markdownRenderingOn, setMarkdownRenderingOn] = useState(false);
 
-    const setContentFocus = () => {
+    const focusOnContent = () => {
         document.getElementById("note-content")?.focus();
     }
 
     useEffect(()=>{
-        console.log("createNote", createNote);
         if(createNote) {
-            create();
+            create({content: createNote.content ? createNote.content : ""});
         }
     }, [createNote]);
 
+    useEffect(() => {
+        if (name === newNoteName && content.length > 200) {
+            considerAutoNaming(content);
+        }
+    }, [content]);
+
     useEffect(()=>{
-        if(appendNoteContent) {
-            let newNotePart = appendNoteContent.trim();
-            console.log("newNotePart", newNotePart);
+        if(appendNoteContent.content !== "") {
+            let newNotePart = appendNoteContent.content.trim();
             if(typeof newNotePart === "string") {
-                let newNote = content.trim()
+                let newNote = content;
                 if (newNote !== "") {
                     newNote += "\n";
                 }
-                newNote += newNotePart.trim();
+                newNote += newNotePart;
                 setContent(newNote);
-                considerAutoNaming(newNote);
-                setContentFocus();
+                setContentChanged(true);
+                focusOnContent();
             }
         }
     }, [appendNoteContent]);
 
     useEffect(()=>{
         setOpenNoteId(id);
+        if (id !=="" && appendNoteContent.content !== "") {
+            // If the id has just been set, it's because the note has been saved
+            // If there is text in appendNoteContent, it's because the user has just appended
+            // So we should consider auto naming the note
+            considerAutoNaming(content);
+        }
     }, [id]);
 
     useEffect(()=>{
@@ -90,69 +162,89 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
                     setTags(response.data.metadata.tags);
                     setPreviousName(response.data.metadata.name);
                     setContent(response.data.content.note);
-                    setContentFocus();
+                    setContentChanged(false); // as we just loaded it from the server
+                    focusOnContent();
                 }).catch(error => {
                     console.log("loadNote error", error);
                     system.error(`Error loading note: ${error}`);
                 });
                 // Wait for the note to load before scrolling to the top
                 setTimeout(() => {
-                    document.getElementById("note-content").scrollTop = 0;
+                    let c = document.getElementById("note-content")
+                    if (c) {
+                        c.scrollTop = 0;
+                    }
                 }, 0);
             }
         }
     }, [loadNote]);
 
     useEffect(()=>{
-        if (!noteOpen) {
+        if (!noteOpen && id !== "") {
             resetNote();
         }
     }, [noteOpen]);
 
     useEffect(()=>{
-        id && save();
-    }, [content]);
-
-    useEffect(()=>{
         if (promptToSend && promptToSend !== "") {
-            let compoundPrompt = {
-                "content": content,
-                "prompt": promptToSend,
-            };
-            setChatRequest(compoundPrompt);
-        }
-    }, [promptToSend]);        
-    
-    const save = () => {
-        if (id !== "") {
-            const request = {
-                metadata: {
-                name: name,
-                tags: tags
-                },
-                content: { note: content },
-            }
-            console.log("save request", request);
-            axios.put(`${serverUrl}/docdb/${folder}/documents/${id}`, request, {
-                headers: {
-                    Authorization: 'Bearer ' + token
-                  }
-            }).then(response => {
-                response.data.access_token && setToken(response.data.access_token);
-                if (id === "") {
-                    setId(response.data.metadata.id);
-                }
-                onChange(id, name, "changed", "");
-                console.log("note save Response", response);
-            }).catch(error => {
-                console.error("note save error", request, error);
-                system.error(`Error saving note: ${error}`);
+            console.log("Note promptToSend", promptToSend);
+            const ai = new AI(serverUrl, token, setToken, system);
+            setContentDisabled(true);
+            showWaiting();
+            ai.generateText(content, promptToSend).then((generatedText) => {
+                setContent( text => text + "\n" + generatedText + "\n");
+                setContentDisabled(false);
+                showReady();
+            }).catch((error) => {
+                console.log(error);
+                system.error(`Error generating text: ${error}`);
             });
         }
+    }, [promptToSend]);        
+
+    const showReady = () => {
+        setPromptDisabled(false);
+        setPromptPlaceholder(userPromptReady.current);
     }
 
-    const handleNameChange = (event) => {
-        setName(event.target.value);
+    const showWaiting = () => {
+        setPromptDisabled(true);
+        setPromptPlaceholder(userPromptWaiting);
+        setPrompt('');
+    }
+
+    const save = () => {
+        if (id === "" && content !== "") {
+            create({name: name, content: content});
+        } else {
+            if (contentChanged) {
+                const request = {
+                    metadata: {
+                    id: id,
+                    name: name,
+                    tags: tags
+                    },
+                    content: { note: content },
+                }
+                console.log("save request", request);
+                axios.put(`${serverUrl}/docdb/${folder}/documents/${id}`, request, {
+                    headers: {
+                        Authorization: 'Bearer ' + token
+                    }
+                }).then(response => {
+                    response.data.access_token && setToken(response.data.access_token);
+                    if (id === "") {
+                        setId(response.data.metadata.id);
+                    }
+                    onChange(id, name, "changed", "");
+                    console.log("note save Response", response);
+                }).catch(error => {
+                    console.error("note save error", request, error);
+                    system.error(`Error saving note: ${error}`);
+                });
+                setContentChanged(false);
+            }
+        }
     }
 
     const downloadFile = (filename, content) => {
@@ -166,7 +258,9 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
       }
 
     const handleDownload = () => {
-        downloadFile(name + ".json", content);
+        // remove characters from the name that would not be accepted in a file name
+        let filename = name.replace(/[^a-z0-9\-!@()[\];_] /gi, '_');
+        downloadFile(filename + ".json", content);
     }
 
     const handleUploadFile = (event) => {
@@ -174,6 +268,7 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
         const reader = new FileReader();
         reader.onload = (event) => {
           setContent(event.target.result);
+          setContentChanged(true);
         };
         reader.readAsText(event);
         setUploadingFile(false);
@@ -184,13 +279,19 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
         setUploadingFile(true);
     }
 
-    const create = () => {
-            axios.post(`${serverUrl}/docdb/${folder}/documents`, {
-                "name": "New Note",
-                "tags": [],
-                "content": {
-                    "note": ""
-                },
+    const create = ({name, content}) => {
+        if (name === undefined) {
+            name = newNoteName;
+        }
+        if (content === undefined) {
+            content = "";
+        }
+        axios.post(`${serverUrl}/docdb/${folder}/documents`, {
+            "name": name,
+            "tags": tags,
+            "content": {
+                "note": content
+            },
         }, {
             headers: {
                 Authorization: 'Bearer ' + token
@@ -203,10 +304,16 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
             setPreviousName(response.data.metadata.name);
             setTags(response.data.metadata.tags);
             setContent(response.data.content.note);
-            onChange(id, name, "created", "");
+            setContentChanged(false); // as we just saved/loaded it from the server
+            onChange(response.data.metadata.id, response.data.metadata.name, "created", "");
             try {
-                document.getElementById("note-name").focus();
-                document.getElementById("note-name").select();
+                if (content === "") {
+                    let noteName = document.getElementById("note-name");
+                    if (noteName) {
+                        noteName.focus();
+                        noteName.select();
+                    }
+                }
             }
             catch (error) {
                 console.error("Note create, error setting focus on note name", error);
@@ -218,24 +325,28 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
         });
     }
 
-    const resetNote = () => {
-        setId(null);
-        setName("New Note");
-        setPreviousName("New Note");
+    const resetNote = (content="") => {
+        setId("");
+        setName(newNoteName);
+        setPreviousName(newNoteName);
         setTags([]);
-        setContent("");
+        setContent(content);
+        setContentChanged(false); // This is now a new empty note
     }
 
     const deleteNote = () => {
-        axios.delete(`${serverUrl}/docdb/${folder}/documents/${id}`, {
+        const idToDelete = id;
+        const nameToDelete = name;
+        resetNote();
+        axios.delete(`${serverUrl}/docdb/${folder}/documents/${idToDelete}`, {
             headers: {
                 Authorization: 'Bearer ' + token
               }
         }).then(response => {
             console.log("delete note Response", response);
             response.data.access_token && setToken(response.data.access_token);
-            onChange(id, name, "deleted", "");
-            setNoteOpen(null);
+            onChange(idToDelete, nameToDelete, "deleted", "");
+            setNoteOpen(false);
         }).catch(error => {
             console.log("delete note error", error);
             system.error(`Error deleting note: ${error}`);
@@ -247,34 +358,69 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
     }
 
     const handleNewNote = () => {
-        create();
-        setContentFocus();
+        resetNote();
+        focusOnContent();
     }
 
-    const handleRenameNote = () => {
-        if (name !== previousName && name !== "") {
+    const renameNote = (newName) => {
+        setName(newName);
+        if (id === "") {
+            create({name: newName, content: content});
+        } else {
             axios.put(`${serverUrl}/docdb/${folder}/documents/${id}/rename`, {
                 id: id,
-                name: name,
+                name: newName,
             }, {
                 headers: {
                     Authorization: 'Bearer ' + token
-                  }
+                }
             }).then(response => {
                 console.log("renameNote Response", response);
                 response.data.access_token && setToken(response.data.access_token);
                 setPreviousName(name);
-                onChange(id, name, "renamed", "");
+                focusOnContent();
+                onChange(id, name, "renamed", newName);
             }).catch(error => {
                 console.log(error);
                 system.error(`Error renaming note: ${error}`);
-            })                                    
+            });
+        }
+    }
+
+    const handleRenameNote = () => {
+        if (name !== previousName && name !== "") {
+            renameNote(name);
         } else {
             setName(previousName);
         }
-        document.getElementById("note-content").focus();
+        focusOnContent();
     }
-    
+
+    const handleNameChange = (event) => {
+        setName(event.target.value);
+    }
+
+    const generateNoteName = async (text) => {
+        const ai = new AI(serverUrl, token, setToken, system);
+        let generatedName = await ai.nameTopic(text);
+        if (generatedName && generatedName !== "") { 
+            renameNote(generatedName);
+        }
+    }
+
+    const handleGenerateNoteName = async () => {
+        generateNoteName(content);
+    }
+
+    const considerAutoNaming = async (text) => {
+        if (content.trim() === "") {
+            return;
+        }
+        if (name === newNoteName) {
+            generateNoteName(text);
+        }
+    }
+
     const handleNoteContextMenu = (event, note, title) => {
         event.preventDefault();
         setNoteContextMenu(
@@ -290,12 +436,28 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
               // With this behavior we prevent contextmenu from the backdrop re-locating existing context menus.
               null,
         );
+        // Wait a mo for the context menu to close before checking for highlighted text
+        // as it gets deselected when the context menu opens
+        setTimeout(() => {
+            if (window.getSelection().toString()) {
+              setNoteContextMenu((prev) => ({ ...prev, highlightedText: window.getSelection().toString() }));
+            }
+          }, 10);
     };
 
     const handleNoteContextMenuClose = () => {
         setNoteContextMenu(null);
     };
-    
+
+    const handleCopyHighlightedText = () => {
+        const text = noteContextMenu.highlightedText;
+        // const selection = window.getSelection();
+        // const range = selection.getRangeAt(0);
+        // const text = range.toString();
+        navigator.clipboard.writeText(text);
+        setNoteContextMenu(null);
+    };
+
     const handleCopyNote = () => {
         const selectedText = noteContextMenu.note;
         navigator.clipboard.writeText(selectedText);
@@ -320,45 +482,47 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
         setNoteContextMenu(null);
     };
 
-    const considerAutoNaming = async (content) => {
-        if (name === "New Note") {
-            // Use AI to name the note
-            const ai = new AI(serverUrl, token, setToken, system);
-            let generatedName = await ai.nameTopic(content);
-            // remove surrounding quotes if they are there
-            if ((generatedName.startsWith('"') && generatedName.endsWith('"'))
-            || (generatedName.startsWith("'") && generatedName.endsWith("'"))) {
-                generatedName = generatedName.slice(1, -1);
-            }
-            console.log("AI named note ", generatedName);
-            if (generatedName && generatedName !== "") { setName(generatedName); }
-        }
-    }
-
-    const handleContentChange = async (event) => {
+    const handleContentKeyDown = async (event) => {
+        setContentChanged(true);
         if(event.key === 'Enter') {
             considerAutoNaming(event.target.value);
         }
     }
 
+    const handleContentChange = (event) => {
+        setContent(event.target.value);
+    }
+
     const handleSend = (event) => {
         if(event.key === 'Enter') {
             event.preventDefault();
-            console.log("handleSend", prompt);
+            console.log("Note handleSend", prompt);
             setPromptToSend(prompt);
             setPrompt("");
         }
     }
 
-    const render =         <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "400px"}}>
-    <StyledToolbar className={ClassNames.toolbar}>
+    const handleToggleMarkdownRendering = () => {
+        let newSetting = !markdownRenderingOn;
+        setMarkdownRenderingOn(newSetting);
+    };
+
+    const render = <Card id="note-panel" sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "400px" }}>
+    <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }} >
         <EditNoteIcon/>
         <Typography>Note</Typography>
-            <Tooltip title={ "New note" }>
-                <IconButton edge="end" color="inherit" aria-label="new note"
-                    onClick={handleNewNote}
-                >
-                    <PlaylistAddIcon/>
+            <Tooltip title={ id === "" ? "You are in a new note" : "New note" }>
+                <span>
+                    <IconButton edge="end" color="inherit" aria-label="New note"
+                        disabled={id === ""} onClick={handleNewNote}
+                    >
+                        <PlaylistAddIcon/>
+                    </IconButton>
+                </span>
+            </Tooltip>
+            <Tooltip title={ markdownRenderingOn ? "Stop rendering as markdown and edit as text" : "Preview markdown and code rendering (read only)" }>
+                <IconButton edge="end" color="inherit" aria-label="delete chat" onClick={handleToggleMarkdownRendering}>
+                    { markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }
                 </IconButton>
             </Tooltip>
                     <Box ml="auto">
@@ -369,48 +533,69 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
                     <DeleteIcon/>
                 </IconButton>
             </Tooltip>
-            <IconButton onClick={() => { setNoteOpen(null) }}>
+            <IconButton onClick={() => { setNoteOpen(false) }}>
                 <CloseIcon />
             </IconButton>
         </Box>
     </StyledToolbar>
     <Box sx={{ display: "flex", flexDirection: "column", height:"calc(100% - 64px)"}}>
-        <TextField
-            sx={{ mt: 2 }}
-            id="note-name"
-            autoComplete='off'
-            label="Note name"
-            variant="outlined"
-            value={name}
-            onKeyDown={
-                (event) => {
-                    if(event.key === 'Enter') {
-                        handleRenameNote()
-                        event.preventDefault();
-                    } else if(event.key === 'Escape') {
-                        setName("");
-                        event.preventDefault();
+        <Box sx={{ display: "flex", flexDirection: "row"}}>
+            <TextField
+                sx={{ mt: 2 , flexGrow: 1}}
+                id="note-name"
+                autoComplete='off'
+                label="Note name"
+                variant="outlined"
+                value={name}
+                onKeyDown={
+                    (event) => {
+                        if(event.key === 'Enter') {
+                            handleRenameNote()
+                            event.preventDefault();
+                        } else if(event.key === 'Escape') {
+                            setName("");
+                            event.preventDefault();
+                        }
+                            
                     }
-                        
                 }
-            }
-            onBlur={() => {handleRenameNote();}}
-            onChange={handleNameChange}
-        />
+                onBlur={() => {handleRenameNote();}}
+                onChange={handleNameChange}
+            />
+            <Toolbar>
+                <Tooltip title={ "Regenerate note name" } sx={{ ml: "auto" }}>
+                    <span>
+                        <IconButton edge="end" color="inherit" aria-label="regenerate note name" 
+                            disabled={name === newNoteName && content === ""} onClick={handleGenerateNoteName}>
+                            <ReplayIcon/>
+                        </IconButton>
+                    </span>
+                </Tooltip>
+            </Toolbar>
+        </Box>
         <Box id="content-box"
             sx={{ display: "flex", flexDirection: "column", height: "100%", overflow: "auto" }}
             onContextMenu={(event) => { handleNoteContextMenu(event, content, name); }}
         >
-            <TextField
-                sx={{ mt: 2, width: "100%" }}
-                id="note-content"
-                label="Note content"
-                multiline
-                variant="outlined"
-                value={content}
-                onChange={(event) => setContent(event.target.value)}
-                onKeyDown={handleContentChange}
-                />
+            { markdownRenderingOn
+                ?
+                    <Box sx={{ height: "fit-content" }}>
+                        <SidekickMarkdown markdown={content}/>
+                    </Box>
+                :
+                    <TextField
+                        sx={{ mt: 2, width: "100%" }}
+                        id="note-content"
+                        label="Note content"
+                        multiline
+                        variant="outlined"
+                        value={content}
+                        onChange={handleContentChange}
+                        onKeyDown={handleContentKeyDown}
+                        onBlur={save}
+                        disabled={contentDisabled}
+                        />
+            }
             <Menu
                 open={noteContextMenu !== null}
                 onClose={handleNoteContextMenuClose}
@@ -426,13 +611,15 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
                     : undefined
                 }
             >
+                <MenuItem disabled={!window.getSelection().toString()} onClick={handleCopyHighlightedText}>Copy highlighted text</MenuItem>
                 <MenuItem onClick={handleCopyNote}>Copy</MenuItem>
                 <MenuItem onClick={handleCopyNoteAsHTML}>Copy as html</MenuItem>
                 <MenuItem onClick={handleAppendToChatInput}>Append to chat input</MenuItem>
                 <MenuItem onClick={handleUseAsChatInput}>Use as chat input</MenuItem>
             </Menu>
         </Box>
-        <SecondaryToolbar className={ClassNames.toolbar}>
+        <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
+            <Typography>Note Writer</Typography>
             <Tooltip title={ "Download note" }>
                 <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleDownload}>
                     <FileDownloadIcon/>
@@ -474,7 +661,8 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
             value={prompt} 
             onChange={e => setPrompt(e.target.value)} 
             onKeyDown={handleSend}
-            placeholder="Chat with your note"
+            placeholder={promptPlaceholder}
+            disabled={promptDisabled}
         />
     </Box>
 </Card>

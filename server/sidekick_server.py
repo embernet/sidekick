@@ -4,7 +4,7 @@
 # Description: A Chat server providing a REST interface for interacting with LLMs such as available via the OpenAI API
 
 PROGRAM_NAME = "sidekick_server"
-VERSION = "0.0.4"
+VERSION = "0.0.7"
 
 import logging
 from logging.handlers import RotatingFileHandler
@@ -43,10 +43,10 @@ RESULT_NOT_FOUND = 404
 RESULT_NO_CONTENT = 204
 
 SETTINGS_FILENAME = "settings.yaml"
-USERDB_DIR_SETTING = "userdb_dir"
-LOGINDB_DIR_SETTING = "logindb_dir"
+SIDEKICK_DB_DIR_SETTING = "sidekick_db_dir"
 FEEDBACKDB_DIR_SETTING = "feedbackdb_dir"
 SETTINGS_DIR_SETTING = "settings_dir"
+CUSTOM_SETTINGS_DIR_SETTING = "custom_settings_dir"
 LOGS_DIR_SETTING = "logs_dir"
 
 if not os.path.exists("./etc"): os.makedirs("./etc")
@@ -91,23 +91,15 @@ _init_logger()
 logger = logging.getLogger(__name__)
 logger.info(f"Starting:{PROGRAM_NAME} version:{VERSION} mode:{run_mode}")
 
-if run_mode == "docker":
-    # Change paths to absolute paths for the volumes mounted in the container
-    config[USERDB_DIR_SETTING] = '/mount/' + config[USERDB_DIR_SETTING]
-    config[SETTINGS_DIR_SETTING] = '/mount/' + config[SETTINGS_DIR_SETTING]
-    config[LOGINDB_DIR_SETTING] = '/mount/' + config[LOGINDB_DIR_SETTING]
-    config[FEEDBACKDB_DIR_SETTING] = '/mount/' + config[FEEDBACKDB_DIR_SETTING]
-    config[LOGS_DIR_SETTING] = '/mount/' + config[LOGS_DIR_SETTING]
-
 openai.api_key = os.environ[config["openai_api_key_env_var"]]
 
-def userDB():
-    # One database per user, which includes their settings, notes, and chats
-    return DocDB(config[USERDB_DIR_SETTING], get_jwt_identity())
+def sidekickDB():
+    # One database, which includes all users, settings, notes, and chats
+    return DocDB(config[SIDEKICK_DB_DIR_SETTING], get_jwt_identity())
 
 def feedbackDB():
-    # One database for all feedback
-    return DocDB(config[FEEDBACKDB_DIR_SETTING], "feedback")
+    # Feedback can be routed to a separate database if desired
+    return DocDB(config[SIDEKICK_DB_DIR_SETTING], get_jwt_identity())
 
 @app.after_request
 def refresh_expiring_jwts(response):
@@ -239,7 +231,8 @@ def feedback():
         name = f"Feedback {datetime.now().strftime('%Y%m%d%H%M%S')}"
         tags = [feedback_type]
         content = { "feedback": feedback_text }
-        document = feedbackDB().create_document(folder_name, name, tags, content)
+        properties = { "status": "new" }
+        document = feedbackDB().create_document(folder_name, name, tags, properties, content)
         return jsonify({'success': True, 'message': 'Feedback submitted successfully'})
     except Exception as e:
         log_exception(e)
@@ -250,6 +243,25 @@ def feedback():
 def get_models():
     models = openai.Model.list()
     return jsonify(models)
+
+
+@app.route('/custom_settings/<name>', methods=['GET'])
+def get_custom_settings(name):
+    logger.info(f"/custom_settings/{name} GET request from:{request.remote_addr}")
+    try:
+        file_path = os.path.join(config[CUSTOM_SETTINGS_DIR_SETTING], f"{name}.json")
+        if app.debug: print(f"Loading custom settings from file_path: {file_path}")
+        if os.path.exists(file_path):
+            with open(file_path, 'r') as f:
+                settings = json.load(f)
+            return jsonify(settings), 200
+        else:
+            # Custom settings are optional; no file, so return empty custom settings
+            return jsonify({}), 200
+    except Exception as e:
+        log_exception(e)
+        return jsonify({'error': str(e)}), 500
+    
 
 class OrderedEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -263,19 +275,21 @@ class OrderedEncoder(json.JSONEncoder):
 def get_settings(name):
     logger.info(f"/settings/{name} GET request from:{request.remote_addr}")
     try:
-        doc_id = userDB().get_document_id('settings', name)
-        settings = userDB().load_document('settings', doc_id)["content"]
+        doc_id = sidekickDB().get_document_id('settings', name)
+        settings = sidekickDB().load_document(doc_id)["content"]
         response = app.response_class(
             response=json.dumps(settings, indent=4, cls=OrderedEncoder),
             status=200,
             mimetype='application/json'
         )
+        if app.debug: print(f"/settings/{name} response: {settings}")
         return response
     except ValueError:
         # No settings found, so init with default settings and return those
-        with open(os.path.join("settings_defaults", f"{name}.json"), "r") as f:
+        with open(os.path.join("default_settings", f"{name}.json"), "r") as f:
+            properties = "{}"
             settings = json.load(f, object_pairs_hook=OrderedDict)
-            userDB().create_document('settings', name, "[]", settings)
+            sidekickDB().create_document('settings', name, "[]", properties, settings)
             response = app.response_class(
                 response=json.dumps(settings, indent=4, cls=OrderedEncoder),
                 status=200,
@@ -292,8 +306,8 @@ def save_settings(name):
     logger.info(f"/settings/{name} PUT request from:{request.remote_addr}")
     try:
         settings = request.json
-        doc_id = userDB().get_document_id('settings', name)
-        userDB().save_document('settings', doc_id, name, "[]", request.json)
+        doc_id = sidekickDB().get_document_id('settings', name)
+        sidekickDB().save_document(doc_id, name, "[]", "{}", request.json)
         response = app.response_class(
             response=json.dumps({"success": True}),
             status=200,
@@ -302,8 +316,8 @@ def save_settings(name):
         return response
     except ValueError:
         # No settings found, so init with default settings and return those
-        with userDB() as db:
-            db.create_document('settings', name, "[]", settings)
+        with sidekickDB() as db:
+            db.create_document('settings', name, "[]", "{}", settings)
         response = app.response_class(
             response=json.dumps({"success": True}),
             status=200,
@@ -314,31 +328,38 @@ def save_settings(name):
         log_exception(e)
         return str(e), RESULT_INTERNAL_SERVER_ERROR
 
-def construct_name_topic_request(request):
-    ai_request = {
-        "model": "gpt-3.5-turbo",
-        "temperature": 0.9,
-        "messages": [
-            { "role": "system", "content": "You generate concise names \
-for topics by reading the text and generating a name that is short and \
-reflects what the text is about. Do not surround the name in speech marks." },\
-{ "role": "user", "content": "Provide a short title to name the topic of this text: " + request.json['text']}]
-    }
-    if app.debug: print(f"ai_request: {ai_request}")
-    return ai_request
 
 # Provide a name for the topic of the provided text
-@app.route('/nametopic', methods=['POST'])
+NAMETOPIC_ROUTE_V1 = "/nametopic/v1"
+@app.route(f'{NAMETOPIC_ROUTE_V1}', methods=['POST'])
 @jwt_required()
 def name_topic():
-    logger.info(f"/nametopic POST request from:{request.remote_addr}")
-    if app.debug: print("/nametopic request:\n", json.dumps(request.json, indent=4))
+    def construct_name_topic_request(request):
+        ai_request = {
+            "model": "gpt-3.5-turbo",
+            "temperature": 0.9,
+            "messages": [
+                { "role": "system", "content": "You generate concise names \
+    for topics by reading the text and generating a name that is short and \
+    reflects what the text is about. Do not surround the name in speech marks." },\
+    { "role": "user", "content": "Provide a short single phrase to use as a title for this text: " + request.json['text']}]
+        }
+        if app.debug: print(f"ai_request: {ai_request}")
+        return ai_request
+
+    logger.info(f"{NAMETOPIC_ROUTE_V1} POST request from:{request.remote_addr}")
+    if app.debug: print(f"{NAMETOPIC_ROUTE_V1} request:\n", json.dumps(request.json, indent=4))
     ai_request = construct_name_topic_request(request)
     try:
         response = openai.ChatCompletion.create(**ai_request)
+        topic_name = response.choices[0]["message"]["content"]
+        if "\n" in topic_name:
+            topic_name = topic_name.split("\n", 1)[0] # if there are multiple lines, just use the first one
+        topic_name = topic_name.strip('"\'') # remove surrounding quotes
+        topic_name = topic_name.lstrip('- ') # remove leading dash or space
         ai_response = { 
             "success": True,
-            "topic_name": response.choices[0]["message"]["content"]
+            "topic_name": topic_name
         }
         if app.debug: print(f"openai response: {response}")
         server_stats["chat_interaction_count"] += 1
@@ -359,21 +380,77 @@ def name_topic():
             "error": str(e)
         }
     ai_response_json = jsonify(ai_response)
-    if app.debug: print("/nametopic response:\n", json.dumps(ai_response, indent=4))
+    if app.debug: print(f"{NAMETOPIC_ROUTE_V1} response:\n", json.dumps(ai_response, indent=4))
+    return ai_response_json
+
+
+# Provide a name for the topic of the provided text
+GENERATETEXT_ROUTE_V1 = "/generatetext/v1"
+@app.route(f'{GENERATETEXT_ROUTE_V1}', methods=['POST'])
+@jwt_required()
+def query_ai():
+    def construct_query_ai_request(request):
+        ai_request = {
+            "model": "gpt-3.5-turbo",
+            "temperature": 0.9,
+            "messages": [
+                { "role": "system", "content": "You are DocumentGPT. \
+You take CONTEXT TEXT from a document along with a REQUEST to generate more text to include in the document.\
+You therefore respond purely with text that would make sense to add to the context text provided along the lines of the request.\
+You never say anything like 'Sure', or 'Here you go:' or attempt to interact with the user or comment on being an AI model or make meta-statements about the query.\
+You always do your best to generate text in the same style as the context text provided that achieves what is described in the request" },\
+    { "role": "user", "content": "Given the context text below, provide text in the same style to add to this as specified by this request:\n"
+        + "\nREQUEST:\n" + request.json['request'] + "\n"
+        + "\nCONTEXT TEXT:\n" + request.json['context']}]
+        }
+        if app.debug: print(f"{GENERATETEXT_ROUTE_V1} ai_request: {ai_request}")
+        return ai_request
+
+    logger.info(f"{GENERATETEXT_ROUTE_V1} POST request from:{request.remote_addr}")
+    if app.debug: print(f"{GENERATETEXT_ROUTE_V1} request:\n", json.dumps(request.json, indent=4))
+    ai_request = construct_query_ai_request(request)
+    try:
+        response = openai.ChatCompletion.create(**ai_request)
+        generated_text = response.choices[0]["message"]["content"]
+        ai_response = { 
+            "success": True,
+            "generated_text": generated_text
+        }
+        if app.debug: print(f"openai response: {response}")
+        server_stats["chat_interaction_count"] += 1
+        server_stats["prompt_tokens"] += response["usage"]["prompt_tokens"]
+        server_stats["completion_tokens"] += response["usage"]["completion_tokens"]
+        server_stats["total_tokens"] += response["usage"]["total_tokens"]
+        # Usage is metadata about the chat rather than the document that contains the chat, so it goes in the content
+        message_usage = {
+            "prompt_tokens": response["usage"]["prompt_tokens"],
+            "completion_tokens": response["usage"]["completion_tokens"],
+            "total_tokens": response["usage"]["total_tokens"],
+        }
+        ai_response["usage"] = message_usage
+    except Exception as e:
+        log_exception(e)
+        ai_response = {
+            "success": False,
+            "error": str(e)
+        }
+    ai_response_json = jsonify(ai_response)
+    if app.debug: print(f"{GENERATETEXT_ROUTE_V1} response:\n", json.dumps(ai_response, indent=4))
     return ai_response_json
 
 
 def save_chat(folder_name, request):
     name = request.json['name'] if ('name' in request.json) else config["default_chat_name"]
     tags = request.json['tags'] if ('tags' in request.json) else []
+    properties = request.json['properties'] if ('properties' in request.json) else "{}"
     content = { "chat": request.json["chatHistory"] } if ('chatHistory' in request.json) else { "chat": [] }
     if ('id' not in request.json or request.json['id'] == ""):
-        document = userDB().create_document(folder_name, name, tags, content)
+        document = sidekickDB().create_document(folder_name, name, tags, properties, content)
         id = document["metadata"]["id"]
         server_stats["new_chats_count"] += 1
     else:
         id = request.json["id"]
-        document = userDB().save_document(folder_name, id, name, tags, content)
+        document = sidekickDB().save_document(id, name, tags, properties, content)
     logger.info(f"save_chat id:{id} from:{request.remote_addr}")
 
     if app.debug: print(f"document: {json.dumps(document, indent=4)}")
@@ -456,7 +533,7 @@ def chat_v1():
     system_response = { **document }
     system_response["chat_response"] = chat_response
     if app.debug: print("document[content]", document["content"])
-    userDB().save_document(folder_name, document["metadata"]["id"], document["metadata"]["name"], document["metadata"]["tags"], document["content"])
+    sidekickDB().save_document(document["metadata"]["id"], document["metadata"]["name"], document["metadata"]["tags"], "{}", document["content"])
     system_response_json = jsonify(system_response)
     if app.debug: print("/chat/v1 response:\n", json.dumps(system_response, indent=4))
     return system_response_json
@@ -523,13 +600,13 @@ def chat_v2_cancel(id):
 # Run the server
 #
 
-auth = AuthServer(config[LOGINDB_DIR_SETTING])
+auth = AuthServer(config[SIDEKICK_DB_DIR_SETTING])
 
 @app.route('/docdb', methods=['GET'])
 @jwt_required()
 def docdb_list_folders():
     logger.info(f"/docdb [GET] request from:{request.remote_addr}")
-    folders = userDB().list_folders()
+    folders = sidekickDB().list_folders()
     return jsonify(folders)
 
 @app.route('/docdb//documents', methods=['GET'])
@@ -537,7 +614,7 @@ def docdb_list_folders():
 @jwt_required()
 def docdb_list_documents(folder_name=""):
     logger.info(f"/docdb/{folder_name}/documents [GET] request from:{request.remote_addr}")
-    documents = userDB().list_documents(folder_name)
+    documents = sidekickDB().list_documents(folder_name)
     return jsonify(documents)
 
 @app.route('/docdb//documents', methods=['POST'])
@@ -548,8 +625,9 @@ def docdb_create_document(folder_name=""):
     data = request.get_json()
     name = data['name'] if 'name' in data else ""
     tags = data['tags'] if 'tags' in data else []
+    properties = data['properties'] if 'properties' in data else "{}"
     content = data['content'] if 'content' in data else "{}"
-    document = userDB().create_document(folder_name, name, tags, content)
+    document = sidekickDB().create_document(folder_name, name, tags, properties, content)
     return jsonify(document)
 
 @app.route('/docdb//documents/<id>', methods=['GET'])
@@ -559,7 +637,7 @@ def docdb_load_document(id, folder_name=""):
     tid = generate_tid()
     logger.info(f"/docdb/{folder_name}/documents/{id} [GET] from:{request.remote_addr} tid:{tid}")
     try:
-        document = userDB().load_document(folder_name, id)
+        document = sidekickDB().load_document(id)
         return jsonify(document)
     except Exception as e:
         logger.error(f"tid:{tid} docdb_load_document({id}) error:{str(e)}")
@@ -574,8 +652,9 @@ def docdb_save_document(id, folder_name=""):
     data = request.get_json()
     name = data['metadata']['name']
     tags = data['metadata']['tags']
+    properties = data['metadata']['properties'] if 'properties' in data['metadata'] else "{}"
     content = data['content']
-    document = userDB().save_document(folder_name, id, name, tags, content)
+    document = sidekickDB().save_document(id, name, tags, properties, content)
     return jsonify(document)
 
 @app.route('/docdb/<folder_name>/documents/<id>/rename', methods=['PUT'])
@@ -584,7 +663,7 @@ def docdb_rename_document(folder_name, id):
     logger.info(f"/docdb/{folder_name}/documents/{id}/rename [PUT] request from:{request.remote_addr}")
     data = request.get_json()
     new_name = data['name']
-    document = userDB().rename_document(folder_name, id, new_name)
+    document = sidekickDB().rename_document(id, new_name)
     return jsonify(document)
 
 @app.route('/docdb/<folder_name>/documents/<id>/move', methods=['PUT'])
@@ -593,24 +672,28 @@ def docdb_move_document(folder_name, id):
     logger.info(f"/docdb/{folder_name}/documents/{id}/move [PUT] from:{request.remote_addr}")
     data = request.get_json()
     new_folder_name = data['folder_name']
-    document = userDB().move_document(folder_name, id, new_folder_name)
+    document = sidekickDB().move_document(folder_name, id, new_folder_name)
     return jsonify(document)
 
 @app.route('/docdb/<folder_name>/documents/<id>', methods=['DELETE'])
 @jwt_required()
 def docdb_delete_document(folder_name, id):
     logger.info(f"/docdb/{folder_name}/documents/{id} [DELETE] from:{request.remote_addr}")
-    document = userDB().delete_document(folder_name, id)
+    document = sidekickDB().delete_document(id)
     return jsonify(document)
 
 @app.route('/create_account', methods=['POST'])
 def create_account():
-    data = request.get_json()
-    user_id = data['user_id']
-    password = data['password']
-    logger.info(f"/create_account user_id:{user_id} [POST] request from:{request.remote_addr}")
     try:
-        result = auth.create_account(user_id, password)
+        data = request.get_json()
+        user_id = data['user_id']
+        # if 'sidekick' appears in the user_id, throw an exception
+        if 'sidekick' in user_id:
+            raise Exception("Invalid user_id: cannot contain 'sidekick'")
+        password = data['password']
+        properties = data['properties'] if 'properties' in data else "{}"
+        logger.info(f"/create_account user_id:{user_id} [POST] request from:{request.remote_addr}")
+        result = auth.create_account(user_id, properties, password)
         return jsonify(result)
     except Exception as e:
         logger.error(f"/create_account user_id:{user_id} error:{str(e)}")
@@ -660,9 +743,6 @@ def delete_user():
     password = data['password']
     logger.info(f"/delete_user user_id:{user_id} [POST] request from:{request.remote_addr}")
     try:
-        # delete the user's db first and then their entry from the login db in case there is an issue,
-        # they will still be able to login to delete the account when the issue is resolved
-        userDB().delete()
         # delete the user from the login database
         result = auth.delete_user(user_id, password)
         return jsonify(result)

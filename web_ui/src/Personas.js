@@ -1,7 +1,8 @@
+import { debounce } from "lodash";
 import axios from 'axios';
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState, useContext, Fragment, useCallback } from 'react';
 import { Card, Box, IconButton, Tooltip, Typography, TextField,
-    List, ListItem, ListItemText, Menu, MenuItem } from '@mui/material';
+    List, ListItem, ListItemText, Menu, MenuItem, Divider } from '@mui/material';
 import { ClassNames } from "@emotion/react";
 import PersonIcon from '@mui/icons-material/Person';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
@@ -9,17 +10,19 @@ import CloseIcon from '@mui/icons-material/Close';
 import ExpandIcon from '@mui/icons-material/Expand';
 import FavouriteIcon from '@mui/icons-material/Favorite';
 import FavouriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import PushPinIcon from '@mui/icons-material/PushPin';
+import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 
 import { SystemContext } from './SystemContext';
 import { StyledToolbar } from './theme';
-import { WidthFull } from '@mui/icons-material';
 
 const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, personasOpen, 
-    settingsManager, setShouldAskAgainWithPersona, serverUrl, StreamingChatResponse}) => {
+    settingsManager, setShouldAskAgainWithPersona, serverUrl, StreamingChatResponse,
+    windowPinnedOpen, setWindowPinnedOpen}) => {
     const system = useContext(SystemContext);
     const [myPersonas, setMyPersonas] = useState([]);
     const [filterText, setFilterText] = useState('');
-    const [expanded, setExpanded] = useState(true);
+    const [expanded, setExpanded] = useState(false);
     const [expandedPersona, setExpandedPersona] = useState(null);
     const [timeoutId, setTimeoutId] = useState(null);
     const [personaContextMenu, setPersonaContextMenu] = useState(null);
@@ -28,12 +31,30 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
     const [mySettingsManager, setMySettingsManager] = useState(settingsManager);
     const [filterByFavourite, setFilterByFavourite] = useState(false);
 
+    const [width, setWidth] = useState(0);
+    const handleResize = useCallback(
+        // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
+        debounce((entries) => {
+        const { width } = entries[0].contentRect;
+        setWidth(width);
+        }, 100),
+        []
+    );
+
+    useEffect(() => {
+        const element = document.getElementById("chat-panel");
+        const observer = new ResizeObserver(handleResize);
+        element && observer.observe(element);
+        return () => observer.disconnect();
+    }, [handleResize]);
+
     const setPersonasFilterFocus = () => {
-        document.getElementById("personas-filter").focus();
+        document.getElementById("personas-filter")?.focus();
     }
     useEffect(()=>{
         mySettingsManager.loadSettings("personas",
             (data) => {
+                console.log("Personas loaded:", data)
                 setMyPersonas(data.personas);
                 const defaultPersona = Object.entries(data.personas).reduce((acc, [key, value]) => {
                     if (value.default) {
@@ -159,8 +180,10 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
   
     const filteredPersonas = Object.entries(myPersonas).reduce((acc, [key, value]) => {
         const nameMatch = key.toLowerCase().includes(filterText.toLowerCase());
+        const descriptionMatch = value?.description && value.description.toLowerCase().includes(filterText.toLowerCase());
         const promptMatch = value.system_prompt.toLowerCase().includes(filterText.toLowerCase());
-        if ((nameMatch || promptMatch) && (!filterByFavourite || value.favourite)) {
+        const tagsMatch = value?.tags && value.tags.includes(filterText.toLowerCase());
+        if ((nameMatch || descriptionMatch || promptMatch || tagsMatch) && (!filterByFavourite || value.favourite)) {
           const selected = persona && persona.name === key;
           acc[key] = { name: key, ...value, selected };
         }
@@ -168,7 +191,7 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
       }, {});
 
     const loadingRender = <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
-    flex:1, minWidth: "300px", maxWidth: "400px"}}>
+    flex:1, minWidth: "350px", maxWidth: "450px"}}>
         <Typography>{loadingPersonasMessage}</Typography>
     </Card>
 
@@ -211,7 +234,16 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
                                             }
                                     </Typography>
                                 }
-                                secondary={ expanded || expandedPersona === persona.name ? persona.system_prompt : null } 
+                                secondary={
+                                    <Fragment>
+                                        <Typography>{persona.description}</Typography>
+                                        {
+                                            expanded || expandedPersona === persona.name
+                                            ? <Typography mt={1}>{persona.system_prompt}</Typography>
+                                            : null
+                                        } 
+                                    </Fragment>
+                                }
                             />
                         </Card>
                     <Menu
@@ -229,7 +261,7 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
                         }
                     >
                         <MenuItem onClick={(event) => handleAskAgainWithPersona(event)}
-                            disabled={StreamingChatResponse !== ""}>Ask again with this persona</MenuItem>
+                            disabled={StreamingChatResponse === ""}>Ask again with this persona</MenuItem>
                         <MenuItem onClick={(event) => handleSetAsDefault(event)}>Set as default persona</MenuItem>
                     </Menu>
             </ListItem>
@@ -237,14 +269,19 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
         </List>
 
     const render = <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
-    flex:1, minWidth: "300px", maxWidth: "400px"}}>
-        <StyledToolbar className={ClassNames.toolbar}>
+    flex:1, minWidth: "350px", maxWidth: "450px"}}>
+        <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
             <PersonIcon/>
             <Typography>Personas</Typography>
             <Box ml="auto">
-                <Tooltip title={ expanded ? "Hide descriptions" : "Show descriptions" }>
+                <Tooltip title={ expanded ? "Hide details" : "Show details" }>
                     <IconButton onClick={handleExpandCollapse} color="inherit" aria-label="expand">
                         <ExpandIcon/>
+                    </IconButton>
+                </Tooltip>
+                <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
+                    <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
+                        {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
                     </IconButton>
                 </Tooltip>
                 <Tooltip title="Close window">

@@ -1,5 +1,64 @@
 # Release Notes
 
+## v0.0.7
+
+Functional changes:
+
+1. The prompt at the bottom of the Note is now a GenAI Note Writer. You can tell it what you want to add to your note. It will use the existing note content as context and generate additional text based on the request in your prompt that it will append to the note.
+2. Pressing return in the login and create user screens now moves the cursor to the password field if you were in the userid field and submits the form if you are in the passord field.
+
+## v0.0.6
+
+Functional changes:
+
+1. Added a prompt templates tool with a selection of pre-canned templates
+2. Notes can now render a preview of markdown and code
+3. Chats now render markdown as well as code and markdown interspersed with code
+4. Chat can now save prompts as templates
+5. Now uses a single SQLite database for all users, chats, notes, settings, and feedback rather than one data database per user plus a login and feedback database. This simplifies the deployment and configuration of the app, and makes it easier to share chats, prompts, and notes with other users.
+6. Chat secondary toolbar now has a button to save the current prompt as a template
+7. Added custom_settings for the App to set the instance name, and usage, which are displayed next to the version in the App bar; instanceName is intended to be used to distinguish between different instances of the app, e.g. Dev, Test, Prod. usage is intended to be used to distinguish between how that instance could or should be used, e.g. could state private/public, security classification, geographical region, team, divsion, etc. Both settings are just display strings for information purposes only.
+8. Renamed the Prompt Composer tool to Prompt Engineer to refelect the standard terminolgy used in the AI industry.
+9. Chat and Note context menus now have a copy highlighted text option when text is selected
+10. Other minor UI improvements
+
+Code improvements:
+
+1. Sidekick AI help now uses tabs instead of accordian for the separate sections for a clearer UI
+2. Refactored markdown and syntax rendering into a new SidekickMarkdown component
+3. Code syntax highlighting now defaults to ```code where the language is not specified
+4. Carousel component and Login updated to ensure login and create account headings are visible irrespective of browser window size and zoom state
+
+
+## v0.0.5
+
+UI changes: side panel swapping and pinning, custom messages for login and chat, stop streaming button, improved manual.
+
+Functional changes:
+
+1. Chat now has a stop button that will stop streaming of the chat response to the chat window, enabling the prompt text area so another prompt can be entered
+2. Opening a side panel now closes other side panels that are open unless they are pinned. This allows you to choose your working style, saves screen space and keeps the UI tidy by default, whilst allowing pinning as many of the controls to be open for easy access as you want.
+3. Updated manual with more comprehensive reference of Sidekick features and controls.
+4. Chat information about personal, temperature / creativity, and model moved out of the secondary toolbar into a display-only footer.
+5. Added personas for CFO, CIO, CINO, Board member, and None (blank system prompt), improved the existing persona system-Prompts, added a description and tags per persona. Personas tool now shows the shorter description (what the persona does) by default, and the longer system_prompt (how the AI should respond for that persona) when you hover over the persona or click on the expand button in the toolbar.
+6. Added custom settings for specifying text to display on the login screen and as the chat prompt ready placeholder. See [Configuration Guide](configuration.md) for more information.
+7. Chat's can change course; the Chat name now has a button to regenerate it based on the full chat content
+8. Notes can change course; the Note name now has a button to regenerate it based on the full note content
+9. Sidekick manual more content complete, added prompt engineering playbook, and sections on understanding Generative AI and responsible usel; rendered as markdown with hyperlink navigation
+10. Chat prompt area now limits its height to 40% of the window and adds a scrollbar if the prompt doesn't fit
+
+Code improvements:
+
+1. Removed gpt-3.5-16k model, which is no longer supported.
+2. Focus is now set to the prompt text area when the chat response completes
+3. Fixed bug where sometimes "append message to note" was not working
+4. Chat, append message to note, now creates a new note to append the message to if one was not open
+5. New chats are only saved when they have content, and the new chat button is disabled when the chat is a new (empty) chat; this avoids new empty chats being created each time the app is opened
+6. Export note to file now removes special characters not permitted in filenames
+7. Logout does a page reload to ensure all state is cleared and ensure any updates to the app are applied
+8. Notes are now saved when the name or content lose focus, previously notes were saved as the content was edited
+9. Added debounced ResizeObserver to Chat and Note components to prevent React Resize Observer loop limit exceeded error when the browser window is resized
+
 ## v0.0.4
 
 Functional changes:

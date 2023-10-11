@@ -1,10 +1,14 @@
-import { useEffect, useState, useContext } from 'react';
+import { debounce } from "lodash";
+import { useEffect, useState, useContext, useCallback } from 'react';
 import { Card, Box, Toolbar, IconButton, Typography, TextField, List, ListItem, ListItemText,
     Tooltip } from '@mui/material';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
+import PushPinIcon from '@mui/icons-material/PushPin';
+import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
+
 import axios from 'axios';
 import { indigo } from '@mui/material/colors';
 
@@ -15,8 +19,8 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     gap: 2,
   }));
 
-const Explorer = ({handleToggleExplorer, name, icon, folder, openItemId, setLoadDoc,
-     docNameChanged, refresh, setRefresh, itemOpen,
+const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, name, icon, folder, openItemId, setLoadDoc,
+     docNameChanged, refresh, setRefresh, itemOpen, hidePrimaryToolbar,
     setItemOpen, // to be able to close the item editor if the item is deleted
     serverUrl, token, setToken
     }) => {
@@ -24,6 +28,23 @@ const Explorer = ({handleToggleExplorer, name, icon, folder, openItemId, setLoad
     const [docs, setDocs] = useState([]);
     const [filterText, setFilterText] = useState('');
     const [myFolder, setMyFolder] = useState(folder);
+
+    const [width, setWidth] = useState(0);
+    const handleResize = useCallback(
+        // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
+        debounce((entries) => {
+        const { width } = entries[0].contentRect;
+        setWidth(width);
+        }, 100),
+        []
+    );
+
+    useEffect(() => {
+        const element = document.getElementById("chat-panel");
+        const observer = new ResizeObserver(handleResize);
+        element && observer.observe(element);
+        return () => observer.disconnect();
+    }, [handleResize]);
 
     useEffect(()=>{
         setMyFolder(folder);
@@ -104,20 +125,31 @@ const Explorer = ({handleToggleExplorer, name, icon, folder, openItemId, setLoad
     };
 
     return (
-        <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "200px", maxWidth: "300px"}}>
-            <StyledToolbar className={ClassNames.toolbar}>
-                {icon}
-                <Typography>{name}</Typography>
-                <Box ml="auto">
-                    <Tooltip title="Close window">
-                        <IconButton onClick={handleToggleExplorer}>
-                            <CloseIcon />
-                        </IconButton>
-                    </Tooltip>
-                </Box>
-            </StyledToolbar>
+        <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "350px", maxWidth: "450px"}}>
+            {
+                hidePrimaryToolbar ? null 
+                :
+                    <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
+                        {icon}
+                        <Typography>{name}</Typography>
+                        <Box ml="auto">
+                            <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
+                                <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
+                                    {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Close window">
+                                <IconButton onClick={handleToggleExplorer}>
+                                    <CloseIcon />
+                                </IconButton>
+                            </Tooltip>
+                        </Box>
+                    </StyledToolbar>
+            }
             <Box sx={{ display: 'flex', flexDirection: 'row' }}>
                 <TextField
+                    id="{name}-explorer-filter"
+                    autoComplete='off'
                     label="Filter"
                     value={filterText}
                     onChange={handleFilterTextChange}

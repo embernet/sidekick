@@ -10,12 +10,14 @@
 - [Guided tour](#guided-tour)
   - [Login](#login)
   - [Chat with OpenAI GPT-4 or GPT-3.5-turbo](#chat-with-openai-gpt-4-or-gpt-35-turbo)
+  - [Chat Prompt Templates](#chat-prompt-templates)
   - [Chat context menu](#chat-context-menu)
   - [Pick from different AI personas](#pick-from-different-ai-personas)
   - [Ask again with different personas](#ask-again-with-different-personas)
   - [Syntax highlighting of code](#syntax-highlighting-of-code)
   - [Change the AI model settings](#change-the-ai-model-settings)
   - [Sidekick Prompt Composer](#sidekick-prompt-composer)
+  - [Sidekick Notes](#sidekick-notes)
   - [Sidekick Manual](#sidekick-manual)
   - [Sidekick AI Help](#sidekick-ai-help)
 - [Why Sidekick?](#why-sidekick)
@@ -40,6 +42,9 @@ It provides a chat interface to OpenAI's GPT models along with pre-canned AI per
 
 # Guided tour
 
+For more details, see the [Sidekick manual](web_ui/public/sidekick_manual.md)
+For more insights on how to use Sidekick, ask the [Sidekick AI Help](#sidekick-ai-help)
+
 ## Login
 
 Login, or create a new account if you don't already have one. Each user has their own database of chats and notes.
@@ -52,6 +57,20 @@ Once you have configured the app with your OpenAI API key, you can chat with the
 All your chats will be stored in Sidekick and you can edit them and use them to create notes.
 
 ![Sidekick AI Chat](docs/images/Sidekick_Chat.png)
+
+## Chat Prompt Templates
+
+Clicking the Spanner button in the main toolbar or clicking the 'Prompt Engineer' button at the bottom of the Chat window opens the Prompt Engineer, which includes a selection of pre-canned prompt templates.
+
+Click a template name to copy the template to the prompt window. Prompt templates have this structure:
+
+```# Prompt Template Name
+Some prompt text with optional {PARAMETERS} that you can double click on to replace with your own text.
+```
+
+To save new prompt templates of your own, just add a prompt name like this above your prompt and click the save button.
+
+![Sidekick Prompt Templates](docs/images/Sidekick_Prompt_Templates.png)
 
 ## Chat context menu
 
@@ -76,6 +95,7 @@ Different personas can give you different perspectives on the same prompt.
 Code blocks are syntax highlighted.
 
 ![Sidekick Syntax Highlighting](docs/images/Sidekick_Syntax_Highlighting.png)
+
 ## Change the AI model settings
 
 Model settings lets you change the model and the temperature and other settings to alter (creativity / consistency) of the response.
@@ -87,6 +107,16 @@ Model settings lets you change the model and the temperature and other settings 
 Prompt composer lets you build your prompt from a library of fragments.
 
 ![Sidekick Prompt Composer](docs/images/Sidekick_Prompt_Composer.png)
+
+## Sidekick Notes
+
+Sidekick Notes lets you create and edit notes. You can also import and export notes as text files, copy selected AI responses over from the chat window, and use the NoteWriter AI to write your note for you by telling it what you want.
+
+![Sidekick Notes](docs/images/Sidekick_Notes.png)
+
+Notes let you edit the content in plain text markdown and then render a view with the formatting applied.
+
+![Note Markdown rendering](docs/images/Sidekick_Note_Markdown.png)
 
 ## Sidekick Manual
 

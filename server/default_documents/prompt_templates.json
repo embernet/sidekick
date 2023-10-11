@@ -1,0 +1,68 @@
+{
+    "prompt_templates": {
+        "Explain topic": {
+            "tags": ["home", "work", "student", "learning", "explanation", "research"],
+            "content": { "prompt_template": "Explain the concept of {TOPIC_NAME} in simple terms, including its origins, importance, real-world applications, and related concepts." }
+        },
+        "Help with homework": {
+            "tags": ["home", "student", "homework", "help", "learning", "help"],
+            "content": { "prompt_template": "Help with the following homework question: {QUESTION}, providing step-by-step solution and explanation. Also provide interesting examples of how this concept is used in the real world." }
+        },
+        "Help teaching": {
+            "tags": ["home", "work", "teacher", "learning", "styles", "help"],
+            "content": { "prompt_template": "Provide examples of how to teach {SUBJECT_NAME} to people of age {AGE}; Explain how to address different learning styles for this topic, considering strategies for and providing examples for visual, auditory, reading/writing, kinaesthetic learners, individual and group learning approaches." }
+        },
+        "Workout plan": {
+            "tags": ["work", "training", "fitness", "exercise", "health"],
+            "content": { "prompt_template": "Create a workout plan for a person with fitness goals: {GOALS}, considering current fitness level: {FITNESS_LEVEL}, available equipment: {EQUIPMENT}, and time constraints: {TIME_CONSTRAINTS}." }
+        },
+        "Create meal recipe": {
+            "tags": ["home", "cooking", "nutrition", "health"],
+            "content": { "prompt_template": "I have the following main ingredients: {MAIN_INGREDIENTS} plus the usual basic ingredients you might expect to find in a home kitchen. Provide a recipe for a tasty nutritional meal that makes the most of these ingredients. Provide the recipe in markdown with the top level section name being the name of the recipe and sub-sections for 'Ingredients' (a bullet list of ingredients and quantities), 'Method' (A numbered list of steps to make the recipe), 'Fun facts' (a couple of paragraphs of interesting facts or history about the recipe, where it came from, or the ingredients themselves)." }
+        },
+        "Campaign optimisation": {
+            "tags": ["work", "marketing", "communications", "sales"],
+            "content": { "prompt_template": "Provide strategies to optimise a marketing campaign to {MARKETING_CAMPAIGN_GOALS} considering target audience: {TARGET_AUDIENCE}, include strategies, tools and platforms available, example copy, and ideas for metrics and measuring take-up." }
+        },
+        "Team motivation": {
+            "tags": ["work", "leadership", "teams", "motivation", "innovation"],
+            "content": { "prompt_template": "Provide strategies on how to motivate a team to achieve their priorities: {PRIORITIES} during challenging times, considering factors such as communication, empathy, personal strengths/weaknesses, preferences, and goal setting." }
+        },
+        "Leadership styles": {
+            "tags": ["work", "teams", "leadership", "innovation"],
+            "content": { "prompt_template": "Discuss effective leadership styles for situation: {SITUATION}, including their benefits, potential drawbacks, and examples of when each style would be most effective." }
+        },
+        "Technology research": {
+            "tags": ["work", "technology", "research", "comparison", "alternatives", "innovation"],
+            "content": { "prompt_template": "Provide an overview of technology: {TECHNOLOGY_NAME}, list example scenarios where it is used, related technologies, alternative technologies, provide examples of when this technology would be used rather than each of the other technologies and when one of the other technologies should be used instead. Give a bit of the history, who created the technology, and provide predictions of what new capabilities or ways of working technology in this area might have in future, extrapolating from examples of related or similar technologies including from other industries." }
+        },
+        "Technology overview": {
+            "tags": ["work", "technology", "overview", "innovation"],
+            "content": { "prompt_template": "Provide an overview of technology: {TECHNOLOGY_NAME}, describing what it does, why it's used, and list example scenarios where it is used." }
+        },
+        "Compare options": {
+            "tags": ["home", "work", "comparison", "alternatives", "innovation"],
+            "content": { "prompt_template": "Compare {OPTION_1} and {OPTION_2}, given my needs are: {NEEDS}. Provide a list of the strengths, weaknesses, and any potential synergies when used together for addressing each need along with a summary considering which option or combination of options would work best taking all needs into account." }
+        },
+        "Technology comparison": {
+            "tags": ["work", "technology", "comparison", "alternatives", "innovation"],
+            "content": { "prompt_template": "Compare {TECHNOLOGY_1} and {TECHNOLOGY_2}, given our use case of: {USE_CASE}, and that this technology would need to work well alongside: {EXISTING_TECHNOLOGY}. Say how these technologies are typically used, provide their strengths and weaknesses for our use case, considerations for integration with our existing technology, and provide a recommendation with justification for which technology we should use." }
+        },
+        "Technology evaluation": {
+            "tags": ["work", "technology reviewer", "evaluation", "pros and cons"],
+            "content": { "prompt_template": "Evaluate {TECHNOLOGY_NAME}, listing its pros and cons, potential applications, and situations when this technology would be more advantageous than others. Also, provide examples of when other technologies would be a better fit." }
+        },
+        "Transformation": {
+            "tags": ["work", "technology", "architecture", "transformation", "strategy"],
+            "content": { "prompt_template": "Provide a guide on how to plan and execute an transformation programme from a current state of: {CURRENT_STATE} to a target state of: {TARGET_STATE} where the primary motivation and goals are: {MOTIVATION}. Provide this as a markdown document containing content in these sections: 'Current state', 'Target state', 'Motivation and benefits' (elaborate on the provided motivation by comparing the difference between the desired target state and the current state), 'Potential blockers and challenges', 'Risks' (risks should include risks to the transformation failing but also risks that once the desired transformation is completed it does not achieve the goals set out in the motivation), 'Risk mitigations', 'Roadmap' (include a number of stages in the roadmap and characterise the progress made in each), 'Approach' (list the steps to achieve each stage in the roadmap along with stakeholder engagement needed for each stage), 'Success criteria' (how to measure success)." }
+        },
+        "Provide code": {
+            "tags": ["work", "technology", "code", "programming", "development"],
+            "content": { "prompt_template": "Provide code to solve problem: {PROBLEM}, using programming language: {LANGUAGE}, and framework or libraries: {FRAMEWORKS_AND_LIBRARIES}. The code should be provided as a markdown document with a code block containing the code, and a section below the code block with a description of the code, how it works, and how it solves the problem." }
+        },
+        "Suggest a movie": {
+            "tags": ["home", "movies", "entertainment", "recommendations"],
+            "content": { "prompt_template": "I like these movies, genres, directors, and actors: {MOVIE_PREFERENCES}. Suggest other movies I might like; for each suggested movie provide a brief summary of the plot, when it was made, who directed it, the main stars, and why I might like it."}
+        }
+    }
+}

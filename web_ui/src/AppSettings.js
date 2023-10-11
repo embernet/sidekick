@@ -1,5 +1,6 @@
+import { debounce } from "lodash";
 import axios from 'axios';
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { SystemContext } from './SystemContext';
 import { Card, Toolbar, Tooltip, IconButton, Box, Paper, Tabs, Tab, TextField, Button, Typography } from '@mui/material';
 import { styled } from '@mui/system';
@@ -24,27 +25,44 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser, onClo
     const [showDeleteAccount, setShowDeleteAccount] = useState(false);
     const [tabIndex, setTabIndex] = useState(0);
 
-const inputContainerStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    marginTop: '50px',
-  };
+    const [width, setWidth] = useState(0);
+    const handleResize = useCallback( 
+        // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
+        debounce((entries) => {
+        const { width } = entries[0].contentRect;
+        setWidth(width);
+        }, 100),
+        []
+    );
 
-const inputStyle = {
-    margin: '10px',
-    padding: '5px',
-};
+    useEffect(() => {
+        const element = document.getElementById("chat-panel");
+        const observer = new ResizeObserver(handleResize);
+        element && observer.observe(element);
+        return () => observer.disconnect();
+    }, [handleResize]);
 
-useEffect(() => {
-    console.log("AppSettings instantiated");
-}, []);
+    const inputContainerStyle = {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        marginTop: '50px',
+    };
 
-useEffect(() => {
-    if (tabIndex === 2) {
-        setConfirmUserId('');
-    }
-}, [tabIndex]);
+    const inputStyle = {
+        margin: '10px',
+        padding: '5px',
+    };
+
+    useEffect(() => {
+        console.log("AppSettings instantiated");
+    }, []);
+
+    useEffect(() => {
+        if (tabIndex === 2) {
+            setConfirmUserId('');
+        }
+    }, [tabIndex]);
 
   const handleTabChange = (event, newValue) => {
     setTabIndex(newValue);
@@ -140,7 +158,7 @@ useEffect(() => {
     );
   };
 
-  const render = <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "600px"}}>
+  const render = <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "600px", maxWidth: "600px"}}>
     
   <StyledToolbar className={ClassNames.toolbar}>
       <SettingsIcon/>
@@ -175,11 +193,11 @@ useEffect(() => {
               {tabIndex === 1 && (
                   <Box style={inputContainerStyle} component="form" gap={2}>
                       <TextField type="password" label="Current Password" value={currentPassword} 
-                          sx={{ width: "300px" }} autocomplete="off" onChange={handleCurrentPasswordChange} />
+                          sx={{ width: "300px" }} autoComplete="off" onChange={handleCurrentPasswordChange} />
                       <TextField type="password" label="New Password" value={newPassword} 
-                          sx={{ width: "300px" }} autocomplete="off" onChange={handleNewPasswordChange} />
+                          sx={{ width: "300px" }} autoComplete="off" onChange={handleNewPasswordChange} />
                       <TextField type="password" label="Re-enter new Password" value={reEnteredNewPassword} 
-                          sx={{ width: "300px" }} autocomplete="off" onChange={handleReEnteredNewPasswordChange} />
+                          sx={{ width: "300px" }} autoComplete="off" onChange={handleReEnteredNewPasswordChange} />
                       <Box sx={{ display: "flex" }}>
                           <Button type="button" onClick={handleChangePassword} sx={{ mr: 1 }}>Save</Button>
                           <Button type="button" onClick={handleCancel}>Cancel</Button>
@@ -187,15 +205,15 @@ useEffect(() => {
                   </Box>
               )}
               {tabIndex === 2 && (
-                  <Box style={inputContainerStyle} component="form">
+                  <Box style={inputContainerStyle} component="form" gap={2}>
                       <Typography margin={6}>Warning: This will delete your account and your database with all your chats and notes.
                       <br/><br/>Make sure you have copies of anything you need before proceeding.</Typography>
                       <TextField type="password" label="Current Password" value={currentPassword} 
-                          style={inputStyle} onChange={handleCurrentPasswordChange} 
-                          sx={{ width: "300px" }} autocomplete="off" /* disable autocomplete of password for deleting accounts *//>
-                      <TextField label="Type your userid to confirm" value={confirmUser} 
-                          style={inputStyle} onChange={handleConfirmNameChange}
-                          sx={{ width: "300px" }} autocomplete="off" />
+                          autoComplete="off" onChange={handleCurrentPasswordChange} 
+                          sx={{ width: "300px" }} /* disable autoComplete of password for deleting accounts *//>
+                      <TextField label="Type your userid to confirm" value={confirmUser} autoComplete="off"
+                          onChange={handleConfirmNameChange}
+                          sx={{ width: "300px" }} />
                       <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
                           <Button type="button" onClick={handleDeleteAccount} sx={{ mr: 1 }}>Delete</Button>
                           <Button type="button" onClick={handleCancel}>Cancel</Button>

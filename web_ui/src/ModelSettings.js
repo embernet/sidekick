@@ -1,15 +1,18 @@
-import { useEffect, useState } from 'react';
+import { debounce } from "lodash";
+import { useEffect, useState, useCallback } from 'react';
 import { Card, Paper, Box, IconButton, Tooltip,
     Typography, TextField, Autocomplete, Slider, Switch, Stack } from '@mui/material';
 import { ClassNames } from "@emotion/react";
 import TuneIcon from '@mui/icons-material/Tune';
 import CloseIcon from '@mui/icons-material/Close';
+import PushPinIcon from '@mui/icons-material/PushPin';
+import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import HelpIcon from '@mui/icons-material/Help';
 import { StyledToolbar } from './theme';
 
 
 const ModelSettings = ({setModelSettings, setFocusOnPrompt, 
-    modelSettingsOpen, setModelSettingsOpen,
+    modelSettingsOpen, setModelSettingsOpen, windowPinnedOpen, setWindowPinnedOpen,
     temperatureText, setTemperatureText, settingsManager,
     chatStreamingOn, setChatStreamingOn}) => {
 
@@ -26,7 +29,24 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     const [presence_penalty, setpresence_penalty] = useState(null);
     const [frequency_penalty, setfrequency_penalty] = useState(null);
     const [showHelp, setShowHelp] = useState(false);
- 
+
+    const [width, setWidth] = useState(0);
+    const handleResize = useCallback( 
+        // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
+        debounce((entries) => {
+        const { width } = entries[0].contentRect;
+        setWidth(width);
+        }, 100),
+        []
+    );
+
+    useEffect(() => {
+        const element = document.getElementById("chat-panel");
+        const observer = new ResizeObserver(handleResize);
+        element && observer.observe(element);
+        return () => observer.disconnect();
+    }, [handleResize]);
+
     useEffect(()=>{
         mySettingsManager.loadSettings("model_settings",
             (data) => {
@@ -129,7 +149,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     }, [selectedProvider, selectedModel, temperature, top_p, presence_penalty, frequency_penalty]);
 
     const loadingRender =
-        <Card sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth:"300px", maxWidth: "300px" }}>
+        <Card sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "350px", maxWidth: "450px" }}>
             <Typography>{loadingModelSettingsOptionsMessage}</Typography>
         </Card>;
 
@@ -138,7 +158,9 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
             <Typography variant="caption" sx={{ mt: 1 }}>Change models and settings to change behaviour and capability to suite your needs.</Typography>
             {Object.keys(modelSettingsOptions.providers).length === 1 ? (
                 <TextField
+                    id="single-provider"
                     label="Provider"
+                    autoComplete='off'
                     value={Object.keys(modelSettingsOptions.providers)[0]}
                     InputProps={{ readOnly: true }}
                     sx={{ mt: 2, mb: 3 }}
@@ -264,14 +286,19 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
         </Box>
 
     const render =
-        <Card sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth:"300px", maxWidth: "300px" }}>
-            <StyledToolbar className={ClassNames.toolbar}>
+        <Card sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth:"350px", maxWidth: "450px" }}>
+            <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
                 <TuneIcon/>
                 <Typography>Settings</Typography>
                 <Box ml="auto">
                     <Tooltip title={showHelp ? "Hide help" : "Show help"}>
                         <IconButton onClick={handleToggleHelp}>
                             <HelpIcon />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
+                        <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
+                            {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
                         </IconButton>
                     </Tooltip>
                     <Tooltip title="Close window">

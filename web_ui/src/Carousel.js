@@ -11,7 +11,7 @@ import React, { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
 
 const Carousel = ({imageFolderName, filenamePrefix, filenameExtension, altText, 
-    transitions, cycleTime}) => {
+    transitions, cycleTime, imageHeight='100%', imageWidth='auto'}) => {
     const images = [];
     const [imageIndex, setImageIndex] = useState(7);
     const [isCycling, setIsCycling] = useState(true);
@@ -26,13 +26,15 @@ const Carousel = ({imageFolderName, filenamePrefix, filenameExtension, altText,
         alignItems: 'center',
         justifyContent: 'center',
         flex: 1,
-      };
+        height: imageHeight,
+        overflow: 'hidden',
+    };
 
     const imageStyle = {
-        width: 'auto',
-        height: '50%',
+        width: imageWidth,
+        height: imageHeight,
         cursor: 'pointer',
-        position: 'absolute',
+        position: 'relative',
     };
 
     for (let i = 0; i <= 24; i++) {
