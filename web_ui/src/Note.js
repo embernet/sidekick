@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { debounce } from "lodash";
 
-import { useEffect, useState, useContext, useCallback } from 'react';
+import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Box, Toolbar, IconButton, Typography, TextField, Menu, MenuItem, Tooltip } from '@mui/material';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
@@ -47,7 +47,20 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
         []
     );
 
+    const applyCustomSettings = () => {
+        axios.get(`${serverUrl}/custom_settings/note`).then(response => {
+            if ("userPromptReady" in response.data) {
+                userPromptReady.current = defaultUserPromptReady + " (" + response.data.userPromptReady + ")";
+                setPromptPlaceholder(userPromptReady.current);
+            }
+        }).catch(error => {
+          console.error("Error getting Chat custom settings:", error);
+        });
+      }
+
     useEffect(() => {
+        applyCustomSettings();
+        showReady();
         const handleVisibilityChange = () => {
             if (document.hidden) {
               // The app has lost focus, save the note
@@ -73,6 +86,12 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
     const [id, setId] = useState("");
     const [name, setName] = useState(newNoteName);
     const [previousName, setPreviousName] = useState(newNoteName);
+    const defaultUserPromptReady = "What do you want to add to your note?";
+    const userPromptReady = useRef(defaultUserPromptReady);
+    const userPromptWaiting = "Waiting for response...";
+    const [contentDisabled, setContentDisabled] = useState(false);
+    const [promptDisabled, setPromptDisabled] = useState(false);
+    const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady.current);
     const [content, setContent] = useState("");
     const [contentChanged, setContentChanged] = useState(false);
     const [noteContextMenu, setNoteContextMenu] = useState(null);
@@ -168,14 +187,32 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
 
     useEffect(()=>{
         if (promptToSend && promptToSend !== "") {
-            let compoundPrompt = {
-                "content": content,
-                "prompt": promptToSend,
-            };
-            setChatRequest(compoundPrompt);
+            console.log("Note promptToSend", promptToSend);
+            const ai = new AI(serverUrl, token, setToken, system);
+            setContentDisabled(true);
+            showWaiting();
+            ai.generateText(content, promptToSend).then((generatedText) => {
+                setContent( text => text + "\n" + generatedText + "\n");
+                setContentDisabled(false);
+                showReady();
+            }).catch((error) => {
+                console.log(error);
+                system.error(`Error generating text: ${error}`);
+            });
         }
     }, [promptToSend]);        
-    
+
+    const showReady = () => {
+        setPromptDisabled(false);
+        setPromptPlaceholder(userPromptReady.current);
+    }
+
+    const showWaiting = () => {
+        setPromptDisabled(true);
+        setPromptPlaceholder(userPromptWaiting);
+        setPrompt('');
+    }
+
     const save = () => {
         if (id === "" && content !== "") {
             create({name: name, content: content});
@@ -459,7 +496,7 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
     const handleSend = (event) => {
         if(event.key === 'Enter') {
             event.preventDefault();
-            console.log("handleSend", prompt);
+            console.log("Note handleSend", prompt);
             setPromptToSend(prompt);
             setPrompt("");
         }
@@ -556,6 +593,7 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
                         onChange={handleContentChange}
                         onKeyDown={handleContentKeyDown}
                         onBlur={save}
+                        disabled={contentDisabled}
                         />
             }
             <Menu
@@ -581,6 +619,7 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
             </Menu>
         </Box>
         <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
+            <Typography>Note Writer</Typography>
             <Tooltip title={ "Download note" }>
                 <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleDownload}>
                     <FileDownloadIcon/>
@@ -622,7 +661,8 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
             value={prompt} 
             onChange={e => setPrompt(e.target.value)} 
             onKeyDown={handleSend}
-            placeholder="Chat with your note"
+            placeholder={promptPlaceholder}
+            disabled={promptDisabled}
         />
     </Box>
 </Card>

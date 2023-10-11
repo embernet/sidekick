@@ -51,7 +51,7 @@ import { theme } from './theme';
 import { Toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const VERSION = "0.0.6";
+const VERSION = "0.0.7";
 
 function App() {
   const system = useContext(SystemContext);

@@ -20,7 +20,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CodeIcon from '@mui/icons-material/Code';
 import CodeOffIcon from '@mui/icons-material/CodeOff';
 import SaveIcon from '@mui/icons-material/Save';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
 import AI from './AI';
@@ -68,7 +68,8 @@ const Chat = ({
     const [id, setId] = useState("");
     const [name, setName] = useState(newChatName);
     const [previousName, setPreviousName] = useState(newChatName);
-    const userPromptReady = useRef("Enter prompt...");
+    const defaultUserPromptReady = "Enter prompt...";
+    const userPromptReady = useRef(defaultUserPromptReady);
     const userPromptWaiting = "Waiting for response...";
     const [prompt, setPrompt] = useState("");
     const [lastPrompt, setLastPrompt] = useState("");
@@ -95,7 +96,7 @@ const Chat = ({
     const applyCustomSettings = () => {
         axios.get(`${serverUrl}/custom_settings/chat`).then(response => {
             if ("userPromptReady" in response.data) {
-                userPromptReady.current = response.data.userPromptReady;
+                userPromptReady.current = defaultUserPromptReady + " (" + response.data.userPromptReady + ")";
                 setPromptPlaceholder(userPromptReady.current);
             }
         }).catch(error => {
@@ -926,6 +927,7 @@ const Chat = ({
             </List>
         </Box>
         <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
+            <Typography>Prompt Editor</Typography>
             <Tooltip title={ "Ask again" }>
                 <IconButton edge="start" color="inherit" aria-label="menu" 
                     disabled={streamingChatResponse !== ""} onClick={handleAskAgain}>
@@ -933,16 +935,20 @@ const Chat = ({
                 </IconButton>
             </Tooltip>
             <Tooltip title={ "Reload last prompt for editing" }>
-                <IconButton edge="start" color="inherit" aria-label="menu"
-                    disabled={streamingChatResponse !== ""} onClick={handleReload}>
-                    <RedoIcon/>
-                </IconButton>
+                <span>
+                    <IconButton edge="start" color="inherit" aria-label="menu"
+                        disabled={streamingChatResponse !== ""} onClick={handleReload}>
+                        <RedoIcon/>
+                    </IconButton>
+                </span>
             </Tooltip>
             <Tooltip title={ "Save prompt as template" }>
-                <IconButton edge="start" color="inherit" aria-label="save prompt as template"
-                    disabled={streamingChatResponse !== ""} onClick={handleSavePromptAsTemplate}>
-                    <SaveIcon/>
-                </IconButton>
+                <span>
+                    <IconButton edge="start" color="inherit" aria-label="save prompt as template"
+                        disabled={streamingChatResponse !== ""} onClick={handleSavePromptAsTemplate}>
+                        <SaveIcon/>
+                    </IconButton>
+                </span>
             </Tooltip>
             <Box ml="auto">
                 {streamingChatResponse !== "" && <Tooltip title={ "Stop" }>
@@ -953,11 +959,13 @@ const Chat = ({
                     </IconButton>
                 </Tooltip>}
                 <Tooltip title={ "Send prompt to AI" }>
-                    <IconButton edge="end" color="inherit" aria-label="send" disabled={streamingChatResponse !== ""}
-                        onClick={() => { setPromptToSend({prompt: prompt, timestamp: Date.now()}); }}
-                    >
-                        <SendIcon/>
-                    </IconButton>
+                    <span>
+                        <IconButton edge="end" color="inherit" aria-label="send" disabled={streamingChatResponse !== ""}
+                            onClick={() => { setPromptToSend({prompt: prompt, timestamp: Date.now()}); }}
+                        >
+                            <SendIcon/>
+                        </IconButton>
+                    </span>
                 </Tooltip>
             </Box>
         </SecondaryToolbar>

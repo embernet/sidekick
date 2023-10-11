@@ -4,7 +4,7 @@
 # Description: A Chat server providing a REST interface for interacting with LLMs such as available via the OpenAI API
 
 PROGRAM_NAME = "sidekick_server"
-VERSION = "0.0.6"
+VERSION = "0.0.7"
 
 import logging
 from logging.handlers import RotatingFileHandler
@@ -328,25 +328,27 @@ def save_settings(name):
         log_exception(e)
         return str(e), RESULT_INTERNAL_SERVER_ERROR
 
-def construct_name_topic_request(request):
-    ai_request = {
-        "model": "gpt-3.5-turbo",
-        "temperature": 0.9,
-        "messages": [
-            { "role": "system", "content": "You generate concise names \
-for topics by reading the text and generating a name that is short and \
-reflects what the text is about. Do not surround the name in speech marks." },\
-{ "role": "user", "content": "Provide a short single phrase to use as a title for this text: " + request.json['text']}]
-    }
-    if app.debug: print(f"ai_request: {ai_request}")
-    return ai_request
 
 # Provide a name for the topic of the provided text
-@app.route('/nametopic', methods=['POST'])
+NAMETOPIC_ROUTE_V1 = "/nametopic/v1"
+@app.route(f'{NAMETOPIC_ROUTE_V1}', methods=['POST'])
 @jwt_required()
 def name_topic():
-    logger.info(f"/nametopic POST request from:{request.remote_addr}")
-    if app.debug: print("/nametopic request:\n", json.dumps(request.json, indent=4))
+    def construct_name_topic_request(request):
+        ai_request = {
+            "model": "gpt-3.5-turbo",
+            "temperature": 0.9,
+            "messages": [
+                { "role": "system", "content": "You generate concise names \
+    for topics by reading the text and generating a name that is short and \
+    reflects what the text is about. Do not surround the name in speech marks." },\
+    { "role": "user", "content": "Provide a short single phrase to use as a title for this text: " + request.json['text']}]
+        }
+        if app.debug: print(f"ai_request: {ai_request}")
+        return ai_request
+
+    logger.info(f"{NAMETOPIC_ROUTE_V1} POST request from:{request.remote_addr}")
+    if app.debug: print(f"{NAMETOPIC_ROUTE_V1} request:\n", json.dumps(request.json, indent=4))
     ai_request = construct_name_topic_request(request)
     try:
         response = openai.ChatCompletion.create(**ai_request)
@@ -378,7 +380,62 @@ def name_topic():
             "error": str(e)
         }
     ai_response_json = jsonify(ai_response)
-    if app.debug: print("/nametopic response:\n", json.dumps(ai_response, indent=4))
+    if app.debug: print(f"{NAMETOPIC_ROUTE_V1} response:\n", json.dumps(ai_response, indent=4))
+    return ai_response_json
+
+
+# Provide a name for the topic of the provided text
+GENERATETEXT_ROUTE_V1 = "/generatetext/v1"
+@app.route(f'{GENERATETEXT_ROUTE_V1}', methods=['POST'])
+@jwt_required()
+def query_ai():
+    def construct_query_ai_request(request):
+        ai_request = {
+            "model": "gpt-3.5-turbo",
+            "temperature": 0.9,
+            "messages": [
+                { "role": "system", "content": "You are DocumentGPT. \
+You take CONTEXT TEXT from a document along with a REQUEST to generate more text to include in the document.\
+You therefore respond purely with text that would make sense to add to the context text provided along the lines of the request.\
+You never say anything like 'Sure', or 'Here you go:' or attempt to interact with the user or comment on being an AI model or make meta-statements about the query.\
+You always do your best to generate text in the same style as the context text provided that achieves what is described in the request" },\
+    { "role": "user", "content": "Given the context text below, provide text in the same style to add to this as specified by this request:\n"
+        + "\nREQUEST:\n" + request.json['request'] + "\n"
+        + "\nCONTEXT TEXT:\n" + request.json['context']}]
+        }
+        if app.debug: print(f"{GENERATETEXT_ROUTE_V1} ai_request: {ai_request}")
+        return ai_request
+
+    logger.info(f"{GENERATETEXT_ROUTE_V1} POST request from:{request.remote_addr}")
+    if app.debug: print(f"{GENERATETEXT_ROUTE_V1} request:\n", json.dumps(request.json, indent=4))
+    ai_request = construct_query_ai_request(request)
+    try:
+        response = openai.ChatCompletion.create(**ai_request)
+        generated_text = response.choices[0]["message"]["content"]
+        ai_response = { 
+            "success": True,
+            "generated_text": generated_text
+        }
+        if app.debug: print(f"openai response: {response}")
+        server_stats["chat_interaction_count"] += 1
+        server_stats["prompt_tokens"] += response["usage"]["prompt_tokens"]
+        server_stats["completion_tokens"] += response["usage"]["completion_tokens"]
+        server_stats["total_tokens"] += response["usage"]["total_tokens"]
+        # Usage is metadata about the chat rather than the document that contains the chat, so it goes in the content
+        message_usage = {
+            "prompt_tokens": response["usage"]["prompt_tokens"],
+            "completion_tokens": response["usage"]["completion_tokens"],
+            "total_tokens": response["usage"]["total_tokens"],
+        }
+        ai_response["usage"] = message_usage
+    except Exception as e:
+        log_exception(e)
+        ai_response = {
+            "success": False,
+            "error": str(e)
+        }
+    ai_response_json = jsonify(ai_response)
+    if app.debug: print(f"{GENERATETEXT_ROUTE_V1} response:\n", json.dumps(ai_response, indent=4))
     return ai_response_json
 
 

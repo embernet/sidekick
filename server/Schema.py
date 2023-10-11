@@ -1,8 +1,10 @@
 DB_FILENAME = 'sidekick.db'
+DATABASE_SCHEMA_VERSION = "2"
+SCHEMA_VERSION_DOCUMENT_ID = "0" # The id of the document that holds the schema version
 USERS_SCHEMA = '''
     CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
-        properties TEXT DEFAULT "{}",
+        properties TEXT DEFAULT '{}',
         password_hash TEXT)
 '''
 FOLDERS_SCHEMA = '''
@@ -10,7 +12,7 @@ FOLDERS_SCHEMA = '''
         id INTEGER PRIMARY KEY,
         user_id TEXT NOT NULL,
         name TEXT NOT NULL,
-        properties TEXT DEFAULT "{}",
+        properties TEXT DEFAULT '{}',
         UNIQUE (user_id, name),
         FOREIGN KEY (user_id) REFERENCES users (id)
     )
@@ -23,8 +25,8 @@ DOCUMENTS_SCHEMA = '''
         name TEXT NOT NULL,
         created_date TEXT NOT NULL,
         updated_date TEXT NOT NULL,
-        tags TEXT DEFAULT "[]",
-        properties TEXT DEFAULT "{}",
+        tags TEXT DEFAULT '[]',
+        properties TEXT DEFAULT '{}',
         content TEXT NOT NULL,
         FOREIGN KEY (folder_id) REFERENCES folders (id),
         FOREIGN KEY (user_id) REFERENCES users (id)
@@ -34,11 +36,11 @@ RELATIONSHIPS_SCHEMA = '''
     CREATE TABLE IF NOT EXISTS relationships (
         id TEXT PRIMARY KEY,
         user_id TEXT NOT NULL,
-        tags TEXT DEFAULT "[]",
+        tags TEXT DEFAULT '[]',
         from_document_id TEXT NOT NULL,
         name TEXT NOT NULL,
         to_document_id TEXT NOT NULL,
-        properties TEXT DEFAULT "{}",
+        properties TEXT DEFAULT '{}',
         FOREIGN KEY (user_id) REFERENCES users (id)
         FOREIGN KEY (from_document_id) REFERENCES documents (id)
         FOREIGN KEY (to_document_id) REFERENCES documents (id)

@@ -1,5 +1,12 @@
 # Release Notes
 
+## v0.0.7
+
+Functional changes:
+
+1. The prompt at the bottom of the Note is now a GenAI Note Writer. You can tell it what you want to add to your note. It will use the existing note content as context and generate additional text based on the request in your prompt that it will append to the note.
+2. Pressing return in the login and create user screens now moves the cursor to the password field if you were in the userid field and submits the form if you are in the passord field.
+
 ## v0.0.6
 
 Functional changes:

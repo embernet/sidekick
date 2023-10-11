@@ -35,7 +35,7 @@ class AuthServer_SQLite:
     def create_account(self, user_id, properties, password):
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
-        c.execute('SELECT * FROM users WHERE id = ?', (user_id,))
+        c.execute('SELECT id, properties, password_hash FROM users WHERE id = ?', (user_id,))
         row = c.fetchone()
         if row:
             return {'success': False, 'message': 'User already exists'}
@@ -70,10 +70,10 @@ class AuthServer_SQLite:
     def change_password(self, user_id, current_password, new_password):
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
-        c.execute('SELECT * FROM users WHERE id = ?', (user_id,))
+        c.execute('SELECT id, properties, password_hash FROM users WHERE id = ?', (user_id,))
         row = c.fetchone()
         if row:
-            password_hash = row[1]
+            password_hash = row[2]
             if bcrypt.checkpw(current_password.encode('utf-8'), password_hash.encode('utf-8')):
                 new_password_hash = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
                 c.execute('UPDATE users SET password_hash = ? WHERE id = ?', (new_password_hash, user_id))
@@ -84,10 +84,10 @@ class AuthServer_SQLite:
     def delete_user(self, user_id, password):
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
-        c.execute('SELECT * FROM users WHERE id = ?', (user_id,))
+        c.execute('SELECT id, properties, password_hash FROM users WHERE id = ?', (user_id,))
         row = c.fetchone()
         if row:
-            password_hash = row[1]
+            password_hash = row[2]
             if bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8')):
                 # delete all their data
                 c.execute('DELETE FROM documents WHERE user_id = ?', (user_id,))
