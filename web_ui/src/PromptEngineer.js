@@ -53,7 +53,7 @@ const PromptEngineer = ({handleTogglePromptEngineer, setNewPromptPart, setNewPro
 
 
     useEffect(()=>{
-        mySettingsManager.loadSettings("prompt_Engineer",
+        mySettingsManager.loadSettings("prompt_engineer",
             (data) => {
                 setPromptParts(data.prompt_parts);
                 setPromptPartsLoaded(true);
