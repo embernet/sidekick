@@ -9,6 +9,8 @@ from Schema import USERS_SCHEMA
 from Schema import FOLDERS_SCHEMA
 from Schema import DOCUMENTS_SCHEMA
 from Schema import RELATIONSHIPS_SCHEMA
+from Schema import DATABASE_SCHEMA_VERSION
+from Schema import SCHEMA_VERSION_DOCUMENT_ID
 
 # No exception handling as errors should be handled by the caller
 
@@ -43,6 +45,10 @@ class DocDB_SQLite:
         c.execute('INSERT OR IGNORE INTO folders (id, name) VALUES (5, "personas")')
         c.execute('INSERT OR IGNORE INTO folders (id, name) VALUES (6, "prompts")')
         c.execute('INSERT OR IGNORE INTO folders (id, name) VALUES (7, "note_templates")')
+        # Add the schema version to the server settings so future upgrades to the server can detect and upgrade the database schema as needed
+        c.execute("INSERT OR IGNORE INTO documents (id, user_id, folder_id, name, created_date, updated_date, content) VALUES (?, ?, ?, ?, ?, ?, ?)",
+              (SCHEMA_VERSION_DOCUMENT_ID, 'sidekick', 3, 'server', datetime.datetime.now(), datetime.datetime.now(), '{"database_schema_version": "' + DATABASE_SCHEMA_VERSION + '"}'))
+
         conn.commit()
     
     def create_folder(self, folder_name):

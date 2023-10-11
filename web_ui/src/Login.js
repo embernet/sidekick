@@ -1,5 +1,5 @@
 import axios from 'axios'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useContext } from 'react';
 import { SystemContext } from './SystemContext';
 import { Box, Tabs, Tab, Button, TextField } from '@mui/material';
@@ -12,6 +12,8 @@ function Login({setUser, serverUrl, setToken}) {
   const [tabIndex, setTabIndex] = useState(0);
   const [pageLoaded, setPageLoaded] = useState(false);
   const [preLoginMessage, setPreLoginMessage] = useState('');
+  const loginPasswordRef = useRef(null);
+  const createAccountPasswordRef = useRef(null);
 
   const containerStyle = {
     display: 'flex',
@@ -126,21 +128,29 @@ function Login({setUser, serverUrl, setToken}) {
               <Box style={inputContainerStyle} component="form">
                   <TextField id="user_id" type="text" placeholder="Username" 
                       style={inputStyle} onChange={(e) => setUserId(e.target.value)} 
-                      autoComplete="username"/>
+                      autoComplete="username"
+                      onKeyDown={(e) => { if (e.key === 'Enter') { loginPasswordRef.current.focus(); }}}
+                    />
                   <TextField id="password" type="password" placeholder="Password" 
-                      style={inputStyle} onChange={(e) => setPassword(e.target.value)} 
-                      autoComplete='current-password' />
+                    inputRef = {loginPasswordRef}
+                    style={inputStyle} onChange={(e) => setPassword(e.target.value)} 
+                    autoComplete='current-password'
+                    onKeyDown={(e) => { if (e.key === 'Enter') { handleLogin(e); }}}
+                   />
                   <Button onClick={handleLogin} default>Login</Button>
               </Box>
           )}
           {tabIndex === 1 && (
               <Box style={inputContainerStyle} component="form">
                   <TextField id="create-account-userid" type="text" placeholder="Enter UserId" 
-                      style={inputStyle} autoComplete="off"  onChange={(e) => setUserId(e.target.value)} 
-                      />
+                    style={inputStyle} autoComplete="off"  onChange={(e) => setUserId(e.target.value)} 
+                    onKeyDown={(e) => { if (e.key === 'Enter') { createAccountPasswordRef.current.focus(); }}}
+                  />
                   <TextField id="create-account-password" type="password" placeholder="Enter Password" 
-                      style={inputStyle} autoComplete="off" onChange={(e) => setPassword(e.target.value)} 
-                      />
+                    inputRef = {createAccountPasswordRef}
+                    style={inputStyle} autoComplete="off" onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { handleCreateAccount(e); }}} 
+                    />
                   <Button onClick={handleCreateAccount} default>Create Account</Button>
               </Box>
           )}
