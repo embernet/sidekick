@@ -1,4 +1,5 @@
 # Entity Relationship Diagram   
+
 ```mermaid
 erDiagram
     users ||--o{ folders : has
@@ -13,14 +14,14 @@ erDiagram
     }
     folders {
         integer id PK
-        text user_id FK >- users.id
+        text user_id FK
         text name
         text properties
     }
     documents {
         text id PK
-        text user_id FK >- users.id
-        integer folder_id FK >- folders.id
+        text user_id FK
+        integer folder_id FK
         text name
         text created_date
         text updated_date
@@ -30,11 +31,11 @@ erDiagram
     }
     relationships {
         text id PK
-        text user_id FK >- users.id
+        text user_id FK
         text tags
-        text from_document_id FK >- documents.id
+        text from_document_id FK
         text name
-        text to_document_id FK >- documents.id
+        text to_document_id FK
         text properties
     }
 ```
