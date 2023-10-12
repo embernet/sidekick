@@ -1,40 +1,40 @@
 # Entity Relationship Diagram   
 ```mermaid
 erDiagram
-    USER ||--o{ SETTINGS: configures
-    USER ||--o{ PERSONA: creates
-    USER ||--o{ FOLDER: creates
-    USER ||--o{ DOCUMENT: creates
-    USER {
-        string userID PK
-        string name
+    users ||--o{ folders : has
+    users ||--o{ documents : has
+    folders ||--o{ documents : contains
+    documents }o--|| relationships : has-from
+    documents }o--|| relationships : has-to
+    users {
+        text id PK
+        text properties
+        text password_hash
     }
-    SETTINGS }o--o{ PERSONA: contains
-    SETTINGS {
-        string settingsID PK
-        string userID FK
-        string defaultPersonaID FK
+    folders {
+        integer id PK
+        text user_id FK >- users.id
+        text name
+        text properties
     }
-    PERSONA {
-        string personaID PK
-        string userID FK
-        string name
-        string prompt
-        Boolean favourite
+    documents {
+        text id PK
+        text user_id FK >- users.id
+        integer folder_id FK >- folders.id
+        text name
+        text created_date
+        text updated_date
+        text tags
+        text properties
+        text content
     }
-    FOLDER }o..o{ DOCUMENT: contains
-    FOLDER {
-        string folderID PK
-        string name
-    }
-    DOCUMENT }o--o{ TAG: contains
-    DOCUMENT {
-        string documentID PK
-        string userID FK
-        string name
-        string content
-    }
-    TAG {
-        string name PK
+    relationships {
+        text id PK
+        text user_id FK >- users.id
+        text tags
+        text from_document_id FK >- documents.id
+        text name
+        text to_document_id FK >- documents.id
+        text properties
     }
 ```
