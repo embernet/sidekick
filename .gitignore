@@ -5,9 +5,7 @@
 /server/etc/logs/*
 /server/etc/feedback.db
 /server/etc/login.db
-/server/etc/custom_settings/login.json
-/server/etc/custom_settings/chat.json
-/server/etc/custom_settings/app.json
+/server/etc/custom_settings/*
 /server/login.db
 /server/data/junk
 /server/.pytest_cache
