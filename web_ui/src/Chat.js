@@ -802,7 +802,7 @@ const Chat = ({
             </span>
         </Tooltip>
         <Tooltip title={ markdownRenderingOn ? "Turn off markdown and code rendering" : "Turn on markdown and code rendering" }>
-            <IconButton edge="end" color="inherit" aria-label="delete chat" onClick={handleToggleMarkdownRendering}>
+            <IconButton edge="start" color="inherit" aria-label="delete chat" onClick={handleToggleMarkdownRendering}>
                 { markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }
             </IconButton>
         </Tooltip>
@@ -927,7 +927,7 @@ const Chat = ({
             </List>
         </Box>
         <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
-            <Typography>Prompt Editor</Typography>
+            <Typography sx={{mr:2}}>Prompt Editor</Typography>
             <Tooltip title={ "Ask again" }>
                 <IconButton edge="start" color="inherit" aria-label="menu" 
                     disabled={streamingChatResponse !== ""} onClick={handleAskAgain}>

@@ -148,11 +148,11 @@ const PromptEngineer = ({handleTogglePromptEngineer, setNewPromptPart, setNewPro
             </Accordion>
         </Box>
 
-    const render = <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin: "6px",
-        flex:1, height: "100%", minWidth: "350px", maxWidth: "450px", marginBottom: "12px"}}>
+    const render = <Card id="prompt-engineer-panel" sx={{display:"flex", flexDirection:"column", padding:"6px", margin: "6px",
+        flex:1, minWidth: "350px", maxWidth: "450px"}}>
         <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
             <BuildIcon/>
-            <Typography>Prompt Engineer</Typography>
+            <Typography sx={{mr:2}}>Prompt Engineer</Typography>
             <Box ml="auto">
                 <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
                     <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
@@ -166,7 +166,9 @@ const PromptEngineer = ({handleTogglePromptEngineer, setNewPromptPart, setNewPro
                 </Tooltip>
             </Box>
         </StyledToolbar>
-        {promptPartsLoaded ? loadedRender : loadingRender}
+            <Box sx={{ height: "100%", overflow: 'hidden' }}>
+                {promptPartsLoaded ? loadedRender : loadingRender}
+            </Box>
     </Card>
 
     return (render);

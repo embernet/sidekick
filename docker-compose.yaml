@@ -14,8 +14,8 @@ services:
     ports:
       - "5003:5003"
     volumes:
-      - ./data:./data
-      - ./settings:./settings
+      - ./data:/data
+      - ./etc:/etc
     environment:
       - OPENAI_API_KEY=***
       - JWT_SECRET=***

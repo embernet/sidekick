@@ -510,22 +510,22 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
     const render = <Card id="note-panel" sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "400px" }}>
     <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }} >
         <EditNoteIcon/>
-        <Typography>Note</Typography>
-            <Tooltip title={ id === "" ? "You are in a new note" : "New note" }>
-                <span>
-                    <IconButton edge="end" color="inherit" aria-label="New note"
-                        disabled={id === ""} onClick={handleNewNote}
-                    >
-                        <PlaylistAddIcon/>
-                    </IconButton>
-                </span>
-            </Tooltip>
-            <Tooltip title={ markdownRenderingOn ? "Stop rendering as markdown and edit as text" : "Preview markdown and code rendering (read only)" }>
-                <IconButton edge="end" color="inherit" aria-label="delete chat" onClick={handleToggleMarkdownRendering}>
-                    { markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }
+        <Typography sx={{mr:2}}>Note</Typography>
+        <Tooltip title={ id === "" ? "You are in a new note" : "New note" }>
+            <span>
+                <IconButton edge="start" color="inherit" aria-label="New note"
+                    disabled={id === ""} onClick={handleNewNote}
+                >
+                    <PlaylistAddIcon/>
                 </IconButton>
-            </Tooltip>
-                    <Box ml="auto">
+            </span>
+        </Tooltip>
+        <Tooltip title={ markdownRenderingOn ? "Stop rendering as markdown and edit as text" : "Preview markdown and code rendering (read only)" }>
+            <IconButton edge="start" color="inherit" aria-label="delete chat" onClick={handleToggleMarkdownRendering}>
+                { markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }
+            </IconButton>
+        </Tooltip>
+        <Box ml="auto">
             <Tooltip title={ "Delete note" }>
                 <IconButton edge="start" color="inherit" aria-label="delete note"
                     onClick={handleDeleteNote}
@@ -619,7 +619,7 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
             </Menu>
         </Box>
         <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
-            <Typography>Note Writer</Typography>
+            <Typography sx={{mr:2}}>Note Writer</Typography>
             <Tooltip title={ "Download note" }>
                 <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleDownload}>
                     <FileDownloadIcon/>

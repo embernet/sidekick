@@ -131,7 +131,7 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
                 :
                     <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
                         {icon}
-                        <Typography>{name}</Typography>
+                        <Typography sx={{mr:2}}>{name}</Typography>
                         <Box ml="auto">
                             <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
                                 <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>

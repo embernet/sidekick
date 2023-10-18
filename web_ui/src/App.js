@@ -96,6 +96,7 @@ function App() {
   const [openPromptTemplateId, setOpenPromptTemplateId] = useState(null);
   const [openNoteId, setOpenNoteId] = useState(null);
   const [serverUrl, setServerUrl] = useState(process.env.REACT_APP_SERVER_URL || 'http://localhost:5003');
+  console.log("serverUrl", serverUrl);
   const [shouldAskAgainWithPersona, setShouldAskAgainWithPersona] = useState(null);
   const [streamingChatResponse, setStreamingChatResponse] = useState("");
   const [chatStreamingOn, setChatStreamingOn] = useState(true);
@@ -457,7 +458,7 @@ function App() {
               </Box>
             </Toolbar>
           </AppBar>
-          <Box display="flex" flexDirection="row" flex="1" overflow-y="hidden" overflow="auto" width="100%">
+          <Box display="flex" height="100%" flexDirection="row" flex="1" overflow-y="hidden" overflow="auto" width="100%">
             <ToastContainer/>
             <SidekickAI
               sidekickAIOpen={sidekickAIOpen}

@@ -272,7 +272,7 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
     flex:1, minWidth: "350px", maxWidth: "450px"}}>
         <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
             <PersonIcon/>
-            <Typography>Personas</Typography>
+            <Typography sx={{mr:2}}>Personas</Typography>
             <Box ml="auto">
                 <Tooltip title={ expanded ? "Hide details" : "Show details" }>
                     <IconButton onClick={handleExpandCollapse} color="inherit" aria-label="expand">
