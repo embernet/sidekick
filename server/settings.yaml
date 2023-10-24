@@ -1,9 +1,0 @@
-sidekick_db_dir: data
-settings_dir: settings
-custom_settings_dir: etc/custom_settings
-logs_dir: etc/logs
-openai_api_key_env_var: OPENAI_API_KEY
-default_chat_name: New Chat
-port:
-  docker: 5004
-  development: 5003
