@@ -37,11 +37,13 @@ class ModelTest(unittest.TestCase):
 
     def test_create_folder(self):
         DBUtils.create_user("testuser", "testpassword")
-        DBUtils.create_folder("testuser", "testfolder",
-                              {"propA": "testA", "propB": "testB"})
+        DBUtils.create_folder(user_id="testuser", name="testfolder",
+                              properties={"propA": "testA", "propB": "testB"})
         folder = Folder.query.filter_by(name="testfolder").first()
-        self.assertDictEqual(folder.as_dict(), {
-            "user_id": "testuser", "id": "testfolder",
+        folder_as_dict = folder.as_dict()
+        del folder_as_dict["id"]
+        self.assertDictEqual(folder_as_dict, {
+            "user_id": "testuser", "name": "testfolder",
             "properties": {"propA": "testA", "propB": "testB"}})
 
     def test_create_document(self):
@@ -56,12 +58,17 @@ class ModelTest(unittest.TestCase):
                                          "propertyB": "contentB"})
         document = Document.query.filter_by(name="testdoc").first()
         doc_as_dict = document.as_dict()
-        del doc_as_dict["id"]
-        del doc_as_dict["created_date"]
-        del doc_as_dict["updated_date"]
+        del doc_as_dict["metadata"]["id"]
+        del doc_as_dict["metadata"]["created_date"]
+        del doc_as_dict["metadata"]["updated_date"]
 
         self.assertDictEqual(doc_as_dict, {
-            "name": "testdoc", "user_id": "testuser",
-            "folder_name": "testfolder", "tags": ["tag1", "tag2"],
-            "properties": {"propertyA": "testA", "propertyB": "testB"},
-            "content": {"contentA": "testA", "propertyB": "contentB"}})
+            "metadata": {
+                "user_id": "testuser",
+                "folder_name": "testfolder",
+                "name": "testdoc",
+                "tags": ["tag1", "tag2"],
+                "properties": {"propertyA": "testA", "propertyB": "testB"},
+            },
+            "content": {"contentA": "testA", "propertyB": "contentB"}
+        })
