@@ -22,6 +22,7 @@ import SidekickMarkdown from './SidekickMarkdown';
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
 import AI from './AI';
+import AIPromptResponse from './AIPromptResponse';
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     backgroundColor: green[300],
@@ -36,13 +37,17 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
     setNewPromptPart, setChatRequest, onChange, setOpenNoteId, serverUrl, token, setToken}) => {
 
     const newNoteName = "New Note";
+    const systemPrompt = `You are DocumentGPT.
+You take CONTEXT_TEXT from a document along with a REQUEST to generate more text to include in the document.
+You therefore respond purely with text that would make sense to add to the context text provided along the lines of the request.
+You never say anything like 'Sure', or 'Here you go:' or attempt to interact with the user or comment on being an AI model or make meta-statements about the query.
+You always do your best to generate text in the same style as the context text provided that achieves what is described in the request`
 
     const [width, setWidth] = useState(0);
     const handleResize = useCallback(
         // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
         debounce((entries) => {
-        const { width } = entries[0].contentRect;
-        setWidth(width);
+            entries && entries.length > 0 && setWidth(entries[0].contentRect.width);
         }, 100),
         []
     );
@@ -77,7 +82,11 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
 
     useEffect(() => {
         const element = document.getElementById("note-panel");
-        const observer = new ResizeObserver(handleResize);
+        const observer = new ResizeObserver((entries) => {
+            if (entries && entries.length > 0 && entries[0].target === element) {
+              handleResize();
+            }
+        });
         element && observer.observe(element);
         return () => observer.disconnect();
     }, [handleResize]);
@@ -102,6 +111,25 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
     const [uploadingFile, setUploadingFile] = useState(false);
     const [fileToUpload, setFileToUpload] = useState(null);
     const [markdownRenderingOn, setMarkdownRenderingOn] = useState(false);
+    const [userPromptEntered, setUserPromptEntered] = useState(null);
+    const [userPromptToSend, setUserPromptToSend] = useState(null);
+    const [streamingChatResponse, setStreamingChatResponse] = useState("");
+    const streamingChatResponseRef = useRef("");
+    const [AIResponse, setAIResponse] = useState("");
+
+    useEffect(() => {
+        if (noteOpen) {
+            const userPrompt = `Given the CONTEXT_TEXT below, provide text in the same style to add to this as specified by the provided REQUEST:
+
+Here is the CONTEXT_TEXT:
+${content}
+
+Here is the REQUEST:
+${userPromptEntered.prompt}`
+            console.log("Note userPrompt", userPrompt)
+            setUserPromptToSend({prompt: userPrompt, timestamp: Date.now()});
+        }
+    }, [userPromptEntered]);
 
     const focusOnContent = () => {
         document.getElementById("note-content")?.focus();
@@ -184,6 +212,12 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
             resetNote();
         }
     }, [noteOpen]);
+
+    useEffect(()=>{
+        setContent( text => text + "\n" + AIResponse + "\n");
+        setContentDisabled(false);
+        showReady();
+    },[AIResponse]);
 
     useEffect(()=>{
         if (promptToSend && promptToSend !== "") {
@@ -440,7 +474,7 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
         // as it gets deselected when the context menu opens
         setTimeout(() => {
             if (window.getSelection().toString()) {
-              setNoteContextMenu((prev) => ({ ...prev, highlightedText: window.getSelection().toString() }));
+              setNoteContextMenu((prev) => ({ ...prev, selectedText: window.getSelection().toString() }));
             }
           }, 10);
     };
@@ -449,12 +483,15 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
         setNoteContextMenu(null);
     };
 
-    const handleCopyHighlightedText = () => {
-        const text = noteContextMenu.highlightedText;
-        // const selection = window.getSelection();
-        // const range = selection.getRangeAt(0);
-        // const text = range.toString();
+    const handleCopySelectedText = () => {
+        const text = noteContextMenu.selectedText;
         navigator.clipboard.writeText(text);
+        setNoteContextMenu(null);
+    };
+
+    const handleAppendSelectedTextToChatInput = () => {
+        const text = noteContextMenu.selectedText;
+        setNewPromptPart(text);
         setNoteContextMenu(null);
     };
 
@@ -469,13 +506,13 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
         setNoteContextMenu(null);
     }
 
-    const handleAppendToChatInput = () => {
+    const handleAppendNoteToChatInput = () => {
         // Just get the selcted text
         setNewPromptPart(noteContextMenu.note);
         setNoteContextMenu(null);
     };
 
-    const handleUseAsChatInput = () => {
+    const handleUseNoteAsChatInput = () => {
         // Just get the selected text
         //TODO to replace whole prompt
         setNewPromptPart(noteContextMenu.note);
@@ -507,8 +544,21 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
         setMarkdownRenderingOn(newSetting);
     };
 
-    const render = <Card id="note-panel" sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "400px" }}>
-    <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }} >
+    const aiToolbarButtons = (<>
+        <Tooltip title={ "Download note" }>
+            <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleDownload}>
+                <FileDownloadIcon/>
+            </IconButton>
+        </Tooltip>
+        <Tooltip title={ "Upload note" }>
+            <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleUploadRequest}>
+                <FileUploadIcon/>
+            </IconButton>
+        </Tooltip>
+    </>);
+
+    const render = <Card id="note-panel" sx={{display: "flex", flexDirection: "column", padding: "6px", margin: "6px", height: "calc(100%-64px)", minWidth: "400px", flex: 1 }}>
+    <StyledToolbar className={ClassNames.toolbar} sx={{ width: "100%", gap: 1 }} >
         <EditNoteIcon/>
         <Typography sx={{mr:2}}>Note</Typography>
         <Tooltip title={ id === "" ? "You are in a new note" : "New note" }>
@@ -538,10 +588,11 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
             </IconButton>
         </Box>
     </StyledToolbar>
-    <Box sx={{ display: "flex", flexDirection: "column", height:"calc(100% - 64px)"}}>
+    <Box sx={{ display: "flex", flexDirection: "column", flex: 1, 
+        overflow: "auto", width: "100%", minHeight: "300px" }}>
         <Box sx={{ display: "flex", flexDirection: "row"}}>
             <TextField
-                sx={{ mt: 2 , flexGrow: 1}}
+                sx={{ mt: 2 , padding: "6px", flexGrow: 1}}
                 id="note-name"
                 autoComplete='off'
                 label="Note name"
@@ -574,7 +625,7 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
             </Toolbar>
         </Box>
         <Box id="content-box"
-            sx={{ display: "flex", flexDirection: "column", height: "100%", overflow: "auto" }}
+            sx={{ overflow: "auto", flex: 1, width: "100%" }}
             onContextMenu={(event) => { handleNoteContextMenu(event, content, name); }}
         >
             { markdownRenderingOn
@@ -611,35 +662,48 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
                     : undefined
                 }
             >
-                <MenuItem disabled={!window.getSelection().toString()} onClick={handleCopyHighlightedText}>Copy highlighted text</MenuItem>
-                <MenuItem onClick={handleCopyNote}>Copy</MenuItem>
-                <MenuItem onClick={handleCopyNoteAsHTML}>Copy as html</MenuItem>
-                <MenuItem onClick={handleAppendToChatInput}>Append to chat input</MenuItem>
-                <MenuItem onClick={handleUseAsChatInput}>Use as chat input</MenuItem>
+                <MenuItem disabled={!window.getSelection().toString()} onClick={handleCopySelectedText}>Copy selected text</MenuItem>
+                <MenuItem disabled={!window.getSelection().toString()} onClick={handleAppendSelectedTextToChatInput}>Append selected text to chat input</MenuItem>
+                <MenuItem onClick={handleCopyNote}>Copy note</MenuItem>
+                <MenuItem onClick={handleCopyNoteAsHTML}>Copy note as html</MenuItem>
+                <MenuItem onClick={handleAppendNoteToChatInput}>Append note to chat input</MenuItem>
+                <MenuItem onClick={handleUseNoteAsChatInput}>Use note as chat input</MenuItem>
             </Menu>
-        </Box>
-        <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
-            <Typography sx={{mr:2}}>Note Writer</Typography>
-            <Tooltip title={ "Download note" }>
-                <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleDownload}>
-                    <FileDownloadIcon/>
-                </IconButton>
-            </Tooltip>
-            <Tooltip title={ "Upload note" }>
-                <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleUploadRequest}>
-                    <FileUploadIcon/>
-                </IconButton>
-            </Tooltip>
-            <Box ml="auto">
-                <Tooltip title={ "Send note and prompt to AI" }>
-                    <IconButton edge="start" color="inherit" aria-label="menu"
-                        onClick={() => { setPromptToSend(prompt); }}
+            <Box sx={{ width: "100%" }}>
+                {streamingChatResponse && streamingChatResponse !== "" && <Card id="streamingChatResponse"
+                    sx={{ 
+                        padding: 2, 
+                        width: "100%", 
+                        backgroundColor: "lightyellow",
+                        cursor: "default",
+                    }}
                     >
-                        <SendIcon/>
-                    </IconButton>
-                </Tooltip>
+                        <Typography sx={{ whiteSpace: 'pre-wrap', width: "100%" }}>
+                            {streamingChatResponse}
+                        </Typography>
+                    </Card>
+                }
             </Box>
-        </SecondaryToolbar>
+        </Box>
+    </Box>
+    <Box>
+        <AIPromptResponse 
+            serverUrl={serverUrl}
+            token={token}
+            setToken={setToken}
+            streamingOn={true}
+            systemPrompt={systemPrompt}
+            streamingChatResponseRef={streamingChatResponseRef}
+            streamingChatResponse={streamingChatResponse}
+            setStreamingChatResponse={setStreamingChatResponse}
+            setAIResponse={setAIResponse}
+            onChange={onChange}
+            setUserPromptEntered={setUserPromptEntered}
+            userPromptToSend={userPromptToSend}
+            controlName="Note Writer"
+            toolbarButtons={aiToolbarButtons}
+            sendButtonTooltip="Send note and prompt to AI"
+        />
         { uploadingFile
             ?
                 <Box sx={{ display: "flex", flexDirection: "row", width: "100%" }}>
@@ -653,17 +717,6 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
             :
                 null
         }
-        <TextField 
-            sx={{ width: "100%", mt: "auto"}}
-            id="note-prompt"
-            multiline 
-            variant="outlined" 
-            value={prompt} 
-            onChange={e => setPrompt(e.target.value)} 
-            onKeyDown={handleSend}
-            placeholder={promptPlaceholder}
-            disabled={promptDisabled}
-        />
     </Box>
 </Card>
     return noteOpen ? render : null;

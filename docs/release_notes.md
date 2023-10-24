@@ -1,5 +1,20 @@
 # Release Notes
 
+## v0.0.8
+
+Functional changes:
+
+1. Note Writer now streams its response so you can see it being generated in real time and you can stop it at any time by clicking the stop button.
+2. Added Note context menu to append selected text to chat input.
+3. Renamed the "None" persona to "No Persona" and made this the default persona for a new user. This makes the default response that of the model with no system prompt.
+4. Added a "Concise" Persona
+
+Bug fixes:
+
+1. Prompt Engineer window now fits in the vertical height of the App in the same way the other tool windows do. Previously it was slightly bigger resulting in a scrollbar appearing at the right of the App.
+2. Fixed bug in ResizeObserver where for some UI interactions an "ResizeObserver loop completed with undelivered notifications." error was being thrown.
+3. Improved how Chat and Note prompt windows are sized when the browser window is small.
+
 ## v0.0.7
 
 Functional changes:

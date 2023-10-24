@@ -33,15 +33,18 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
     const handleResize = useCallback(
         // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
         debounce((entries) => {
-        const { width } = entries[0].contentRect;
-        setWidth(width);
+            entries && setWidth(entries[0].contentRect.width);
         }, 100),
         []
     );
 
     useEffect(() => {
         const element = document.getElementById("chat-panel");
-        const observer = new ResizeObserver(handleResize);
+        const observer = new ResizeObserver((entries) => {
+            if (entries && entries.length > 0 && entries[0].target === element) {
+              handleResize();
+            }
+        });
         element && observer.observe(element);
         return () => observer.disconnect();
     }, [handleResize]);

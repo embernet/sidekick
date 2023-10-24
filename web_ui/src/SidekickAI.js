@@ -85,15 +85,18 @@ const SidekickAI = ({
     const handleResize = useCallback( 
         // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
         debounce((entries) => {
-        const { width } = entries[0].contentRect;
-        setWidth(width);
+            entries && entries.length > 0 && setWidth(entries[0].contentRect.width);
         }, 100),
         []
     );
 
     useEffect(() => {
         const element = document.getElementById("chat-panel");
-        const observer = new ResizeObserver(handleResize);
+        const observer = new ResizeObserver((entries) => {
+            if (entries && entries.length > 0 && entries[0].target === element) {
+              handleResize();
+            }
+        });
         element && observer.observe(element);
         return () => observer.disconnect();
     }, [handleResize]);
@@ -109,17 +112,6 @@ const SidekickAI = ({
             setSideKickAIGuide(aiData);
             setSystemPrompt(sidekickAISystemPrompt + "\nHere is the sidekick manual:\n" + sideKickAIGuide);
           }).catch(error => console.error(error));
-        
-        // fetch("sidekick_manual.md")
-        //     .then(response => response.text())
-        //     .then(data => setSidekickManual(data))
-        //     .catch(error => console.error(error));
-        // fetch("sidekick_prompt_engineering_guide.md")
-        //     .then(response => response.text())
-        //     .then(data => setSidekickPromptEngineeringGuide(data))
-        //     .catch(error => console.error(error));
-        // setSystemPrompt(sidekickAISystemPrompt + "\nHere is the sidekick manual:\n" + sidekickManual + "\nHere is the sidekick prompt engineering guide:\n" + sidekickPromptEngineeringGuide);
-
         setMessages([]);
         setSidekickAIPrompt("");
         setLastPrompt("");
@@ -432,6 +424,15 @@ const SidekickAI = ({
         setTabIndex(newValue);
     };
 
+    const handleLinkClick = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        // Handle link click here
+        setTimeout(() => {
+          window.history.replaceState(null, null, window.location.href);
+        }, 0);
+    };
+
     const render = <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "350px", maxWidth: "450px"}}>
     <StyledToolbar className={ClassNames.toolbar}>
         <HelpIcon/>
@@ -450,7 +451,7 @@ const SidekickAI = ({
         </Box>
     </StyledToolbar>
     <Box sx={{ display: "flex", flexDirection: "column", height:"calc(100% - 64px)"}}>
-        <Tabs sx={{ position: 'sticky', top: 0, background: "white" }} value={tabIndex} onChange={handleTabChange}>
+        <Tabs sx={{ position: 'sticky', top: 0, background: "white", padding: "6px" }} value={tabIndex} onChange={handleTabChange}>
             <Tab label="Manual" />
             <Tab label="Prompts" />
             <Tab label="Sidekick AI" />
@@ -466,7 +467,10 @@ const SidekickAI = ({
                         components={helpComponents}
                         renderers={{
                             link: ({ href, children }) => (
-                              <Link to={href}>{children}</Link>
+                                <Link to={href}
+                                    onClick={handleLinkClick}>
+                                        {children}
+                                </Link>
                             ),
                         }}
                         children={sidekickManual}
@@ -482,7 +486,10 @@ const SidekickAI = ({
                         components={helpComponents}
                         renderers={{
                             link: ({ href, children }) => (
-                              <Link to={href}>{children}</Link>
+                                <Link to={href}
+                                    onClick={handleLinkClick}>
+                                        {children}
+                                </Link>
                             ),
                         }}
                         children={sidekickPromptEngineeringGuide}

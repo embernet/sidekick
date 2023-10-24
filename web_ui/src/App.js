@@ -51,7 +51,7 @@ import { theme } from './theme';
 import { Toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const VERSION = "0.0.7";
+const VERSION = "0.0.8";
 
 function App() {
   const system = useContext(SystemContext);
@@ -96,7 +96,6 @@ function App() {
   const [openPromptTemplateId, setOpenPromptTemplateId] = useState(null);
   const [openNoteId, setOpenNoteId] = useState(null);
   const [serverUrl, setServerUrl] = useState(process.env.REACT_APP_SERVER_URL || 'http://localhost:5003');
-  console.log("serverUrl", serverUrl);
   const [shouldAskAgainWithPersona, setShouldAskAgainWithPersona] = useState(null);
   const [streamingChatResponse, setStreamingChatResponse] = useState("");
   const [chatStreamingOn, setChatStreamingOn] = useState(true);
@@ -385,8 +384,8 @@ function App() {
 
 
   const appRender =
-  <SystemProvider>
-    <BrowserRouter>
+  <BrowserRouter>
+    <SystemProvider>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Box sx={{display:"flex", height:"100vh", flexDirection:"column", overflow:"hidden"}}>
@@ -595,8 +594,8 @@ function App() {
         </Box>
       </Box>
     </ThemeProvider>
-  </BrowserRouter>
-</SystemProvider>
+  </SystemProvider>
+</BrowserRouter>
 
 const loginRender = 
   <SystemProvider>

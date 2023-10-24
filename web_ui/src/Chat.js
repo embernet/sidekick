@@ -51,15 +51,18 @@ const Chat = ({
     const handleResize = useCallback(
         // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
         debounce((entries) => {
-        const { width } = entries[0].contentRect;
-        setWidth(width);
+            entries && entries.length > 0 && setWidth(entries[0].contentRect.width);
         }, 100),
         []
     );
 
     useEffect(() => {
         const element = document.getElementById("chat-panel");
-        const observer = new ResizeObserver(handleResize);
+        const observer = new ResizeObserver((entries) => {
+            if (entries && entries.length > 0 && entries[0].target === element) {
+              handleResize();
+            }
+        });
         element && observer.observe(element);
         return () => observer.disconnect();
     }, [handleResize]);
@@ -270,7 +273,6 @@ const Chat = ({
             setMyShouldAskAgainWithPersona(shouldAskAgainWithPersona);
         }
     }, [shouldAskAgainWithPersona]);
-
 
     useEffect(()=>{
         setPromptFocus();
@@ -854,7 +856,7 @@ const Chat = ({
                 </Tooltip>
             </Toolbar>
         </Box>
-        <Box sx={{ overflow: 'auto', flex: 1 }}>
+        <Box sx={{ overflow: 'auto', flex: 1, minHeight: "300px" }}>
             <List id="message-list">
                 {messages && messages.map((message, index) => (
                     <ListItem key={index}>
@@ -926,77 +928,79 @@ const Chat = ({
                 </ListItem>}
             </List>
         </Box>
-        <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
-            <Typography sx={{mr:2}}>Prompt Editor</Typography>
-            <Tooltip title={ "Ask again" }>
-                <IconButton edge="start" color="inherit" aria-label="menu" 
-                    disabled={streamingChatResponse !== ""} onClick={handleAskAgain}>
-                    <ReplayIcon/>
-                </IconButton>
-            </Tooltip>
-            <Tooltip title={ "Reload last prompt for editing" }>
-                <span>
-                    <IconButton edge="start" color="inherit" aria-label="menu"
-                        disabled={streamingChatResponse !== ""} onClick={handleReload}>
-                        <RedoIcon/>
+        <Box sx={{ minHeight: "128px" }}>
+            <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
+                <Typography sx={{mr:2}}>Prompt Editor</Typography>
+                <Tooltip title={ "Ask again" }>
+                    <IconButton edge="start" color="inherit" aria-label="menu" 
+                        disabled={streamingChatResponse !== ""} onClick={handleAskAgain}>
+                        <ReplayIcon/>
                     </IconButton>
-                </span>
-            </Tooltip>
-            <Tooltip title={ "Save prompt as template" }>
-                <span>
-                    <IconButton edge="start" color="inherit" aria-label="save prompt as template"
-                        disabled={streamingChatResponse !== ""} onClick={handleSavePromptAsTemplate}>
-                        <SaveIcon/>
-                    </IconButton>
-                </span>
-            </Tooltip>
-            <Box ml="auto">
-                {streamingChatResponse !== "" && <Tooltip title={ "Stop" }>
-                    <IconButton id="chat-stop" edge="end" color="inherit" aria-label="stop"
-                        onClick={() => { handleStopStreaming(); }}
-                    >
-                        <StopCircleIcon/>
-                    </IconButton>
-                </Tooltip>}
-                <Tooltip title={ "Send prompt to AI" }>
+                </Tooltip>
+                <Tooltip title={ "Reload last prompt for editing" }>
                     <span>
-                        <IconButton edge="end" color="inherit" aria-label="send" disabled={streamingChatResponse !== ""}
-                            onClick={() => { setPromptToSend({prompt: prompt, timestamp: Date.now()}); }}
-                        >
-                            <SendIcon/>
+                        <IconButton edge="start" color="inherit" aria-label="menu"
+                            disabled={streamingChatResponse !== ""} onClick={handleReload}>
+                            <RedoIcon/>
                         </IconButton>
                     </span>
                 </Tooltip>
-            </Box>
-        </SecondaryToolbar>
-        <TextField 
-            sx={{ width: "100%", mt: "auto", overflow: "auto", maxHeight: "40%" }}
-                id="chat-prompt"
-                multiline 
-                variant="outlined" 
-                value={prompt} 
-                onChange={e => setPrompt(e.target.value)} 
-                onKeyDown={handleSend}
-                placeholder={promptPlaceholder}
-                disabled={streamingChatResponse !== ""}
-        />
-        <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: grey[100] }}>
-            <Tooltip title={ personasOpen ? "Hide AI Personas" : "Show AI Personas"}>
-                <Button id="button-personas" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={togglePersonasOpen}>
-                    {myPersona.name}
-                </Button>
-            </Tooltip>
-            <Tooltip title={ modelSettingsOpen ? "Hide Model Settings" : "Show Model Settings" }>
-                <Button id="button-model-settings" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={toggleModelSettingsOpen}>
-                    {myModelSettings.request && myModelSettings.request.model} ({temperatureText})
-                </Button>
-            </Tooltip>
-            <Tooltip title={ promptEngineerOpen ? "Hide Prompt Engineer" : "Show Prompt Engineer"}>
-                <Button id="button-prompt-engineer" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={togglePromptEngineerOpen}>
-                    Prompt Engineer
-                </Button>
-            </Tooltip>
-        </Paper>
+                <Tooltip title={ "Save prompt as template" }>
+                    <span>
+                        <IconButton edge="start" color="inherit" aria-label="save prompt as template"
+                            disabled={streamingChatResponse !== ""} onClick={handleSavePromptAsTemplate}>
+                            <SaveIcon/>
+                        </IconButton>
+                    </span>
+                </Tooltip>
+                <Box ml="auto">
+                    {streamingChatResponse !== "" && <Tooltip title={ "Stop" }>
+                        <IconButton id="chat-stop" edge="end" color="inherit" aria-label="stop"
+                            onClick={() => { handleStopStreaming(); }}
+                        >
+                            <StopCircleIcon/>
+                        </IconButton>
+                    </Tooltip>}
+                    <Tooltip title={ "Send prompt to AI" }>
+                        <span>
+                            <IconButton edge="end" color="inherit" aria-label="send" disabled={streamingChatResponse !== ""}
+                                onClick={() => { setPromptToSend({prompt: prompt, timestamp: Date.now()}); }}
+                            >
+                                <SendIcon/>
+                            </IconButton>
+                        </span>
+                    </Tooltip>
+                </Box>
+            </SecondaryToolbar>
+            <TextField 
+                sx={{ width: "100%", mt: "auto", overflow: "auto", maxHeight: "300px" }}
+                    id="chat-prompt"
+                    multiline 
+                    variant="outlined" 
+                    value={prompt} 
+                    onChange={e => setPrompt(e.target.value)} 
+                    onKeyDown={handleSend}
+                    placeholder={promptPlaceholder}
+                    disabled={streamingChatResponse !== ""}
+            />
+            <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: grey[100] }}>
+                <Tooltip title={ personasOpen ? "Hide AI Personas" : "Show AI Personas"}>
+                    <Button id="button-personas" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={togglePersonasOpen}>
+                        {myPersona.name}
+                    </Button>
+                </Tooltip>
+                <Tooltip title={ modelSettingsOpen ? "Hide Model Settings" : "Show Model Settings" }>
+                    <Button id="button-model-settings" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={toggleModelSettingsOpen}>
+                        {myModelSettings.request && myModelSettings.request.model} ({temperatureText})
+                    </Button>
+                </Tooltip>
+                <Tooltip title={ promptEngineerOpen ? "Hide Prompt Engineer" : "Show Prompt Engineer"}>
+                    <Button id="button-prompt-engineer" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={togglePromptEngineerOpen}>
+                        Prompt Engineer
+                    </Button>
+                </Tooltip>
+            </Paper>
+        </Box>
     </Box>
 </Card>;
     return ( chatOpen ? render : null )
