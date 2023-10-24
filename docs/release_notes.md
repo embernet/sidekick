@@ -9,6 +9,9 @@ Functional changes:
 3. Renamed the "None" persona to "No Persona" and made this the default persona for a new user. This makes the default response that of the model with no system prompt.
 4. Added a "Concise" Persona
 
+Code improvements:
+1. Server now uses SQLAlchemy to access the database rather than raw SQL. This makes the code more readable and maintainable and makes it easier to support multiple databases. The default setup is SQLite, and you can configure it to use PostgreSQL.
+
 Bug fixes:
 
 1. Prompt Engineer window now fits in the vertical height of the App in the same way the other tool windows do. Previously it was slightly bigger resulting in a scrollbar appearing at the right of the App.

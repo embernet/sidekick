@@ -10,13 +10,13 @@ build-docker:
 	docker build --tag sidekick-server .
 
 run-dev-locally: init
-	pipenv run python sidekick_server.py
+	pipenv run python run.py
 
 run-prod-locally: init
-	pipenv run gunicorn -w 4 -b 0.0.0.0:5003 sidekick_server:app
+	pipenv run gunicorn -w 4 -b 0.0.0.0:5003 app:app
 
 run-container:
-	docker run -d -p 5004:5004 --name sidekick-server sidekick-server; \
+	docker run -d -p 5004:5004 --name sidekick-server app \
 	docker ps
 
 stop-container:
@@ -26,3 +26,7 @@ stop-container:
 test-locally:
 	$(MAKE) init
 	$(MAKE) test
+
+db-upgrade:
+	pipenv run flask db upgrade
+
