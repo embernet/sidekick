@@ -64,11 +64,8 @@ class Document(db.Model):
     user_id = db.Column(db.ForeignKey(User.id), nullable=False)
     folder_id = db.Column(db.ForeignKey(Folder.id))
     name = db.Column(db.String, nullable=False)
-    created_date = db.Column(db.DateTime(timezone=True),
-                             server_default=func.now(), nullable=False)
-    updated_date = db.Column(db.DateTime(timezone=True),
-                             server_default=func.now(), onupdate=func.now(),
-                             nullable=False)
+    created_date = db.Column(db.String(), nullable=False)
+    updated_date = db.Column(db.String(), nullable=False)
     tags = db.relationship("DocumentTag")
     properties = db.Column(db.String, default="{}", nullable=False)
     content = db.Column(db.String, default="{}", nullable=False)

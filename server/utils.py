@@ -127,9 +127,11 @@ class DBUtils:
             try:
                 folder = Folder.query.filter_by(user_id=user_id,
                                                 name=folder_name).one()
-                document = Document(user_id=user_id,
+                document = Document(user_id=user_id, name=name,
                                     folder_id=folder.as_dict()["id"],
-                                    name=name, properties=properties,
+                                    created_date= str(datetime.now()),
+                                    updated_date= str(datetime.now()),
+                                    properties=properties,
                                     content=content)
             except NoResultFound:
                 app.logger.error(f"Tried to create a document with folder: "
@@ -138,7 +140,9 @@ class DBUtils:
                 return
         else:
             document = Document(user_id=user_id, name=name,
-                                properties=properties, content=content)
+                                properties=properties, content=content,
+                                created_date=datetime.now(),
+                                updated_date=datetime.now())
 
         db.session.add(document)
         db.session.commit()
@@ -157,7 +161,7 @@ class DBUtils:
         document.name = name
         document.properties = json.dumps(properties)
         document.content = json.dumps(content)
-        document.updated_date = datetime.now()
+        document.updated_date = str(datetime.now())
         db.session.add(document)
 
         DocumentTag.query.filter_by(document_id=id).delete()
@@ -236,8 +240,8 @@ class DBUtils:
         return document.as_dict()
 
     @staticmethod
-    def create_folder(user_id, name):
-        folder = Folder(user_id=user_id, name=name)
+    def create_folder(user_id, name, properties={}):
+        folder = Folder(user_id=user_id, name=name, properties=properties)
         db.session.add(folder)
         db.session.commit()
 
