@@ -8,7 +8,6 @@
 /server/etc/login.db
 /server/etc/custom_settings/*
 /server/login.db
-/server/data/junk
 /server/.pytest_cache
 /server/__pycache__
 

@@ -5,9 +5,13 @@
 Functional changes:
 
 1. Note Writer now streams its response so you can see it being generated in real time and you can stop it at any time by clicking the stop button.
-2. Added Note context menu to append selected text to chat input.
-3. Renamed the "None" persona to "No Persona" and made this the default persona for a new user. This makes the default response that of the model with no system prompt.
-4. Added a "Concise" Persona
+2. Added App menu to top left of App Toolbar
+3. Added Note context menu to append selected text to chat input.
+4. Renamed the "None" persona to "No Persona" and made this the default persona for a new user. This makes the default response that of the model with no system prompt.
+5. Added a "Concise" Persona
+
+Code improvements:
+1. Server now uses SQLAlchemy to access the database rather than raw SQL. This makes the code more readable and maintainable and makes it easier to support multiple databases. The default setup is SQLite, and you can configure it to use PostgreSQL.
 
 Bug fixes:
 
