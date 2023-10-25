@@ -1,12 +1,25 @@
 # Configuration Guide
 
-## Custom settings
+## Server Configuration
 
-Custom settings can be used to customise specific parts of the application by editing the content of files in the `server/etc/custom_settings` directory.
+The server supports multiple configuration options that can be supplied as environment variables and/or configuration files.
+
+### Server Environment Variables
+
+| **Variable**            | **Description**                                                                                                                    | **Required** | **Default Value**   |
+|-------------------------|------------------------------------------------------------------------------------------------------------------------------------|--------------|---------------------|
+| JWT_SECRET_KEY          | The secret key used by Flask to encode and decode JWTs                                                                             | ✓            |                     |
+| SQLALCHEMY_DATABASE_URI | The database connection URI, for example sqlite:///sqlite.db or postgresql://sidekick_user:sidekick_password@127.0.0.1/sidekick_db | ✓            | sqlite:///sqlite.db |
+| LOG_LEVEL               | The miminum urgency of logs to write to standard out. Supported values: 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'.           |              | ERROR               |
+| FLASK_DEBUG             | Whether or not to run the Flask app in debug mode. Supported values: 'True', 'False'.                                              |              | False               |
+
+### Custom settings
+
+Custom settings can be used to customise specific parts of the application by editing the content of files in the `server/custom_settings` directory.
 
 **Example login custom settings:**
 
-File: `server/etc/custom_settings/login.json`
+File: `server/custom_settings/login.json`
 
 ```json
 {
@@ -18,7 +31,7 @@ File: `server/etc/custom_settings/login.json`
 
 **Example chat custom settings:**
 
-File: `server/etc/custom_settings/chat.json`
+File: `server/custom_settings/chat.json`
 
 ```json
 {
@@ -26,30 +39,9 @@ File: `server/etc/custom_settings/chat.json`
 }
 ```
 
-## Server API Configuration
+## Database Configuration
+The server uses SQLAlchemy to connect to a RDBMS system, ideally SQLite or Postgres. Set the database connection string via the SQLALCHEMY_DATABASE_URI environment variable.
 
-The primary server API configuration file is a YAML file located at `server/settings.yml` and is loaded by the application at startup.
+The app also uses Flask-Migrate to generate and apply database migrations. Migrations are stored in the `server/migrations/` directory. Migrations are generate by making changes to `server/models.py` and running the command `pipenv run flask db migrate -m "<Migration Description>"`. This will create a new migration in the `server/migrations/` directory. Upgrading the database with the latest migrations can be done by running `pipenv run flask db upgrade`.
 
-**Example configuration:**
-
-```yaml
-userdb_dir: data
-logindb_dir: etc
-feedbackdb_dir: etc
-settings_dir: settings
-logs_dir: etc/logs
-openai_api_key_env_var: OPENAI_API_KEY
-default_chat_name: New Chat
-port:
-  docker: 5004
-  development: 5003
-```
-
-## Default settings for UI components
-
-The default settings for the UI components are stored in a JSON file located at `server/settings_defaults`. When a new user is created, a new SQLite database is created for them in `userdb_dir` and the default settings are copied into it. Chats and Notes are also stored in the user's database.
-
-If you want to change available personas or the default prompt fragments, you can edit the corresponding settings files, but will need to do this before creating a new user... or you can edit the SQLite database directly.
-
-These settings will be editable via the UI in a future release.
-A docker implementation is in process and will be available in a future release.
+When running the Flask app, if a database is not found, the app will attempt to create the database defined by the SQLALCHEMY_DATABASE_URI and apply the upgrade.

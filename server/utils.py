@@ -29,7 +29,7 @@ def construct_ai_request(request):
     ai_request["messages"] = [{"role": "system", "content": system_prompt}] + \
                              chatHistory + [
                                  {"role": "user", "content": prompt}]
-    if app.debug: print(f"ai_request: {ai_request}")
+    app.logger.debug(f"ai_request: {ai_request}")
     return ai_request
 
 def log_exception(e):
