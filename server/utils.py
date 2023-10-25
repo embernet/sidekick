@@ -88,12 +88,15 @@ class DBUtils:
 
     @staticmethod
     def login(user_id, password):
-        user = User.query.filter_by(id=user_id).one()
-        if bcrypt.checkpw(password.encode('utf-8'),
-                          user.password_hash.encode('utf-8')):
-            response = {'success': True}
-            return response
-        return {'success': False, 'message': 'Invalid login'}
+        try:
+            user = User.query.filter_by(id=user_id).one()
+            if bcrypt.checkpw(password.encode('utf-8'),
+                              user.password_hash.encode('utf-8')):
+                return{'success': True}
+            else:
+                return {'success': False, 'message': 'Invalid login'}
+        except NoResultFound:
+            return {'success': False, 'message': 'Invalid login'}
 
     @staticmethod
     def change_password(user_id, current_password, new_password):

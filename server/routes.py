@@ -549,11 +549,11 @@ def create_account():
         app.logger.info(
             f"/create_account user_id:{data['user_id']} [POST] request "
             f"from:{request.remote_addr}")
-        result = DBUtils.create_user(
+        DBUtils.create_user(
             user_id=data["user_id"],
             password=data["password"],
             properties=data['properties'] if 'properties' in data else {})
-        return jsonify(result)
+        return jsonify({'success': True})
     except Exception as e:
         app.logger.error(f"/create_account user_id:{data['user_id']} error"
                          f":{str(e)}")
