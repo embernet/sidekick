@@ -14,9 +14,10 @@ import useToken from './useToken';
 import { useEffect, useState } from 'react';
 import { CssBaseline, Box, AppBar, Toolbar, IconButton, Typography, Tooltip } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { Menu, MenuItem, ListItemText } from '@mui/material';
 
 // Import icons
-import MenuOpenIcon from '@mui/icons-material/MenuOpen';
+import MenuIcon from '@mui/icons-material/Menu';
 import ModeCommentIcon from '@mui/icons-material/ModeComment';
 import AddCommentIcon from '@mui/icons-material/AddComment';
 
@@ -103,6 +104,7 @@ function App() {
   const [appInstanceName, setAppInstanceName] = useState("");
   const [appUsage, setAppUsage] = useState("");
   const [appSettings, setAppSettings] = useState({});
+  const [appMenuAnchorEl, setAppMenuAnchorEl] = useState(null);
 
   const mySettingsManager = useRef(null);
 
@@ -373,6 +375,13 @@ function App() {
       xOnChange({"id": id, "name": name, "reason": reason, "detail": detail, timestamp: Date.now()});
     }
   }
+  const handleAppMenuOpen = (event) => {
+    setAppMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleAppMenuClose = () => {
+    setAppMenuAnchorEl(null);
+  };
 
   const appInfo =
     <Box display="flex">
@@ -391,7 +400,50 @@ function App() {
         <Box sx={{display:"flex", height:"100vh", flexDirection:"column", overflow:"hidden"}}>
           <AppBar position="sticky">
             <Toolbar>
-              <Box display="flex" gap={2}>
+                <Box display="flex" gap={2}>
+                <IconButton edge="start" color="inherit" aria-label="Sidekick App Menu" onClick={handleAppMenuOpen}>
+                  <MenuIcon/>
+                </IconButton>
+                <Menu
+                  id="app-menu"
+                  anchorEl={appMenuAnchorEl}
+                  open={Boolean(appMenuAnchorEl)}
+                  onClose={handleAppMenuClose}
+                >
+                  <MenuItem key="menuOpenCloseSidekickAI" onClick={() => { handleAppMenuClose(); handleToggleSidekickAIOpen(); }}>
+                    <HelpIcon/><Typography  sx={{ ml: 1 }}>{ sidekickAIOpen ? "Help - Close Sidekick AI Help" : "Help - Open Sidekick AI Help" }</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuOpenCloseChats" onClick={() => { handleAppMenuClose(); handleToggleChatsOpen(); }}>
+                    <QuestionAnswerIcon/><Typography  sx={{ ml: 1 }}>{ chatsOpen ? "History - Close Chat History" : "History - Open Chat History" }</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuOpenCloseModelSettings" onClick={() => { handleAppMenuClose(); handleToggleModelSettingsOpen(); }}>
+                    <TuneIcon/><Typography  sx={{ ml: 1 }}>{ modelSettingsOpen ? "Model - Close Model Settings" : "Model - Open Model Settings" }</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuOpenCloseAIPersonas" onClick={() => { handleAppMenuClose(); handleTogglePersonasOpen(); }}>
+                    <PersonIcon/><Typography  sx={{ ml: 1 }}>{ sidekickAIOpen ? "Personas - Close AI Personas" : "Personas - Open AI Personas" }</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuOpenClosePromptEngineer" onClick={() => { handleAppMenuClose(); handleTogglePromptEngineerOpen(); }}>
+                    <BuildIcon/><Typography  sx={{ ml: 1 }}>{ sidekickAIOpen ? "Prompt Engineer - Close" : "Prompt Engineer - Open" }</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuOpenCloseChat" onClick={() => { handleAppMenuClose(); handleToggleChatOpen(); }}>
+                    { chatOpen ? <ModeCommentIcon/> : <AddCommentIcon/> }<Typography  sx={{ ml: 1 }}>{ chatOpen ? "Chat - Close" : "Chat - Open" }</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuMinimiseWindows" onClick={() => { handleAppMenuClose(); minimiseWindows(); }}>
+                    <MinimizeIcon/><Typography  sx={{ ml: 1 }}>Minimise Windows</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuOpenCloseNote" onClick={() => { handleAppMenuClose(); handleToggleNoteOpen(); }}>
+                    { noteOpen ? <NotesIcon/> : <PlaylistAddIcon/> }<Typography  sx={{ ml: 1 }}>{noteOpen ? "Note - Close Note" : "Note - New Note"}</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuOpenCloseNotes" onClick={() => { handleAppMenuClose(); handleToggleNotesOpen(); }}>
+                    <FolderIcon/><Typography  sx={{ ml: 1 }}>{notesOpen ? "Notes - Close Notes" : "Notes - Open Notes"}</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuAppSettings" onClick={() => { handleAppMenuClose(); handleToggleAppSettingsOpen(); }}>
+                    <SettingsIcon/><Typography  sx={{ ml: 1 }}>{ appSettingsOpen ? "Settings - Close App Settings" : "Settings - Open App Setings" }</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuLogout" onClick={() => { handleAppMenuClose(); handleLogout(); }}>
+                    <LogoutIcon/><Typography sx={{ ml: 1 }}>Logout</Typography>
+                  </MenuItem>
+                </Menu>          
                 {appInfo}
                 <Typography sx={{ mr: 2, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>({user})</Typography>
                 <Tooltip title="Sidekick AI help">
@@ -399,22 +451,22 @@ function App() {
                     <HelpIcon/>
                   </IconButton>                  
                 </Tooltip>
-                <Tooltip title={ chatsOpen ? "Hide chat history" : "Show chat history" }>
+                <Tooltip title={ chatsOpen ? "Close Chat History" : "Open Chat History" }>
                   <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleToggleChatsOpen}>
                     <QuestionAnswerIcon/>
                   </IconButton>
                 </Tooltip>
-                <Tooltip title={ modelSettingsOpen ? "Hide model settings" : "Show model settings" }>
+                <Tooltip title={ modelSettingsOpen ? "Close Model Settings" : "Open Model Settings" }>
                   <IconButton edge="start" color="inherit" aria-label="Model settings" onClick={handleToggleModelSettingsOpen}>
                     <TuneIcon/>
                   </IconButton>
                 </Tooltip>
-                <Tooltip title={ personasOpen ? "Hide AI personas" : "Show AI persons" }>
+                <Tooltip title={ personasOpen ? "Close AI personas" : "Open AI persons" }>
                   <IconButton edge="start" color="inherit" aria-label="Personas" onClick={handleTogglePersonasOpen}>
                     <PersonIcon/>
                   </IconButton>
                 </Tooltip>
-                <Tooltip title={ promptEngineerOpen ? "Hide prompt engineer" : "Show prompt engineer" }>
+                <Tooltip title={ promptEngineerOpen ? "Close prompt engineer" : "Open prompt engineer" }>
                   <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleTogglePromptEngineerOpen}>
                     <BuildIcon/>
                   </IconButton>
@@ -436,7 +488,7 @@ function App() {
                     { noteOpen ? <NotesIcon/> : <PlaylistAddIcon/> }
                   </IconButton>
                 </Tooltip>
-                <Tooltip title={ notesOpen ? "Hide Notes" : "Show Notes" }>
+                <Tooltip title={ notesOpen ? "Close Notes" : "Open Notes" }>
                   <IconButton edge="end" color="inherit" aria-label="Hide/Show notes" onClick={handleToggleNotesOpen}>
                     <FolderIcon/>
                   </IconButton>
@@ -444,7 +496,7 @@ function App() {
                 <FeedbackButton icon={<RateReviewIcon/>} serverUrl={serverUrl} token={token} setToken={setToken}>
                     <RateReviewIcon/>
                 </FeedbackButton>
-                <Tooltip title={ appSettingsOpen ? "Hide App Settings" : "Show App Setings" }>
+                <Tooltip title={ appSettingsOpen ? "Close App Settings" : "Open App Setings" }>
                   <IconButton edge="end" color="inherit" aria-label="Settings" onClick={handleToggleAppSettingsOpen}>
                     <SettingsIcon/>
                   </IconButton>
