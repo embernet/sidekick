@@ -55,7 +55,7 @@ if not os.path.exists("./data"): os.makedirs("./data")
 
 app = Flask(__name__)
 CORS(app)
-app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET"]
+app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
 #app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = False
 jwt = JWTManager(app)

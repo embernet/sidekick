@@ -1,19 +1,20 @@
 {
     "version": "0",
     "app": {
-        "sidekickAIOpenDefault":false,
+        "sidekickAIOpenDefault":true,
         "sidekickAIPinnedOpenDefault":false,
         "chatsOpenDefault":true,
         "chatsPinned":false,
         "modelSettingsOpenDefault":false,
         "modelSettingsPinned":false,
-        "personasOpenDefault":true,
-        "personasPinned":true,
+        "personasOpenDefault":false,
+        "personasPinned":false,
         "promptComposerOpenDefault":false,
         "promptComposerPinned":false,
         "chatOpenDefault":true,
         "noteOpenDefault":false,
         "notesOpenDefault":false,
-        "notesPinned":false
+        "notesPinned":false,
+        "maxPanelWidth": 400
     }
 }

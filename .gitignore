@@ -2,6 +2,7 @@
 
 # data from local dev testing
 /server/data/*
+/server/instance/*
 /server/etc/logs/*
 /server/etc/feedback.db
 /server/etc/login.db
@@ -9,6 +10,7 @@
 /server/login.db
 /server/data/junk
 /server/.pytest_cache
+/server/__pycache__
 
 # data from running the app from a container
 /mount/data/*
