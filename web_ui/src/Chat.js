@@ -43,7 +43,7 @@ const Chat = ({
     focusOnPrompt, setFocusOnPrompt, chatRequest, chatOpen, setChatOpen,
     temperatureText, setTemperatureText, modelSettingsOpen, toggleModelSettingsOpen, togglePersonasOpen,
     onChange, personasOpen, promptEngineerOpen, togglePromptEngineerOpen, setOpenChatId, shouldAskAgainWithPersona, serverUrl, token, setToken,
-    streamingChatResponse, setStreamingChatResponse, chatStreamingOn }) => {
+    streamingChatResponse, setStreamingChatResponse, chatStreamingOn, maxWidth }) => {
 
     const newChatName = "New Chat"
 
@@ -790,7 +790,7 @@ const Chat = ({
         setMarkdownRenderingOn(newSetting);
     };
 
-    const render = <Card id="chat-panel" sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "400px" }}>
+    const render = <Card id="chat-panel" sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "400px", maxWidth: maxWidth ? maxWidth : "600px" }}>
     <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 } }>
         <CommentIcon/>
         <Typography sx={{mr:2}}>Chat</Typography>

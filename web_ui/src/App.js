@@ -162,7 +162,7 @@ function App() {
 
   useEffect(() => {
     if (appLoaded && mySettingsManager.current) {
-      console.log("Saving app settings");
+      console.log("Save app settings started");
       let newAppSettings = {...appSettings,
         sidekickAIOpenDefault: sidekickAIOpen,
         sidekickAIPinnedOpenDefault: sidekickAIPinned,
@@ -182,10 +182,10 @@ function App() {
       setAppSettings(newAppSettings);
       mySettingsManager.current.setAll(newAppSettings,
       (data) => {
-        console.log("Saved app settings:", data);
+        console.log("Save app settings saved:", data);
       },
       (error) => {
-          console.log("save app settings:", error);
+          console.log("save app settings error:", error);
           system.error("Error saving app settings: " + error);
       }
       );
@@ -509,7 +509,8 @@ function App() {
               </Box>
             </Toolbar>
           </AppBar>
-          <Box display="flex" height="100%" flexDirection="row" flex="1" overflow-y="hidden" overflow="auto" width="100%">
+          <Box id="app-workspace" display="flex" height="100%" flexDirection="row" flex="1" 
+            overflow-y="hidden" overflow="auto" width="100%">
             <ToastContainer/>
             <SidekickAI
               sidekickAIOpen={sidekickAIOpen}
@@ -586,47 +587,51 @@ function App() {
                 serverUrl={serverUrl} token={token} setToken={setToken}
                 />
               : null }
-            <Chat 
-              provider = {provider}
-              modelSettings={modelSettings} 
-              persona={persona} 
-              newPromptPart={newPromptPart}
-              newPrompt={newPrompt} 
-              loadChat={loadChat} 
-              setAppendNoteContent={setAppendNoteContent}
-              focusOnPrompt={focusOnPrompt}
-              setFocusOnPrompt={setFocusOnPrompt}
-              chatRequest={chatRequest}
-              chatOpen={chatOpen}
-              setChatOpen={setChatOpen}
-              temperatureText={temperatureText}
-              setTemperatureText={setTemperatureText}
-              modelSettingsOpen={modelSettingsOpen}
-              toggleModelSettingsOpen={handleToggleModelSettingsOpen}
-              personasOpen={personasOpen}
-              togglePersonasOpen={handleTogglePersonasOpen}
-              promptEngineerOpen={promptEngineerOpen}
-              togglePromptEngineerOpen={handleTogglePromptEngineerOpen}
-              onChange={onChange(handleChatChange)}
-              setOpenChatId={setOpenChatId}
-              shouldAskAgainWithPersona={shouldAskAgainWithPersona}
-              serverUrl={serverUrl} token={token} setToken={setToken}
-              streamingChatResponse={streamingChatResponse}
-              setStreamingChatResponse={setStreamingChatResponse}
-              chatStreamingOn={chatStreamingOn}
-              />
-            <Note 
-              noteOpen={noteOpen}
-              setNoteOpen={setNoteOpen} 
-              appendNoteContent={appendNoteContent} 
-              loadNote={loadNote} 
-              createNote={createNote}
-              setNewPromptPart={setNewPromptPart}
-              setChatRequest={setChatRequest}
-              onChange={onChange(handleNoteChange)}
-              setOpenNoteId={setOpenNoteId}
-              serverUrl={serverUrl} token={token} setToken={setToken}
-              />
+              <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "center", flex: 1 }}>
+                <Chat 
+                  provider = {provider}
+                  modelSettings={modelSettings} 
+                  persona={persona} 
+                  newPromptPart={newPromptPart}
+                  newPrompt={newPrompt} 
+                  loadChat={loadChat} 
+                  setAppendNoteContent={setAppendNoteContent}
+                  focusOnPrompt={focusOnPrompt}
+                  setFocusOnPrompt={setFocusOnPrompt}
+                  chatRequest={chatRequest}
+                  chatOpen={chatOpen}
+                  setChatOpen={setChatOpen}
+                  temperatureText={temperatureText}
+                  setTemperatureText={setTemperatureText}
+                  modelSettingsOpen={modelSettingsOpen}
+                  toggleModelSettingsOpen={handleToggleModelSettingsOpen}
+                  personasOpen={personasOpen}
+                  togglePersonasOpen={handleTogglePersonasOpen}
+                  promptEngineerOpen={promptEngineerOpen}
+                  togglePromptEngineerOpen={handleTogglePromptEngineerOpen}
+                  onChange={onChange(handleChatChange)}
+                  setOpenChatId={setOpenChatId}
+                  shouldAskAgainWithPersona={shouldAskAgainWithPersona}
+                  serverUrl={serverUrl} token={token} setToken={setToken}
+                  streamingChatResponse={streamingChatResponse}
+                  setStreamingChatResponse={setStreamingChatResponse}
+                  chatStreamingOn={chatStreamingOn}
+                  maxWidth={appSettings.maxPanelWidth}
+                  />
+                <Note 
+                  noteOpen={noteOpen}
+                  setNoteOpen={setNoteOpen} 
+                  appendNoteContent={appendNoteContent} 
+                  loadNote={loadNote} 
+                  createNote={createNote}
+                  setNewPromptPart={setNewPromptPart}
+                  setChatRequest={setChatRequest}
+                  onChange={onChange(handleNoteChange)}
+                  setOpenNoteId={setOpenNoteId}
+                  serverUrl={serverUrl} token={token} setToken={setToken}
+                  maxWidth={appSettings.maxPanelWidth}
+                  />
+              </Box>
               { notesOpen ? <Explorer
               handleToggleExplorer={handleToggleNotesOpen}
               windowPinnedOpen = {notesPinned}

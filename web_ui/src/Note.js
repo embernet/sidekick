@@ -34,7 +34,7 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
 }));
 
   const Note = ({noteOpen, setNoteOpen, appendNoteContent, loadNote, createNote,
-    setNewPromptPart, setChatRequest, onChange, setOpenNoteId, serverUrl, token, setToken}) => {
+    setNewPromptPart, setChatRequest, onChange, setOpenNoteId, serverUrl, token, setToken, maxWidth}) => {
 
     const newNoteName = "New Note";
     const systemPrompt = `You are DocumentGPT.
@@ -557,7 +557,7 @@ ${userPromptEntered.prompt}`
         </Tooltip>
     </>);
 
-    const render = <Card id="note-panel" sx={{display: "flex", flexDirection: "column", padding: "6px", margin: "6px", height: "calc(100%-64px)", minWidth: "400px", flex: 1 }}>
+    const render = <Card id="note-panel" sx={{display: "flex", flexDirection: "column", padding: "6px", margin: "6px", height: "calc(100%-64px)", minWidth: "400px", maxWidth: maxWidth ? maxWidth : "600px", flex: 1 }}>
     <StyledToolbar className={ClassNames.toolbar} sx={{ width: "100%", gap: 1 }} >
         <EditNoteIcon/>
         <Typography sx={{mr:2}}>Note</Typography>

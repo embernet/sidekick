@@ -1,20 +1,18 @@
 {
-    "version": "0",
-    "app": {
-        "sidekickAIOpenDefault":true,
-        "sidekickAIPinnedOpenDefault":false,
-        "chatsOpenDefault":true,
-        "chatsPinned":false,
-        "modelSettingsOpenDefault":false,
-        "modelSettingsPinned":false,
-        "personasOpenDefault":false,
-        "personasPinned":false,
-        "promptComposerOpenDefault":false,
-        "promptComposerPinned":false,
-        "chatOpenDefault":true,
-        "noteOpenDefault":false,
-        "notesOpenDefault":false,
-        "notesPinned":false,
-        "maxPanelWidth": 400
-    }
+    "version": "1",
+    "sidekickAIOpenDefault":true,
+    "sidekickAIPinnedOpenDefault":false,
+    "chatsOpenDefault":true,
+    "chatsPinned":false,
+    "modelSettingsOpenDefault":false,
+    "modelSettingsPinned":false,
+    "personasOpenDefault":false,
+    "personasPinned":false,
+    "promptComposerOpenDefault":false,
+    "promptComposerPinned":false,
+    "chatOpenDefault":true,
+    "noteOpenDefault":false,
+    "notesOpenDefault":false,
+    "notesPinned":false,
+    "maxPanelWidth": "800px"
 }

@@ -9,9 +9,11 @@ Functional changes:
 3. Added Note context menu to append selected text to chat input.
 4. Renamed the "None" persona to "No Persona" and made this the default persona for a new user. This makes the default response that of the model with no system prompt.
 5. Added a "Concise" Persona
+6. Chat and Note panels now limit their maximum width for better readability on large screens, and centre themselves horizontally between any open tool panels
 
 Code improvements:
 1. Server now uses SQLAlchemy to access the database rather than raw SQL. This makes the code more readable and maintainable and makes it easier to support multiple databases. The default setup is SQLite, and you can configure it to use PostgreSQL.
+2. On first login, the following panels open by default: Sidekick AI Help, Chats Explorer, Chat
 
 Bug fixes:
 
