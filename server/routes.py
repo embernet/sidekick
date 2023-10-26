@@ -619,9 +619,11 @@ def delete_user():
         f"/delete_user user_id:{data['user_id']} [POST] request from"
         f":{request.remote_addr}")
     try:
-        # delete the user from the login database
-        result = DBUtils.delete_user(data['user_id'], data['password'])
-        return jsonify(result)
+        if DBUtils.login(data['user_id'], data['password'])['success']:
+            result = DBUtils.delete_user(data['user_id'])
+            return jsonify(result)
+        else:
+            return jsonify({'success': False, 'message': 'Invalid password'})
     except Exception as e:
         app.logger.error(f"/delete_user user_id:{data['user_id']} error"
                          f":{str(e)}")

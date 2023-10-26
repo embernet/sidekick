@@ -117,16 +117,18 @@ class DBUtils:
             user = User.query.filter_by(id=user_id).one()
             user_as_dict = user.as_dict()
             for document in user.documents:
+                DocumentTag.query.filter_by(document_id=document.id).delete()
                 DBUtils.delete_document(document.id)
+            UserTag.query.filter_by(user_id=user_id).delete()
             for doctype in user.doctypes:
                 db.session.delete(doctype)
             db.session.delete(user)
             db.session.commit()
-            return user_as_dict
+            return {'success': True}
         except NoResultFound:
             app.logger.error(f"Tried to delete a user with user ID: "
                              f"{user_id}, but that document doesn't exist.")
-            return
+            return {'success': False, 'message': 'Error deleting user'}
 
     @staticmethod
     def add_tags(tags, document_id=None, user_id=None):
