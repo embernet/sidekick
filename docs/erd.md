@@ -2,40 +2,58 @@
 
 ```mermaid
 erDiagram
-    users ||--o{ folders : has
+    users ||--o{ classes : has
     users ||--o{ documents : has
-    folders ||--o{ documents : contains
+    users ||--o{ user_tags : has
+    documents }o--|| classes : is-a
     documents }o--|| relationships : has-from
     documents }o--|| relationships : has-to
+    user_tags ||--o{ tags : has
+    document_tags ||--o{ user_tags : has
     users {
-        text id PK
-        text properties
-        text password_hash
+        varchar id PK
+        varchar properties
+        varchar password_hash
     }
-    folders {
+    classes {
         integer id PK
-        text user_id FK
-        text name
-        text properties
+        varchar user_id FK
+        varchar name
+        varchar properties
     }
     documents {
-        text id PK
-        text user_id FK
-        integer folder_id FK
-        text name
-        text created_date
-        text updated_date
-        text tags
-        text properties
-        text content
+        varchar id PK
+        varchar user_id FK
+        integer class_id FK
+        varchar name
+        varchar created_date
+        varchar updated_date
+        varchar properties
+        varchar content
     }
     relationships {
-        text id PK
-        text user_id FK
-        text tags
-        text from_document_id FK
-        text name
-        text to_document_id FK
-        text properties
+        varchar id PK
+        varchar user_id FK
+        varchar from_document_id FK
+        varchar name
+        varchar to_document_id FK
+        varchar properties
+    }
+    tags {
+        varchar name PK
+        varchar created_date
+        varchar updated_date
+    }
+    user_tags {
+        varchar user_id PK
+        varchar tag_name PK
+        varchar created_date
+        varchar updated_date
+    }
+    document_tags {
+        varchar document_id PK
+        varchar tag_name PK
+        varchar created_date
+        varchar updated_date
     }
 ```
