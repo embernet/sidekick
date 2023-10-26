@@ -229,7 +229,7 @@ class DBUtils:
     @staticmethod
     def get_document_by_name(user_id, name, doctype_name=""):
         if doctype_name:
-            doctype = DBUtils.get_doctype_by_name(user_id, name)
+            doctype = DBUtils.get_doctype_by_name(user_id, doctype_name)
         document = Document.query.filter_by(user_id=user_id, name=name,
                                             doctype_id=doctype["id"]).one()
         return document.as_dict()
