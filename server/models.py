@@ -1,6 +1,7 @@
 import json
+import uuid
+from datetime import datetime
 
-from sqlalchemy.sql import func
 from app import db
 
 
@@ -11,7 +12,7 @@ class User(db.Model):
     password_hash = db.Column(db.String, nullable=False)
     properties = db.Column(db.String, default="{}", nullable=False)
 
-    folders = db.relationship("Folder", back_populates="user")
+    doctypes = db.relationship("Doctype", back_populates="user")
     documents = db.relationship("Document", back_populates="user")
 
     def __init__(self, properties=None, **kwargs):
@@ -29,24 +30,24 @@ class User(db.Model):
         }
 
 
-class Folder(db.Model):
-    __tablename__ = "folders"
+class Doctype(db.Model):
+    __tablename__ = "doctypes"
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String, default=uuid.uuid4(), primary_key=True)
     name = db.Column(db.String, nullable=False)
     user_id = db.Column(db.ForeignKey(User.id), nullable=False)
     properties = db.Column(db.String, default="{}", nullable=False)
 
-    user = db.relationship("User", back_populates="folders")
-    documents = db.relationship("Document", back_populates="folder")
+    user = db.relationship("User", back_populates="doctypes")
+    documents = db.relationship("Document", back_populates="doctype")
 
     def __init__(self, properties=None, **kwargs):
-        super(Folder, self).__init__(**kwargs)
+        super(Doctype, self).__init__(**kwargs)
         if properties is not None:
             self.properties = json.dumps(properties)
 
     def __repr__(self):
-        return "<Folder %r>" % self.name
+        return "<Doctype %r>" % self.name
 
     def as_dict(self):
         return {
@@ -60,18 +61,20 @@ class Folder(db.Model):
 class Document(db.Model):
     __tablename__ = "documents"
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String, default=str(uuid.uuid4()), primary_key=True)
     user_id = db.Column(db.ForeignKey(User.id), nullable=False)
-    folder_id = db.Column(db.ForeignKey(Folder.id))
+    doctype_id = db.Column(db.ForeignKey(Doctype.id))
     name = db.Column(db.String, nullable=False)
-    created_date = db.Column(db.String(), nullable=False)
-    updated_date = db.Column(db.String(), nullable=False)
+    created_date = db.Column(db.String(), default=str(datetime.now()),
+                             nullable=False)
+    updated_date = db.Column(db.String(), default=str(datetime.now()),
+                             nullable=False)
     tags = db.relationship("DocumentTag")
     properties = db.Column(db.String, default="{}", nullable=False)
     content = db.Column(db.String, default="{}", nullable=False)
 
     user = db.relationship("User", back_populates="documents")
-    folder = db.relationship("Folder", back_populates="documents")
+    doctype = db.relationship("Doctype", back_populates="documents")
 
     def __init__(self, properties=None, content=None, **kwargs):
         super(Document, self).__init__(**kwargs)
@@ -88,19 +91,43 @@ class Document(db.Model):
             "metadata": {
                 "id": self.id,
                 "user_id": self.user_id,
-                "folder_name": self.folder.as_dict()["name"],
+                "doctype_name": self.doctype.as_dict()["name"],
                 "name": self.name,
                 "created_date": self.created_date,
                 "updated_date": self.updated_date,
-                "tags": [tag.name for tag in self.tags],
+                "tags": [tag.tag_name for tag in self.tags],
                 "properties": json.loads(self.properties),
             },
             "content": json.loads(self.content)
         }
 
 
+class Tag(db.Model):
+    __tablename__ = "tags"
+
+    name = db.Column(db.String, primary_key=True)
+    created_date = db.Column(db.String(), default=str(datetime.now()),
+                             nullable=False)
+    updated_date = db.Column(db.String(), default=str(datetime.now()),
+                             nullable=False)
+
+
 class DocumentTag(db.Model):
     __tablename__ = "document_tags"
 
     document_id = db.Column(db.ForeignKey(Document.id), primary_key=True)
-    name = db.Column(db.String, primary_key=True)
+    tag_name = db.Column(db.ForeignKey(Tag.name), primary_key=True)
+    created_date = db.Column(db.String(), default=str(datetime.now()),
+                             nullable=False)
+    updated_date = db.Column(db.String(), default=str(datetime.now()),
+                             nullable=False)
+
+class UserTag(db.Model):
+    __tablename__ = "user_tags"
+
+    user_id = db.Column(db.ForeignKey(User.id), primary_key=True)
+    tag_name = db.Column(db.ForeignKey(Tag.name), primary_key=True)
+    created_date = db.Column(db.String(), default=str(datetime.now()),
+                             nullable=False)
+    updated_date = db.Column(db.String(), default=str(datetime.now()),
+                             nullable=False)

@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import Flask
 from app import db
 from utils import DBUtils
-from models import User, Folder, Document
+from models import User, Doctype, Document
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
@@ -29,28 +29,28 @@ class ModelTest(unittest.TestCase):
         self.assertDictEqual(user.as_dict(), {
             "id": "testuser", "properties": {"propA": "testA",
                                              "propB": "testB"}})
-        self.assertListEqual(sorted(list(set(d.folder.name
+        self.assertListEqual(sorted(list(set(d.doctype.name
                                              for d in user.documents))),
                              sorted(["settings", "personas",
                                      "prompt_templates"]))
         self.assertEqual(len(user.documents), 50)
 
-    def test_create_folder(self):
+    def test_create_doctype(self):
         DBUtils.create_user("testuser", "testpassword")
-        DBUtils.create_folder(user_id="testuser", name="testfolder",
+        DBUtils.create_doctype(user_id="testuser", name="testdoctype",
                               properties={"propA": "testA", "propB": "testB"})
-        folder = Folder.query.filter_by(name="testfolder").first()
-        folder_as_dict = folder.as_dict()
-        del folder_as_dict["id"]
-        self.assertDictEqual(folder_as_dict, {
-            "user_id": "testuser", "name": "testfolder",
+        doctype = Doctype.query.filter_by(name="testdoctype").first()
+        doctype_as_dict = doctype.as_dict()
+        del doctype_as_dict["id"]
+        self.assertDictEqual(doctype_as_dict, {
+            "user_id": "testuser", "name": "testdoctype",
             "properties": {"propA": "testA", "propB": "testB"}})
 
     def test_create_document(self):
         DBUtils.create_user("testuser", "testpassword")
-        DBUtils.create_folder("testuser", "testfolder")
+        DBUtils.create_doctype("testuser", "testdoctype")
         DBUtils.create_document(user_id="testuser", name="testdoc",
-                                folder_name="testfolder",
+                                doctype_name="testdoctype",
                                 tags=["tag1", "tag2"],
                                 properties={"propertyA": "testA",
                                             "propertyB": "testB"},
@@ -65,7 +65,7 @@ class ModelTest(unittest.TestCase):
         self.assertDictEqual(doc_as_dict, {
             "metadata": {
                 "user_id": "testuser",
-                "folder_name": "testfolder",
+                "doctype_name": "testdoctype",
                 "name": "testdoc",
                 "tags": ["tag1", "tag2"],
                 "properties": {"propertyA": "testA", "propertyB": "testB"},

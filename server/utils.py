@@ -1,4 +1,5 @@
 import os
+import uuid
 import json
 import bcrypt
 import traceback
@@ -6,7 +7,7 @@ from datetime import datetime
 from sqlalchemy.exc import NoResultFound
 
 from app import app, db
-from models import User, Folder, Document, DocumentTag
+from models import User, Doctype, Document, Tag, DocumentTag, UserTag
 
 
 server_stats = {
@@ -48,11 +49,11 @@ class DBUtils:
         db.session.add(user)
         db.session.commit()
 
-        # Setup default user folders
-        for folder_name in ["notes", "chats", "feedback", "settings",
-                            "logs", "personas", "prompt_templates",
-                            "note_templates"]:
-            DBUtils.create_folder(user_id, folder_name)
+        # Setup default user doctypes
+        for doctype_name in ["notes", "chats", "feedback", "settings",
+                             "logs", "personas", "prompt_templates",
+                             "note_templates"]:
+            DBUtils.create_doctype(user_id, doctype_name)
 
         # Setup default user settings
         for filename in os.listdir("default_settings"):
@@ -66,14 +67,14 @@ class DBUtils:
                                             tags=[],
                                             properties={},
                                             content=settings,
-                                            folder_name="settings")
+                                            doctype_name="settings")
         # Setup default user documents
         for filename in os.listdir("default_documents"):
             if filename.endswith(".json"):
                 with open(os.path.join("default_documents", filename),
                           "r") as f:
-                    folders = json.load(f)
-                    for folder, documents in folders.items():
+                    doctypes = json.load(f)
+                    for doctype, documents in doctypes.items():
                         for name, document in documents.items():
                             DBUtils.create_document(
                                 user_id=user_id,
@@ -84,7 +85,7 @@ class DBUtils:
                                 if "properties" in document else "{}",
                                 content=document["content"]
                                 if "content" in document else "{}",
-                                folder_name=folder)
+                                doctype_name=doctype)
 
     @staticmethod
     def login(user_id, password):
@@ -112,49 +113,76 @@ class DBUtils:
 
     @staticmethod
     def delete_user(user_id):
-        user = User.query.filter_by(id=user_id).delete()
-        db.session.commit()
-        return user.as_dict()
+        try:
+            user = User.query.filter_by(id=user_id).one()
+            db.session.delete(user)
+            db.session.commit()
+            return user.as_dict()
+        except NoResultFound:
+            app.logger.error(f"Tried to delete a user with user ID: "
+                             f"{user_id}, but that document doesn't exist.")
+            return
+
+
+    @staticmethod
+    def add_tags(tags, document_id=None, user_id=None):
+        for tag_name in tags:
+            try:
+                Tag.query.filter_by(name=tag_name).one()
+            except NoResultFound:
+                db.session.add(Tag(name=tag_name))
+
+            if document_id:
+                try:
+                    DocumentTag.query.filter_by(document_id=document_id,
+                                                tag_name=tag_name).one()
+                except NoResultFound:
+                    db.session.add(DocumentTag(document_id=document_id,
+                                               tag_name=tag_name))
+
+            if user_id:
+                try:
+                    UserTag.query.filter_by(user_id=user_id,
+                                            tag_name=tag_name).one()
+                except NoResultFound:
+                    db.session.add(UserTag(user_id=user_id,
+                                           tag_name=tag_name))
+
+            db.session.commit()
 
     @staticmethod
     def create_document(user_id, name, tags=[], properties={}, content={},
-                        folder_name=""):
+                        doctype_name=""):
         try:
             User.query.filter_by(id=user_id).one()
         except NoResultFound:
-            app.logger.error(f"Tried to create a document with user ID: "
+            app.logger.error(f"Tried to create a document with document ID: "
                              f"{user_id}, but that user doesn't exist.")
             return
 
-        if folder_name:
+        if doctype_name:
             try:
-                folder = Folder.query.filter_by(user_id=user_id,
-                                                name=folder_name).one()
-                document = Document(user_id=user_id, name=name,
-                                    folder_id=folder.as_dict()["id"],
-                                    created_date= str(datetime.now()),
-                                    updated_date= str(datetime.now()),
+                doctype = Doctype.query.filter_by(user_id=user_id,
+                                                 name=doctype_name).one()
+                document = Document(id=str(uuid.uuid4()),
+                                    user_id=user_id, name=name,
+                                    doctype_id=doctype.as_dict()["id"],
                                     properties=properties,
                                     content=content)
             except NoResultFound:
-                app.logger.error(f"Tried to create a document with folder: "
-                                 f"{folder_name}, but that folder doesn't "
+                app.logger.error(f"Tried to create a document with doctype: "
+                                 f"{doctype_name}, but that doctype doesn't "
                                  f"exist.")
                 return
         else:
-            document = Document(user_id=user_id, name=name,
-                                properties=properties, content=content,
-                                created_date=datetime.now(),
-                                updated_date=datetime.now())
+            document = Document(id=str(uuid.uuid4()), user_id=user_id,
+                                name=name, properties=properties,
+                                content=content)
 
         db.session.add(document)
         db.session.commit()
 
-        tags = [DocumentTag(document_id=document.id, name=tag_name)
-                for tag_name in tags]
-
-        db.session.add_all(tags)
-        db.session.commit()
+        DBUtils.add_tags(tags, document.id, user_id)
 
         return document.as_dict()
 
@@ -168,9 +196,7 @@ class DBUtils:
         db.session.add(document)
 
         DocumentTag.query.filter_by(document_id=id).delete()
-        tags = [DocumentTag(document_id=document.id, name=tag_name)
-                for tag_name in tags]
-        db.session.add_all(tags)
+        DBUtils.add_tags(tags, document.id, document.user_id)
 
         db.session.commit()
         return document.as_dict()
@@ -184,9 +210,9 @@ class DBUtils:
         return document.as_dict()
 
     @staticmethod
-    def update_document_folder(id, folder_name):
+    def update_document_doctype(id, doctype_name):
         document = Document.query.filter_by(id=id).first()
-        document.folder_name = folder_name
+        document.doctype_name = doctype_name
         db.session.add(document)
         db.session.commit()
         return document.as_dict()
@@ -197,17 +223,17 @@ class DBUtils:
         return document.as_dict()
 
     @staticmethod
-    def get_document_by_name(user_id, name, folder_name=""):
-        if folder_name:
-            folder = DBUtils.get_folder_by_name(user_id, name)
+    def get_document_by_name(user_id, name, doctype_name=""):
+        if doctype_name:
+            doctype = DBUtils.get_doctype_by_name(user_id, name)
         document = Document.query.filter_by(user_id=user_id, name=name,
-                                            folder_id=folder["id"]).one()
+                                            doctype_id=doctype["id"]).one()
         return document.as_dict()
 
     @staticmethod
-    def list_documents(folder_id):
+    def list_documents(doctype_id):
         documents = [document.as_dict()["metadata"] for document in
-                     Document.query.filter_by(folder_id=folder_id).all()]
+                     Document.query.filter_by(doctype_id=doctype_id).all()]
         return {
             "file_count": len(documents),
             "error_count": 0,
@@ -218,12 +244,19 @@ class DBUtils:
 
     @staticmethod
     def delete_document(document_id):
-        document = Document.query.filter_by(id=document_id).delete()
-        db.session.commit()
-        return document.as_dict()
+        try:
+            document = Document.query.filter_by(id=document_id).one()
+            db.session.delete(document)
+            db.session.commit()
+            return document.as_dict()
+        except NoResultFound:
+            app.logger.error(f"Tried to delete a document with document ID: "
+                             f"{document_id}, but that document doesn't "
+                             f"exist.")
+            return
 
     @staticmethod
-    def save_chat(user_id, folder_name, chat):
+    def save_chat(user_id, doctype_name, chat):
         name = chat["name"] if "name" in chat else "New Chat"
         tags = chat["tags"] if "tags" in chat else []
         properties = chat["properties"] if "properties" in chat else "{}"
@@ -234,7 +267,7 @@ class DBUtils:
                                                name=name, tags=tags,
                                                properties=properties,
                                                content=content,
-                                               folder_name=folder_name)
+                                               doctype_name=doctype_name)
             server_stats["new_chats_count"] += 1
         else:
             DBUtils.update_document(id=chat["id"], name=name, tags=[],
@@ -243,16 +276,17 @@ class DBUtils:
         return document.as_dict()
 
     @staticmethod
-    def create_folder(user_id, name, properties={}):
-        folder = Folder(user_id=user_id, name=name, properties=properties)
-        db.session.add(folder)
+    def create_doctype(user_id, name, properties={}):
+        doctype = Doctype(id=str(uuid.uuid4()), user_id=user_id,
+                          name=name, properties=properties)
+        db.session.add(doctype)
         db.session.commit()
 
     @staticmethod
-    def get_folder_by_name(user_id, name):
-        folder = Folder.query.filter_by(user_id=user_id, name=name).one()
-        return folder.as_dict()
+    def get_doctype_by_name(user_id, name):
+        doctype = Doctype.query.filter_by(user_id=user_id, name=name).one()
+        return doctype.as_dict()
 
     @staticmethod
-    def list_folders():
-        return [folder.name for folder in Folder.query.all()]
+    def list_doctypes():
+        return [doctype.name for doctype in Doctype.query.all()]

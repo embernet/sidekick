@@ -2,7 +2,7 @@ import unittest
 from datetime import datetime
 from flask import Flask
 from app import db
-from models import User, Folder, Document, DocumentTag
+from models import User, Doctype, Document, Tag, DocumentTag
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
@@ -31,20 +31,20 @@ class ModelTest(unittest.TestCase):
             "properties": {"age": "48", "height": "180"}
         })
 
-    def test_create_folder(self):
+    def test_create_doctype(self):
         objects = [
             User(id="testuser", password_hash="123"),
-            Folder(id=1, user_id="testuser", name="testfolder",
+            Doctype(id="1", user_id="testuser", name="testdoctype",
                    properties={"colour": "red", "size": "10"})
         ]
         db.session.add_all(objects)
         db.session.commit()
-        saved_folder = Folder.query.filter_by(id=1).first()
+        saved_doctype = Doctype.query.filter_by(id="1").first()
 
-        self.assertDictEqual(saved_folder.as_dict(), {
-            "id": 1,
+        self.assertDictEqual(saved_doctype.as_dict(), {
+            "id": "1",
             "user_id": "testuser",
-            "name": "testfolder",
+            "name": "testdoctype",
             "properties": {"colour": "red", "size": "10"}
         })
 
@@ -52,26 +52,27 @@ class ModelTest(unittest.TestCase):
         now = str(datetime.now())
         objects = [
             User(id="testuser", password_hash="123"),
-            Folder(id=1, user_id="testuser", name="testfolder"),
-            Document(id=1, user_id="testuser", folder_id=1, name="testdoc",
+            Doctype(id="1", user_id="testuser", name="testdoctype"),
+            Document(id="1", user_id="testuser", doctype_id=1, name="testdoc",
                      properties= {"colour": "red", "size": "3"},
                      content= {"prompt": "hi", "profile": "CEO"},
                      created_date=now, updated_date=now),
-            DocumentTag(document_id=1, name="a doc"),
-            DocumentTag(document_id=1, name="a nice thing"),
+            Tag(name="tag1"), Tag(name="tag2"),
+            DocumentTag(document_id=1, tag_name="tag1"),
+            DocumentTag(document_id=1, tag_name="tag2"),
         ]
         db.session.add_all(objects)
         db.session.commit()
         saved_document = Document.query.filter_by(id=1).first()
         self.assertDictEqual(saved_document.as_dict(), {
             "metadata": {
-                "id": 1,
+                "id": "1",
                 "user_id": "testuser",
-                "folder_name": "testfolder",
+                "doctype_name": "testdoctype",
                 "name": "testdoc",
                 "created_date": now,
                 "updated_date": now,
-                "tags": ["a doc", "a nice thing"],
+                "tags": ["tag1", "tag2"],
                 "properties": {"colour": "red", "size": "3"},
             },
             "content": {"prompt": "hi", "profile": "CEO"}
