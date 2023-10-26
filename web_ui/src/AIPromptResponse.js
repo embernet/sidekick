@@ -280,10 +280,12 @@ const AIPromptResponse = ({serverUrl, token, setToken, systemPrompt,
                 <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
                     <Typography sx={{mr:2}}>{controlName}</Typography>
                     <Tooltip title={ "Ask again" }>
+                        <span>
                         <IconButton edge="start" color="inherit" aria-label="menu" 
                             disabled={streamingChatResponse !== ""} onClick={handleAskAgain}>
                             <ReplayIcon/>
                         </IconButton>
+                        </span>
                     </Tooltip>
                     <Tooltip title={ "Reload last prompt for editing" }>
                         <span>

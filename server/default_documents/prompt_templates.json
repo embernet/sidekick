@@ -20,8 +20,8 @@
             "tags": ["home", "cooking", "nutrition", "health"],
             "content": { "prompt_template": "I have the following main ingredients: {MAIN_INGREDIENTS} plus the usual basic ingredients you might expect to find in a home kitchen. Provide a recipe for a tasty nutritional meal that makes the most of these ingredients. Provide the recipe in markdown with the top level section name being the name of the recipe and sub-sections for 'Ingredients' (a bullet list of ingredients and quantities), 'Method' (A numbered list of steps to make the recipe), 'Fun facts' (a couple of paragraphs of interesting facts or history about the recipe, where it came from, or the ingredients themselves)." }
         },
-        "Campaign optimisation": {
-            "tags": ["work", "marketing", "communications", "sales"],
+        "Marketing campaign optimisation": {
+            "tags": ["work", "marketing", "communications", "sales", "optimisation"],
             "content": { "prompt_template": "Provide strategies to optimise a marketing campaign to {MARKETING_CAMPAIGN_GOALS} considering target audience: {TARGET_AUDIENCE}, include strategies, tools and platforms available, example copy, and ideas for metrics and measuring take-up." }
         },
         "Team motivation": {
@@ -49,7 +49,7 @@
             "content": { "prompt_template": "Compare {TECHNOLOGY_1} and {TECHNOLOGY_2}, given our use case of: {USE_CASE}, and that this technology would need to work well alongside: {EXISTING_TECHNOLOGY}. Say how these technologies are typically used, provide their strengths and weaknesses for our use case, considerations for integration with our existing technology, and provide a recommendation with justification for which technology we should use." }
         },
         "Technology evaluation": {
-            "tags": ["work", "technology reviewer", "evaluation", "pros and cons"],
+            "tags": ["work", "technology", "evaluation", "comparison"],
             "content": { "prompt_template": "Evaluate {TECHNOLOGY_NAME}, listing its pros and cons, potential applications, and situations when this technology would be more advantageous than others. Also, provide examples of when other technologies would be a better fit." }
         },
         "Transformation": {

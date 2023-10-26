@@ -564,10 +564,12 @@ const SidekickAI = ({
         </Box>
         <SecondaryToolbar className={ClassNames.toolbar}>
             <Tooltip title={ "Reload last prompt for editing" }>
+                <span>
                 <IconButton edge="start" color="inherit" aria-label="menu"
                     disabled={streamingChatResponse !== ""} onClick={handleReload}>
                     <RedoIcon/>
                 </IconButton>
+                </span>
             </Tooltip>
             <Box ml="auto">
                 <Tooltip title={ "Ask Sidekick AI" }>

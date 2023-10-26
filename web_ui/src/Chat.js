@@ -411,52 +411,52 @@ const Chat = ({
     }
 
     const getChatStream = useCallback(async (requestData) => {
-        try {
-            const url = `${serverUrl}/chat/v2`;
-            const request = {
-                method: 'POST',
-                headers: {
-                'Content-Type': 'application/json',
-                Authorization: 'Bearer ' + token
-                },
-                body: JSON.stringify(requestData),
-            };
-            console.log("getChatStream request", request);
-
-            const response = await fetch(url , request);
-            console.log("getChatStream response", response);
-          
-            let decoder = new TextDecoderStream();
-            if (!response.body) return;
-            const reader = response.body
-                .pipeThrough(decoder)
-                .getReader();
             try {
-                while (!stopStreamingRef.current) {
-                    var {value, done} = await reader.read();
-                    if (value) { 
-                        streamingChatResponseRef.current += value;
-                        setStreamingChatResponse(streamingChatResponseRef.current);
+                const url = `${serverUrl}/chat/v2`;
+                const request = {
+                    method: 'POST',
+                    headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: 'Bearer ' + token
+                    },
+                    body: JSON.stringify(requestData),
+                };
+                console.log("getChatStream request", request);
+
+                const response = await fetch(url , request);
+                console.log("getChatStream response", response);
+            
+                let decoder = new TextDecoderStream();
+                if (!response.body) return;
+                const reader = response.body
+                    .pipeThrough(decoder)
+                    .getReader();
+                try {
+                    while (!stopStreamingRef.current) {
+                        var {value, done} = await reader.read();
+                        if (value) { 
+                            streamingChatResponseRef.current += value;
+                            setStreamingChatResponse(streamingChatResponseRef.current);
+                        }
+                        if (done || stopStreamingRef.current) {
+                            let chatResponse = streamingChatResponseRef.current;
+                            if (stopStreamingRef.current) { chatResponse += "\n\n(Chat stopped by user)" }
+                            streamingChatResponseRef.current = "";
+                            setStreamingChatResponse("");
+                            appendMessage({"role": "assistant", "content": chatResponse});
+                            showReady();
+                            reader.releaseLock();
+                            break;
+                        }
                     }
-                    if (done || stopStreamingRef.current) {
-                        let chatResponse = streamingChatResponseRef.current;
-                        if (stopStreamingRef.current) { chatResponse += "\n\n(Chat stopped by user)" }
-                        streamingChatResponseRef.current = "";
-                        setStreamingChatResponse("");
-                        appendMessage({"role": "assistant", "content": chatResponse});
-                        showReady();
-                        reader.releaseLock();
-                        break;
-                    }
+                    stopStreamingRef.current = false;
+                } finally {
+                    reader.releaseLock();
                 }
-                stopStreamingRef.current = false;
-            } finally {
-                reader.releaseLock();
+            } catch (error) {
+            console.log(error);
+            system.error(`Error reading chat stream: ${error}`);
             }
-        } catch (error) {
-          console.log(error);
-          system.error(`Error reading chat stream: ${error}`);
-        }
 
     }, [stopStreamingRef.current]);
 
@@ -932,10 +932,12 @@ const Chat = ({
             <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
                 <Typography sx={{mr:2}}>Prompt Editor</Typography>
                 <Tooltip title={ "Ask again" }>
-                    <IconButton edge="start" color="inherit" aria-label="menu" 
-                        disabled={streamingChatResponse !== ""} onClick={handleAskAgain}>
-                        <ReplayIcon/>
-                    </IconButton>
+                    <span>
+                        <IconButton edge="start" color="inherit" aria-label="menu" 
+                            disabled={streamingChatResponse !== ""} onClick={handleAskAgain}>
+                            <ReplayIcon/>
+                        </IconButton>
+                    </span>
                 </Tooltip>
                 <Tooltip title={ "Reload last prompt for editing" }>
                     <span>
@@ -955,11 +957,13 @@ const Chat = ({
                 </Tooltip>
                 <Box ml="auto">
                     {streamingChatResponse !== "" && <Tooltip title={ "Stop" }>
-                        <IconButton id="chat-stop" edge="end" color="inherit" aria-label="stop"
-                            onClick={() => { handleStopStreaming(); }}
-                        >
-                            <StopCircleIcon/>
-                        </IconButton>
+                        <span>
+                            <IconButton id="chat-stop" edge="end" color="inherit" aria-label="stop"
+                                onClick={() => { handleStopStreaming(); }}
+                            >
+                                <StopCircleIcon/>
+                            </IconButton>
+                        </span>
                     </Tooltip>}
                     <Tooltip title={ "Send prompt to AI" }>
                         <span>

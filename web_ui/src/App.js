@@ -233,7 +233,10 @@ function App() {
     })
   }
 
-  const closeUnpinnedLeftSideWindows = () => {
+  const closeUnpinnedLeftSideWindows = (event) => {
+    if (event && (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey)) {
+      return;
+    }
     if (!sidekickAIPinned) {
       setSidekickAIOpen(false);
     }
@@ -251,58 +254,61 @@ function App() {
     }
   }
 
-  const closeUnpinnedRightSideWindows = () => {
+  const closeUnpinnedRightSideWindows = (event) => {
     if (!notesPinned) {
       setNotesOpen(false);
     }
   }
 
-  const handleToggleChatsOpen = () => {
+  const handleToggleChatsOpen = (event) => {
+    if (event && (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey)) {
+      return;
+    }
     if (chatsOpen) {
       setChatsPinned(false);
       setChatsOpen(false);
     } else {
-      closeUnpinnedLeftSideWindows();
+      closeUnpinnedLeftSideWindows(event);
       setChatsOpen(true);
     }
   }
 
-  const handleToggleSidekickAIOpen = () => {  
+  const handleToggleSidekickAIOpen = (event) => {  
     if (sidekickAIOpen) {
       setSidekickAIPinned(false);
       setSidekickAIOpen(false);
     } else {
-      closeUnpinnedLeftSideWindows();
+      closeUnpinnedLeftSideWindows(event);
       setSidekickAIOpen(true);
     }
   }
 
-  const handleTogglePromptEngineerOpen = () => {
+  const handleTogglePromptEngineerOpen = (event) => {
     if (promptEngineerOpen) {
       setPromptEngineerPinned(false);
       setPromptEngineerOpen(false);
     } else {
-      closeUnpinnedLeftSideWindows();
+      closeUnpinnedLeftSideWindows(event);
       setPromptEngineerOpen(true);
     }
   }
 
-  const handleTogglePersonasOpen = () => {
+  const handleTogglePersonasOpen = (event) => {
     if (personasOpen) {
       setPersonasPinned(false);
       setPersonasOpen(false);
     } else {
-      closeUnpinnedLeftSideWindows();
+      closeUnpinnedLeftSideWindows(event);
       setPersonasOpen(true);
     }
   }
 
-  const handleToggleModelSettingsOpen = () => {
+  const handleToggleModelSettingsOpen = (event) => {
     if (modelSettingsOpen) {
       setModelSettingsPinned(false);
       setModelSettingsOpen(false);
     } else {
-      closeUnpinnedLeftSideWindows();
+      closeUnpinnedLeftSideWindows(event);
       setModelSettingsOpen(true);
     }
   }
@@ -315,12 +321,12 @@ function App() {
     setNoteOpen(state => !state);
   }
 
-  const handleToggleNotesOpen = () => {
+  const handleToggleNotesOpen = (event) => {
     if (notesOpen) {
       setNotesPinned(false);
       setNotesOpen(false);
     } else {
-      closeUnpinnedRightSideWindows();
+      closeUnpinnedRightSideWindows(event);
       setNotesOpen(true);
     }
   }

@@ -114,51 +114,53 @@ function Login({setUser, serverUrl, setToken}) {
     setTabIndex(newValue);
   };
 
+  const ui = <Box style={formContainerStyle}>
+    <Tabs value={tabIndex} onChange={handleTabChange} style={{ position: 'relative' }}>
+      <Tab label="Login" />
+      <Tab label="Create Account" />
+    </Tabs>
+    {tabIndex === 0 && (
+        <Box style={inputContainerStyle} component="form">
+            <TextField id="user_id" type="text" placeholder="Username" 
+                style={inputStyle} onChange={(e) => setUserId(e.target.value)} 
+                autoComplete="username"
+                onKeyDown={(e) => { if (e.key === 'Enter') { loginPasswordRef.current.focus(); }}}
+              />
+            <TextField id="password" type="password" placeholder="Password" 
+              inputRef = {loginPasswordRef}
+              style={inputStyle} onChange={(e) => setPassword(e.target.value)} 
+              autoComplete='current-password'
+              onKeyDown={(e) => { if (e.key === 'Enter') { handleLogin(e); }}}
+            />
+            <Button onClick={handleLogin} default>Login</Button>
+        </Box>
+    )}
+    {tabIndex === 1 && (
+        <Box style={inputContainerStyle} component="form">
+            <TextField id="create-account-userid" type="text" placeholder="Enter UserId" 
+              style={inputStyle} autoComplete="off"  onChange={(e) => setUserId(e.target.value)} 
+              onKeyDown={(e) => { if (e.key === 'Enter') { createAccountPasswordRef.current.focus(); }}}
+            />
+            <TextField id="create-account-password" type="password" placeholder="Enter Password" 
+              inputRef = {createAccountPasswordRef}
+              style={inputStyle} autoComplete="off" onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { handleCreateAccount(e); }}} 
+              />
+            <Button onClick={handleCreateAccount} default>Create Account</Button>
+        </Box>
+    )}
+  <Box variant="body3" color="text.secondary" 
+    sx={{ textAlign: "center", width: "700px", height: "200px", overflow: "auto", whiteSpace: 'pre-line' }}>
+    {preLoginMessage}
+  </Box>
+  </Box>
+
   return ( pageLoaded &&
     <Box style={containerStyle}>
       <Carousel imageFolderName="./images/logo/" filenamePrefix="sidekick_" 
       filenameExtension=".png" altText="Sidekick logo"
       transitions="8" cycleTime="250"/>
-      <Box style={formContainerStyle}>
-          <Tabs value={tabIndex} onChange={handleTabChange} style={{ position: 'relative' }}>
-            <Tab label="Login" />
-            <Tab label="Create Account" />
-          </Tabs>
-          {tabIndex === 0 && (
-              <Box style={inputContainerStyle} component="form">
-                  <TextField id="user_id" type="text" placeholder="Username" 
-                      style={inputStyle} onChange={(e) => setUserId(e.target.value)} 
-                      autoComplete="username"
-                      onKeyDown={(e) => { if (e.key === 'Enter') { loginPasswordRef.current.focus(); }}}
-                    />
-                  <TextField id="password" type="password" placeholder="Password" 
-                    inputRef = {loginPasswordRef}
-                    style={inputStyle} onChange={(e) => setPassword(e.target.value)} 
-                    autoComplete='current-password'
-                    onKeyDown={(e) => { if (e.key === 'Enter') { handleLogin(e); }}}
-                   />
-                  <Button onClick={handleLogin} default>Login</Button>
-              </Box>
-          )}
-          {tabIndex === 1 && (
-              <Box style={inputContainerStyle} component="form">
-                  <TextField id="create-account-userid" type="text" placeholder="Enter UserId" 
-                    style={inputStyle} autoComplete="off"  onChange={(e) => setUserId(e.target.value)} 
-                    onKeyDown={(e) => { if (e.key === 'Enter') { createAccountPasswordRef.current.focus(); }}}
-                  />
-                  <TextField id="create-account-password" type="password" placeholder="Enter Password" 
-                    inputRef = {createAccountPasswordRef}
-                    style={inputStyle} autoComplete="off" onChange={(e) => setPassword(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { handleCreateAccount(e); }}} 
-                    />
-                  <Button onClick={handleCreateAccount} default>Create Account</Button>
-              </Box>
-          )}
-        <Box variant="body3" color="text.secondary" 
-          sx={{ textAlign: "center", width: "700px", height: "200px", overflow: "auto", whiteSpace: 'pre-line' }}>
-          {preLoginMessage}
-        </Box>
-      </Box>
+      {system.serverUp ? ui : <div>Server not available</div>}
     </Box>
   );
 }
