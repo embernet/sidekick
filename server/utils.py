@@ -115,14 +115,14 @@ class DBUtils:
     def delete_user(user_id):
         try:
             user = User.query.filter_by(id=user_id).one()
+            user_as_dict = user.as_dict()
             db.session.delete(user)
             db.session.commit()
-            return user.as_dict()
+            return user_as_dict
         except NoResultFound:
             app.logger.error(f"Tried to delete a user with user ID: "
                              f"{user_id}, but that document doesn't exist.")
             return
-
 
     @staticmethod
     def add_tags(tags, document_id=None, user_id=None):
@@ -246,9 +246,10 @@ class DBUtils:
     def delete_document(document_id):
         try:
             document = Document.query.filter_by(id=document_id).one()
+            document_as_dict = document.as_dict()
             db.session.delete(document)
             db.session.commit()
-            return document.as_dict()
+            return document_as_dict
         except NoResultFound:
             app.logger.error(f"Tried to delete a document with document ID: "
                              f"{document_id}, but that document doesn't "
