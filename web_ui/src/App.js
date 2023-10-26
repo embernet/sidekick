@@ -205,9 +205,9 @@ function App() {
     }
   }, [appendNoteContent]);
 
-  const handleToggleAppSettingsOpen = () => {
+  const handleToggleAppSettingsOpen = (event) => {
     if (!appSettingsOpen) {
-      closeUnpinnedLeftSideWindows();
+      closeUnpinnedLeftSideWindows(event);
     }
     setAppSettingsOpen(state => !state);
   }
@@ -261,9 +261,6 @@ function App() {
   }
 
   const handleToggleChatsOpen = (event) => {
-    if (event && (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey)) {
-      return;
-    }
     if (chatsOpen) {
       setChatsPinned(false);
       setChatsOpen(false);
