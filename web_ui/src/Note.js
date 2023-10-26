@@ -294,7 +294,7 @@ ${userPromptEntered.prompt}`
     const handleDownload = () => {
         // remove characters from the name that would not be accepted in a file name
         let filename = name.replace(/[^a-z0-9\-!@()[\];_] /gi, '_');
-        downloadFile(filename + ".json", content);
+        downloadFile(filename + ".txt", content);
     }
 
     const handleUploadFile = (event) => {
