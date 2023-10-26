@@ -116,6 +116,10 @@ class DBUtils:
         try:
             user = User.query.filter_by(id=user_id).one()
             user_as_dict = user.as_dict()
+            for document in user.documents:
+                DBUtils.delete_document(document.id)
+            for doctype in user.doctypes:
+                db.session.delete(doctype)
             db.session.delete(user)
             db.session.commit()
             return user_as_dict
@@ -247,6 +251,8 @@ class DBUtils:
         try:
             document = Document.query.filter_by(id=document_id).one()
             document_as_dict = document.as_dict()
+            for tag in document.tags:
+                db.session.delete(tag)
             db.session.delete(document)
             db.session.commit()
             return document_as_dict

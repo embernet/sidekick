@@ -72,3 +72,31 @@ class ModelTest(unittest.TestCase):
             },
             "content": {"contentA": "testA", "propertyB": "contentB"}
         })
+
+    def test_delete_document(self):
+        DBUtils.create_user("testuser", "testpassword")
+        DBUtils.create_doctype("testuser", "testdoctype")
+        doc = DBUtils.create_document(user_id="testuser", name="testdoc",
+                                doctype_name="testdoctype",
+                                tags=["tag1", "tag2"],
+                                properties={"propertyA": "testA",
+                                            "propertyB": "testB"},
+                                content={"contentA": "testA",
+                                         "propertyB": "contentB"})
+        DBUtils.delete_document(doc["metadata"]["id"])
+        document = Document.query.filter_by(id="1").first()
+        self.assertIsNone(document)
+
+    def test_delete_user(self):
+        DBUtils.create_user("testuser", "testpassword")
+        DBUtils.create_doctype("testuser", "testdoctype")
+        doc = DBUtils.create_document(user_id="testuser", name="testdoc",
+                                doctype_name="testdoctype",
+                                tags=["tag1", "tag2"],
+                                properties={"propertyA": "testA",
+                                            "propertyB": "testB"},
+                                content={"contentA": "testA",
+                                         "propertyB": "contentB"})
+        DBUtils.delete_user("testuser")
+        user = Document.query.filter_by(id="1").first()
+        self.assertIsNone(user)
