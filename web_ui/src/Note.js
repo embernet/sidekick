@@ -118,7 +118,8 @@ You always do your best to generate text in the same style as the context text p
     const [AIResponse, setAIResponse] = useState("");
 
     useEffect(() => {
-        if (noteOpen) {
+        if (noteOpen && userPromptEntered) {
+            setUserPromptEntered(null);
             const userPrompt = `Given the CONTEXT_TEXT below, provide text in the same style to add to this as specified by the provided REQUEST:
 
 Here is the CONTEXT_TEXT:
@@ -208,14 +209,18 @@ ${userPromptEntered.prompt}`
     }, [loadNote]);
 
     useEffect(()=>{
-        if (!noteOpen && id !== "") {
+        if (!noteOpen) {
             resetNote();
         }
     }, [noteOpen]);
 
     useEffect(()=>{
-        setContent( text => text + "\n" + AIResponse + "\n");
+        if (AIResponse !== "") {
+            setContent( text => text + "\n" + AIResponse + "\n");
+        }
         setContentDisabled(false);
+        considerAutoNaming(content);
+        save();
         showReady();
     },[AIResponse]);
 
@@ -361,6 +366,7 @@ ${userPromptEntered.prompt}`
 
     const resetNote = (content="") => {
         setId("");
+        setAIResponse('');
         setName(newNoteName);
         setPreviousName(newNoteName);
         setTags([]);

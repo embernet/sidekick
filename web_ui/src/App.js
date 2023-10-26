@@ -621,7 +621,7 @@ function App() {
                   chatStreamingOn={chatStreamingOn}
                   maxWidth={appSettings.maxPanelWidth}
                   />
-                <Note 
+                { noteOpen && <Note 
                   noteOpen={noteOpen}
                   setNoteOpen={setNoteOpen} 
                   appendNoteContent={appendNoteContent} 
@@ -633,7 +633,7 @@ function App() {
                   setOpenNoteId={setOpenNoteId}
                   serverUrl={serverUrl} token={token} setToken={setToken}
                   maxWidth={appSettings.maxPanelWidth}
-                  />
+                  /> }
               </Box>
               { notesOpen ? <Explorer
               handleToggleExplorer={handleToggleNotesOpen}
