@@ -13,6 +13,7 @@ app = Flask(__name__)
 app.logger.setLevel(logging.getLevelName(
     os.environ.get("LOG_LEVEL", "ERROR")))
 app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY")
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = False
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
     "SQLALCHEMY_DATABASE_URI", "sqlite:///sqlite.db")
 # app.config["OIDC_CLIENT_SECRETS"] = "client_secrets.json"
