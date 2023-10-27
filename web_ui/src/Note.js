@@ -52,19 +52,24 @@ You always do your best to generate text in the same style as the context text p
         []
     );
 
+    const focusOnContent = () => {
+        document.getElementById("note-content")?.focus();
+    }
+
     const applyCustomSettings = () => {
         axios.get(`${serverUrl}/custom_settings/note`).then(response => {
-            if ("userPromptReady" in response.data) {
-                userPromptReady.current = defaultUserPromptReady + " (" + response.data.userPromptReady + ")";
-                setPromptPlaceholder(userPromptReady.current);
-            }
-        }).catch(error => {
-          console.error("Error getting Chat custom settings:", error);
-        });
-      }
+                if ("userPromptReady" in response.data) {
+                    userPromptReady.current = defaultUserPromptReady + " (" + response.data.userPromptReady + ")";
+                    setPromptPlaceholder(userPromptReady.current);
+                }
+            }).catch(error => {
+            console.error("Error getting Chat custom settings:", error);
+            });
+        }
 
     useEffect(() => {
         applyCustomSettings();
+        focusOnContent();
         showReady();
         const handleVisibilityChange = () => {
             if (document.hidden) {
@@ -119,22 +124,25 @@ You always do your best to generate text in the same style as the context text p
 
     useEffect(() => {
         if (noteOpen && userPromptEntered) {
-            setUserPromptEntered(null);
-            const userPrompt = `Given the CONTEXT_TEXT below, provide text in the same style to add to this as specified by the provided REQUEST:
+            let userPrompt = `Given the CONTEXT_TEXT below, provide text in the same style to add to this as specified by the provided REQUEST:
 
-Here is the CONTEXT_TEXT:
+Here is the CONTEXT_TEXT:`
+            if (name !== newNoteName) {
+                userPrompt += `
+Title: ${name}`
+            }
+            userPrompt += `
 ${content}
 
 Here is the REQUEST:
-${userPromptEntered.prompt}`
+${userPromptEntered.prompt}
+
+Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response that would naturally follow on from the CONTEXT_TEXT and achieve what is described in the REQUEST.`
             console.log("Note userPrompt", userPrompt)
+            setUserPromptEntered(null);
             setUserPromptToSend({prompt: userPrompt, timestamp: Date.now()});
         }
     }, [userPromptEntered]);
-
-    const focusOnContent = () => {
-        document.getElementById("note-content")?.focus();
-    }
 
     useEffect(()=>{
         if(createNote) {
@@ -211,16 +219,19 @@ ${userPromptEntered.prompt}`
     useEffect(()=>{
         if (!noteOpen) {
             resetNote();
+        } else {
+            //focusOnContent();
         }
     }, [noteOpen]);
 
     useEffect(()=>{
         if (AIResponse !== "") {
             setContent( text => text + "\n" + AIResponse + "\n");
+            setContentChanged(true);
+            considerAutoNaming(content);
+            focusOnContent(); // this also saves the note on blur
         }
         setContentDisabled(false);
-        considerAutoNaming(content);
-        save();
         showReady();
     },[AIResponse]);
 
@@ -239,7 +250,7 @@ ${userPromptEntered.prompt}`
                 system.error(`Error generating text: ${error}`);
             });
         }
-    }, [promptToSend]);        
+    }, [promptToSend]);
 
     const showReady = () => {
         setPromptDisabled(false);
@@ -339,38 +350,27 @@ ${userPromptEntered.prompt}`
             console.log("Create note Response", response);
             response.data.access_token && setToken(response.data.access_token);
             setId(response.data.metadata.id);
-            setName(response.data.metadata.name);
-            setPreviousName(response.data.metadata.name);
+            if (name !== response.data.metadata.name) {
+                setName(response.data.metadata.name);
+                setPreviousName(response.data.metadata.name);
+            }
             setTags(response.data.metadata.tags);
-            setContent(response.data.content.note);
             setContentChanged(false); // as we just saved/loaded it from the server
             onChange(response.data.metadata.id, response.data.metadata.name, "created", "");
-            try {
-                if (content === "") {
-                    let noteName = document.getElementById("note-name");
-                    if (noteName) {
-                        noteName.focus();
-                        noteName.select();
-                    }
-                }
-            }
-            catch (error) {
-                console.error("Note create, error setting focus on note name", error);
-            }
-            setNoteOpen({ id: response.data.metadata.id, timestamp: Date.now()});
+            setOpenNoteId({ id: response.data.metadata.id, timestamp: Date.now()});
         }).catch(error => {
             console.log("create note error", error);
             system.error(`Error creating note: ${error}`);
         });
     }
 
-    const resetNote = (content="") => {
+    const resetNote = () => {
         setId("");
-        setAIResponse('');
         setName(newNoteName);
         setPreviousName(newNoteName);
         setTags([]);
-        setContent(content);
+        setContent("");
+        setAIResponse('');
         setContentChanged(false); // This is now a new empty note
     }
 
@@ -403,7 +403,9 @@ ${userPromptEntered.prompt}`
     }
 
     const renameNote = (newName) => {
-        setName(newName);
+        if (name !== newName) {
+            setName(newName);
+        }
         if (id === "") {
             create({name: newName, content: content});
         } else {
@@ -418,7 +420,6 @@ ${userPromptEntered.prompt}`
                 console.log("renameNote Response", response);
                 response.data.access_token && setToken(response.data.access_token);
                 setPreviousName(name);
-                focusOnContent();
                 onChange(id, name, "renamed", newName);
             }).catch(error => {
                 console.log(error);
@@ -427,13 +428,19 @@ ${userPromptEntered.prompt}`
         }
     }
 
-    const handleRenameNote = () => {
+    const handleRenameNote = async () => {
         if (name !== previousName && name !== "") {
             renameNote(name);
         } else {
             setName(previousName);
         }
-        focusOnContent();
+    }
+
+    const handleNameBlur = async (event) => {
+        await handleRenameNote();
+        // rename can cause the name TextArea to be set as focus,
+        // so we need to set focus back to what the user had set focus on
+        event.currentTarget && event.currentTarget.focus();
     }
 
     const handleNameChange = (event) => {
@@ -453,12 +460,10 @@ ${userPromptEntered.prompt}`
     }
 
     const considerAutoNaming = async (text) => {
-        if (content.trim() === "") {
+        if (name !== newNoteName || content.trim() === "") {
             return;
         }
-        if (name === newNoteName) {
-            generateNoteName(text);
-        }
+        generateNoteName(text);
     }
 
     const handleNoteContextMenu = (event, note, title) => {
@@ -536,15 +541,6 @@ ${userPromptEntered.prompt}`
         setContent(event.target.value);
     }
 
-    const handleSend = (event) => {
-        if(event.key === 'Enter') {
-            event.preventDefault();
-            console.log("Note handleSend", prompt);
-            setPromptToSend(prompt);
-            setPrompt("");
-        }
-    }
-
     const handleToggleMarkdownRendering = () => {
         let newSetting = !markdownRenderingOn;
         setMarkdownRenderingOn(newSetting);
@@ -607,16 +603,16 @@ ${userPromptEntered.prompt}`
                 onKeyDown={
                     (event) => {
                         if(event.key === 'Enter') {
+                            focusOnContent();
                             handleRenameNote()
                             event.preventDefault();
                         } else if(event.key === 'Escape') {
                             setName("");
                             event.preventDefault();
-                        }
-                            
+                        }         
                     }
                 }
-                onBlur={() => {handleRenameNote();}}
+                onBlur={(event) => { handleNameBlur(event) }}
                 onChange={handleNameChange}
             />
             <Toolbar>
@@ -636,12 +632,12 @@ ${userPromptEntered.prompt}`
         >
             { markdownRenderingOn
                 ?
-                    <Box sx={{ height: "fit-content" }}>
+                    <Box sx={{ height: "fit-content", padding: "6px" }}>
                         <SidekickMarkdown markdown={content}/>
                     </Box>
                 :
                     <TextField
-                        sx={{ mt: 2, width: "100%" }}
+                        sx={{ mt: 1, width: "100%", padding: "6px" }}
                         id="note-content"
                         label="Note content"
                         multiline
@@ -706,9 +702,11 @@ ${userPromptEntered.prompt}`
             onChange={onChange}
             setUserPromptEntered={setUserPromptEntered}
             userPromptToSend={userPromptToSend}
+            setUserPromptToSend={setUserPromptToSend}
             controlName="Note Writer"
             toolbarButtons={aiToolbarButtons}
             sendButtonTooltip="Send note and prompt to AI"
+            onBlur={save}
         />
         { uploadingFile
             ?

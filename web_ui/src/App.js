@@ -621,19 +621,19 @@ function App() {
                   chatStreamingOn={chatStreamingOn}
                   maxWidth={appSettings.maxPanelWidth}
                   />
-                { noteOpen && <Note 
-                  noteOpen={noteOpen}
-                  setNoteOpen={setNoteOpen} 
-                  appendNoteContent={appendNoteContent} 
-                  loadNote={loadNote} 
-                  createNote={createNote}
-                  setNewPromptPart={setNewPromptPart}
-                  setChatRequest={setChatRequest}
-                  onChange={onChange(handleNoteChange)}
-                  setOpenNoteId={setOpenNoteId}
-                  serverUrl={serverUrl} token={token} setToken={setToken}
-                  maxWidth={appSettings.maxPanelWidth}
-                  /> }
+              <Note 
+                noteOpen={noteOpen}
+                setNoteOpen={setNoteOpen} 
+                appendNoteContent={appendNoteContent} 
+                loadNote={loadNote} 
+                createNote={createNote}
+                setNewPromptPart={setNewPromptPart}
+                setChatRequest={setChatRequest}
+                onChange={onChange(handleNoteChange)}
+                setOpenNoteId={setOpenNoteId}
+                serverUrl={serverUrl} token={token} setToken={setToken}
+                maxWidth={appSettings.maxPanelWidth}
+                />
               </Box>
               { notesOpen ? <Explorer
               handleToggleExplorer={handleToggleNotesOpen}
@@ -647,7 +647,7 @@ function App() {
               docNameChanged={noteNameChanged}
               refresh={refreshNotesExplorer}
               setRefresh={setRefreshNotesExplorer}
-              itemOpen={noteOpen} // tell the explorer which note is open
+              itemOpen={openNoteId} // tell the explorer which note is open
               setItemOpen={setNoteOpen}
               serverUrl={serverUrl} token={token} setToken={setToken}
               /> : null}

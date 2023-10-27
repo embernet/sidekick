@@ -13,6 +13,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import { SystemContext } from './SystemContext';
 
 import { grey, blue } from '@mui/material/colors';
+import { use } from 'marked';
 
 const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
     backgroundColor: grey[300],
@@ -49,7 +50,7 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
 const AIPromptResponse = ({serverUrl, token, setToken, systemPrompt,
     streamingOn, streamingChatResponseRef, streamingChatResponse,
     setStreamingChatResponse, setAIResponse, onChange, focusOnPrompt,
-    setUserPromptEntered, userPromptToSend, controlName, toolbarButtons, sendButtonTooltip}) => {
+    setUserPromptEntered, userPromptToSend, setUserPromptToSend, controlName, toolbarButtons, sendButtonTooltip}) => {
 
     const system = useContext(SystemContext);
     const defaultUserPromptReady = "Enter prompt...";
@@ -67,6 +68,25 @@ const AIPromptResponse = ({serverUrl, token, setToken, systemPrompt,
         document.getElementById(promptId)?.focus();
     }
 
+    const showReady = () => {
+        setPromptPlaceholder(userPromptReady.current);
+    }
+
+    const showWaiting = () => {
+        setPromptPlaceholder(userPromptWaiting);
+        setPrompt('');
+    }
+
+    const reset = () => {
+        setPrompt("");
+        showReady();
+        stopStreamingRef.current = false;
+    }
+
+    useEffect(()=>{
+        reset();
+    }, []);
+
     useEffect(()=>{
         setPromptFocus();
     }, [prompt]);
@@ -80,6 +100,8 @@ const AIPromptResponse = ({serverUrl, token, setToken, systemPrompt,
     useEffect(()=>{
         if(userPromptToSend) {
             sendPrompt(userPromptToSend.prompt);
+            setUserPromptEntered(null);
+            setUserPromptToSend(null);
         }
     }, [userPromptToSend]);
 
@@ -106,15 +128,6 @@ const AIPromptResponse = ({serverUrl, token, setToken, systemPrompt,
         }
     }, [newStreamDelta]);
 
-    const showReady = () => {
-        setPromptPlaceholder(userPromptReady.current);
-    }
-
-    const showWaiting = () => {
-        setPromptPlaceholder(userPromptWaiting);
-        setPrompt('');
-    }
-
     const extractNameFromPrompt = (prompt) => {
         if (prompt.startsWith("# ")) {
           const newlineIndex = prompt.indexOf("\n");
@@ -124,33 +137,6 @@ const AIPromptResponse = ({serverUrl, token, setToken, systemPrompt,
         }
         return null;
     };
-
-    const handleSavePromptAsTemplate = () => {
-        const promptTemplateName = extractNameFromPrompt(prompt);
-        if (promptTemplateName) {
-            axios.post(`${serverUrl}/docdb/prompt_templates/documents`, {
-                "name": promptTemplateName,
-                "tags": [],
-                "content": {
-                    "prompt_template": prompt.replace(/^.*?\n/, '')
-                },
-            }, {
-                headers: {
-                    Authorization: 'Bearer ' + token
-                }
-            }).then(response => {
-                console.log("Create prompt template Response", response);
-                response.data.access_token && setToken(response.data.access_token);
-                onChange(response.data.metadata.id, response.data.metadata.name, "created", "promptTemplate");
-                system.info(`Prompt template ${response.data.metadata.name} created.`);
-            }).catch(error => {
-                console.log("create prompt template error", error);
-                system.error(`Error creating prompt template: ${error}`);
-            });
-        } else {
-            system.error("Please start your prompt template with a heading on the first line, e.g. # My Prompt Template (press Shift+Return to enter a newline). Prompt template not saved. ");
-        }
-    }
 
     const handleUserPromptEntered = (event) => {
         event.preventDefault();
@@ -242,7 +228,7 @@ const AIPromptResponse = ({serverUrl, token, setToken, systemPrompt,
                     frequency_penalty: 0,
                     model: "gpt-3.5-turbo",
                     presence_penalty: 0,
-                    temperature: 0.9,
+                    temperature: 0.7,
                     top_p: 1
                 }
             },
@@ -276,57 +262,58 @@ const AIPromptResponse = ({serverUrl, token, setToken, systemPrompt,
         }
 
     };
-    return <Box>
-                <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
-                    <Typography sx={{mr:2}}>{controlName}</Typography>
-                    <Tooltip title={ "Ask again" }>
-                        <span>
-                        <IconButton edge="start" color="inherit" aria-label="menu" 
-                            disabled={streamingChatResponse !== ""} onClick={handleAskAgain}>
-                            <ReplayIcon/>
+    let render = <Box>
+        <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
+            <Typography sx={{mr:2}}>{controlName}</Typography>
+            <Tooltip title={ "Ask again" }>
+                <span>
+                <IconButton edge="start" color="inherit" aria-label="menu" 
+                    disabled={streamingChatResponse !== ""} onClick={handleAskAgain}>
+                    <ReplayIcon/>
+                </IconButton>
+                </span>
+            </Tooltip>
+            <Tooltip title={ "Reload last prompt for editing" }>
+                <span>
+                    <IconButton edge="start" color="inherit" aria-label="menu"
+                        disabled={streamingChatResponse !== ""} onClick={handleReload}>
+                        <RedoIcon/>
+                    </IconButton>
+                </span>
+            </Tooltip>
+            {toolbarButtons}
+            <Box ml="auto">
+                {streamingChatResponse !== "" && <Tooltip title={ "Stop" }>
+                    <IconButton id="chat-stop" edge="end" color="inherit" aria-label="stop"
+                        onClick={() => { handleStopStreaming(); }}
+                    >
+                        <StopCircleIcon/>
+                    </IconButton>
+                </Tooltip>}
+                <Tooltip title={ sendButtonTooltip ? sendButtonTooltip : "Send prompt to AI" }>
+                    <span>
+                        <IconButton edge="end" color="inherit" aria-label="send" disabled={streamingChatResponse !== ""}
+                            onClick={handleUserPromptEntered}
+                        >
+                            <SendIcon/>
                         </IconButton>
-                        </span>
-                    </Tooltip>
-                    <Tooltip title={ "Reload last prompt for editing" }>
-                        <span>
-                            <IconButton edge="start" color="inherit" aria-label="menu"
-                                disabled={streamingChatResponse !== ""} onClick={handleReload}>
-                                <RedoIcon/>
-                            </IconButton>
-                        </span>
-                    </Tooltip>
-                    {toolbarButtons}
-                    <Box ml="auto">
-                        {streamingChatResponse !== "" && <Tooltip title={ "Stop" }>
-                            <IconButton id="chat-stop" edge="end" color="inherit" aria-label="stop"
-                                onClick={() => { handleStopStreaming(); }}
-                            >
-                                <StopCircleIcon/>
-                            </IconButton>
-                        </Tooltip>}
-                        <Tooltip title={ sendButtonTooltip ? sendButtonTooltip : "Send prompt to AI" }>
-                            <span>
-                                <IconButton edge="end" color="inherit" aria-label="send" disabled={streamingChatResponse !== ""}
-                                    onClick={handleUserPromptEntered}
-                                >
-                                    <SendIcon/>
-                                </IconButton>
-                            </span>
-                        </Tooltip>
-                    </Box>
-                </SecondaryToolbar>
-                <TextField 
-                    sx={{ width: "100%", mt: "auto", overflow: "auto", maxHeight: "338px", minHeight: "54px" }}
-                        id={promptId}
-                        multiline 
-                        variant="outlined" 
-                        value={prompt} 
-                        onChange={e => setPrompt(e.target.value)} 
-                        onKeyDown={handleUserPromptKeyDown}
-                        placeholder={promptPlaceholder}
-                        disabled={streamingChatResponse !== ""}
-                />
-            </Box>;
+                    </span>
+                </Tooltip>
+            </Box>
+        </SecondaryToolbar>
+        <TextField 
+            sx={{ width: "100%", mt: "auto", overflow: "auto", maxHeight: "338px", minHeight: "54px" }}
+                id={promptId}
+                multiline 
+                variant="outlined" 
+                value={prompt} 
+                onChange={e => setPrompt(e.target.value)} 
+                onKeyDown={handleUserPromptKeyDown}
+                placeholder={promptPlaceholder}
+                disabled={streamingChatResponse !== ""}
+        />
+    </Box>
+    return render;
 }
 
 export default AIPromptResponse;

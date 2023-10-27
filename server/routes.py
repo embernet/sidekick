@@ -376,13 +376,14 @@ chat_streams = {}  # to hold the mapping from our stream id to the OpenAI stream
 
 
 # Route to chat with the AI using the OpenAI streaming interface
-@app.route('/chat/v2', methods=['POST'])
+CHATV2_ROUTE = '/chat/v2'
+@app.route(CHATV2_ROUTE, methods=['POST'])
 @jwt_required()
 def chat_v2():
     tid = str(uuid.uuid4())
     app.logger.info(
-        f"/chat/v2 [POST] request from:{request.remote_addr} tid:{tid}")
-    app.logger.debug("/chat/v2 request:\n", json.dumps(request.json, indent=4))
+        f"{CHATV2_ROUTE} [POST] request from:{request.remote_addr} tid:{tid}")
+    app.logger.debug("{CHATV2_ROUTE} request:\n", json.dumps(request.json, indent=4))
 
     def generate():
         url = 'https://api.openai.com/v1/chat/completions'
@@ -395,6 +396,7 @@ def chat_v2():
         response = requests.post(url, headers=headers,
                                  data=json.dumps(ai_request), stream=True)
         client = sseclient.SSEClient(response)
+        app.logger.debug(f"{CHATV2_ROUTE} Begin processing received SSE stream")
         for event in client.events():
             if event.data != '[DONE]':
                 try:
@@ -403,7 +405,6 @@ def chat_v2():
                     chat_streams[tid] = data['id']
                     if 'content' in delta:
                         text = delta['content']
-                        app.logger.debug(f"{text}")
                         yield (text)
                     elif 'role' in delta:
                         # discard
@@ -413,17 +414,17 @@ def chat_v2():
                     else:
                         # Unexpected delta content
                         app.logger.error(
-                            f"/chat/v2 tid:{tid} unexpected delta "
+                            f"{CHATV2_ROUTE} tid:{tid} unexpected delta "
                             f"content: {delta}")
                 except Exception as e:
                     log_exception(e)
                     yield ('')
         app.logger.info(
-            f"/chat/v2 tid:{tid} response stream-completed "
+            f"{CHATV2_ROUTE} tid:{tid} response stream-completed "
             f"from:{request.remote_addr}")
 
     app.logger.info(
-        f"/chat/v2 tid:{tid} response stream-started from:{request.remote_addr}")
+        f"{CHATV2_ROUTE} tid:{tid} response stream-started from:{request.remote_addr}")
     return Response(stream_with_context(generate()))
 
 

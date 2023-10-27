@@ -1,5 +1,7 @@
 # References
 
+References to documentation and tutorials for the technologies used in this project.
+
 ## OpenAI API
 
 - [OpenAI API](https://beta.openai.com/docs/api-reference/introduction)
@@ -29,6 +31,24 @@
 
 - [Flask](https://flask.palletsprojects.com/en/2.0.x/)
 - [Flask Tutorial](https://flask.palletsprojects.com/en/2.0.x/tutorial/)
+
+## SQLAlchemy
+
+- [SQLAlchemy](https://www.sqlalchemy.org/)
+- [SQLAlchemy Tutorial](https://docs.sqlalchemy.org/en/20/tutorial/)
+- [SQLAlchemy Documentation](https://docs.sqlalchemy.org/en/20/)
+
+## SQLite
+
+- [SQLite](https://www.sqlite.org/index.html)
+- [SQLite Tutorial](https://www.sqlitetutorial.net/)
+- [SQLite Documentation](https://www.sqlite.org/docs.html)
+
+## PostgreSQL
+
+- [PostgreSQL](https://www.postgresql.org/)
+- [PostgreSQL Tutorial](https://www.postgresqltutorial.com/)
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
 
 ## Testing
 
