@@ -1,5 +1,11 @@
 # Release Notes
 
+# v0.1
+
+Functional changes:
+
+1. Notes can now be added to an AI library so they can be used by the AI to answer questions
+
 ## v0.0.8
 
 Functional changes:

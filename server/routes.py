@@ -462,6 +462,21 @@ def docdb_list_documents(doctype_name=""):
     return jsonify(documents)
 
 
+@app.route('/docdb//ai_library', methods=['GET'])
+@app.route('/docdb/<doctype_name>/ai_library', methods=['GET'])
+@jwt_required()
+# Returns a list of documents that are in the AI library
+def docdb_list_ai_library(doctype_name=""):
+    app.logger.info(
+        f"/docdb/{doctype_name}/ai_library "
+        f"[GET] request from:{request.remote_addr}")
+    doctype = DBUtils.get_doctype_by_name(get_jwt_identity(), doctype_name)
+    # documents = DBUtils.list_documents(doctype["id"])
+    # ai_library_documents = [doc for doc in documents if isinstance(doc, dict) and isinstance(doc.get("content"), dict) and doc["content"].get("inAiLibrary")]
+    ai_library_documents = DBUtils.list_documents(doctype["id"])
+    return jsonify(ai_library_documents)
+
+
 @app.route('/docdb//documents', methods=['POST'])
 @app.route('/docdb/<doctype_name>/documents', methods=['POST'])
 @jwt_required()
