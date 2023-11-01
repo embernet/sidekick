@@ -8,6 +8,8 @@ Functional changes:
 2. Chat has has an AI Library button in the Prompt Editor that lets the user add and remove knowledge to the Chat from the AI Library or all Notes depending on filter
 3. Model settings now has a save button to save the current settings as the default for that user
 4. Model settings now has a restore system default settings button
+5. Explorers now support showing item properties (created data, modified date)
+6. Explorers now support sort by name, created_date, modified_date, ascending or descending
 
 ## v0.0.8
 

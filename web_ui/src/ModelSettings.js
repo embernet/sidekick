@@ -345,7 +345,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
         <Card sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth:"350px", maxWidth: "450px" }}>
             <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
                 <TuneIcon/>
-                <Typography sx={{mr:2}}>Model Settings</Typography>
+                <Typography sx={{mr:2}}>Settings</Typography>
                 <Tooltip title={ "Save settings as user defaults" }>
                     <span>
                         <IconButton edge="start" color="inherit" aria-label="Save settings as user defaults"
