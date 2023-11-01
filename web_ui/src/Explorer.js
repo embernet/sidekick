@@ -1,13 +1,16 @@
 import { debounce } from "lodash";
 import { useEffect, useState, useContext, useCallback } from 'react';
 import { Card, Box, Toolbar, IconButton, Typography, TextField, List, ListItem, ListItemText,
-    Tooltip } from '@mui/material';
+    Tooltip, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import ListAltIcon from '@mui/icons-material/ListAlt';
 
 import axios from 'axios';
 import { indigo } from '@mui/material/colors';
@@ -28,6 +31,9 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
     const [docs, setDocs] = useState([]);
     const [filterText, setFilterText] = useState('');
     const [myFolder, setMyFolder] = useState(folder);
+    const [sortOrder, setSortOrder] = useState("name");
+    const [sortOrderDirection, setSortOrderDirection] = useState(1);
+    const [showItemDetails, setShowItemDetails] = useState(false);
 
     const [width, setWidth] = useState(0);
     const handleResize = useCallback(
@@ -92,6 +98,28 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
             setFilterText("");
             event.preventDefault();
         }
+    };
+
+    const sort = (sortBy, sortDirection) => {
+        let sortedDocs = [];
+        if (sortBy === "name") {
+            sortedDocs = docs.sort((a, b) => (a.name > b.name) ? sortDirection : sortDirection * -1);
+        } else if (sortBy === "created") {
+            sortedDocs = docs.sort((a, b) => (a.created_date > b.created_date) ? sortDirection : sortDirection * -1);
+        } else if (sortBy === "updated") {
+            sortedDocs = docs.sort((a, b) => (a.updated_date > b.updated_date) ? sortDirection : sortDirection * -1);
+        }
+        setDocs(sortedDocs);
+    }
+
+    const handleSortOrderChange = (value) => {
+        setSortOrder(value);
+        sort(value, sortOrderDirection);
+    }
+
+    const handleToggleSortOrderDirection = () => {
+        sort(sortOrder, sortOrderDirection * -1);
+        setSortOrderDirection(x=>x*-1);
     }
 
     const handleLoadDoc = (id) => {
@@ -128,13 +156,19 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
     };
 
     return (
-        <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "350px", maxWidth: "450px"}}>
+        <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
+         flex:1, minWidth: "350px", maxWidth: "450px", width: "100%"}}>
             {
                 hidePrimaryToolbar ? null 
                 :
                     <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
                         {icon}
                         <Typography sx={{mr:2}}>{name}</Typography>
+                        <Tooltip title={showItemDetails ? "Hide details" : "Show details"}>
+                            <IconButton edge="start" onClick={() => { setShowItemDetails(state => !state); }}>
+                                <ListAltIcon />
+                            </IconButton>
+                        </Tooltip>
                         <Box ml="auto">
                             <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
                                 <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
@@ -149,16 +183,38 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
                         </Box>
                     </StyledToolbar>
             }
-            <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-                <TextField
-                    id="{name}-explorer-filter"
-                    autoComplete='off'
-                    label="Filter"
-                    value={filterText}
-                    onChange={handleFilterTextChange}
-                    onKeyDown={handleFilterKeyDown}
-                    sx={{ mt: 2, flex: 1 }}
-                />
+            <Box sx={{ width: "100%", paddingLeft: 0, paddingRight: 0, display: "flex", flexDirection: "row" }}>
+                <FormControl sx={{ mt: 2, minWidth: 120 }} size="small">
+                    <InputLabel id="{name}-explorer-sort-order-label">Sort order</InputLabel>
+                    <Select
+                        id="{name}-explorer-sort-order}"
+                        labelId="{name}-explorer-sort-order-label"
+                        value={sortOrder}
+                        label="Sort order"
+                        onChange={(event) => { handleSortOrderChange(event.target.value); }}
+                        >
+                                <MenuItem value="name">Name</MenuItem>
+                                <MenuItem value="created">Created</MenuItem>
+                                <MenuItem value="updated">Updated</MenuItem>
+                    </Select>
+                </FormControl>
+                <Tooltip title="Change sort order">
+                    <IconButton onClick={handleToggleSortOrderDirection}>
+                        { sortOrderDirection === 1 ? <ArrowUpwardIcon/> : <ArrowDownwardIcon/> }
+                    </IconButton>
+                </Tooltip>
+                <Box sx={{ flexGrow: 1 }}>
+                    <TextField
+                        id="{name}-explorer-filter"
+                        autoComplete='off'
+                        label="Filter"
+                        value={filterText}
+                        onChange={handleFilterTextChange}
+                        onKeyDown={handleFilterKeyDown}
+                        size="small"
+                        sx={{ mt: 2, flex: 1 }}
+                    />
+                </Box>
                 <Tooltip title={ filterText.length === 0 
                     ? "Enter a filter to enable bulk delete" 
                     : "Delete notes matching filter" 
@@ -178,6 +234,21 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
                     {Object.values(filteredDocs).map(doc => (
                         <ListItem sx={{ padding: 0, pl: 1, cursor: "pointer", backgroundColor: doc.id === openItemId && itemOpen ? "#e0e0e0" : "transparent" }} key={doc.id}>
                             <ListItemText primary={doc.name}
+                              secondary={
+                                showItemDetails ? (
+                                  <Typography
+                                    sx={{
+                                      fontSize: '12px',
+                                      color: 'text.secondary',
+                                      whiteSpace: 'pre-wrap',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                    }}
+                                  >
+                                    {`Created: ${doc.created_date.substring(0, 19)}\n${doc.updated_date ? 'Updated: ' + doc.updated_date.substring(0, 19) : ''}`}
+                                  </Typography>
+                                ) : null
+                              }                            
                             selected={openItemId === doc.id}
                             onClick={() => handleLoadDoc(doc.id)}
                             primaryTypographyProps={{ typography: 'body2' }}

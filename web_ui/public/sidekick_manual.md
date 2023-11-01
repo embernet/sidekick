@@ -61,6 +61,9 @@ Return to [Sidekick Tools](#sidekick-tools)
 - To clear the prompt box: When in the prompt box, press the Escape key
 - To create a new chat: Click the New Chat icon in the Chat main Toolbar
 - To turn code syntax highlighting on or off: Click the Code Highlighting icon in the Chat main Toolbar
+- Click on the book icon in the Prompt Editor to load notes from the AI knowledge library to augment the AI's knowledge for this chat
+  - Your notes will be added into the user prompt automatically to provide context for the AI to respond to your prompt
+  - AI models have a limited context winodw so keep knowledge notes concise to avoid running out of space
 - Right clicking on a message in the chat lets you:
   - Copy the message to the clipboard as text
   - Copy the message to the clipboard as HTML
@@ -190,6 +193,10 @@ Return to [Sidekick Tools](#sidekick-tools)
 - The secondary toolbar at the bottom of the note provides the following functions:
   - "Download Note" - Download the current note as a text file
   - "Upload Note" - Upload a text file as a new note
+- Add notes to the AI knowledge library so they can be used as knowledge in a Chat
+  - Create notes defining concepts or information that you want the AI to know about
+  - Add knowledge notes about you and how you want the AI to behave, what you are interested in, or specific knowledge relevant to you the AI doesn't know
+  - Click the book icon at the bottom of the Chat window to load notes as knowledge for use in that chat
 
 ### Note Tips, Questions and Answers
 

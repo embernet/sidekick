@@ -192,7 +192,7 @@ def name_topic():
     reflects what the text is about. Do not surround the name in speech marks."}, \
                 {"role": "user",
                  "content": "Provide a short single phrase to use as a title for this text: " +
-                            request.json['text']}]
+                            request.json['text'][:8000]}]
         }
         app.logger.debug(f"ai_request: {ai_request}")
         return ai_request

@@ -63,6 +63,10 @@
         "Suggest a movie": {
             "tags": ["home", "movies", "entertainment", "recommendations"],
             "content": { "prompt_template": "I like these movies, genres, directors, and actors: {MOVIE_PREFERENCES}. Suggest other movies I might like; for each suggested movie provide a brief summary of the plot, when it was made, who directed it, the main stars, and why I might like it."}
+        },
+        "Software requirements checklist": {
+            "tags": ["work", "requirements", "checklist", "sdlc"],
+            "content": { "prompt_template": "Provide a requirements checklist for a software application to provide {SOFTWARE_FUNCTIONALITY} in this context: {CONTEXT}. Consider the following aspects: User requirements, System requirements, Functional requirements, Non-functional requirements" }
         }
     }
 }

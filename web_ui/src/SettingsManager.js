@@ -22,7 +22,7 @@ class SettingsManager {
         response.data.access_token && this.setToken(response.data.access_token);
         responseProcessor(response.data);
       }).catch( error => {
-        const myError = new Error(`SettingsManager.loadSettings(${this.key}): ${error.message}; ${error.response?.data}`, error)
+        const myError = new Error(`SettingsManager.loadSettings(${this.key}): ${error?.message}; ${error.response?.data}`, error)
         console.error(error);
         if (errorProcessor) {
           errorProcessor(myError);
