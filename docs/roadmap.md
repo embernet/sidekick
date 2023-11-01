@@ -8,6 +8,25 @@ The following ideas are in the pipeline for future releases. If you have any ide
   - UI editors for all settings
   - UI for creating, editing, deleting, and sharing personas
   - UI for creating, editing, deleting, and sharing prompt fragments categories and text
+- AI Knowledge Library
+  - Group knowledge notes into ontologies
+  - Specify the type of knowledge notes, e.g. fact, concept, theory, etc.
+  - Describe tne knowledge in a note in a way that allows the AI to add that note to its knowledge base for use in its response to a particular prompt. This enables optimisation of the limited context window to include relevant knowledge for the current prompt.
+- Slash commands to be able to quickly perform actions, e.g.:
+  - Global context:
+    - `/chat` - create, open, ...
+    - `/note` - create, open, ...
+  - Withnin a tool context:
+    - `/open`
+    - `/close`
+    - `/export`
+    - `/import`
+    - `/clone`
+    - `/summarise`
+  - `/persona` - change persona
+  - `/prompt` - use a prompt template
+  - `/knowledge` - load knowledge into the AI
+  - `/help` - show help
 - Organisation
   - Folders for notes and chats
   - Tags for notes and chats
@@ -32,3 +51,22 @@ The following ideas are in the pipeline for future releases. If you have any ide
 - Rendering
   - Support for rendering mermaid diagrams
   - Support for rendering images
+- Scripting
+  - Scripting to automate tasks or create workflows
+  - Scripting to integrate custom plugins
+  - Scripting for prompt engineering
+- Extensibility
+  - Back end plugins to be able to add additional functionality or integrate with other systems:
+    - AI plugins
+    - Storage plugins
+    - Rendering plugins
+    - Authentication plugins
+    - Database plugins
+    - Search plugins
+    - Integration plugins
+  - Front end plugins to be able to add additional UI functionality or integrate with other systems:
+    - UI plugins
+    - Rendering plugins
+    - Authentication plugins
+    - Search plugins
+    - Integrations with other systems

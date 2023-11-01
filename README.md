@@ -156,10 +156,13 @@ You can either just deploy this and let it run, or you can use it as a starting 
 - Augment notes with the best parts from your chats
 - Export notes
 - Import notes
-- Chat with your notes, e.g.
-  - Ask questions about your notes
-  - Ask for a summary of your notes
-  - Ask for a summary of your notes on a specific topic
+- Use the Note Writer to write your note for you
+- Add notes to the AI knowledge library so they can be used as knowledge in Chat
+- Use the AI knowledge library to augment the AI's knowledge
+  - Create notes defining concepts of information that you want the AI to know about
+  - Click the book icon at the bottom of the Chat window to load notes as knowledge for use in that chat
+  - Your notes will be added into the user prompt automatically to provide context for the AI to respond to your prompt
+  - Add knowledge notes about you and how you want the AI to behave, what you are interested in, or specific knowledge relevant to you the AI doesn't know about
 
 # Sidekick Release Notes
 

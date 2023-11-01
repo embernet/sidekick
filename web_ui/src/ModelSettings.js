@@ -8,6 +8,9 @@ import CloseIcon from '@mui/icons-material/Close';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import HelpIcon from '@mui/icons-material/Help';
+import SaveIcon from '@mui/icons-material/Save';
+import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
+
 import { StyledToolbar } from './theme';
 
 
@@ -29,6 +32,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     const [presence_penalty, setpresence_penalty] = useState(null);
     const [frequency_penalty, setfrequency_penalty] = useState(null);
     const [showHelp, setShowHelp] = useState(false);
+    const [settingsChanged, setSettingsChanged] = useState(false);
 
     const [width, setWidth] = useState(0);
     const handleResize = useCallback( 
@@ -50,18 +54,19 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
         return () => observer.disconnect();
     }, [handleResize]);
 
-    useEffect(()=>{
+    const loadModelSettingsOptions = () => {
         mySettingsManager.loadSettings("model_settings",
             (data) => {
                 setModelSettingsOptions(data.model_settings);
                 setSliders(data.sliders);
-                setSelectedProvider(data.model_settings.default);
-                setSelectedModel(data.model_settings.providers[data.model_settings.default].default);
-                setModelOptions(Object.keys(data.model_settings.providers[data.model_settings.default].models));
-                setTemperature(data.sliders.temperature.default);
-                setTop_p(data.sliders.top_p.default);
-                setpresence_penalty(data.sliders.presence_penalty.default);
-                setfrequency_penalty(data.sliders.frequency_penalty.default);
+                const provider = data.model_settings.userDefault ? data.model_settings.userDefault : data.model_settings.default;
+                setSelectedProvider(provider);
+                setSelectedModel(data.model_settings.providers[provider].userDefault ? data.model_settings.providers[provider].userDefault : data.model_settings.providers[provider].default);
+                setModelOptions(Object.keys(data.model_settings.providers[data.model_settings.userDefault ? data.model_settings.userDefault : data.model_settings.default].models));
+                setTemperature(data.sliders.temperature.userDefault ? data.sliders.temperature.userDefault : data.sliders.temperature.default);
+                setTop_p(data.sliders.top_p.userDefault ? data.sliders.top_p.userDefault : data.sliders.top_p.default);
+                setpresence_penalty(data.sliders.presence_penalty.userDefault ? data.sliders.presence_penalty.userDefault : data.sliders.presence_penalty.default);
+                setfrequency_penalty(data.sliders.frequency_penalty.userDefault ? data.sliders.frequency_penalty.userDefault : data.sliders.frequency_penalty.default);
                 setModelSettingsOptionsLoaded(true);
             },
             (error) => {
@@ -69,7 +74,55 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
                 setLoadingModelSettingsOptionsMessage("Error loading model settings options: " + error);
             }
         )
+    }
+
+    useEffect(()=>{
+        loadModelSettingsOptions();
     }, []);
+
+    useEffect(() => {
+        setSettingsChanged(true);
+    }, [selectedProvider, selectedModel, temperature, top_p, presence_penalty, frequency_penalty]);
+
+    const saveUserDefaults = () => {
+        // Save current settings as user defaults
+        let m = modelSettingsOptions;
+        m.userDefault = selectedProvider;
+        m.providers[selectedProvider].userDefault = selectedModel;
+        let s = sliders;
+        s.temperature.userDefault = temperature;
+        s.top_p.userDefault = top_p;
+        s.presence_penalty.userDefault = presence_penalty;
+        s.frequency_penalty.userDefault = frequency_penalty;
+
+        const settings = {
+            "model_settings": m,
+            "sliders": s
+        }
+        console.log("ModelSettings.saveUserDefaults:", settings);
+        mySettingsManager.setAll(settings);
+        setSettingsChanged(false);
+    };
+
+    const restoreSystemDefaultSettings = () => {
+        let m = modelSettingsOptions;
+        m.userDefault = null;
+        m.providers[selectedProvider].userDefault = null;
+        let s = sliders;
+        s.temperature.userDefault = null;
+        s.top_p.userDefault = null;
+        s.presence_penalty.userDefault = null;
+        s.frequency_penalty.userDefault = null;
+
+        const settings = {
+            "model_settings": m,
+            "sliders": s
+        }
+        console.log("ModelSettings.restoreSystemDefaults:", settings);
+        mySettingsManager.setAll(settings);
+        loadModelSettingsOptions();
+        setSettingsChanged(false);
+    };
 
     const handleProviderChange = (event, value) => {
         if (value === null) {
@@ -292,7 +345,23 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
         <Card sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth:"350px", maxWidth: "450px" }}>
             <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
                 <TuneIcon/>
-                <Typography>Settings</Typography>
+                <Typography sx={{mr:2}}>Model Settings</Typography>
+                <Tooltip title={ "Save settings as user defaults" }>
+                    <span>
+                        <IconButton edge="start" color="inherit" aria-label="Save settings as user defaults"
+                            disabled={!settingsChanged} onClick={saveUserDefaults}>
+                            <SaveIcon/>
+                        </IconButton>
+                    </span>
+                </Tooltip>
+                <Tooltip title={ "Restore system default settings" }>
+                    <span>
+                        <IconButton edge="start" color="inherit" aria-label="Restore system default settings"
+                            onClick={restoreSystemDefaultSettings}>
+                            <SettingsBackupRestoreIcon/>
+                        </IconButton>
+                    </span>
+                </Tooltip>
                 <Box ml="auto">
                     <Tooltip title={showHelp ? "Hide help" : "Show help"}>
                         <IconButton onClick={handleToggleHelp}>

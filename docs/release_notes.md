@@ -1,5 +1,14 @@
 # Release Notes
 
+# v0.0.9
+
+Functional changes:
+
+1. Notes can now be added to an AI library so they can be used by the AI to answer questions
+2. Chat has has an AI Library button in the Prompt Editor that lets the user add and remove knowledge to the Chat from the AI Library or all Notes depending on filter
+3. Model settings now has a save button to save the current settings as the default for that user
+4. Model settings now has a restore system default settings button
+
 ## v0.0.8
 
 Functional changes:

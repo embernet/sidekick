@@ -174,6 +174,8 @@ class DBUtils:
                                     user_id=user_id, name=name,
                                     doctype_id=doctype.as_dict()["id"],
                                     properties=properties,
+                                    updated_date = str(datetime.now()),
+                                    created_date = str(datetime.now()),
                                     content=content)
             except NoResultFound:
                 app.logger.error(f"Tried to create a document with doctype: "

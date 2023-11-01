@@ -5,6 +5,8 @@ import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Box, Toolbar, IconButton, Typography, TextField, Menu, MenuItem, Tooltip } from '@mui/material';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
+
+// Icons
 import CloseIcon from '@mui/icons-material/Close';
 import ReplayIcon from '@mui/icons-material/Replay';
 import SendIcon from '@mui/icons-material/Send';
@@ -15,9 +17,13 @@ import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
+import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
+import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
 import { green, grey } from '@mui/material/colors';
 import { MuiFileInput } from 'mui-file-input';
 import SidekickMarkdown from './SidekickMarkdown';
+import HelpIcon from '@mui/icons-material/Help';
+
 
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
@@ -107,7 +113,7 @@ You always do your best to generate text in the same style as the context text p
     const [promptDisabled, setPromptDisabled] = useState(false);
     const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady.current);
     const [content, setContent] = useState("");
-    const [contentChanged, setContentChanged] = useState(false);
+    const [noteChanged, setNoteChanged] = useState(false);
     const [noteContextMenu, setNoteContextMenu] = useState(null);
     const [prompt, setPrompt] = useState("");
     const [promptToSend, setPromptToSend] = useState("");
@@ -121,6 +127,18 @@ You always do your best to generate text in the same style as the context text p
     const [streamingChatResponse, setStreamingChatResponse] = useState("");
     const streamingChatResponseRef = useRef("");
     const [AIResponse, setAIResponse] = useState("");
+    const [inAILibrary, setInAILibrary] = useState(false);
+    const [showLibraryHelp, setShowLibraryHelp] = useState(false);
+
+
+    useEffect(() => {
+        console.log("Note inAILibrary", inAILibrary);
+        setNoteChanged(true);
+    }, [inAILibrary]);
+
+    useEffect(() => {
+        save();
+    }, [noteChanged]);
 
     useEffect(() => {
         if (noteOpen && userPromptEntered) {
@@ -166,7 +184,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 }
                 newNote += newNotePart;
                 setContent(newNote);
-                setContentChanged(true);
+                setNoteChanged(true);
                 focusOnContent();
             }
         }
@@ -199,7 +217,12 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     setTags(response.data.metadata.tags);
                     setPreviousName(response.data.metadata.name);
                     setContent(response.data.content.note);
-                    setContentChanged(false); // as we just loaded it from the server
+                    if ("inAILibrary" in response.data.metadata.properties) {
+                        setInAILibrary(response.data.metadata.properties.inAILibrary);
+                    } else {
+                        setInAILibrary(false);
+                    }
+                    setNoteChanged(false); // as we just loaded it from the server
                     focusOnContent();
                 }).catch(error => {
                     console.log("loadNote error", error);
@@ -227,7 +250,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     useEffect(()=>{
         if (AIResponse !== "") {
             setContent( text => text + "\n" + AIResponse + "\n");
-            setContentChanged(true);
+            setNoteChanged(true);
             considerAutoNaming(content);
             focusOnContent(); // this also saves the note on blur
         }
@@ -267,12 +290,15 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         if (id === "" && content !== "") {
             create({name: name, content: content});
         } else {
-            if (contentChanged) {
+            if (noteChanged) {
                 const request = {
                     metadata: {
-                    id: id,
-                    name: name,
-                    tags: tags
+                        id: id,
+                        name: name,
+                        tags: tags,
+                        properties: {
+                            inAILibrary: inAILibrary,
+                        },
                     },
                     content: { note: content },
                 }
@@ -292,7 +318,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     console.error("note save error", request, error);
                     system.error(`Error saving note: ${error}`);
                 });
-                setContentChanged(false);
+                setNoteChanged(false);
             }
         }
     }
@@ -318,7 +344,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         const reader = new FileReader();
         reader.onload = (event) => {
           setContent(event.target.result);
-          setContentChanged(true);
+          setNoteChanged(true);
         };
         reader.readAsText(event);
         setUploadingFile(false);
@@ -355,7 +381,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 setPreviousName(response.data.metadata.name);
             }
             setTags(response.data.metadata.tags);
-            setContentChanged(false); // as we just saved/loaded it from the server
+            setNoteChanged(false); // as we just saved/loaded it from the server
             onChange(response.data.metadata.id, response.data.metadata.name, "created", "");
             setOpenNoteId({ id: response.data.metadata.id, timestamp: Date.now()});
         }).catch(error => {
@@ -366,12 +392,13 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
 
     const resetNote = () => {
         setId("");
+        setMarkdownRenderingOn(false);
         setName(newNoteName);
         setPreviousName(newNoteName);
         setTags([]);
         setContent("");
         setAIResponse('');
-        setContentChanged(false); // This is now a new empty note
+        setNoteChanged(false); // This is now a new empty note
     }
 
     const deleteNote = () => {
@@ -531,7 +558,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     };
 
     const handleContentKeyDown = async (event) => {
-        setContentChanged(true);
+        setNoteChanged(true);
         if(event.key === 'Enter') {
             considerAutoNaming(event.target.value);
         }
@@ -542,8 +569,11 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     }
 
     const handleToggleMarkdownRendering = () => {
-        let newSetting = !markdownRenderingOn;
-        setMarkdownRenderingOn(newSetting);
+        setMarkdownRenderingOn(x => !x);
+    };
+
+    const handleToggleInAILibrary = () => {
+        setInAILibrary(x => !x);
     };
 
     const aiToolbarButtons = (<>
@@ -575,6 +605,11 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         <Tooltip title={ markdownRenderingOn ? "Stop rendering as markdown and edit as text" : "Preview markdown and code rendering (read only)" }>
             <IconButton edge="start" color="inherit" aria-label="delete chat" onClick={handleToggleMarkdownRendering}>
                 { markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }
+            </IconButton>
+        </Tooltip>
+        <Tooltip title={ inAILibrary ? "Remove from AI Library" : "Add to AI library" }>
+            <IconButton edge="start" color="inherit" aria-label={ inAILibrary ? "Remove from AI Library" : "Add to AI library" } onClick={handleToggleInAILibrary}>
+                { inAILibrary ? <LocalLibraryIcon/> : <LocalLibraryOutlinedIcon/> }
             </IconButton>
         </Tooltip>
         <Box ml="auto">

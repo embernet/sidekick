@@ -3,10 +3,11 @@ import { debounce } from "lodash";
 
 import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Box, Paper, Toolbar, IconButton, Typography, TextField,
-    List, ListItem, Menu, MenuItem, Tooltip, Button
+    List, ListItem, Menu, MenuItem, Tooltip, Button, FormLabel, Popover
      } from '@mui/material';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
+import { InputLabel, FormHelperText, FormControl, Select } from '@mui/material';
 
 // Icons
 import CloseIcon from '@mui/icons-material/Close';
@@ -20,6 +21,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CodeIcon from '@mui/icons-material/Code';
 import CodeOffIcon from '@mui/icons-material/CodeOff';
 import SaveIcon from '@mui/icons-material/Save';
+import HelpIcon from '@mui/icons-material/Help';
+import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
+import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
 
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
@@ -96,6 +100,23 @@ const Chat = ({
     const [tags, setTags] = useState([]);
     const [myServerUrl, setMyServerUrl] = useState(serverUrl);
 
+    // AI Library state
+    const [aiLibrary, setAiLibrary] = useState([]);
+    const [selectedAiLibraryNotes, setSelectedAiLibraryNotes] = useState({});
+    const [selectedAiLibraryNoteId, setSelectedAiLibraryNoteId] = useState("");
+    const [aiLibraryOpen, setAiLibraryOpen] = useState(false);
+    const [showOnlyNotesInAiLibrary, setShowOnlyNotesInAiLibrary] = useState(true);
+    const [anchorAiLibraryHelpEl, setAnchorAiLibraryHelpEl] = useState(null);
+    const aiLibraryHelpPopoverOpen = Boolean(anchorAiLibraryHelpEl);
+
+    const handleAiLibraryHelpPopoverOpen = (event) => {
+        setAnchorAiLibraryHelpEl(event.currentTarget);
+      };
+      
+      const handleAiLibraryHelpPopoverClose = () => {
+        setAnchorAiLibraryHelpEl(null);
+      };
+
     const applyCustomSettings = () => {
         axios.get(`${serverUrl}/custom_settings/chat`).then(response => {
             if ("userPromptReady" in response.data) {
@@ -133,6 +154,7 @@ const Chat = ({
             if (!loadChat) {
                 reset();
             }
+            loadAiLibrary();
         } else {
             closeChatWindow();
         }
@@ -384,6 +406,22 @@ const Chat = ({
         });
     }
 
+    const loadAiLibrary = () => {
+        axios.get(`${serverUrl}/docdb/notes/ai_library`, {
+            headers: {
+                Authorization: 'Bearer ' + token
+              }
+        }).then(response => {
+            console.log("/docdb/notes/ai_library Response", response);
+            response.data.access_token && setToken(response.data.access_token);
+            response.data.documents.sort((a, b) => (a.name > b.name) ? 1 : -1);
+            setAiLibrary(response.data.documents);
+        }).catch(error => {
+            console.error("Chat error loading AI Library:", error);
+            system.error(`Chat error loading AI Library: ${error}`);
+        });
+    };
+
     const save = () => {
         let request = {
             metadata: {
@@ -463,10 +501,17 @@ const Chat = ({
     const sendPrompt = async (prompt) => {
         // setup as much of the request as we can before calling appendMessage
         // as that will wait for any re-rendering and the id could change in that time
+        let knowledge = "";
+        for (const [id, note] of Object.entries(selectedAiLibraryNotes)) {
+            knowledge += "KNOWLEDGE_NAME:" + note.metadata.name + "\nKNOWLEDGE_CONTENT:\n" + note.content.note + "\n\n";
+        }
+        if (knowledge !== "") {
+            knowledge = "Given the following knowledge:\n\n" + knowledge + "\n\nRespond to this prompt:\n\n";
+        }
         let requestData = {
             model_settings: myModelSettings,
             system_prompt: systemPrompt,
-            prompt: prompt,
+            prompt: knowledge + prompt,
             id: id,
             name: name,
             persona: myPersona,
@@ -790,8 +835,51 @@ const Chat = ({
         setMarkdownRenderingOn(newSetting);
     };
 
+    const handleToggleAILibraryOpen = () => {
+        if (aiLibraryOpen) {
+            setAiLibraryOpen(false);
+        } else {
+            loadAiLibrary();
+            setAiLibraryOpen(true);
+        }
+    }
+
+    const handleloadKnowledgeToAi = (event) => {
+        const noteStub = event.target.value;
+        if (noteStub && noteStub.id) {
+            console.log("Chat loading knowledge to AI", noteStub.id, noteStub.name);
+            axios.get(`${serverUrl}/docdb/notes/documents/${noteStub.id}`, {
+                headers: {
+                    Authorization: 'Bearer ' + token
+                  }
+            }).then(response => {
+                console.log("Chat AI library note load Response", response);
+                response.data.access_token && setToken(response.data.access_token);
+                const aiLibraryNote = response.data;
+                const updatedSelectedAiLibraryNotes = { ...selectedAiLibraryNotes, [aiLibraryNote.metadata.id]: aiLibraryNote };
+                setSelectedAiLibraryNotes(updatedSelectedAiLibraryNotes);
+                console.log("Selected aiLibrary notes", selectedAiLibraryNotes);
+                // reset the Select component
+                setSelectedAiLibraryNoteId("");
+            }).catch(error => {
+                console.log("Chat AI library note load error", error);
+                system.error(`Error loading Chat AI library note: ${error}`);
+            });
+        }
+    }
+
+    const handleUnloadKnowledgeFromAi = (id) => {
+        if (id && id in selectedAiLibraryNotes) {
+            console.log("Unloading knowledge from AI: ", id);
+            const updatedSelectedAiLibraryNotes = { ...selectedAiLibraryNotes };
+            delete updatedSelectedAiLibraryNotes[id];
+            setSelectedAiLibraryNotes(updatedSelectedAiLibraryNotes);
+            console.log("Selected aiLibrary notes", selectedAiLibraryNotes);
+        }
+    }
+
     const render = <Card id="chat-panel" sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "400px", maxWidth: maxWidth ? maxWidth : "600px" }}>
-    <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 } }>
+    <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
         <CommentIcon/>
         <Typography sx={{mr:2}}>Chat</Typography>
         <Tooltip title={ id === "" ? "You are in a new chat" : "New chat"}>
@@ -928,12 +1016,26 @@ const Chat = ({
                 </ListItem>}
             </List>
         </Box>
-        <Box sx={{ minHeight: "128px" }}>
+        <Box sx={{ display: "flex", flexDirection: "column", minHeight: "128px" }}>
             <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
                 <Typography sx={{mr:2}}>Prompt Editor</Typography>
+                <Tooltip title={ "Save prompt as template" }>
+                    <span>
+                        <IconButton edge="start" color="inherit" aria-label="save prompt as template"
+                            disabled={streamingChatResponse !== ""} onClick={handleSavePromptAsTemplate}>
+                            <SaveIcon/>
+                        </IconButton>
+                    </span>
+                </Tooltip>
+                <Tooltip title={ aiLibraryOpen ? "Hide AI Library" : `Show AI Library (${Object.keys(selectedAiLibraryNotes).length} knowledge notes loaded)`}>
+                    <IconButton edge="start" color="inherit" aria-label={ aiLibraryOpen ? "Hide AI Library" : "Show AI Library"}
+                        onClick={handleToggleAILibraryOpen}>
+                        { Object.keys(selectedAiLibraryNotes).length === 0 ? <LocalLibraryOutlinedIcon/> : <LocalLibraryIcon/> }
+                    </IconButton>
+                </Tooltip>
                 <Tooltip title={ "Ask again" }>
                     <span>
-                        <IconButton edge="start" color="inherit" aria-label="menu" 
+                        <IconButton edge="start" color="inherit" aria-label="Ask again" 
                             disabled={streamingChatResponse !== ""} onClick={handleAskAgain}>
                             <ReplayIcon/>
                         </IconButton>
@@ -941,17 +1043,9 @@ const Chat = ({
                 </Tooltip>
                 <Tooltip title={ "Reload last prompt for editing" }>
                     <span>
-                        <IconButton edge="start" color="inherit" aria-label="menu"
+                        <IconButton edge="start" color="inherit" aria-label="Reload last prompt for editing"
                             disabled={streamingChatResponse !== ""} onClick={handleReload}>
                             <RedoIcon/>
-                        </IconButton>
-                    </span>
-                </Tooltip>
-                <Tooltip title={ "Save prompt as template" }>
-                    <span>
-                        <IconButton edge="start" color="inherit" aria-label="save prompt as template"
-                            disabled={streamingChatResponse !== ""} onClick={handleSavePromptAsTemplate}>
-                            <SaveIcon/>
                         </IconButton>
                     </span>
                 </Tooltip>
@@ -977,7 +1071,7 @@ const Chat = ({
                 </Box>
             </SecondaryToolbar>
             <TextField 
-                sx={{ width: "100%", mt: "auto", overflow: "auto", maxHeight: "300px" }}
+                sx={{ width: "100%", mt: "auto", flex: 1, overflow: "auto", minHeight: "56px", maxHeight: "300px" }}
                     id="chat-prompt"
                     multiline 
                     variant="outlined" 
@@ -1004,6 +1098,73 @@ const Chat = ({
                     </Button>
                 </Tooltip>
             </Paper>
+            { aiLibraryOpen ? 
+                <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: grey[100] }}>
+                    <Box sx={{ mt: 2, display: "flex", flexDirection: "column", width: "100%" }}>
+                        <FormLabel>Loaded knowledge: { Object.keys(selectedAiLibraryNotes).length === 0 ? "None" : ""}</FormLabel>
+                        <List dense sx={{ width: "100%", overflow: "auto", maxHeight: "100px" }}>
+                            {Object.values(selectedAiLibraryNotes).map(note =>(
+                                <ListItem 
+                                    key={"loaded-ai-knowledge-" + note.metadata.id}
+                                    secondaryAction={
+                                        <Tooltip title={ "Unload knowledge from AI" }>
+                                            <IconButton edge="end" aria-label="Unload knowledge from AI" onClick={() => {handleUnloadKnowledgeFromAi(note.metadata.id)}}>
+                                                <CloseIcon />
+                                            </IconButton>
+                                        </Tooltip>
+                                      }
+                                >
+                                    {note.metadata.name}
+                                </ListItem>
+                            ))}
+                        </List>
+                        <FormControl sx={{ minWidth: 120, width: "100%" }}>
+                            <Box sx={{ display: "flex", direction: "row", width: "100%" }}>
+                                <InputLabel id="ai-library-helper-label">Select knowledge to add</InputLabel>
+                                <Select
+                                sx={{width: "100%"}}
+                                labelId="ai-library-select-helper-label"
+                                id="ai-library-select-helper"
+                                label="Select notes to add to AI knowledge"
+                                value={selectedAiLibraryNoteId}
+                                onChange={handleloadKnowledgeToAi}
+                                >
+                                    {(showOnlyNotesInAiLibrary ? aiLibrary.filter(noteStub => noteStub.properties.inAILibrary) : aiLibrary).map((noteStub) => (
+                                        <MenuItem key={'ai-library-item-' + noteStub.id} value={noteStub}>{noteStub.name}</MenuItem>
+                                    ))}
+                                </Select>
+                                <Tooltip title={ showOnlyNotesInAiLibrary ? "Select box will show notes that are in the AI Library. Click to show all notes" : "Show only notes in AI library" }>
+                                    <IconButton onClick={() => { setShowOnlyNotesInAiLibrary(x=>!x) }}>
+                                        { showOnlyNotesInAiLibrary ? <LocalLibraryIcon/> : <LocalLibraryOutlinedIcon/> }
+                                    </IconButton>
+                                </Tooltip>
+                                <IconButton onClick={handleAiLibraryHelpPopoverOpen}>
+                                <HelpIcon />
+                                </IconButton>
+                                <Popover
+                                id="ai-library-help-popover"
+                                open={aiLibraryHelpPopoverOpen}
+                                    anchorEl={anchorAiLibraryHelpEl}
+                                onClick={handleAiLibraryHelpPopoverClose}
+                                onClose={handleAiLibraryHelpPopoverClose}
+                                anchorOrigin={{
+                                    vertical: 'bottom',
+                                    horizontal: 'left',
+                                }}
+                                transformOrigin={{
+                                    vertical: 'top',
+                                    horizontal: 'left',
+                                }}
+                                >
+                                <FormHelperText sx={{ p: 2, width: "300px" }}>
+                                    Add knowledge the AI can use to answer questions by creating notes and clicking the book icon in the notes main toolbar to add them to the AI library, then select notes from this list for the AI to use in answering your questions. Click the X next to loaded knowledge notes to unload them. Loaded knowledge takes up space in the AI context window, so ensure it is concise.
+                                </FormHelperText>
+                                </Popover>
+                            </Box>
+                        </FormControl>
+                    </Box>
+                </Paper> : null
+            }
         </Box>
     </Box>
 </Card>;

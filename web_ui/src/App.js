@@ -52,7 +52,7 @@ import { theme } from './theme';
 import { Toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const VERSION = "0.0.8";
+const VERSION = "0.0.9";
 
 function App() {
   const system = useContext(SystemContext);

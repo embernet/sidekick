@@ -38,16 +38,9 @@ Sidekick provides a chat interface to OpenAI's GPT models along with pre-canned 
 - To clear the prompt box: When in the prompt box, press the Escape key
 - To create a new chat: Click the New Chat icon in the Chat main Toolbar
 - To turn code syntax highlighting on or off: Click the Code Highlighting icon in the Chat main Toolbar
-- Right clicking on a message in the chat lets you:
-  - Copy the message to the clipboard as text
-  - Copy the message to the clipboard as HTML
-  - Append the message to the prompt
-  - Use the message as the prompt
-  - Append the message to a note
-  - Append all messages in the chat to a note
-  - Delete a message
-  - Delete all messages in the chat
+- Right clicking on a message in the chat lets you copy the message, use it in the prompt, append it to a note, or delete it
 - The chat history is saved in the Sidekick database
+- Click the book icon to open the AI knowledge library and add notes you want the AI to use as context in this chat
 
 ### Chat Tips, Questions and Answers
 
@@ -131,14 +124,11 @@ To favorite or unfavorite an AI Persona, click the heart icon next to the person
 - Create and edit notes
 - Collect the best parts of your chats by right clicking on a message in the chat and selecting "Append message to note"
 - Copy your entire chat to a note by right clicking on a message in the chat and selecting "Append all to note"
-- Right click on a note in the Notes window to:
-  - "Copy" 
-  - "Copy as HTML" 
-  - "Append to chat input" 
-  - "Use as chat input" 
+- Right click on a note in the Notes window to copy the note to the clipboard, or use in chat input
 - The primary toolbar at the top of the note provides the following functions:
   - "New Note" 
   - "Delete Note" 
+  - "Add note to knowledge library" - these notes can be loaded as knowledge into chats
 - The secondary toolbar at the bottom of the note provides the following functions:
   - "Download Note" 
   - "Upload Note" 

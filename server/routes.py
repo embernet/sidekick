@@ -192,7 +192,7 @@ def name_topic():
     reflects what the text is about. Do not surround the name in speech marks."}, \
                 {"role": "user",
                  "content": "Provide a short single phrase to use as a title for this text: " +
-                            request.json['text']}]
+                            request.json['text'][:8000]}]
         }
         app.logger.debug(f"ai_request: {ai_request}")
         return ai_request
@@ -460,6 +460,21 @@ def docdb_list_documents(doctype_name=""):
     doctype = DBUtils.get_doctype_by_name(get_jwt_identity(), doctype_name)
     documents = DBUtils.list_documents(doctype["id"])
     return jsonify(documents)
+
+
+@app.route('/docdb//ai_library', methods=['GET'])
+@app.route('/docdb/<doctype_name>/ai_library', methods=['GET'])
+@jwt_required()
+# Returns a list of documents that are in the AI library
+def docdb_list_ai_library(doctype_name=""):
+    app.logger.info(
+        f"/docdb/{doctype_name}/ai_library "
+        f"[GET] request from:{request.remote_addr}")
+    doctype = DBUtils.get_doctype_by_name(get_jwt_identity(), doctype_name)
+    # documents = DBUtils.list_documents(doctype["id"])
+    # ai_library_documents = [doc for doc in documents if isinstance(doc, dict) and isinstance(doc.get("content"), dict) and doc["content"].get("inAiLibrary")]
+    ai_library_documents = DBUtils.list_documents(doctype["id"])
+    return jsonify(ai_library_documents)
 
 
 @app.route('/docdb//documents', methods=['POST'])

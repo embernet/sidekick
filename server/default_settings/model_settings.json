@@ -19,7 +19,7 @@
                         "systemMessage": "You are a helpful advisor."
                     }
                 },
-                "default": "gpt-4"
+                "default": "gpt-3.5-turbo"
             }
         },
         "default": "OpenAI"
