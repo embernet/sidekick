@@ -194,7 +194,7 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
       }, {});
 
     const loadingRender = <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
-    flex:1, minWidth: "350px", maxWidth: "450px"}}>
+    flex:1, minWidth: "380px", maxWidth: "450px"}}>
         <Typography>{loadingPersonasMessage}</Typography>
     </Card>
 
@@ -272,7 +272,7 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
         </List>
 
     const render = <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
-    flex:1, minWidth: "350px", maxWidth: "450px"}}>
+    flex:1, minWidth: "380px", maxWidth: "450px"}}>
         <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
             <PersonIcon/>
             <Typography sx={{mr:2}}>Personas</Typography>

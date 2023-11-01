@@ -80,7 +80,7 @@ const PromptEngineer = ({handleTogglePromptEngineer, setNewPromptPart, setNewPro
     };
 
     const loadingRender = <Card sx={{display:"flex", flexDirection:"column", padding:"6px",
-        flex:1, minWidth: "350px", maxWidth: "450px"}}>
+        flex:1, minWidth: "380px", maxWidth: "450px"}}>
             <Typography>{loadingPromptPartsMessage}</Typography>
         </Card>
 
@@ -152,7 +152,7 @@ const PromptEngineer = ({handleTogglePromptEngineer, setNewPromptPart, setNewPro
         </Box>
 
     const render = <Card id="prompt-engineer-panel" sx={{display:"flex", flexDirection:"column", padding:"6px", margin: "6px",
-        flex:1, minWidth: "350px", maxWidth: "450px"}}>
+        flex:1, minWidth: "380px", maxWidth: "450px"}}>
         <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
             <BuildIcon/>
             <Typography sx={{mr:2}}>Prompt Engineer</Typography>

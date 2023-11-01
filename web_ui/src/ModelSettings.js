@@ -33,6 +33,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     const [frequency_penalty, setfrequency_penalty] = useState(null);
     const [showHelp, setShowHelp] = useState(false);
     const [settingsChanged, setSettingsChanged] = useState(false);
+    const [settingsDifferentToFactoryDefaults, setSettingsDifferentToFactoryDefaults] = useState(false);
 
     const [width, setWidth] = useState(0);
     const handleResize = useCallback( 
@@ -54,34 +55,50 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
         return () => observer.disconnect();
     }, [handleResize]);
 
-    const loadModelSettingsOptions = () => {
+    const setModelSettingsOptionsFromData = (data) => {
+        setModelSettingsOptions(data.model_settings);
+        setSliders(data.sliders);
+        const provider = data.model_settings.userDefault ? data.model_settings.userDefault : data.model_settings.default;
+        setSelectedProvider(provider);
+        setSelectedModel(data.model_settings.providers[provider].userDefault ? data.model_settings.providers[provider].userDefault : data.model_settings.providers[provider].default);
+        setModelOptions(Object.keys(data.model_settings.providers[data.model_settings.userDefault ? data.model_settings.userDefault : data.model_settings.default].models));
+        setTemperature(data.sliders.temperature.userDefault ? data.sliders.temperature.userDefault : data.sliders.temperature.default);
+        setTop_p(data.sliders.top_p.userDefault ? data.sliders.top_p.userDefault : data.sliders.top_p.default);
+        setpresence_penalty(data.sliders.presence_penalty.userDefault ? data.sliders.presence_penalty.userDefault : data.sliders.presence_penalty.default);
+        setfrequency_penalty(data.sliders.frequency_penalty.userDefault ? data.sliders.frequency_penalty.userDefault : data.sliders.frequency_penalty.default);
+        setModelSettingsOptionsLoaded(true);
+    }
+
+    useEffect(()=>{
         mySettingsManager.loadSettings("model_settings",
             (data) => {
-                setModelSettingsOptions(data.model_settings);
-                setSliders(data.sliders);
-                const provider = data.model_settings.userDefault ? data.model_settings.userDefault : data.model_settings.default;
-                setSelectedProvider(provider);
-                setSelectedModel(data.model_settings.providers[provider].userDefault ? data.model_settings.providers[provider].userDefault : data.model_settings.providers[provider].default);
-                setModelOptions(Object.keys(data.model_settings.providers[data.model_settings.userDefault ? data.model_settings.userDefault : data.model_settings.default].models));
-                setTemperature(data.sliders.temperature.userDefault ? data.sliders.temperature.userDefault : data.sliders.temperature.default);
-                setTop_p(data.sliders.top_p.userDefault ? data.sliders.top_p.userDefault : data.sliders.top_p.default);
-                setpresence_penalty(data.sliders.presence_penalty.userDefault ? data.sliders.presence_penalty.userDefault : data.sliders.presence_penalty.default);
-                setfrequency_penalty(data.sliders.frequency_penalty.userDefault ? data.sliders.frequency_penalty.userDefault : data.sliders.frequency_penalty.default);
-                setModelSettingsOptionsLoaded(true);
+                setModelSettingsOptionsFromData(data);
             },
             (error) => {
                 console.log("get prompt_parts:", error);
                 setLoadingModelSettingsOptionsMessage("Error loading model settings options: " + error);
             }
         )
-    }
-
-    useEffect(()=>{
-        loadModelSettingsOptions();
     }, []);
 
     useEffect(() => {
         setSettingsChanged(true);
+        setSettingsChanged(
+            (selectedProvider !== modelSettingsOptions?.userDefault) ||
+            (selectedModel !== modelSettingsOptions.providers[selectedProvider]?.userDefault) ||
+            (temperature !== sliders.temperature?.userDefault) ||
+            (top_p !== sliders.top_p?.userDefault) ||
+            (presence_penalty !== sliders.presence_penalty?.userDefault) ||
+            (frequency_penalty !== sliders.frequency_penalty?.userDefault)
+        );
+        setSettingsDifferentToFactoryDefaults(
+            (selectedProvider !== modelSettingsOptions.default) ||
+            (selectedModel !== modelSettingsOptions.providers[selectedProvider].default) ||
+            (temperature !== sliders.temperature.default) ||
+            (top_p !== sliders.top_p.default) ||
+            (presence_penalty !== sliders.presence_penalty.default) ||
+            (frequency_penalty !== sliders.frequency_penalty.default)
+        );
     }, [selectedProvider, selectedModel, temperature, top_p, presence_penalty, frequency_penalty]);
 
     const saveUserDefaults = () => {
@@ -114,13 +131,13 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
         s.presence_penalty.userDefault = null;
         s.frequency_penalty.userDefault = null;
 
-        const settings = {
+        const settingsData = {
             "model_settings": m,
             "sliders": s
         }
-        console.log("ModelSettings.restoreSystemDefaults:", settings);
-        mySettingsManager.setAll(settings);
-        loadModelSettingsOptions();
+        console.log("ModelSettings.restoreSystemDefaults:", settingsData);
+        setModelSettingsOptionsFromData(settingsData);
+        mySettingsManager.setAll(settingsData);
         setSettingsChanged(false);
     };
 
@@ -205,7 +222,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     }, [selectedProvider, selectedModel, temperature, top_p, presence_penalty, frequency_penalty]);
 
     const loadingRender =
-        <Card sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "350px", maxWidth: "450px" }}>
+        <Card sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "380px", maxWidth: "450px" }}>
             <Typography>{loadingModelSettingsOptionsMessage}</Typography>
         </Card>;
 
@@ -342,7 +359,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
         </Box>
 
     const render =
-        <Card sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth:"350px", maxWidth: "450px" }}>
+        <Card sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth:"380px", maxWidth: "450px" }}>
             <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
                 <TuneIcon/>
                 <Typography sx={{mr:2}}>Settings</Typography>
@@ -357,6 +374,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
                 <Tooltip title={ "Restore system default settings" }>
                     <span>
                         <IconButton edge="start" color="inherit" aria-label="Restore system default settings"
+                            disabled={!settingsDifferentToFactoryDefaults}
                             onClick={restoreSystemDefaultSettings}>
                             <SettingsBackupRestoreIcon/>
                         </IconButton>
