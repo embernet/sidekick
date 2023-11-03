@@ -1,0 +1,8 @@
+{
+    "preLogin": {
+        "message": "Welcome to Sidekick, an AI workbench for learning, thinking, and creating.\nBe careful to not enter personal or sensitive information."
+    },
+    "functionality": {
+        "createAccount": false
+    }
+}
