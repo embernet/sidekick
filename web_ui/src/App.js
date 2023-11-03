@@ -31,6 +31,7 @@ import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import MinimizeIcon from '@mui/icons-material/Minimize';
 import FolderIcon from '@mui/icons-material/Folder';
 import LogoutIcon from '@mui/icons-material/Logout';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import HelpIcon from '@mui/icons-material/Help';
 
@@ -45,6 +46,7 @@ import SettingsManager from './SettingsManager';
 import Login from './Login';
 import FeedbackButton from './FeedbackButton';
 import AppSettings from './AppSettings';
+import Admin from './Admin';
 import SidekickAI from './SidekickAI';
 
 import { theme } from './theme';
@@ -52,7 +54,7 @@ import { theme } from './theme';
 import { Toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const VERSION = "0.0.9";
+const VERSION = "0.1";
 
 function App() {
   const system = useContext(SystemContext);
@@ -60,6 +62,7 @@ function App() {
   const [sidekickAIOpen, setSidekickAIOpen] = useState(false);
   const [sidekickAIPinned, setSidekickAIPinned] = useState(false);
   const [appSettingsOpen, setAppSettingsOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
   const [chatsOpen, setChatsOpen] = useState(true);
   const [chatsPinned, setChatsPinned] = useState(false);
   const [promptTemplatesPinned, setPromptTemplatesPinned] = useState(false);
@@ -105,11 +108,16 @@ function App() {
   const [appUsage, setAppUsage] = useState("");
   const [appSettings, setAppSettings] = useState({});
   const [appMenuAnchorEl, setAppMenuAnchorEl] = useState(null);
+  const [userPermissions, setUserPermissions] = useState({
+    "roles": {
+      "admin": true,
+    }
+  });
 
   const mySettingsManager = useRef(null);
 
   const applyCustomSettings = () => {
-    axios.get(`${serverUrl}/custom_settings/app`).then(response => {
+    axios.get(`${serverUrl}/system_settings/app`).then(response => {
       console.log("App custom settings:", response);
       if ("instanceName" in response.data) {
         setAppInstanceName(response.data.instanceName);
@@ -151,6 +159,7 @@ function App() {
         setNotesOpen(data.notesOpenDefault);
         setNotesPinned(data.notesPinned);
         setAppSettingsOpen(false);
+        setAdminOpen(false);
       },
       (error) => {
           console.log("get app settings:", error);
@@ -210,6 +219,13 @@ function App() {
       closeUnpinnedLeftSideWindows(event);
     }
     setAppSettingsOpen(state => !state);
+  }
+
+  const handleToggleAdminOpen = (event) => {
+    if (!adminOpen) {
+      closeUnpinnedLeftSideWindows(event);
+    }
+    setAdminOpen(state => !state);
   }
 
   const handleLogout = () => {
@@ -356,6 +372,7 @@ function App() {
   const minimiseWindows = () => {
     setChatOpen(false);
     setAppSettingsOpen(false);
+    setAdminOpen(false);
     setChatsOpen(false);
     setChatsPinned(false);
     setPromptEngineerOpen(false);
@@ -443,6 +460,9 @@ function App() {
                   <MenuItem key="menuAppSettings" onClick={() => { handleAppMenuClose(); handleToggleAppSettingsOpen(); }}>
                     <SettingsIcon/><Typography  sx={{ ml: 1 }}>{ appSettingsOpen ? "Settings - Close App Settings" : "Settings - Open App Setings" }</Typography>
                   </MenuItem>
+                  <MenuItem key="menuAdmin" onClick={() => { handleAppMenuClose(); handleToggleAdminOpen(); }}>
+                    <AdminPanelSettingsIcon/><Typography sx={{ ml: 1 }}>Admin</Typography>
+                  </MenuItem>
                   <MenuItem key="menuLogout" onClick={() => { handleAppMenuClose(); handleLogout(); }}>
                     <LogoutIcon/><Typography sx={{ ml: 1 }}>Logout</Typography>
                   </MenuItem>
@@ -523,12 +543,21 @@ function App() {
               chatStreamingOn={chatStreamingOn} 
               serverUrl={serverUrl} token={token} setToken={setToken}
             />
+            { userPermissions.roles.admin && adminOpen ? <Admin 
+              adminOpen={adminOpen}
+              setAdminOpen={setAdminOpen}
+              user={user}
+              setUser={setUser}
+              serverUrl={serverUrl} token={token} setToken={setToken}
+              userPermissions={userPermissions}
+            /> : null }
             <AppSettings 
               appSettingsOpen={appSettingsOpen}
               setAppSettingsOpen={setAppSettingsOpen}
               user={user}
               setUser={setUser}
               serverUrl={serverUrl} token={token} setToken={setToken}
+              userPermissions={userPermissions}
             />
             { chatsOpen ? <Explorer
             handleToggleExplorer={handleToggleChatsOpen}

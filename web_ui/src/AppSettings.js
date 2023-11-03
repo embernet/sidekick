@@ -15,17 +15,27 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     gap: 2,
 }));
 
-const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser, onClose, serverUrl, token, setToken }) => {
+const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
+     onClose, serverUrl, token, setToken, userPermissions }) => {
     const system = useContext(SystemContext);
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [reEnteredNewPassword, setReEnteredNewPassword] = useState('');
     const [confirmUser, setConfirmUserId] = useState('');
-    const [showChangePassword, setShowChangePassword] = useState(false);
-    const [showDeleteAccount, setShowDeleteAccount] = useState(false);
     const [tabIndex, setTabIndex] = useState(0);
+    const [appSettingsSystemSettings, setAppSettingsSystemSettings] = useState({});
 
     const [width, setWidth] = useState(0);
+
+    const loadSystemSettings = () => {
+        axios.get(`${serverUrl}/system_settings/appsettings`).then(response => {
+            setAppSettingsSystemSettings(response.data);
+            console.log("AppSettings system settings:", response);
+        }).catch(error => {
+            console.error("Error getting AppSettings system settings:", error);
+        });
+    }
+
     const handleResize = useCallback( 
         // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
         debounce((entries) => {
@@ -58,7 +68,7 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser, onClo
     };
 
     useEffect(() => {
-        console.log("AppSettings instantiated");
+        loadSystemSettings();
     }, []);
 
     useEffect(() => {
@@ -123,6 +133,7 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser, onClo
         }).catch(error => {
             setCurrentPassword('');
             setNewPassword('');
+            setReEnteredNewPassword('');
             console.error(error);
             system.error(`An error occurred while changing password: ${error}`);
         }
@@ -182,8 +193,8 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser, onClo
               <Tabs value={tabIndex} onChange={handleTabChange} orientation="vertical"
                   sx={{  textAlign: "left" }}>
                   <Tab label="About" />
-                  <Tab label="Change Password" />
-                  <Tab label="Delete Account" />
+                  {appSettingsSystemSettings?.functionality?.changePassword ? <Tab label="Change Password" /> : null}
+                  {appSettingsSystemSettings?.functionality?.deleteAccount ? <Tab label="Delete Account" /> : null}
               </Tabs>
           </Box>
           <Paper sx={{ flexDirection: "column", justifyContent: "top",
@@ -222,7 +233,6 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser, onClo
                           <Button type="button" onClick={handleCancel}>Cancel</Button>
                       </Box>
                   </Box>
-
               )}
           </Paper>
       </Box>

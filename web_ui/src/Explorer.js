@@ -157,7 +157,7 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
 
     return (
         <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
-         flex:1, minWidth: "380px", maxWidth: "450px", width: "100%"}}>
+         flex:1, minWidth: "320px", maxWidth: "450px", width: "100%"}}>
             {
                 hidePrimaryToolbar ? null 
                 :

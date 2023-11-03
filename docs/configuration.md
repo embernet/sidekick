@@ -13,31 +13,10 @@ The server supports multiple configuration options that can be supplied as envir
 | LOG_LEVEL               | The miminum urgency of logs to write to standard out. Supported values: 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'.           |              | ERROR               |
 | FLASK_DEBUG             | Whether or not to run the Flask app in debug mode. Supported values: 'True', 'False'.                                              |              | False               |
 
-### Custom settings
+### System settings
 
-Custom settings can be used to customise specific parts of the application by editing the content of files in the `server/custom_settings` directory.
-
-**Example login custom settings:**
-
-File: `server/custom_settings/login.json`
-
-```json
-{
-    "preLogin": {
-        "message": "Welcome to Sidekick.\n\nAlways be careful to not enter personal or sensitive information into the chat."
-    }
-}
-```
-
-**Example chat custom settings:**
-
-File: `server/custom_settings/chat.json`
-
-```json
-{
-    "userPromptReady": "Enter prompt... (Take care to not enter personal or sensitive information.)"
-}
-```
+System settings can be used to customise specific parts of the application by editing the content of files in the `server/system_settings` directory.
+These can also be edited by the admin user via the Admin page.
 
 ## Database Configuration
 The server uses SQLAlchemy to connect to a RDBMS system, ideally SQLite or Postgres. Set the database connection string via the SQLALCHEMY_DATABASE_URI environment variable.

@@ -14,6 +14,7 @@ function Login({setUser, serverUrl, setToken}) {
   const [preLoginMessage, setPreLoginMessage] = useState('');
   const loginPasswordRef = useRef(null);
   const createAccountPasswordRef = useRef(null);
+  const [customSettings, setCustomSettings] = useState({});
 
   const containerStyle = {
     display: 'flex',
@@ -45,10 +46,8 @@ function Login({setUser, serverUrl, setToken}) {
   };
 
   const applyCustomSettings = () => {
-    axios.get(`${serverUrl}/custom_settings/login`).then(response => {
-      if ("preLogin" in response.data && "message" in response.data.preLogin) {
-        setPreLoginMessage(response.data?.preLogin?.message);
-      }
+    axios.get(`${serverUrl}/system_settings/login`).then(response => {
+      setCustomSettings(response.data);
       console.log("Login custom settings:", response);
     }).catch(error => {
       console.error("Error getting login custom settings:", error);
@@ -117,7 +116,7 @@ function Login({setUser, serverUrl, setToken}) {
   const ui = <Box style={formContainerStyle}>
     <Tabs value={tabIndex} onChange={handleTabChange} style={{ position: 'relative' }}>
       <Tab label="Login" />
-      <Tab label="Create Account" />
+      {customSettings?.functionality?.createAccount ? <Tab label="Create Account" /> : null}
     </Tabs>
     {tabIndex === 0 && (
         <Box style={inputContainerStyle} component="form">
@@ -151,7 +150,7 @@ function Login({setUser, serverUrl, setToken}) {
     )}
   <Box variant="body3" color="text.secondary" 
     sx={{ textAlign: "center", width: "700px", height: "200px", overflow: "auto", whiteSpace: 'pre-line' }}>
-    {preLoginMessage}
+    { (customSettings?.preLogin?.message) ? customSettings.preLogin.message : null}
   </Box>
   </Box>
 

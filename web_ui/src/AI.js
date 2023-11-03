@@ -26,7 +26,7 @@ class AI {
                 console.log(`${NAMETOPIC_API} result:`, response.data.topic_name);
                 result = response.data.topic_name;
             } else {
-                this.system.error(`Error naming topic: ${response.error}`);
+                this.system.error(`Error naming topic: ${response.data.error}`);
                 result = "";
             }
         })
