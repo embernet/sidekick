@@ -35,16 +35,17 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
     const [loginSystemSettingsLoaded, setLoginSystemSettingsLoaded] = useState(false);
     const [appSettingsSystemSettingsLoaded, setAppSettingsSystemSettingsLoaded] = useState(false);
     const [createAccountEnabled, setCreateAccountEnabled] = useState(false);
+    const [changePasswordEnabled, setChangePasswordEnabled] = useState(false);
     const [deleteAccountEnabled, setDeleteAccountEnabled] = useState(false);
     
     const loadSystemSettings = () => {
-        axios.get(`${serverUrl}/custom_settings/login`).then(response => {
+        axios.get(`${serverUrl}/system_settings/login`).then(response => {
           setLoginSystemSettings(response.data);
           console.log("Login system settings:", response);
         }).catch(error => {
           console.error("Error getting Login system settings:", error);
         });
-        axios.get(`${serverUrl}/custom_settings/appsettings`).then(response => {
+        axios.get(`${serverUrl}/system_settings/appsettings`).then(response => {
             setAppSettingsSystemSettings(response.data);
             console.log("AppSettings system settings:", response);
         }).catch(error => {
@@ -95,7 +96,7 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
             setLoginSystemSettingsLoaded(true);
             setCreateAccountEnabled(loginSystemSettings.functionality.createAccount);
         } else {
-            axios.put(`${serverUrl}/custom_settings/login`, appSettingsSystemSettings, {
+            axios.put(`${serverUrl}/system_settings/login`, appSettingsSystemSettings, {
                 headers: {
                     Authorization: 'Bearer ' + token
                   }
@@ -113,7 +114,7 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
             setAppSettingsSystemSettingsLoaded(true);
             setDeleteAccountEnabled(appSettingsSystemSettings.functionality.deleteAccount);
         } else {
-            axios.put(`${serverUrl}/custom_settings/appsettings`, appSettingsSystemSettings, {
+            axios.put(`${serverUrl}/system_settings/appsettings`, appSettingsSystemSettings, {
                 headers: {
                     Authorization: 'Bearer ' + token
                   }
@@ -238,19 +239,27 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
         setLoginSystemSettings(newLoginSystemSettings);
     };
 
-    const handleToggleFunctionalityAppSettingsDeleteAccount = () => {
+    const handleToggleFunctionalityAppSettingsChangePassword = () => {
+        let newChangePasswordEnabled = !changePasswordEnabled;
+        setChangePasswordEnabled(newChangePasswordEnabled);
         let newAppSettingsSystemSettings = appSettingsSystemSettings;
-        newAppSettingsSystemSettings.functionality.deleteAccount = !newAppSettingsSystemSettings.functionality.deleteAccount;
-        console.log(newAppSettingsSystemSettings)
+        newAppSettingsSystemSettings.functionality.changePassword = !newAppSettingsSystemSettings.functionality.changePassword;
         setAppSettingsSystemSettings(newAppSettingsSystemSettings);
     };
 
-    const handleToggleFunctionalityAppSettingsChangePassword = () => {
+    const handleToggleFunctionalityAppSettingsDeleteAccount = () => {
+        let newDeleteAccountEnabled = !deleteAccountEnabled;
+        setDeleteAccountEnabled(newDeleteAccountEnabled);
         let newAppSettingsSystemSettings = appSettingsSystemSettings;
-        newAppSettingsSystemSettings.functionality.changePassword = !newAppSettingsSystemSettings.functionality.changePassword;
-        console.log(newAppSettingsSystemSettings)
+        newAppSettingsSystemSettings.functionality.deleteAccount = !newAppSettingsSystemSettings.functionality.deleteAccount;
         setAppSettingsSystemSettings(newAppSettingsSystemSettings);
     };
+
+    const TAB_ABOUT = 0;
+    const TAB_FUNCTIONALITY = 1;
+    const TAB_CREATE_ACCOUNT = 2;
+    const TAB_RESET_PASSWORD = 3;
+    const TAB_DELETE_ACCOUNT = 4;
 
   const render = <Card sx={{display:"flex", flexDirection:"column", 
     padding:"6px", margin:"6px", flex:1, 
@@ -277,20 +286,17 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
                     <Tab label="Functionality" />
                     <Tab label="Create Account" />
                     <Tab label="Reset Password" />
-                    <Tab label="Disable Account" />
-                    <Tab label="Enable Account" />
                     <Tab label="Delete Account" />
-                    <Tab label="System Settings" />
                 </Tabs>
           </Box>
           <Paper sx={{ flexDirection: "column", justifyContent: "top",
               height: "100%", margin: "6px", padding: "6px", flex: 1}}>
-              {tabIndex === 0 && (
+              {tabIndex === TAB_ABOUT && (
                   <Box style={inputContainerStyle} component="form" gap={2}>
                       <Typography margin={6}>The Sidekick Admin panel lets you change application wide settings across all users.</Typography>
                   </Box>
               )}
-              {tabIndex === 1 && (
+              {tabIndex === TAB_FUNCTIONALITY && (
                     <Box style={inputContainerStyle} component="form" gap={2}>
                         <Typography variant="h6">Enable or disable app-wide functionality</Typography>
                         <Typography variant="h7">Account</Typography>
@@ -318,10 +324,30 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
                         <Paper sx={{ margin: 1, padding : "6px 20px" }}>
                             <Box sx={{ display: 'flex', flexDirection: "column" }}>
                                 <Stack direction="row" alignItems="center" justifyContent="space-between">
+                                    <Typography variant="h7">Change Password</Typography>
+                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                        <Switch
+                                        checked={changePasswordEnabled}
+                                        onChange={handleToggleFunctionalityAppSettingsChangePassword}
+                                        name="appSettingsChangePasswordEnabled"
+                                        inputProps={{ 'aria-label': 'Toggle enable change password' }}
+                                        />
+                                        <Typography>{appSettingsSystemSettings.functionality.changePassword ? "On" : "Off"}</Typography>
+                                    </Box>
+                                </Stack>
+                                <Typography variant="caption">
+                                    Enable Change Password if you are using Sidekick's built-in authentication. Disabling Change Password will remove the Change Password tab from the Settings screen. Disable this if you want to use an alternative password change method such as via a Single Sign-On provider.
+                                </Typography>
+                            </Box>
+                        </Paper>
+
+                        <Paper sx={{ margin: 1, padding : "6px 20px" }}>
+                            <Box sx={{ display: 'flex', flexDirection: "column" }}>
+                                <Stack direction="row" alignItems="center" justifyContent="space-between">
                                     <Typography variant="h7">Delete Account</Typography>
                                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                         <Switch
-                                        checked={appSettingsSystemSettings.functionality.deleteAccount}
+                                        checked={deleteAccountEnabled}
                                         onChange={handleToggleFunctionalityAppSettingsDeleteAccount}
                                         name="appSettingsDeleteAccountEnabled"
                                         inputProps={{ 'aria-label': 'Toggle enable delete account' }}
@@ -335,28 +361,9 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
                             </Box>
                         </Paper>
 
-                        <Paper sx={{ margin: 1, padding : "6px 20px" }}>
-                            <Box sx={{ display: 'flex', flexDirection: "column" }}>
-                                <Stack direction="row" alignItems="center" justifyContent="space-between">
-                                    <Typography variant="h7">Change Password</Typography>
-                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                        <Switch
-                                        checked={appSettingsSystemSettings.functionality.changePassword}
-                                        onChange={handleToggleFunctionalityAppSettingsChangePassword}
-                                        name="appSettingsChangePasswordEnabled"
-                                        inputProps={{ 'aria-label': 'Toggle enable change password' }}
-                                        />
-                                        <Typography>{appSettingsSystemSettings.functionality.changePassword ? "On" : "Off"}</Typography>
-                                    </Box>
-                                </Stack>
-                                <Typography variant="caption">
-                                    Enable Change Password if you are using Sidekick's built-in authentication. Disabling Change Password will remove the Change Password tab from the Settings screen. Disable this if you want to use an alternative password change method such as via a Single Sign-On provider.
-                                </Typography>
-                            </Box>
-                        </Paper>
                     </Box>
               )}
-              {tabIndex === 2 && (
+              {tabIndex === TAB_CREATE_ACCOUNT && (
                   <Box style={inputContainerStyle} component="form" gap={2}>
                       <Typography margin={6}>Warning: This will delete your account and your database with all your chats and notes.
                       <br/><br/>Make sure you have copies of anything you need before proceeding.</Typography>
@@ -372,7 +379,7 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
                       </Box>
                   </Box>
               )}
-              {tabIndex === 3 && (
+              {tabIndex === TAB_RESET_PASSWORD && (
                   <Box style={inputContainerStyle} component="form" gap={2}>
                       <Typography margin={6}>System settings change the behaviour of this Sidekick deployment instance and apply to all users of this system.</Typography>
                       <TextField label="Chat 'Enter prompt...' label"
@@ -383,6 +390,22 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
                       </Box>
                   </Box>
 
+              )}
+              {tabIndex === TAB_DELETE_ACCOUNT && (
+                  <Box style={inputContainerStyle} component="form" gap={2}>
+                      <Typography margin={6}>Warning: This will delete your account and your database with all your chats and notes.
+                      <br/><br/>Make sure you have copies of anything you need before proceeding.</Typography>
+                      <TextField type="password" label="Current Password" value={currentPassword} 
+                          autoComplete="off" onChange={handleCurrentPasswordChange} 
+                          sx={{ width: "300px" }} /* disable autoComplete of password for deleting accounts *//>
+                      <TextField label="Type your userid to confirm" value={confirmUser} autoComplete="off"
+                          onChange={handleConfirmNameChange}
+                          sx={{ width: "300px" }} />
+                      <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                          <Button type="button" onClick={handleDeleteAccount} sx={{ mr: 1 }}>Delete</Button>
+                          <Button type="button" onClick={handleCancelChangePassword}>Cancel</Button>
+                      </Box>
+                  </Box>
               )}
           </Paper>
       </Box>

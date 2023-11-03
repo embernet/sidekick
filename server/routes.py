@@ -111,7 +111,7 @@ def save_system_settings(name):
     app.logger.info(f"/system_settings/{name} PUT request from"
                     f":{request.remote_addr}")
     user = DBUtils.get_user_by_id(get_jwt_identity())
-    if "admin" not in user.properties or not user.properties["admin"]:
+    if "admin" not in user.properties.roles or not user.properties.roles["admin"]:
         response = app.response_class(
             response=json.dumps({"success": False}),
             status=403,

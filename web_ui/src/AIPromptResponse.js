@@ -47,14 +47,15 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
 //      or may contain additional text, e.g. to reaffirm system prompt directives
 // input: userPromptToSend: {prompt: prompt, timestamp: Date.now()}
 
-const AIPromptResponse = ({serverUrl, token, setToken, systemPrompt,
+const AIPromptResponse = ({serverUrl, token, setToken, customUserPromptReady, systemPrompt,
     streamingOn, streamingChatResponseRef, streamingChatResponse,
     setStreamingChatResponse, setAIResponse, onChange, focusOnPrompt,
-    setUserPromptEntered, userPromptToSend, setUserPromptToSend, controlName, toolbarButtons, sendButtonTooltip}) => {
+    setUserPromptEntered, userPromptToSend, setUserPromptToSend,
+    controlName, toolbarButtons, sendButtonTooltip}) => {
 
     const system = useContext(SystemContext);
     const defaultUserPromptReady = "Enter prompt...";
-    const userPromptReady = useRef(defaultUserPromptReady);
+    const userPromptReady = useRef(customUserPromptReady && customUserPromptReady !== "" ? customUserPromptReady : defaultUserPromptReady);
     const userPromptWaiting = "Waiting for response...";
     const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady.current);
     const [prompt, setPrompt] = useState("");
