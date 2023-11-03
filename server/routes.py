@@ -111,44 +111,40 @@ def save_system_settings(name):
     app.logger.info(f"/system_settings/{name} PUT request from"
                     f":{request.remote_addr}")
     user = DBUtils.get_user_by_id(get_jwt_identity())
-    if "admin" not in user.properties.roles or not user.properties.roles["admin"]:
-        response = app.response_class(
-            response=json.dumps({"success": False}),
-            status=403,
-            mimetype='application/json'
-        )
-        return response
     try:
-        document_id = DBUtils.get_document_by_name(
-            user_id="sidekick",
-            name=name,
-            doctype_name="system_settings"
-        )["metadata"]["id"]
-        DBUtils.update_document(id=document_id,
-                                name=name,
-                                tags=[],
-                                properties={},
-                                content=request.json)
-        response = app.response_class(
-            response=json.dumps({"success": True}),
-            status=200,
-            mimetype='application/json'
-        )
-        return response
-    except NoResultFound:
-        DBUtils.create_document(user_id=get_jwt_identity(), name=name,
-                                tags=[], properties={},
-                                content=request.json, doctype_name="settings")
-        response = app.response_class(
-            response=json.dumps({"success": True}),
-            status=200,
-            mimetype='application/json'
-        )
-        return response
+        if user["properties"]["roles"]["admin"]:
+            try:
+                document_id = DBUtils.get_document_by_name(
+                    user_id="sidekick",
+                    name=name,
+                    doctype_name="system_settings"
+                )["metadata"]["id"]
+                DBUtils.update_document(id=document_id,
+                                        name=name,
+                                        tags=[],
+                                        properties={},
+                                        content=request.json)
+            except NoResultFound:
+                DBUtils.create_document(user_id=get_jwt_identity(),
+                                        name=name,
+                                        tags=[], properties={},
+                                        content=request.json,
+                                        doctype_name="settings")
+            return app.response_class(
+                response=json.dumps({"success": True}),
+                status=200,
+                mimetype='application/json'
+            )
+    except KeyError:
+        pass
     except Exception as e:
         log_exception(e)
         return str(e), 500
-
+    return app.response_class(
+        response=json.dumps({"success": False}),
+        status=403,
+        mimetype='application/json'
+    )
 
 @app.route('/settings/<name>', methods=['GET'])
 @jwt_required()
