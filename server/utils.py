@@ -1,6 +1,8 @@
 import os
 import uuid
 import json
+import random
+import string
 import bcrypt
 import traceback
 from datetime import datetime
@@ -36,6 +38,10 @@ def construct_ai_request(request):
 def log_exception(e):
     tb = traceback.format_exc()
     app.logger.error(f"An error occurred: {str(e)}\n{tb}")
+
+def get_random_string(len=32):
+    return "".join(random.choice(string.ascii_lowercase) for i in range(len))
+
 
 
 class DBUtils:
@@ -129,6 +135,11 @@ class DBUtils:
             app.logger.error(f"Tried to delete a user with user ID: "
                              f"{user_id}, but that document doesn't exist.")
             return {'success': False, 'message': 'Error deleting user'}
+
+    @staticmethod
+    def get_user_by_id(user_id):
+        user = User.query.filter_by(id=user_id).one()
+        return user.as_dict()
 
     @staticmethod
     def add_tags(tags, document_id=None, user_id=None):
