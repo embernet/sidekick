@@ -19,6 +19,12 @@ from sqlalchemy.exc import NoResultFound
 from app import app
 
 
+class OrderedEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, OrderedDict):
+            return dict(obj)
+        return json.JSONEncoder.default(self, obj)
+
 @app.route('/', methods=['GET'])
 def index():
     return ""
@@ -81,31 +87,67 @@ def get_models():
     return jsonify(models)
 
 
-@app.route('/custom_settings/<name>', methods=['GET'])
-def get_custom_settings(name):
+@app.route('/system_settings/<name>', methods=['GET'])
+def get_system_settings(name):
     app.logger.info(
-        f"/custom_settings/{name} GET request from:{request.remote_addr}")
+        f"/system_settings/{name} GET request from:{request.remote_addr}")
+
+    settings = DBUtils.get_document_by_name(
+        user_id="sidekick",
+        name=name,
+        doctype_name="system_settings"
+    )["content"]
+    response = app.response_class(
+        response=json.dumps(settings, indent=4, cls=OrderedEncoder),
+        status=200,
+        mimetype='application/json'
+    )
+    app.logger.debug(f"/system_settings/{name} response: {settings}")
+    return response
+
+@app.route('/system_settings/<name>', methods=['PUT'])
+@jwt_required()
+def save_system_settings(name):
+    app.logger.info(f"/system_settings/{name} PUT request from"
+                    f":{request.remote_addr}")
+    user = DBUtils.get_user_by_id(get_jwt_identity())
+    if "admin" not in user.properties or not user.properties["admin"]:
+        response = app.response_class(
+            response=json.dumps({"success": False}),
+            status=403,
+            mimetype='application/json'
+        )
+        return response
     try:
-        file_path = os.path.join("custom_settings", f"{name}.json")
-        app.logger.debug(
-            f"Loading custom settings from file_path: {file_path}")
-        if os.path.exists(file_path):
-            with open(file_path, 'r') as f:
-                settings = json.load(f)
-            return jsonify(settings), 200
-        else:
-            # Custom settings are optional; no file, so return empty custom settings
-            return jsonify({}), 200
+        document_id = DBUtils.get_document_by_name(
+            user_id="sidekick",
+            name=name,
+            doctype_name="system_settings"
+        )["metadata"]["id"]
+        DBUtils.update_document(id=document_id,
+                                name=name,
+                                tags=[],
+                                properties={},
+                                content=request.json)
+        response = app.response_class(
+            response=json.dumps({"success": True}),
+            status=200,
+            mimetype='application/json'
+        )
+        return response
+    except NoResultFound:
+        DBUtils.create_document(user_id=get_jwt_identity(), name=name,
+                                tags=[], properties={},
+                                content=request.json, doctype_name="settings")
+        response = app.response_class(
+            response=json.dumps({"success": True}),
+            status=200,
+            mimetype='application/json'
+        )
+        return response
     except Exception as e:
         log_exception(e)
-        return jsonify({'error': str(e)}), 500
-
-
-class OrderedEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, OrderedDict):
-            return dict(obj)
-        return json.JSONEncoder.default(self, obj)
+        return str(e), 500
 
 
 @app.route('/settings/<name>', methods=['GET'])
