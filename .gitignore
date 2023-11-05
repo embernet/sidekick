@@ -6,7 +6,6 @@
 /server/etc/logs/*
 /server/etc/feedback.db
 /server/etc/login.db
-/server/etc/custom_settings/*
 /server/login.db
 /server/.pytest_cache
 /server/__pycache__

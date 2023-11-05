@@ -464,8 +464,7 @@ const SidekickAI = ({
                     <Typography>You could read the manual, which is below, or you could just ask the AI about Sidekick at the bottom of this window.</Typography>
                     <br/>
                     <ReactMarkdown
-                        components={helpComponents}
-                        renderers={{
+                        components={{...helpComponents,
                             link: ({ href, children }) => (
                                 <Link to={href}
                                     onClick={handleLinkClick}>
@@ -483,8 +482,7 @@ const SidekickAI = ({
                     <Typography>The better the quality of your prompt, the better the quality of the response from the AI.</Typography>
                     <br/>
                     <ReactMarkdown
-                        components={helpComponents}
-                        renderers={{
+                        components={{...helpComponents,
                             link: ({ href, children }) => (
                                 <Link to={href}
                                     onClick={handleLinkClick}>

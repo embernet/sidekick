@@ -118,11 +118,12 @@ const Chat = ({
       };
 
     const applyCustomSettings = () => {
-        axios.get(`${serverUrl}/custom_settings/chat`).then(response => {
+        axios.get(`${serverUrl}/system_settings/chat`).then(response => {
             if ("userPromptReady" in response.data) {
-                userPromptReady.current = defaultUserPromptReady + " (" + response.data.userPromptReady + ")";
+                userPromptReady.current = response.data.userPromptReady;
                 setPromptPlaceholder(userPromptReady.current);
             }
+            console.log("Chat custom settings:", response);
         }).catch(error => {
           console.error("Error getting Chat custom settings:", error);
         });

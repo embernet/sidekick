@@ -1,5 +1,29 @@
 # Release Notes
 
+# v0.1
+
+Functional changes:
+
+1. Sidekick now has an admin user, default password: changemenow
+2. Only the admin user can do the following:
+   1. Change custom text on the login screen
+   2. Change custom text on the chat prompt ready placeholder
+   3. Change the instance name displayed on the App toolbar
+   4. Change the usage displayed on the App toolbar
+   5. Create a new user
+   6. Change the password of a user
+   7. Delete a user
+
+Code improvements:
+
+1. custom_settings folder previously allowed users to customise various parts of a Sidekick deployment by adding files into that folder. This has been replaced with an admin user who can change these settings via the Admin page.
+2. system_settings folder now contains the default settings for the admin user, and the admin user can change these settings via the Admin page.
+3. Changed SidekickAI ReactMarkdown to use components prop instead of deprecated renderers prop
+
+Bug fixes:
+
+1. Note no longer creates duplicate notes when creating a new note directly from Chat by clicking the append message to note menu
+
 # v0.0.9
 
 Functional changes:
