@@ -39,33 +39,32 @@ from utils import DBUtils, get_random_string
 with app.app_context():
     # Create sidekick user and system_settings doctype if they don't exist
     try:
-        DBUtils.get_user_by_id("sidekick")
+        DBUtils.get_user("sidekick")
     except NoResultFound:
         DBUtils.create_user(user_id="sidekick",
                             password=get_random_string())
-        DBUtils.create_doctype(user_id="sidekick", name="system_settings")
 
     # Create admin user if they don't exist
     try:
-        DBUtils.get_user_by_id("admin")
+        DBUtils.get_user("admin")
     except NoResultFound:
         DBUtils.create_user(user_id="admin",
                             password="changemenow",
-                            properties={"admin": True})
+                            properties={"roles": {"admin": True}})
 
     # Create system settings documents if they don't exist
     for settings_file in os.listdir("system_settings"):
         settings_name = settings_file.split(".")[0]
         try:
-            DBUtils.get_document_by_name(user_id="sidekick",
-                                         name=settings_name,
-                                         doctype_name="system_settings")
+            DBUtils.get_document(user_id="sidekick",
+                                 name=settings_name,
+                                 type="system_settings")
         except NoResultFound:
             settings = json.loads(open("system_settings/"
                                        f"{settings_file}").read())
             DBUtils.create_document(user_id="sidekick",
                                     name=settings_name,
-                                    doctype_name="system_settings",
+                                    type="system_settings",
                                     content=settings)
 
 import routes
