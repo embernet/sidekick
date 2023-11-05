@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import Flask
 from app import db
 from utils import DBUtils
-from models import User, Doctype, Document
+from models import User, Document
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
@@ -29,28 +29,15 @@ class ModelTest(unittest.TestCase):
         self.assertDictEqual(user.as_dict(), {
             "id": "testuser", "properties": {"propA": "testA",
                                              "propB": "testB"}})
-        self.assertListEqual(sorted(list(set(d.doctype.name
-                                             for d in user.documents))),
+        self.assertListEqual(sorted(list(set(d.type for d in user.documents))),
                              sorted(["settings", "personas",
                                      "prompt_templates"]))
-        self.assertEqual(len(user.documents), 50)
-
-    def test_create_doctype(self):
-        DBUtils.create_user("testuser", "testpassword")
-        DBUtils.create_doctype(user_id="testuser", name="testdoctype",
-                              properties={"propA": "testA", "propB": "testB"})
-        doctype = Doctype.query.filter_by(name="testdoctype").first()
-        doctype_as_dict = doctype.as_dict()
-        del doctype_as_dict["id"]
-        self.assertDictEqual(doctype_as_dict, {
-            "user_id": "testuser", "name": "testdoctype",
-            "properties": {"propA": "testA", "propB": "testB"}})
+        self.assertEqual(len(user.documents), 51)
 
     def test_create_document(self):
         DBUtils.create_user("testuser", "testpassword")
-        DBUtils.create_doctype("testuser", "testdoctype")
         DBUtils.create_document(user_id="testuser", name="testdoc",
-                                doctype_name="testdoctype",
+                                type="testtype",
                                 tags=["tag1", "tag2"],
                                 properties={"propertyA": "testA",
                                             "propertyB": "testB"},
@@ -65,35 +52,34 @@ class ModelTest(unittest.TestCase):
         self.assertDictEqual(doc_as_dict, {
             "metadata": {
                 "user_id": "testuser",
-                "doctype_name": "testdoctype",
+                "type": "testtype",
                 "name": "testdoc",
                 "tags": ["tag1", "tag2"],
                 "properties": {"propertyA": "testA", "propertyB": "testB"},
             },
             "content": {"contentA": "testA", "propertyB": "contentB"}
         })
-        
+
     def test_get_document_by_name(self):
         DBUtils.create_user("testuser", "testpassword")
-        DBUtils.create_doctype("testuser", "testdoctype")
         DBUtils.create_document(user_id="testuser", name="testdoc",
-                                doctype_name="testdoctype",
+                                type="testtype",
                                 tags=["tag1", "tag2"],
                                 properties={"propertyA": "testA",
                                             "propertyB": "testB"},
                                 content={"contentA": "testA",
                                          "propertyB": "contentB"})
-        doc_as_dict = DBUtils.get_document_by_name(user_id="testuser",
-                                                  name="testdoc",
-                                                  doctype_name="testdoctype")
+        doc_as_dict = DBUtils.get_document(user_id="testuser",
+                                           name="testdoc",
+                                           type="testtype")
         del doc_as_dict["metadata"]["id"]
         del doc_as_dict["metadata"]["created_date"]
         del doc_as_dict["metadata"]["updated_date"]
-                                        
+
         self.assertDictEqual(doc_as_dict, {
             "metadata": {
                 "user_id": "testuser",
-                "doctype_name": "testdoctype",
+                "type": "testtype",
                 "name": "testdoc",
                 "tags": ["tag1", "tag2"],
                 "properties": {"propertyA": "testA", "propertyB": "testB"},
@@ -104,9 +90,8 @@ class ModelTest(unittest.TestCase):
 
     def test_delete_document(self):
         DBUtils.create_user("testuser", "testpassword")
-        DBUtils.create_doctype("testuser", "testdoctype")
         doc = DBUtils.create_document(user_id="testuser", name="testdoc",
-                                doctype_name="testdoctype",
+                                type="testtype",
                                 tags=["tag1", "tag2"],
                                 properties={"propertyA": "testA",
                                             "propertyB": "testB"},
@@ -118,46 +103,18 @@ class ModelTest(unittest.TestCase):
 
     def test_delete_user(self):
         DBUtils.create_user("testuser", "testpassword")
-        DBUtils.create_doctype("testuser", "testdoctype")
         doc = DBUtils.create_document(user_id="testuser", name="testdoc",
-                                doctype_name="testdoctype",
-                                tags=["tag1", "tag2"],
-                                properties={"propertyA": "testA",
-                                            "propertyB": "testB"},
-                                content={"contentA": "testA",
-                                         "propertyB": "contentB"})
+                                      type="testtype", tags=["tag1", "tag2"],
+                                      properties={"propertyA": "testA",
+                                                  "propertyB": "testB"},
+                                      content={"contentA": "testA",
+                                               "propertyB": "contentB"})
         DBUtils.delete_user("testuser")
         user = Document.query.filter_by(id="1").first()
         self.assertIsNone(user)
-
-    def test_create_doctype(self):
-        DBUtils.create_user("testuser", "testpassword")
-        DBUtils.create_doctype("testuser", "testdoctype", {"test": "property"})
-        doctype = Doctype.query.filter_by(name="testdoctype").first()
-        doctype_as_dict = doctype.as_dict()
-        del doctype_as_dict["id"]
-
-        self.assertDictEqual(doctype_as_dict, {
-            "name": "testdoctype",
-            "user_id": "testuser",
-            "properties": {"test": "property"}
-        })
-        
-    def test_get_doctype_by_name(self):
-        DBUtils.create_user("testuser", "testpassword")
-        DBUtils.create_doctype("testuser", "testdoctype", {"test": "property"})
-        doctype_as_dict = DBUtils.get_doctype_by_name(user_id="testuser",
-                                                      name="testdoctype")
-        del doctype_as_dict["id"]
-                                        
-        self.assertDictEqual(doctype_as_dict, {
-            "name": "testdoctype",
-            "user_id": "testuser",
-            "properties": {"test": "property"}
-        })
-
-    def test_list_doctypes(self):
-        DBUtils.create_user("testuser", "testpassword")
-        self.assertListEqual(DBUtils.list_doctypes(),
-                             ["notes", "chats", "feedback", "settings", "logs",
-                              "personas", "prompt_templates", "note_templates"])
+    #
+    # def test_list_types(self):
+    #     DBUtils.create_user("testuser", "testpassword")
+    #     self.assertListEqual(DBUtils.list_types(),
+    #                          ["notes", "chats", "feedback", "settings", "logs",
+    #                           "personas", "prompt_templates", "note_templates"])

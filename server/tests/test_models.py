@@ -2,7 +2,7 @@ import unittest
 from datetime import datetime
 from flask import Flask
 from app import db
-from models import User, Doctype, Document, Tag, DocumentTag
+from models import User,    Document, Tag, DocumentTag
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
@@ -31,29 +31,11 @@ class ModelTest(unittest.TestCase):
             "properties": {"age": "48", "height": "180"}
         })
 
-    def test_create_doctype(self):
-        objects = [
-            User(id="testuser", password_hash="123"),
-            Doctype(id="1", user_id="testuser", name="testdoctype",
-                   properties={"colour": "red", "size": "10"})
-        ]
-        db.session.add_all(objects)
-        db.session.commit()
-        saved_doctype = Doctype.query.filter_by(id="1").first()
-
-        self.assertDictEqual(saved_doctype.as_dict(), {
-            "id": "1",
-            "user_id": "testuser",
-            "name": "testdoctype",
-            "properties": {"colour": "red", "size": "10"}
-        })
-
     def test_create_document(self):
         now = str(datetime.now())
         objects = [
             User(id="testuser", password_hash="123"),
-            Doctype(id="1", user_id="testuser", name="testdoctype"),
-            Document(id="1", user_id="testuser", doctype_id=1, name="testdoc",
+            Document(id="1", user_id="testuser", type="ttyp", name="testdoc",
                      properties= {"colour": "red", "size": "3"},
                      content= {"prompt": "hi", "profile": "CEO"},
                      created_date=now, updated_date=now),
@@ -68,7 +50,7 @@ class ModelTest(unittest.TestCase):
             "metadata": {
                 "id": "1",
                 "user_id": "testuser",
-                "doctype_name": "testdoctype",
+                "type": "ttyp",
                 "name": "testdoc",
                 "created_date": now,
                 "updated_date": now,
