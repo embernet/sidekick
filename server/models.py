@@ -12,7 +12,6 @@ class User(db.Model):
     password_hash = db.Column(db.String, nullable=False)
     properties = db.Column(db.String, default="{}", nullable=False)
 
-    doctypes = db.relationship("Doctype", back_populates="user")
     documents = db.relationship("Document", back_populates="user")
 
     def __init__(self, properties=None, **kwargs):
@@ -30,41 +29,13 @@ class User(db.Model):
         }
 
 
-class Doctype(db.Model):
-    __tablename__ = "doctypes"
-
-    id = db.Column(db.String, default=uuid.uuid4(), primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    user_id = db.Column(db.ForeignKey(User.id), nullable=False)
-    properties = db.Column(db.String, default="{}", nullable=False)
-
-    user = db.relationship("User", back_populates="doctypes")
-    documents = db.relationship("Document", back_populates="doctype")
-
-    def __init__(self, properties=None, **kwargs):
-        super(Doctype, self).__init__(**kwargs)
-        if properties is not None:
-            self.properties = json.dumps(properties)
-
-    def __repr__(self):
-        return "<Doctype %r>" % self.name
-
-    def as_dict(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "user_id": self.user_id,
-            "properties": json.loads(self.properties)
-        }
-
-
 class Document(db.Model):
     __tablename__ = "documents"
 
     id = db.Column(db.String, default=str(uuid.uuid4()), primary_key=True)
     user_id = db.Column(db.ForeignKey(User.id), nullable=False)
-    doctype_id = db.Column(db.ForeignKey(Doctype.id))
     name = db.Column(db.String, nullable=False)
+    type = db.Column(db.String, nullable=False)
     created_date = db.Column(db.String(), default=str(datetime.now()),
                              nullable=False)
     updated_date = db.Column(db.String(), default=str(datetime.now()),
@@ -74,7 +45,6 @@ class Document(db.Model):
     content = db.Column(db.String, default="{}", nullable=False)
 
     user = db.relationship("User", back_populates="documents")
-    doctype = db.relationship("Doctype", back_populates="documents")
 
     def __init__(self, properties=None, content=None, **kwargs):
         super(Document, self).__init__(**kwargs)
@@ -91,8 +61,8 @@ class Document(db.Model):
             "metadata": {
                 "id": self.id,
                 "user_id": self.user_id,
-                "doctype_name": self.doctype.as_dict()["name"],
                 "name": self.name,
+                "type": self.type,
                 "created_date": self.created_date,
                 "updated_date": self.updated_date,
                 "tags": [tag.tag_name for tag in self.tags],
