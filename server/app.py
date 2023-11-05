@@ -37,7 +37,7 @@ if not database_exists(app.config["SQLALCHEMY_DATABASE_URI"]):
 from utils import DBUtils, get_random_string
 
 with app.app_context():
-    # Create sidekick user and system_settings doctype if they don't exist
+    # Create sidekick user they don't exist
     try:
         DBUtils.get_user("sidekick")
     except NoResultFound:
