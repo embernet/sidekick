@@ -6,23 +6,35 @@ Functional changes:
 
 1. Sidekick now has an admin user, default password: changemenow
 2. Only the admin user can do the following:
-   1. Change custom text on the login screen
-   2. Change custom text on the chat prompt ready placeholder
-   3. Change the instance name displayed on the App toolbar
-   4. Change the usage displayed on the App toolbar
-   5. Create a new user
-   6. Change the password of a user
-   7. Delete a user
+   1. Change custom text:
+      1. Welcome text on the login screen
+      2. Prompt placeholder text on the Chat
+      3. Prompt placeholder text on the Note Writer
+      4. Sidekick instance name displayed on the App toolbar
+      5. Sidekick usage displayed on the App toolbar
+   2. Turn on or off the following functionality for all users:
+      1. Create account
+      2. Delete account
+      3. Reset password
+   3. The admin user can also:
+      1. Create a new user account and set its password
+      2. Reset the password of a user
+      3. Delete a user account
+   4. Login page now detects if the sidekick server is not running and displays a message to that effect
 
 Code improvements:
 
 1. custom_settings folder previously allowed users to customise various parts of a Sidekick deployment by adding files into that folder. This has been replaced with an admin user who can change these settings via the Admin page.
 2. system_settings folder now contains the default settings for the admin user, and the admin user can change these settings via the Admin page.
 3. Changed SidekickAI ReactMarkdown to use components prop instead of deprecated renderers prop
+4. /ping route now returns version of the Sidekick server
 
 Bug fixes:
 
-1. Note no longer creates duplicate notes when creating a new note directly from Chat by clicking the append message to note menu
+1. Note no longer creates duplicate notes when creating a new note directly from Chat by clicking the append message(s) to note menu
+2. Explorers now maintain their sort order when they refresh due to new Notes or Chats being created
+3. Attempting to create a user that already exists now returns a message saying "user already exists" rather than returning a database error
+4. Chats used to save when loaded, updating their updated_date. They now only save when changed.
 
 # v0.0.9
 
