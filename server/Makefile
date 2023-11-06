@@ -27,6 +27,8 @@ test-locally:
 	$(MAKE) init
 	$(MAKE) test
 
+create-db:
+    pipenv run python create_db.py
+
 db-upgrade:
 	pipenv run flask db upgrade
-
