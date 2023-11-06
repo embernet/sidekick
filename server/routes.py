@@ -479,7 +479,8 @@ def docdb_list_documents(document_type=""):
     app.logger.info(
         f"/docdb/{document_type}/documents "
         f"[GET] request from:{request.remote_addr}")
-    documents = DBUtils.list_documents(document_type)
+    documents = DBUtils.list_documents(document_type=document_type,
+                                       user_id=get_jwt_identity())
     return jsonify(documents)
 
 
