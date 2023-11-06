@@ -43,7 +43,7 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
 
 const Chat = ({
     provider, modelSettings, persona, 
-    newPromptPart, newPrompt, loadChat, setAppendNoteContent,
+    newPromptPart, newPrompt, newPromptTemplate, loadChat, setAppendNoteContent,
     focusOnPrompt, setFocusOnPrompt, chatRequest, chatOpen, setChatOpen,
     temperatureText, setTemperatureText, modelSettingsOpen, toggleModelSettingsOpen, togglePersonasOpen,
     onChange, personasOpen, promptEngineerOpen, togglePromptEngineerOpen, setOpenChatId, shouldAskAgainWithPersona, serverUrl, token, setToken,
@@ -96,6 +96,7 @@ const Chat = ({
     const [markdownRenderingOn, setMarkdownRenderingOn] = useState(true);
     const [settings, setSettings] = useState({});
     const [settingsLoaded, setSettingsLoaded] = useState(false);
+    const [chatLoaded, setChatLoaded] = useState(false);
     const [folder, setFolder] = useState("chats");
     const [tags, setTags] = useState([]);
     const [myServerUrl, setMyServerUrl] = useState(serverUrl);
@@ -120,7 +121,7 @@ const Chat = ({
     const applyCustomSettings = () => {
         axios.get(`${serverUrl}/system_settings/chat`).then(response => {
             if ("userPromptReady" in response.data) {
-                userPromptReady.current = response.data.userPromptReady;
+                userPromptReady.current = defaultUserPromptReady + " (" + response.data.userPromptReady + ")";
                 setPromptPlaceholder(userPromptReady.current);
             }
             console.log("Chat custom settings:", response);
@@ -240,22 +241,27 @@ const Chat = ({
     }, [persona]);
 
     useEffect(()=>{
-        console.log("newPromptPart", newPromptPart);
-        if(typeof newPromptPart === "string") {
-            let newPrompt = prompt.trim() + " " + newPromptPart.trim() + " ";
-            setPrompt(newPrompt);
-            setPromptFocus();
+        if (newPromptPart?.text) {
+            console.log("newPromptPart", newPromptPart);
+            if (!chatOpen) { setChatOpen(true); }
+            if (streamingChatResponse !== "") {
+                system.info("Please wait for the current chat to finish loading before adding a prompt part.");
+            } else {
+                let newPrompt = prompt.trim() + " " + newPromptPart?.text?.trim() + " ";
+                setPrompt(newPrompt);
+                setPromptFocus();
+            }
         }
     }, [newPromptPart]);
 
     useEffect(()=>{
-        console.log("newPrompt", newPrompt);
-        if (!chatOpen) { setChatOpen(true); }
-        if (newPrompt) {
-            if (streamingChatResponse !== "") {
+        if (newPromptTemplate?.id) {
+            console.log("newPrompt", newPrompt);
+            if (!chatOpen) { setChatOpen(true); }
+                if (streamingChatResponse !== "") {
                 system.info("Please wait for the current chat to finish loading before loading a prompt template.");
             } else {
-                axios.get(`${serverUrl}/docdb/prompt_templates/documents/${newPrompt["id"]}`, {
+                axios.get(`${serverUrl}/docdb/prompt_templates/documents/${newPromptTemplate["id"]}`, {
                     headers: {
                         Authorization: 'Bearer ' + token
                     }
@@ -270,9 +276,11 @@ const Chat = ({
                 });
             }
         }
+    }, [newPromptTemplate]);
 
-        if(typeof newPrompt === "string") {
-            setPrompt(newPrompt);
+    useEffect(()=>{
+        if (newPrompt?.text) {
+            setPrompt(newPrompt.text);
             setPromptFocus();
         }
     }, [newPrompt]);
@@ -321,6 +329,7 @@ const Chat = ({
     }, [newStreamDelta]);
 
     useEffect(()=>{
+        setChatLoaded(false); // set true in chat load callback
         if (loadChat) {
             if (streamingChatResponse !== "") {
                 system.info("Please wait for the current chat to finish loading before loading another chat.");
@@ -424,6 +433,10 @@ const Chat = ({
     };
 
     const save = () => {
+        if (!chatLoaded) {
+            setChatLoaded(true);
+            return; // don't save on load, just on change
+        }
         let request = {
             metadata: {
                 name: name,

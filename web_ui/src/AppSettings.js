@@ -9,6 +9,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { grey } from '@mui/material/colors';
 import { use } from 'marked';
+import AccountDelete from "./AccountDelete";
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     backgroundColor: grey[300],
@@ -93,17 +94,16 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
     setReEnteredNewPassword(event.target.value);
   };
 
-  const handleConfirmNameChange = (event) => {
-    setConfirmUserId(event.target.value);
-  };
-
-  const handleCancel = () => {
+  const handleCancelPasswordChange = () => {
     setCurrentPassword('');
     setNewPassword('');
     setReEnteredNewPassword('');
-    setConfirmUserId('');
     setTabIndex(0);
   };
+
+  const handleCancelDeleteAccount = () => {
+    setTabIndex(0);
+  }
 
   const handleChangePassword = async () => {
     if (newPassword !== reEnteredNewPassword) {
@@ -136,38 +136,6 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
             setReEnteredNewPassword('');
             console.error(error);
             system.error(`An error occurred while changing password: ${error}`);
-        }
-    );
-  };
-
-  const handleDeleteAccount = () => {
-    if (user !== confirmUser) {
-        system.error('Userid does not match!');
-        return;
-    }
-    axios.post(`${serverUrl}/delete_user`,
-        {
-            "user_id": user,
-            "password": currentPassword
-        },
-        {
-            headers: {
-                Authorization: 'Bearer ' + token
-            }
-        }).then(response => {
-            setCurrentPassword('');
-            console.log("handleChangePassword response: ", response);
-            response.data.access_token && setToken(response.data.access_token);
-            if (response.data.success) {
-                system.info('Account deleted successfully. Logging out...');
-                setUser('')
-            } else {
-                system.error(`Failed to delete account: ${response.data.message}`);
-            }
-        }).catch(error => {
-            setCurrentPassword('');
-            console.error(error);
-            system.error(`An error occurred while deleting the account: ${error}`);
         }
     );
   };
@@ -214,25 +182,18 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
                           sx={{ width: "300px" }} autoComplete="off" onChange={handleReEnteredNewPasswordChange} />
                       <Box sx={{ display: "flex" }}>
                           <Button type="button" onClick={handleChangePassword} sx={{ mr: 1 }}>Save</Button>
-                          <Button type="button" onClick={handleCancel}>Cancel</Button>
+                          <Button type="button" onClick={handleCancelPasswordChange}>Cancel</Button>
                       </Box>
                   </Box>
               )}
               {tabIndex === 2 && (
-                  <Box style={inputContainerStyle} component="form" gap={2}>
-                      <Typography margin={6}>Warning: This will delete your account and your database with all your chats and notes.
-                      <br/><br/>Make sure you have copies of anything you need before proceeding.</Typography>
-                      <TextField type="password" label="Current Password" value={currentPassword} 
-                          autoComplete="off" onChange={handleCurrentPasswordChange} 
-                          sx={{ width: "300px" }} /* disable autoComplete of password for deleting accounts *//>
-                      <TextField label="Type your userid to confirm" value={confirmUser} autoComplete="off"
-                          onChange={handleConfirmNameChange}
-                          sx={{ width: "300px" }} />
-                      <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                          <Button type="button" onClick={handleDeleteAccount} sx={{ mr: 1 }}>Delete</Button>
-                          <Button type="button" onClick={handleCancel}>Cancel</Button>
-                      </Box>
-                  </Box>
+                <AccountDelete
+                    warningMessage = {<Typography>Warning: This will delete your account and all your data.<br/><br/>Make sure you have copies of anything you need before proceeding.</Typography>}
+                    serverUrl={serverUrl} token={token} setToken={setToken}
+                    onAccountDeleted={() => {setUser('');}
+                    }
+                    onCancel={handleCancelDeleteAccount}
+                />
               )}
           </Paper>
       </Box>

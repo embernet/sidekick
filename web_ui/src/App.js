@@ -84,6 +84,7 @@ function App() {
   const [newPromptPart, setNewPromptPart] = useState({});
   const [loadChat, setLoadChat] = useState("");
   const [newPrompt, setNewPrompt] = useState("");
+  const [newPromptTemplate, setNewPromptTemplate] = useState("");
   const [refreshChatsExplorer, setRefreshChatsExplorer] = useState(false);
   const [refreshPromptTemplateExplorer, setRefreshPromptTemplateExplorer] = useState(false);
   const [appendNoteContent, setAppendNoteContent] = useState({content: "", timestamp: Date.now()});
@@ -105,7 +106,7 @@ function App() {
   const [chatStreamingOn, setChatStreamingOn] = useState(true);
   const [appLoaded, setAppLoaded] = useState(false);
   const [appInstanceName, setAppInstanceName] = useState("");
-  const [appUsage, setAppUsage] = useState("");
+  const [instanceUsage, setInstanceUsage] = useState("");
   const [appSettings, setAppSettings] = useState({});
   const [appMenuAnchorEl, setAppMenuAnchorEl] = useState(null);
   const [userPermissions, setUserPermissions] = useState({
@@ -122,8 +123,8 @@ function App() {
       if ("instanceName" in response.data) {
         setAppInstanceName(response.data.instanceName);
       }
-      if ("usage" in response.data) {
-        setAppUsage(response.data.usage);
+      if ("instanceUsage" in response.data) {
+        setInstanceUsage(response.data.instanceUsage);
       }
     }).catch(error => {
       console.error("Error getting App custom settings:", error);
@@ -407,14 +408,14 @@ function App() {
     <Box display="flex">
       <Typography sx={{ mr: 2, display: "inline-flex", alignItems: "center", justifyContent: "center" }} variant="h6">Sidekick</Typography>
       <Typography sx={{ mr: 1, display: "inline-flex", alignItems: "center", justifyContent: "center" }} variant='subtitle2'>
-        v{VERSION} {appInstanceName} {appUsage}
+        v{VERSION} {appInstanceName} {instanceUsage}
       </Typography>
     </Box>
 
 
   const appRender =
   <BrowserRouter>
-    <SystemProvider>
+    <SystemProvider serverUrl={serverUrl}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Box sx={{display:"flex", height:"100vh", flexDirection:"column", overflow:"hidden"}}>
@@ -609,6 +610,7 @@ function App() {
                 setWindowPinnedOpen={setPromptEngineerPinned}
                 setNewPromptPart={setNewPromptPart}
                 setNewPrompt={setNewPrompt}
+                setNewPromptTemplate={setNewPromptTemplate}
                 openPromptTemplateId={openPromptTemplateId}
                 promptTemplateNameChanged={promptTemplateNameChanged}
                 refreshPromptTemplateExplorer={refreshPromptTemplateExplorer}
@@ -626,6 +628,7 @@ function App() {
                   persona={persona} 
                   newPromptPart={newPromptPart}
                   newPrompt={newPrompt} 
+                  newPromptTemplate={newPromptTemplate}
                   loadChat={loadChat} 
                   setAppendNoteContent={setAppendNoteContent}
                   focusOnPrompt={focusOnPrompt}
@@ -657,6 +660,7 @@ function App() {
                 loadNote={loadNote} 
                 createNote={createNote}
                 setNewPromptPart={setNewPromptPart}
+                setNewPrompt={setNewPrompt}
                 setChatRequest={setChatRequest}
                 onChange={onChange(handleNoteChange)}
                 setOpenNoteId={setOpenNoteId}
@@ -687,7 +691,7 @@ function App() {
 </BrowserRouter>
 
 const loginRender = 
-  <SystemProvider>
+  <SystemProvider serverUrl={serverUrl}>
     <BrowserRouter>
       <ThemeProvider theme={theme}>
         <CssBaseline />
