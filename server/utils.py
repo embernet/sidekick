@@ -230,28 +230,15 @@ class DBUtils:
             document = {}
         return document.as_dict()
 
-    # @staticmethod
-    # def get_document_by_id(document_id):
-    #     document = Document.query.filter_by(id=document_id).one()
-    #     return document.as_dict()
-    #
-    # @staticmethod
-    # def get_document_by_name(user_id, name, type=""):
-    #     document = Document.query.filter_by(user_id=user_id, name=name,
-    #                                         type=type).one()
-    #     return document.as_dict()
-
     @staticmethod
-    def list_documents(document_type):
-        documents = [document.as_dict()["metadata"] for document in
-                     Document.query.filter_by(type=document_type).all()]
-        return {
-            "file_count": len(documents),
-            "error_count": 0,
-            "status": "OK",
-            "message": "All files read successfully",
-            "documents": documents
-        }
+    def list_documents(document_type, user_id=""):
+        documents = [doc.as_dict()["metadata"] for doc in
+                     Document.query.filter_by(type=document_type,
+                                              user_id=user_id
+                                              if user_id else None).all()]
+        return {"file_count": len(documents), "error_count": 0, "status": "OK",
+                "message": "All files read successfully",
+                "documents": documents}
 
     @staticmethod
     def delete_document(document_id):
