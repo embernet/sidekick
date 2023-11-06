@@ -235,17 +235,17 @@ def name_topic():
     ai_request = construct_name_topic_request(request)
     try:
         response = openai.ChatCompletion.create(**ai_request)
+        app.logger.debug("/nametopic/v1 openai response:\n",
+                     json.dumps(response, indent=4))
         topic_name = response.choices[0]["message"]["content"]
         if "\n" in topic_name:
-            topic_name = topic_name.split("\n", 1)[
-                0]  # if there are multiple lines, just use the first one
+            topic_name = topic_name.split("\n", 1)[0]  # if there are multiple lines, just use the first one
         topic_name = topic_name.strip('"\'')  # remove surrounding quotes
         topic_name = topic_name.lstrip('- ')  # remove leading dash or space
         ai_response = {
             "success": True,
             "topic_name": topic_name
         }
-        app.logger.debug(f"openai response: {response}")
         server_stats["chat_interaction_count"] += 1
         server_stats["prompt_tokens"] += response["usage"][
             "prompt_tokens"]
@@ -259,15 +259,15 @@ def name_topic():
             "total_tokens": response["usage"]["total_tokens"],
         }
         ai_response["usage"] = message_usage
+        ai_response_json = ai_response
     except Exception as e:
         log_exception(e)
-        ai_response = {
+        ai_response_json = {
             "success": False,
             "error": str(e)
         }
-    ai_response_json = jsonify(ai_response)
     app.logger.debug("/nametopic/v1 response:\n",
-                     json.dumps(ai_response, indent=4))
+                     json.dumps(ai_response_json, indent=4))
     return ai_response_json
 
 

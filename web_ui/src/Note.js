@@ -114,7 +114,6 @@ You always do your best to generate text in the same style as the context text p
     const [promptDisabled, setPromptDisabled] = useState(false);
     const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady.current);
     const [content, setContent] = useState("");
-    const [noteChanged, setNoteChanged] = useState(false);
     const [noteContextMenu, setNoteContextMenu] = useState(null);
     const [prompt, setPrompt] = useState("");
     const [promptToSend, setPromptToSend] = useState("");
@@ -130,12 +129,15 @@ You always do your best to generate text in the same style as the context text p
     const [AIResponse, setAIResponse] = useState("");
     const [inAILibrary, setInAILibrary] = useState(false);
     const [showLibraryHelp, setShowLibraryHelp] = useState(false);
-    const idRef = useRef(id);
+    const saveStatus = useRef("");
 
 
     useEffect(() => {
-        console.log("Note inAILibrary", inAILibrary);
-        setNoteChanged(true);
+        if (noteOpen) {
+            console.log("Note inAILibrary", inAILibrary);
+            saveStatus.current = "changed";
+            save();
+        }
     }, [inAILibrary]);
 
     useEffect(() => {
@@ -170,7 +172,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         if (name === newNoteName && content.length > 200) {
             considerAutoNaming(content);
         }
-        setNoteChanged(true);
+        saveStatus.current = "changed";
     }, [content]);
 
     useEffect(()=>{
@@ -209,6 +211,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                         Authorization: 'Bearer ' + token
                       }
                 }).then(response => {
+                    saveStatus.current = "saved";
                     console.log("loadNote Response", response);
                     response.data.access_token && setToken(response.data.access_token);
                     setId(response.data.metadata.id);
@@ -221,7 +224,6 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     } else {
                         setInAILibrary(false);
                     }
-                    setNoteChanged(false); // as we just loaded it from the server
                     focusOnContent();
                 }).catch(error => {
                     console.log("loadNote error", error);
@@ -286,10 +288,10 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
 
     const save = () => {
         console.log("save", id, name, content);
-        if (id === "" && content !== "") {
+        if (id === "" && saveStatus.current !== "unsaved") {
             create({name: name, content: content});
         } else {
-            if (noteChanged) {
+            if (saveStatus.current === "changed") {
                 const request = {
                     metadata: {
                         id: id,
@@ -307,6 +309,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                         Authorization: 'Bearer ' + token
                     }
                 }).then(response => {
+                    saveStatus.current = "saved";
                     response.data.access_token && setToken(response.data.access_token);
                     if (id === "") {
                         setId(response.data.metadata.id);
@@ -317,7 +320,6 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     console.error("note save error", request, error);
                     system.error(`Error saving note: ${error}`);
                 });
-                setNoteChanged(false);
             }
         }
     }
@@ -354,10 +356,11 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     }
 
     const create = ({name, content}) => {
-        if (idRef.current !== "") {
+        console.log("create", saveStatus.current)
+        if (saveStatus.current === "saved" || saveStatus.current === "creating") {
             return;
         } else {
-            idRef.current = "creating";
+            saveStatus.current = "creating";
         }
         if (name === undefined) {
             name = newNoteName;
@@ -365,20 +368,24 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         if (content === undefined) {
             content = "";
         }
-        axios.post(`${serverUrl}/docdb/${folder}/documents`, {
+        const noteDocument = {
             "name": name,
             "tags": tags,
             "properties": {
                 "inAILibrary": inAILibrary,
-            },
-            "content": {
+           },
+                "content": {
                 "note": content
-            },
-        }, {
+            }
+        };
+        console.log("create fubar", noteDocument);
+        axios.post(`${serverUrl}/docdb/${folder}/documents`, noteDocument,
+        {
             headers: {
                 Authorization: 'Bearer ' + token
               }
         }).then(response => {
+            saveStatus.current = "saved";
             console.log("Create note Response", response);
             response.data.access_token && setToken(response.data.access_token);
             setId(response.data.metadata.id);
@@ -387,7 +394,6 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 setPreviousName(response.data.metadata.name);
             }
             setTags(response.data.metadata.tags);
-            setNoteChanged(false); // as we just saved/loaded it from the server
             onChange(response.data.metadata.id, response.data.metadata.name, "created", "");
             setOpenNoteId({ id: response.data.metadata.id, timestamp: Date.now()});
         }).catch(error => {
@@ -397,6 +403,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     }
 
     const resetNote = () => {
+        saveStatus.current = "";
         setId("");
         setMarkdownRenderingOn(false);
         setName(newNoteName);
@@ -405,7 +412,6 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         setContent("");
         setAIResponse('');
         setInAILibrary(false);
-        setNoteChanged(false); // This is now a new empty note
     }
 
     const deleteNote = () => {
@@ -417,6 +423,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 Authorization: 'Bearer ' + token
               }
         }).then(response => {
+            saveStatus.current = "";
             console.log("delete note Response", response);
             response.data.access_token && setToken(response.data.access_token);
             onChange(idToDelete, nameToDelete, "deleted", "");
@@ -451,6 +458,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     Authorization: 'Bearer ' + token
                 }
             }).then(response => {
+                saveStatus.current = "saved";
                 console.log("renameNote Response", response);
                 response.data.access_token && setToken(response.data.access_token);
                 setPreviousName(name);

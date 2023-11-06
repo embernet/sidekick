@@ -1,4 +1,6 @@
 import axios from 'axios'
+import { debounce } from "lodash";
+
 import { useEffect, useCallback, useRef, useState, useContext } from 'react';
 import { Box, TextField, Typography, Toolbar, Tooltip, IconButton } from '@mui/material';
 import { styled } from '@mui/system';
@@ -64,6 +66,28 @@ const AIPromptResponse = ({serverUrl, token, setToken, customUserPromptReady, sy
     const stopStreamingRef = useRef(false);
     // create a unique id for the prompt TextArea
     const promptId = "prompt-" + Math.random().toString(36);
+
+    const [width, setWidth] = useState(0);
+
+    const handleResize = useCallback(
+        // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
+        debounce((entries) => {
+            entries && entries.length > 0 && setWidth(entries[0].contentRect.width);
+        }, 100),
+        []
+    );
+
+    useEffect(() => {
+        const element = document.getElementById(promptId);
+        const observer = new ResizeObserver((entries) => {
+            if (entries && entries.length > 0 && entries[0].target === element) {
+              handleResize();
+            }
+        });
+        element && observer.observe(element);
+        return () => observer.disconnect();
+    }, [handleResize]);
+
 
     const setPromptFocus = () => {
         document.getElementById(promptId)?.focus();
@@ -304,14 +328,14 @@ const AIPromptResponse = ({serverUrl, token, setToken, customUserPromptReady, sy
         </SecondaryToolbar>
         <TextField 
             sx={{ width: "100%", mt: "auto", overflow: "auto", maxHeight: "338px", minHeight: "54px" }}
-                id={promptId}
-                multiline 
-                variant="outlined" 
-                value={prompt} 
-                onChange={e => setPrompt(e.target.value)} 
-                onKeyDown={handleUserPromptKeyDown}
-                placeholder={promptPlaceholder}
-                disabled={streamingChatResponse !== ""}
+            id={promptId}
+            multiline 
+            variant="outlined" 
+            value={prompt} 
+            onChange={e => setPrompt(e.target.value)} 
+            onKeyDown={handleUserPromptKeyDown}
+            placeholder={promptPlaceholder}
+            disabled={streamingChatResponse !== ""}
         />
     </Box>
     return render;
