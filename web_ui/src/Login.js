@@ -2,8 +2,9 @@ import axios from 'axios'
 import React, { useState, useEffect, useRef } from 'react';
 import { useContext } from 'react';
 import { SystemContext } from './SystemContext';
-import { Box, Tabs, Tab, Button, TextField } from '@mui/material';
+import { Box, Tabs, Tab, Button, TextField, Typography } from '@mui/material';
 import Carousel from './Carousel';
+import AccountCreate from './AccountCreate';
 
 function Login({setUser, serverUrl, setToken}) {
   const system = useContext(SystemContext);
@@ -13,8 +14,7 @@ function Login({setUser, serverUrl, setToken}) {
   const [pageLoaded, setPageLoaded] = useState(false);
   const [preLoginMessage, setPreLoginMessage] = useState('');
   const loginPasswordRef = useRef(null);
-  const createAccountPasswordRef = useRef(null);
-  const [customSettings, setCustomSettings] = useState({});
+  const [systemSettings, setSystemSettings] = useState({});
 
   const containerStyle = {
     display: 'flex',
@@ -45,9 +45,9 @@ function Login({setUser, serverUrl, setToken}) {
     padding: '4px',
   };
 
-  const applyCustomSettings = () => {
+  const applySystemSettings = () => {
     axios.get(`${serverUrl}/system_settings/login`).then(response => {
-      setCustomSettings(response.data);
+      setSystemSettings(response.data);
       console.log("Login custom settings:", response);
     }).catch(error => {
       console.error("Error getting login custom settings:", error);
@@ -58,10 +58,11 @@ function Login({setUser, serverUrl, setToken}) {
       if (!pageLoaded) {
           setPageLoaded(true);
       }
-      applyCustomSettings();
+      system.checkServerUp();
+      applySystemSettings();
   }, [pageLoaded]);
 
-  const login = () => {
+  const login = ({userId, password}) => {
     axios
     .post(`${serverUrl}/login`, { user_id: userId, password: password })
     .then((response) => {
@@ -82,30 +83,11 @@ function Login({setUser, serverUrl, setToken}) {
     });
   }
 
-  const handleCreateAccount = (event) => {
-      event.preventDefault();
-      let properties = "{}";
-      axios
-      .post(`${serverUrl}/create_account`, { user_id: userId, properties: properties, password: password })
-      .then((response) => {
-          console.log(response);
-        if (response.data.success) {
-          console.log(`User ${userId} created`);
-          system.info(`User ${userId} created; logging you in...`);
-          login();
-        } else {
-          system.error(response.data.message);
-          console.log(response.data.message);
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  };
-  
   const handleLogin = (event) => {
       event.preventDefault();
-      login();
+      login({userId:userId, password:password});
+      setUserId('');
+      setPassword('');
   };
 
   
@@ -116,7 +98,7 @@ function Login({setUser, serverUrl, setToken}) {
   const ui = <Box style={formContainerStyle}>
     <Tabs value={tabIndex} onChange={handleTabChange} style={{ position: 'relative' }}>
       <Tab label="Login" />
-      {customSettings?.functionality?.createAccount ? <Tab label="Create Account" /> : null}
+      {systemSettings?.functionality?.createAccount ? <Tab label="Create Account" /> : null}
     </Tabs>
     {tabIndex === 0 && (
         <Box style={inputContainerStyle} component="form">
@@ -135,22 +117,11 @@ function Login({setUser, serverUrl, setToken}) {
         </Box>
     )}
     {tabIndex === 1 && (
-        <Box style={inputContainerStyle} component="form">
-            <TextField id="create-account-userid" type="text" placeholder="Enter UserId" 
-              style={inputStyle} autoComplete="off"  onChange={(e) => setUserId(e.target.value)} 
-              onKeyDown={(e) => { if (e.key === 'Enter') { createAccountPasswordRef.current.focus(); }}}
-            />
-            <TextField id="create-account-password" type="password" placeholder="Enter Password" 
-              inputRef = {createAccountPasswordRef}
-              style={inputStyle} autoComplete="off" onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') { handleCreateAccount(e); }}} 
-              />
-            <Button onClick={handleCreateAccount} default>Create Account</Button>
-        </Box>
+        <AccountCreate serverUrl={serverUrl} onAccountCreated={login}/>
     )}
   <Box variant="body3" color="text.secondary" 
     sx={{ textAlign: "center", width: "700px", height: "200px", overflow: "auto", whiteSpace: 'pre-line' }}>
-    { (customSettings?.preLogin?.message) ? customSettings.preLogin.message : null}
+    { (systemSettings?.preLogin?.message) ? systemSettings.preLogin.message : null}
   </Box>
   </Box>
 
@@ -158,8 +129,10 @@ function Login({setUser, serverUrl, setToken}) {
     <Box style={containerStyle}>
       <Carousel imageFolderName="./images/logo/" filenamePrefix="sidekick_" 
       filenameExtension=".png" altText="Sidekick logo"
-      transitions="8" cycleTime="250"/>
-      {system.serverUp ? ui : <div>Server not available</div>}
+      transitions="8" cycleTime="250" />
+      <Box sx={{ flex: 1 }}>
+        {system.serverUp ? ui : <Typography variant="h5" color="error">Server not available. Please try later.</Typography>}
+      </Box>
     </Box>
   );
 }

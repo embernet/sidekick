@@ -118,6 +118,21 @@ class DBUtils:
         return {'success': False, 'message': 'Invalid login'}
 
     @staticmethod
+    def reset_password(acting_user_id, user_id, new_password):
+        acting_user = User.query.filter_by(id=acting_user_id).one()
+        app.logger.info(f"/reset_password {acting_user.as_dict()}")
+        # TODO: Check user has admin role
+        # if "admin" in acting_user_roles and acting_user_roles["admin"]:
+        user = User.query.filter_by(id=user_id).one()
+        new_password_hash = bcrypt.hashpw(new_password.encode('utf-8'),
+                                        bcrypt.gensalt()).decode('utf-8')
+        user.password_hash = new_password_hash
+        db.session.commit()
+        return {'success': True}
+        # else:
+        #     return {'success': False, 'message': 'Not authorized'}
+
+    @staticmethod
     def delete_user(user_id):
         try:
             user = User.query.filter_by(id=user_id).one()

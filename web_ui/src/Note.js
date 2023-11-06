@@ -40,7 +40,7 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
 }));
 
   const Note = ({noteOpen, setNoteOpen, appendNoteContent, loadNote, createNote,
-    setNewPromptPart, setChatRequest, onChange, setOpenNoteId, serverUrl, token, setToken, maxWidth}) => {
+    setNewPromptPart, setNewPrompt, setChatRequest, onChange, setOpenNoteId, serverUrl, token, setToken, maxWidth}) => {
 
     const newNoteName = "New Note";
     const systemPrompt = `You are DocumentGPT.
@@ -62,19 +62,20 @@ You always do your best to generate text in the same style as the context text p
         document.getElementById("note-content")?.focus();
     }
 
-    const applyCustomSettings = () => {
+    const applySystemSettings = () => {
         axios.get(`${serverUrl}/system_settings/note`).then(response => {
                 if ("userPromptReady" in response.data) {
                     userPromptReady.current = defaultUserPromptReady + " (" + response.data.userPromptReady + ")";
                     setPromptPlaceholder(userPromptReady.current);
                 }
-            }).catch(error => {
-            console.error("Error getting Chat custom settings:", error);
-            });
-        }
+                console.log("Note system settings", response.data);
+        }).catch(error => {
+        console.error("Error getting Chat custom settings:", error);
+        });
+    }
 
     useEffect(() => {
-        applyCustomSettings();
+        applySystemSettings();
         focusOnContent();
         showReady();
         const handleVisibilityChange = () => {
@@ -129,16 +130,13 @@ You always do your best to generate text in the same style as the context text p
     const [AIResponse, setAIResponse] = useState("");
     const [inAILibrary, setInAILibrary] = useState(false);
     const [showLibraryHelp, setShowLibraryHelp] = useState(false);
+    const idRef = useRef(id);
 
 
     useEffect(() => {
         console.log("Note inAILibrary", inAILibrary);
         setNoteChanged(true);
     }, [inAILibrary]);
-
-    useEffect(() => {
-        save();
-    }, [noteChanged]);
 
     useEffect(() => {
         if (noteOpen && userPromptEntered) {
@@ -176,6 +174,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
 
     useEffect(()=>{
         if(appendNoteContent.content !== "") {
+            setNoteOpen({id: id, timestamp: Date.now()});
             let newNotePart = appendNoteContent.content.trim();
             if(typeof newNotePart === "string") {
                 let newNote = content;
@@ -356,6 +355,11 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     }
 
     const create = ({name, content}) => {
+        if (idRef.current !== "") {
+            return;
+        } else {
+            idRef.current = "creating";
+        }
         if (name === undefined) {
             name = newNoteName;
         }
@@ -529,7 +533,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
 
     const handleAppendSelectedTextToChatInput = () => {
         const text = noteContextMenu.selectedText;
-        setNewPromptPart(text);
+        setNewPromptPart({text: text, timestamp: Date.now()});
         setNoteContextMenu(null);
     };
 
@@ -546,14 +550,14 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
 
     const handleAppendNoteToChatInput = () => {
         // Just get the selcted text
-        setNewPromptPart(noteContextMenu.note);
+        setNewPromptPart({text: content, timestamp: Date.now()});
         setNoteContextMenu(null);
     };
 
     const handleUseNoteAsChatInput = () => {
         // Just get the selected text
         //TODO to replace whole prompt
-        setNewPromptPart(noteContextMenu.note);
+        setNewPrompt({text: content, timestamp: Date.now()});
         setNoteContextMenu(null);
     };
 
@@ -729,6 +733,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
             token={token}
             setToken={setToken}
             streamingOn={true}
+            customUserPromptReady={userPromptReady.current}
             systemPrompt={systemPrompt}
             streamingChatResponseRef={streamingChatResponseRef}
             streamingChatResponse={streamingChatResponse}

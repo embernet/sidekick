@@ -4,13 +4,28 @@ import axios from 'axios';
 
 export const SystemContext = createContext();
 
-export const SystemProvider = ({ children }) => {
+export const SystemProvider = ({ serverUrl, children }) => {
   const [system, setSystem] = useState({
-    serverUp: { status: false, timestamp: Date.now() },
+    serverUp: false,
+    checkServerUp: () => {
+      axios.get(`${serverUrl}/ping`).then(response => {
+        console.log("Ping response: ", response);
+        setSystem((prevSystem) => ({
+          ...prevSystem,
+          serverUp: true,
+        }));
+      }).catch(error => {
+          console.error(error);
+          setSystem((prevSystem) => ({
+            ...prevSystem,
+            serverUp: false,
+          }));
+        });    
+    },
     setServerUp: (state) => {
       setSystem((prevSystem) => ({
         ...prevSystem,
-        serverUp: { status: state, timestamp: Date.now() },
+        serverUp: state,
       }));
     },
     error: (message) => {

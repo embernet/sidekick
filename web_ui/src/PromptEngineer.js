@@ -16,7 +16,7 @@ import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import { SystemContext } from './SystemContext';
 import Explorer from './Explorer';
 
-const PromptEngineer = ({handleTogglePromptEngineer, setNewPromptPart, setNewPrompt, openPromptTemplateId,
+const PromptEngineer = ({handleTogglePromptEngineer, setNewPromptPart, setNewPromptTemplate, openPromptTemplateId,
     promptTemplateNameChanged, refreshPromptTemplateExplorer, setRefreshPromptTemplateExplorer,
     setPromptTemplateOpen, promptTemplateOpen, settingsManager, serverUrl, token, setToken,
     windowPinnedOpen, setWindowPinnedOpen}) => {
@@ -76,7 +76,7 @@ const PromptEngineer = ({handleTogglePromptEngineer, setNewPromptPart, setNewPro
     };
     
     const handleItemClick = (text) => {
-        setNewPromptPart(text);
+        setNewPromptPart({text: text, timestamp: Date.now()});
     };
 
     const loadingRender = <Card sx={{display:"flex", flexDirection:"column", padding:"6px",
@@ -136,7 +136,7 @@ const PromptEngineer = ({handleTogglePromptEngineer, setNewPromptPart, setNewPro
                         icon={<BuildIcon/>}
                         folder="prompt_templates"
                         openItemId={openPromptTemplateId}
-                        setLoadDoc={setNewPrompt}
+                        setLoadDoc={setNewPromptTemplate}
                         docNameChanged={promptTemplateNameChanged}
                         refresh={refreshPromptTemplateExplorer}
                         setRefresh={setRefreshPromptTemplateExplorer}

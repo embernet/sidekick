@@ -82,7 +82,7 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
             console.log("/docdb Response", response);
             response.data.access_token && setToken(response.data.access_token);
             response.data.documents.sort((a, b) => (a.name > b.name) ? 1 : -1);
-            setDocs(response.data.documents);
+            setDocs(sortedList(response.data.documents, sortOrder, sortOrderDirection));
         }).catch(error => {
             console.error("Explorer error loading items:", error);
             system.error(`Explorer error loading items: ${error}`);
@@ -100,25 +100,30 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
         }
     };
 
-    const sort = (sortBy, sortDirection) => {
-        let sortedDocs = [];
+    const sortedList = (list, sortBy, sortDirection) => {
+        let sortedList = [];
         if (sortBy === "name") {
-            sortedDocs = docs.sort((a, b) => (a.name > b.name) ? sortDirection : sortDirection * -1);
+            sortedList = list.sort((a, b) => (a.name > b.name) ? sortDirection : sortDirection * -1);
         } else if (sortBy === "created") {
-            sortedDocs = docs.sort((a, b) => (a.created_date > b.created_date) ? sortDirection : sortDirection * -1);
+            sortedList = list.sort((a, b) => (a.created_date > b.created_date) ? sortDirection : sortDirection * -1);
         } else if (sortBy === "updated") {
-            sortedDocs = docs.sort((a, b) => (a.updated_date > b.updated_date) ? sortDirection : sortDirection * -1);
+            sortedList = list.sort((a, b) => (a.updated_date > b.updated_date) ? sortDirection : sortDirection * -1);
         }
+        return sortedList;
+    }
+
+    const sortDocs = (sortBy, sortDirection) => {
+        let sortedDocs = sortedList(docs, sortBy, sortDirection);
         setDocs(sortedDocs);
     }
 
     const handleSortOrderChange = (value) => {
         setSortOrder(value);
-        sort(value, sortOrderDirection);
+        sortDocs(value, sortOrderDirection);
     }
 
     const handleToggleSortOrderDirection = () => {
-        sort(sortOrder, sortOrderDirection * -1);
+        sortDocs(sortOrder, sortOrderDirection * -1);
         setSortOrderDirection(x=>x*-1);
     }
 

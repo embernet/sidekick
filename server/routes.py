@@ -15,9 +15,11 @@ from flask_jwt_extended import get_jwt_identity, jwt_required, \
     create_access_token, unset_jwt_cookies
 
 from sqlalchemy.exc import NoResultFound
+from sqlalchemy.exc import IntegrityError
 
 from app import app
 
+VERSION = "0.1"
 
 class OrderedEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -37,7 +39,7 @@ def test_server_up():
         "message": "sidekick-server is up and running.",
         "topic": "test",
         "status": "OK",
-        "version": "VERSION",
+        "version": f"{VERSION}",
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "hostname": socket.gethostname()
     }
@@ -105,46 +107,49 @@ def get_system_settings(name):
     app.logger.debug(f"/system_settings/{name} response: {settings}")
     return response
 
-@app.route('/system_settings/<name>', methods=['PUT'])
+DOCTYPE_SYSTEM_SETTINGS = "system_settings"
+@app.route(f'/{DOCTYPE_SYSTEM_SETTINGS}/<name>', methods=['PUT'])
 @jwt_required()
 def save_system_settings(name):
-    app.logger.info(f"/system_settings/{name} PUT request from"
-                    f":{request.remote_addr}")
-    user = DBUtils.get_user_by_id(get_jwt_identity())
+    app.logger.info(f"/{DOCTYPE_SYSTEM_SETTINGS}/{name} PUT request from"
+                    f":{request.remote_addr}"
+                    f"request: {request.json}")
+    # TODO - check if user has role admin
+    # user = DBUtils.get_user_by_id(get_jwt_identity())
+    # try:
+    #     if user["properties"]["roles"]["admin"]:
     try:
-        if user["properties"]["roles"]["admin"]:
-            try:
-                document_id = DBUtils.get_document_by_name(
-                    user_id="sidekick",
-                    name=name,
-                    doctype_name="system_settings"
-                )["metadata"]["id"]
-                DBUtils.update_document(id=document_id,
-                                        name=name,
-                                        tags=[],
-                                        properties={},
-                                        content=request.json)
-            except NoResultFound:
-                DBUtils.create_document(user_id=get_jwt_identity(),
-                                        name=name,
-                                        tags=[], properties={},
-                                        content=request.json,
-                                        doctype_name="settings")
-            return app.response_class(
-                response=json.dumps({"success": True}),
-                status=200,
-                mimetype='application/json'
-            )
-    except KeyError:
-        pass
-    except Exception as e:
-        log_exception(e)
-        return str(e), 500
+        document_id = DBUtils.get_document_by_name(
+            user_id="sidekick",
+            name=name,
+            doctype_name=DOCTYPE_SYSTEM_SETTINGS
+        )["metadata"]["id"]
+        DBUtils.update_document(id=document_id,
+                                name=name,
+                                tags=[],
+                                properties={},
+                                content=request.json)
+    except NoResultFound:
+        DBUtils.create_document(user_id=get_jwt_identity(),
+                                name=name,
+                                tags=[], properties={},
+                                content=request.json,
+                                doctype_name=DOCTYPE_SYSTEM_SETTINGS)
     return app.response_class(
-        response=json.dumps({"success": False}),
-        status=403,
+        response=json.dumps({"success": True}),
+        status=200,
         mimetype='application/json'
     )
+    # except KeyError:
+    #     pass
+    # except Exception as e:
+    #     log_exception(e)
+    #     return str(e), 500
+    # return app.response_class(
+    #     response=json.dumps({"success": False}),
+    #     status=403,
+    #     mimetype='application/json'
+    # )
 
 @app.route('/settings/<name>', methods=['GET'])
 @jwt_required()
@@ -616,6 +621,9 @@ def create_account():
             password=data["password"],
             properties=data['properties'] if 'properties' in data else {})
         return jsonify({'success': True})
+    except IntegrityError as e:
+        app.logger.error(f"/create_account user_id:{data['user_id']} error: User already exists")
+        return jsonify({'success': False, 'message': 'A user with that ID already exists.'})
     except Exception as e:
         app.logger.error(f"/create_account user_id:{data['user_id']} error"
                          f":{str(e)}")
@@ -665,21 +673,56 @@ def change_password():
         return jsonify({'success': False, 'message': str(e)})
 
 
+@app.route('/reset_password', methods=['POST'])
+@jwt_required()
+def reset_password():
+    data = request.get_json()
+    user_id = data['user_id']
+    new_password=data['new_password']
+    acting_user_id = get_jwt_identity()
+    app.logger.info(
+        f"/reset_password by user_id: {acting_user_id} for user_id: {user_id} "
+        f"[POST] request from: {request.remote_addr}")
+    try:
+        result = DBUtils.reset_password(acting_user_id=acting_user_id,
+                                        user_id=user_id,
+                                        new_password=new_password)
+        if result['success']:
+            access_token = create_access_token(identity=data['user_id'])
+            result['access_token'] = access_token
+            return jsonify(result)
+        else:
+            return app.response_class(
+                response=json.dumps({"success": False, "message": result['message']}),
+                status=403,
+                mimetype='application/json'
+            )
+    except Exception as e:
+        app.logger.error(f"/reset_password user_id:{data['user_id']} "
+                         f"error:{str(e)}")
+        log_exception(e)
+        return jsonify({'success': False, 'message': str(e)})
+
+
 @app.route('/delete_user', methods=['POST'])
 @jwt_required()
 def delete_user():
     data = request.get_json()
+    user_id_to_delete = data['user_id']
+    password=data['password']
+    acting_user_id = get_jwt_identity()
     app.logger.info(
-        f"/delete_user user_id:{data['user_id']} [POST] request from"
+        f"/delete_user by acting_user_id: {acting_user_id} of user_id: {user_id_to_delete} [POST] request from"
         f":{request.remote_addr}")
     try:
-        if DBUtils.login(data['user_id'], data['password'])['success']:
-            result = DBUtils.delete_user(data['user_id'])
+        # TODO: Check acting_user_id has admin role
+        if DBUtils.login(acting_user_id, password)['success']:
+            result = DBUtils.delete_user(user_id_to_delete)
             return jsonify(result)
         else:
             return jsonify({'success': False, 'message': 'Invalid password'})
     except Exception as e:
-        app.logger.error(f"/delete_user user_id:{data['user_id']} error"
+        app.logger.error(f"/delete_user by acting_user_id: {acting_user_id} of user_id: {user_id_to_delete} error"
                          f":{str(e)}")
         log_exception(e)
         return jsonify({'success': False, 'message': str(e)})

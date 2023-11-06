@@ -3,14 +3,16 @@ import axios from 'axios';
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { SystemContext } from './SystemContext';
 import { Card, Toolbar, Tooltip, IconButton, Box, Paper, Tabs, Tab, TextField, Button, Typography,
-    Stack, FormGroup, FormControl, FormLabel, FormControlLabel, Switch } from '@mui/material';
+    Stack, Switch } from '@mui/material';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
 import CloseIcon from '@mui/icons-material/Close';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
 import { red } from '@mui/material/colors';
-import { use } from "marked";
+import AccountCreate from "./AccountCreate";
+import AccountResetPassword from "./AccountResetPassword";
+import AccountDelete from "./AccountDelete";
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     backgroundColor: red[500],
@@ -29,16 +31,41 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
     const [tabIndex, setTabIndex] = useState(0);
 
     // System settings
-    const [systemSettings, setSystemSettings] = useState({});
+    const [appSystemSettingsLoaded, setAppSystemSettingsLoaded] = useState(false);
+    const [appSystemSettings, setAppSystemSettings] = useState({});
     const [loginSystemSettings, setLoginSystemSettings] = useState({});
     const [appSettingsSystemSettings, setAppSettingsSystemSettings] = useState({});
     const [loginSystemSettingsLoaded, setLoginSystemSettingsLoaded] = useState(false);
     const [appSettingsSystemSettingsLoaded, setAppSettingsSystemSettingsLoaded] = useState(false);
+    const [chatSystemSettingsLoaded, setChatSystemSettingsLoaded] = useState(false);
+    const [chatSystemSettings, setChatSystemSettings] = useState({});
+    const [noteSystemSettingsLoaded, setNoteSystemSettingsLoaded] = useState(false);
+    const [noteSystemSettings, setNoteSystemSettings] = useState({});
+
+    // Functionality settings
     const [createAccountEnabled, setCreateAccountEnabled] = useState(false);
     const [changePasswordEnabled, setChangePasswordEnabled] = useState(false);
     const [deleteAccountEnabled, setDeleteAccountEnabled] = useState(false);
     
+    // Custom text settings
+    const [customTextChanged, setCustomTextChanged] = useState(false);
+    // App custom text settings
+    const [instanceName, setInstanceName] = useState('');
+    const [instanceUsage, setInstanceUsage] = useState('');
+    // Login custom text settings
+    const [preLoginMessage, setPreLoginMessage] = useState('');
+    // Chat custom text settings
+    const [chatUserPromptReady, setChatUserPromptReady] = useState('');
+    // Note custom text settings
+    const [noteUserPromptReady, setNoteUserPromptReady] = useState('');
+
     const loadSystemSettings = () => {
+        axios.get(`${serverUrl}/system_settings/app`).then(response => {
+            setAppSystemSettings(response.data);
+            console.log("App system settings:", response);
+        }).catch(error => {
+            console.error("Error getting App system settings:", error);
+        });
         axios.get(`${serverUrl}/system_settings/login`).then(response => {
           setLoginSystemSettings(response.data);
           console.log("Login system settings:", response);
@@ -50,6 +77,18 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
             console.log("AppSettings system settings:", response);
         }).catch(error => {
             console.error("Error getting AppSettings system settings:", error);
+        });
+        axios.get(`${serverUrl}/system_settings/chat`).then(response => {
+            setChatSystemSettings(response.data);
+            console.log("Chat system settings:", response);
+        }).catch(error => {
+            console.error("Error getting Chat system settings:", error);
+        });
+        axios.get(`${serverUrl}/system_settings/note`).then(response => {
+            setNoteSystemSettings(response.data);
+            console.log("Note system settings:", response);
+        }).catch(error => {
+            console.error("Error getting Note system settings:", error);
         });
     }
     
@@ -80,11 +119,6 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
         marginTop: '50px',
     };
 
-    const inputStyle = {
-        margin: '10px',
-        padding: '5px',
-    };
-
     useEffect(() => {
         loadSystemSettings();
         console.log("AppSettings instantiated");
@@ -92,20 +126,10 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
 
     useEffect(() => {
         if (!loginSystemSettingsLoaded && loginSystemSettings.functionality) {
-            console.log(`loginSystemSettings: ${loginSystemSettings}`);
+            console.log("loginSystemSettings: ",loginSystemSettings);
             setLoginSystemSettingsLoaded(true);
             setCreateAccountEnabled(loginSystemSettings.functionality.createAccount);
-        } else {
-            axios.put(`${serverUrl}/system_settings/login`, appSettingsSystemSettings, {
-                headers: {
-                    Authorization: 'Bearer ' + token
-                  }
-            }).then(response => {
-                console.log("loginSystemSettings save response", response);
-                response.data.access_token && setToken(response.data.access_token);
-            }).catch(error => {
-                console.error("loginSystemSettings save error", error);
-            });
+            setPreLoginMessage(loginSystemSettings.preLogin.message);
         }
     }, [loginSystemSettings]);
 
@@ -113,19 +137,31 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
         if (!appSettingsSystemSettingsLoaded && appSettingsSystemSettings.functionality) {
             setAppSettingsSystemSettingsLoaded(true);
             setDeleteAccountEnabled(appSettingsSystemSettings.functionality.deleteAccount);
-        } else {
-            axios.put(`${serverUrl}/system_settings/appsettings`, appSettingsSystemSettings, {
-                headers: {
-                    Authorization: 'Bearer ' + token
-                  }
-            }).then(response => {
-                console.log("appSettingsSystemSettings save response", response);
-                response.data.access_token && setToken(response.data.access_token);
-            }).catch(error => {
-                console.error("appSettingsSystemSettings save error", error);
-            });
+            setChangePasswordEnabled(appSettingsSystemSettings.functionality.changePassword);
         }
     }, [appSettingsSystemSettings]);
+
+    useEffect(() => {
+        if (!chatSystemSettingsLoaded && chatSystemSettings.userPromptReady) {
+            setChatSystemSettingsLoaded(true);
+            setChatUserPromptReady(chatSystemSettings.userPromptReady);
+        }
+    }, [chatSystemSettings]);
+
+    useEffect(() => {
+        if (!noteSystemSettingsLoaded && noteSystemSettings.userPromptReady) {
+            setNoteSystemSettingsLoaded(true);
+            setNoteUserPromptReady(noteSystemSettings.userPromptReady);
+        }
+    }, [noteSystemSettings]);
+
+    useEffect(() => {
+        if (!appSystemSettingsLoaded) {
+            setAppSystemSettingsLoaded(true);
+            setInstanceName(appSystemSettings?.instanceName ? appSystemSettings.instanceName : '');
+            setInstanceUsage(appSystemSettings?.instanceUsage ? appSystemSettings.instanceUsage : '');
+        }
+    }, [appSystemSettings]);
 
     useEffect(() => {
         if (tabIndex === 2) {
@@ -133,137 +169,157 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
         }
     }, [tabIndex]);
 
+    const saveAppSystemSettings = (newAppSystemSettings) => {
+        axios.put(`${serverUrl}/system_settings/app`, newAppSystemSettings, {
+            headers: {
+                Authorization: 'Bearer ' + token
+                }
+        }).then(response => {
+            console.log("appSystemSettings save response", response);
+            response.data.access_token && setToken(response.data.access_token);
+        }).catch(error => {
+            console.error("appSystemSettings save error", error);
+        });
+    };
+
+    const saveChatSystemSettings = (newChatSystemSettings) => {
+        axios.put(`${serverUrl}/system_settings/chat`, newChatSystemSettings, {
+            headers: {
+                Authorization: 'Bearer ' + token
+                }
+        }).then(response => {
+            console.log("chatSystemSettings save response", response);
+            response.data.access_token && setToken(response.data.access_token);
+        }).catch(error => {
+            console.error("chatSystemSettings save error", error);
+        });
+    };
+
+    const saveNoteSystemSettings = (newNoteSystemSettings) => {
+        axios.put(`${serverUrl}/system_settings/note`, newNoteSystemSettings, {
+            headers: {
+                Authorization: 'Bearer ' + token
+                }
+        }).then(response => {
+            console.log("noteSystemSettings save response", response);
+            response.data.access_token && setToken(response.data.access_token);
+        }).catch(error => {
+            console.error("noteSystemSettings save error", error);
+        });
+    };
+
+    const saveLoginSystemSettings = (newLoginSystemSettings) => {
+        axios.put(`${serverUrl}/system_settings/login`, newLoginSystemSettings, {
+            headers: {
+                Authorization: 'Bearer ' + token
+              }
+        }).then(response => {
+            console.log("loginSystemSettings save response", response);
+            response.data.access_token && setToken(response.data.access_token);
+        }).catch(error => {
+            console.error("loginSystemSettings save error", error);
+        });
+    };
+
+    const saveAppSettingsSystemSettings = (newAppSettingsSystemSettings) => {
+        axios.put(`${serverUrl}/system_settings/appsettings`, appSettingsSystemSettings, {
+            headers: {
+                Authorization: 'Bearer ' + token
+              }
+        }).then(response => {
+            console.log("appSettingsSystemSettings save response", response);
+            response.data.access_token && setToken(response.data.access_token);
+        }).catch(error => {
+            console.error("appSettingsSystemSettings save error", error);
+        });
+    };
+
   const handleTabChange = (event, newValue) => {
     setTabIndex(newValue);
-  };
-
-  const handleCurrentPasswordChange = (event) => {
-    setCurrentPassword(event.target.value);
-  };
-
-  const handleNewPasswordChange = (event) => {
-    setNewPassword(event.target.value);
-  };
-
-  const handleReEnteredNewPasswordChange = (event) => {
-    setReEnteredNewPassword(event.target.value);
-  };
-
-  const handleConfirmNameChange = (event) => {
-    setConfirmUserId(event.target.value);
-  };
-
-  const handleCancelChangePassword = () => {
-    setCurrentPassword('');
-    setNewPassword('');
-    setReEnteredNewPassword('');
-    setConfirmUserId('');
-    setTabIndex(0);
-  };
-
-  const handleChangePassword = async () => {
-    if (newPassword !== reEnteredNewPassword) {
-        system.error('New passwords do not match!');
-        return;
-    }
-    axios.post(`${serverUrl}/change_password`,
-        {
-            "user_id": user,
-            "current_password": currentPassword,
-            "new_password": newPassword
-        },
-        {
-            headers: {
-                Authorization: 'Bearer ' + token
-            }
-        }).then(response => {
-            setCurrentPassword('');
-            setNewPassword('');
-            console.log("handleChangePassword response: ", response);
-            response.data.access_token && setToken(response.data.access_token);
-            if (response.data.success) {
-                system.info('Password changed successfully!');
-            } else {
-                system.error(`Failed to change password: ${response.data.message}`);
-            }
-        }).catch(error => {
-            setCurrentPassword('');
-            setNewPassword('');
-            console.error(error);
-            system.error(`An error occurred while changing password: ${error}`);
-        }
-    );
-  };
-
-    const handleSaveSystemSettings = () => {
-        system.info('System settings saved successfully');
-    }
-
-  const handleDeleteAccount = () => {
-    if (user !== confirmUser) {
-        system.error('Userid does not match!');
-        return;
-    }
-    axios.post(`${serverUrl}/delete_user`,
-        {
-            "user_id": user,
-            "password": currentPassword
-        },
-        {
-            headers: {
-                Authorization: 'Bearer ' + token
-            }
-        }).then(response => {
-            setCurrentPassword('');
-            console.log("handleChangePassword response: ", response);
-            response.data.access_token && setToken(response.data.access_token);
-            if (response.data.success) {
-                system.info('Account deleted successfully. Logging out...');
-                setUser('')
-            } else {
-                system.error(`Failed to delete account: ${response.data.message}`);
-            }
-        }).catch(error => {
-            setCurrentPassword('');
-            console.error(error);
-            system.error(`An error occurred while deleting the account: ${error}`);
-        }
-    );
   };
 
     const handleToggleFunctionalityLoginCreateAccount = () => {
         let newCreateAccountEnabled = !createAccountEnabled;
         setCreateAccountEnabled(newCreateAccountEnabled);
         let newLoginSystemSettings = loginSystemSettings;
+        if (!newLoginSystemSettings.functionality) {
+            newLoginSystemSettings.functionality = {};
+        }
         newLoginSystemSettings.functionality.createAccount = newCreateAccountEnabled;
+        console.log("handleToggleFunctionalityLoginCreateAccount", newLoginSystemSettings);
         setLoginSystemSettings(newLoginSystemSettings);
+        saveLoginSystemSettings(newLoginSystemSettings);
     };
 
     const handleToggleFunctionalityAppSettingsChangePassword = () => {
         let newChangePasswordEnabled = !changePasswordEnabled;
         setChangePasswordEnabled(newChangePasswordEnabled);
         let newAppSettingsSystemSettings = appSettingsSystemSettings;
-        newAppSettingsSystemSettings.functionality.changePassword = !newAppSettingsSystemSettings.functionality.changePassword;
+        if (!newAppSettingsSystemSettings.functionality) {
+            newAppSettingsSystemSettings.functionality = {};
+        }
+        newAppSettingsSystemSettings.functionality.changePassword = newChangePasswordEnabled;
         setAppSettingsSystemSettings(newAppSettingsSystemSettings);
+        saveAppSettingsSystemSettings(newAppSettingsSystemSettings);
     };
 
     const handleToggleFunctionalityAppSettingsDeleteAccount = () => {
         let newDeleteAccountEnabled = !deleteAccountEnabled;
         setDeleteAccountEnabled(newDeleteAccountEnabled);
         let newAppSettingsSystemSettings = appSettingsSystemSettings;
-        newAppSettingsSystemSettings.functionality.deleteAccount = !newAppSettingsSystemSettings.functionality.deleteAccount;
+        newAppSettingsSystemSettings.functionality.deleteAccount = newDeleteAccountEnabled;
         setAppSettingsSystemSettings(newAppSettingsSystemSettings);
+        saveAppSettingsSystemSettings(newAppSettingsSystemSettings);
     };
 
+    const handleSaveCustomTextChanges = () => {
+        // app
+        let newAppSystemSettings = appSystemSettings;
+        newAppSystemSettings.instanceName = instanceName;
+        newAppSystemSettings.instanceUsage = instanceUsage;
+        setAppSystemSettings(newAppSystemSettings);
+        saveAppSystemSettings(newAppSystemSettings);
+
+        // login
+        let newLoginSystemSettings = loginSystemSettings;
+        newLoginSystemSettings.preLogin.message = preLoginMessage;
+        setLoginSystemSettings(newLoginSystemSettings);
+        saveLoginSystemSettings(newLoginSystemSettings);
+
+        // chat
+        let newChatSystemSettings = chatSystemSettings;
+        newChatSystemSettings.userPromptReady = chatUserPromptReady;
+        setChatSystemSettings(newChatSystemSettings);
+        saveChatSystemSettings(newChatSystemSettings);
+
+        // note
+        let newNoteSystemSettings = noteSystemSettings;
+        newNoteSystemSettings.userPromptReady = noteUserPromptReady;
+        setNoteSystemSettings(newNoteSystemSettings);
+        saveNoteSystemSettings(newNoteSystemSettings);
+        setCustomTextChanged(false);
+        system.info("Custom text changes saved.");
+    }
+
+    const handleCancelCustomTextChanges = () => {
+        setPreLoginMessage(loginSystemSettings.preLogin.message);
+        setInstanceName(appSystemSettings.instanceName);
+        setInstanceUsage(appSystemSettings.instanceUsage);
+        setChatUserPromptReady(chatSystemSettings.userPromptReady);
+        setNoteUserPromptReady(noteSystemSettings.userPromptReady);
+        setTabIndex(0);
+    }
+
     const TAB_ABOUT = 0;
-    const TAB_FUNCTIONALITY = 1;
-    const TAB_CREATE_ACCOUNT = 2;
-    const TAB_RESET_PASSWORD = 3;
-    const TAB_DELETE_ACCOUNT = 4;
+    const TAB_CUSTOM_TEXT = 1;
+    const TAB_FUNCTIONALITY = 2;
+    const TAB_CREATE_ACCOUNT = 3;
+    const TAB_RESET_PASSWORD = 4;
+    const TAB_DELETE_ACCOUNT = 5;
 
   const render = <Card sx={{display:"flex", flexDirection:"column", 
     padding:"6px", margin:"6px", flex:1, 
-    width: "800px", minWidth: "600px", maxWidth: "800px"}}>
+    minWidth: "600px", maxWidth: "800px"}}>
     
   <StyledToolbar className={ClassNames.toolbar}>
       <AdminPanelSettingsIcon/>
@@ -277,138 +333,203 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
       </Box>
   </StyledToolbar>
 
-  <Box sx={{ height: "100%" }}>
-    <Box sx={{ display: "flex", flexDirection: "row", height: "100%"}}>
-          <Box sx={{ width: "200px" }}>
-                <Tabs value={tabIndex} onChange={handleTabChange} orientation="vertical"
-                    sx={{  textAlign: "left" }}>
-                    <Tab label="About" />
-                    <Tab label="Functionality" />
-                    <Tab label="Create Account" />
-                    <Tab label="Reset Password" />
-                    <Tab label="Delete Account" />
-                </Tabs>
-          </Box>
-          <Paper sx={{ flexDirection: "column", justifyContent: "top",
-              height: "100%", margin: "6px", padding: "6px", flex: 1}}>
-              {tabIndex === TAB_ABOUT && (
-                  <Box style={inputContainerStyle} component="form" gap={2}>
-                      <Typography margin={6}>The Sidekick Admin panel lets you change application wide settings across all users.</Typography>
-                  </Box>
-              )}
-              {tabIndex === TAB_FUNCTIONALITY && (
-                    <Box style={inputContainerStyle} component="form" gap={2}>
-                        <Typography variant="h6">Enable or disable app-wide functionality</Typography>
-                        <Typography variant="h7">Account</Typography>
-                        
-                        <Paper sx={{ margin: 1, padding : "6px 20px" }}>
-                            <Box sx={{ display: 'flex', flexDirection: "column" }}>
-                                <Stack direction="row" alignItems="center" justifyContent="space-between">
-                                    <Typography variant="h7">Create Account</Typography>
-                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                        <Switch
-                                        checked={createAccountEnabled}
-                                        onChange={handleToggleFunctionalityLoginCreateAccount}
-                                        name="loginCreateAccountEnabled"
-                                        inputProps={{ 'aria-label': 'Toggle enable create account' }}
-                                        />
-                                        <Typography>{loginSystemSettings.functionality.createAccount ? "On" : "Off"}</Typography>
-                                    </Box>
-                                </Stack>
-                                <Typography variant="caption">
-                                    Enabling Create Account will provide a tab on the Login screen that will enable anyone with access to that screen to create an account with a username and password of their choice. Disable this if you want to use an alternative account creation method such as via a Single Sign-On provider.
-                                </Typography>
-                            </Box>
-                        </Paper>
+    <Box sx={{ display: "flex", flexDirection: "row", height:"calc(100% - 64px)"}}>
+        <Box sx={{ width: "200px" }}>
+            <Tabs value={tabIndex} onChange={handleTabChange} orientation="vertical"
+                sx={{  textAlign: "left" }}>
+                <Tab label="About" />
+                <Tab label="Custom text" />
+                <Tab label="Functionality" />
+                <Tab label="Create Account" />
+                <Tab label="Reset Password" />
+                <Tab label="Delete Account" />
+            </Tabs>
+        </Box>
+        <Paper sx={{ display: "flex", flexDirection: "column", justifyContent: "top",
+            flex: 1, margin: "6px", padding: "6px" }}>
+            <Box sx={{ display: "flex", flexDirection: "column", flex: 1, overflow: "auto" }}>
+                {tabIndex === TAB_ABOUT && (
+                <Typography margin={6}>The Sidekick Admin panel lets you change application wide settings across all users and perform admin tasks on individual user accounts.</Typography>
+                )}
+                {tabIndex === TAB_CUSTOM_TEXT && (
+                    <Box sx={{ display: "flex", flexDirection: "column", flex: 1 }} style={inputContainerStyle} gap={2}>
+                        <Box sx={{ display: "flex", flexDirection: "column", textAlign: "center" }}>
+                            <Typography variant="h6">Change custom text</Typography>
+                            <Typography sx={{mt:1}}>You can edit the custom text below and then press the Save button to commit the changes. Once done, logout and in again to check the text renders as you want.</Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', flexDirection: "column", flex: 1, overflow: "auto", width: "100%" }}>
 
-                        <Paper sx={{ margin: 1, padding : "6px 20px" }}>
-                            <Box sx={{ display: 'flex', flexDirection: "column" }}>
-                                <Stack direction="row" alignItems="center" justifyContent="space-between">
-                                    <Typography variant="h7">Change Password</Typography>
-                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                        <Switch
-                                        checked={changePasswordEnabled}
-                                        onChange={handleToggleFunctionalityAppSettingsChangePassword}
-                                        name="appSettingsChangePasswordEnabled"
-                                        inputProps={{ 'aria-label': 'Toggle enable change password' }}
-                                        />
-                                        <Typography>{appSettingsSystemSettings.functionality.changePassword ? "On" : "Off"}</Typography>
-                                    </Box>
-                                </Stack>
-                                <Typography variant="caption">
-                                    Enable Change Password if you are using Sidekick's built-in authentication. Disabling Change Password will remove the Change Password tab from the Settings screen. Disable this if you want to use an alternative password change method such as via a Single Sign-On provider.
-                                </Typography>
-                            </Box>
-                        </Paper>
+                            <Paper sx={{ display: "flex", flexDirection: "column", margin: 1, padding : "6px 20px" }}>
+                            <Typography variant="h7" sx={{margin:2}}>Login</Typography>
+                                <TextField
+                                    id="custom-text-pre-login-message"
+                                    label="Pre-Login message"
+                                    multiline
+                                    inputProps={{ maxLength: 200 }}
+                                    sx={{ width: "100%" }}
+                                    value = {preLoginMessage}
+                                    onChange = {(e) => {setCustomTextChanged(true); setPreLoginMessage(e.target.value);}}
+                                    />
+                                    <Typography variant="caption" sx={{mb:1}}>(The pre-login message will appear benath the login form.)</Typography>
+                            </Paper>
 
-                        <Paper sx={{ margin: 1, padding : "6px 20px" }}>
-                            <Box sx={{ display: 'flex', flexDirection: "column" }}>
-                                <Stack direction="row" alignItems="center" justifyContent="space-between">
-                                    <Typography variant="h7">Delete Account</Typography>
-                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                        <Switch
-                                        checked={deleteAccountEnabled}
-                                        onChange={handleToggleFunctionalityAppSettingsDeleteAccount}
-                                        name="appSettingsDeleteAccountEnabled"
-                                        inputProps={{ 'aria-label': 'Toggle enable delete account' }}
-                                        />
-                                        <Typography>{appSettingsSystemSettings.functionality.deleteAccount ? "On" : "Off"}</Typography>
-                                    </Box>
-                                </Stack>
-                                <Typography variant="caption">
-                                    Enabling Delete Account will provide a tab on the Settings screen that will enable users to delete their account and remove all their data from the database. Disable this if you want to use an alternative account deletion method such as via a Single Sign-On provider, or want to safeguard the data.
-                                </Typography>
-                            </Box>
-                        </Paper>
+                            <Paper sx={{ display: "flex", flexDirection: "column", margin: 1, padding : "6px 20px" }}>
+                            <Typography variant="h7" sx={{margin:2}}>App</Typography>
+                                <TextField
+                                    id="custom-text-instance-name"
+                                    label="Instance name"
+                                    inputProps={{ maxLength: 20 }}
+                                    sx={{ width: "100%" }}
+                                    value = {instanceName}
+                                    onChange = {(e) => {setCustomTextChanged(true); setInstanceName(e.target.value);}}
+                                    />
+                                    <Typography variant="caption" sx={{mb:1}}>(The instance name will appear in the main App bar after the App version.)</Typography>
+                                <TextField
+                                    id="custom-text-instance-usage"
+                                    label="Instance usage"
+                                    inputProps={{ maxLength: 20 }}
+                                    sx={{ width: "100%" }}
+                                    value = {instanceUsage}
+                                    onChange = {(e) => {setCustomTextChanged(true); setInstanceUsage(e.target.value);}}
+                                    />
+                                    <Typography variant="caption" sx={{mb:1}}>(The usage will appear in the main App bar after the instance name.)</Typography>
+                            </Paper>
 
+                            <Paper sx={{ display: "flex", flexDirection: "column", margin: 1, padding : "6px 20px" }}>
+                            <Typography variant="h7" sx={{margin:2}}>Chat</Typography>
+                                <TextField
+                                    id="custom-text-chat-user-prompt-ready"
+                                    multiline
+                                    label="Chat prompt label"
+                                    inputProps={{ maxLength: 200 }}
+                                    sx={{ width: "100%" }}
+                                    value = {chatUserPromptReady}
+                                    onChange = {(e) => {setCustomTextChanged(true); setChatUserPromptReady(e.target.value);}}
+                                    />
+                                    <Typography variant="caption" sx={{mb:1}}>(The chat prompt label will appear in brackets after the Chat prompt)</Typography>
+                            </Paper>
+
+                            <Paper sx={{ display: "flex", flexDirection: "column", margin: 1, padding : "6px 20px" }}>
+                            <Typography variant="h7" sx={{margin:2}}>Note</Typography>
+                                <TextField
+                                    id="custom-text-note-user-prompt-ready"
+                                    multiline
+                                    label="Note Writer prompt label"
+                                    inputProps={{ maxLength: 200 }}
+                                    sx={{ width: "100%" }}
+                                    value = {noteUserPromptReady}
+                                    onChange = {(e) => {setCustomTextChanged(true); setNoteUserPromptReady(e.target.value);}}
+                                    />
+                                    <Typography variant="caption" sx={{mb:1}}>(The note prompt label will appear in brackets after the Note prompt)</Typography>
+                            </Paper>
+
+                            <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                                <Button type="button" onClick={handleSaveCustomTextChanges} sx={{ mr: 1 }} disabled={!customTextChanged}>Save</Button>
+                                <Button type="button" onClick={handleCancelCustomTextChanges}>Cancel</Button>
+                            </Box>
+
+                        </Box>
                     </Box>
-              )}
-              {tabIndex === TAB_CREATE_ACCOUNT && (
-                  <Box style={inputContainerStyle} component="form" gap={2}>
-                      <Typography margin={6}>Warning: This will delete your account and your database with all your chats and notes.
-                      <br/><br/>Make sure you have copies of anything you need before proceeding.</Typography>
-                      <TextField type="password" label="Current Password" value={currentPassword} 
-                          autoComplete="off" onChange={handleCurrentPasswordChange} 
-                          sx={{ width: "300px" }} /* disable autoComplete of password for deleting accounts *//>
-                      <TextField label="Type your userid to confirm" value={confirmUser} autoComplete="off"
-                          onChange={handleConfirmNameChange}
-                          sx={{ width: "300px" }} />
-                      <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                          <Button type="button" onClick={handleDeleteAccount} sx={{ mr: 1 }}>Delete</Button>
-                          <Button type="button" onClick={handleCancelChangePassword}>Cancel</Button>
-                      </Box>
-                  </Box>
-              )}
-              {tabIndex === TAB_RESET_PASSWORD && (
-                  <Box style={inputContainerStyle} component="form" gap={2}>
-                      <Typography margin={6}>System settings change the behaviour of this Sidekick deployment instance and apply to all users of this system.</Typography>
-                      <TextField label="Chat 'Enter prompt...' label"
-                          sx={{ width: "300px" }} />
-                      <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                          <Button type="button" onClick={handleSaveSystemSettings} sx={{ mr: 1 }}>Save</Button>
-                          <Button type="button" onClick={handleCancelChangePassword}>Cancel</Button>
-                      </Box>
-                  </Box>
+                )}
+                {tabIndex === TAB_FUNCTIONALITY && (
+                    <Box sx={{ display: "flex", flexDirection: "column", flex: 1 }} style={inputContainerStyle} gap={2}>
+                        <Box sx={{ display: "flex", flexDirection: "column", textAlign: "center" }}>
+                            <Typography variant="h6">Enable or disable app-wide functionality</Typography>
+                            <Typography variant="h7">User Account Functions</Typography>
+                            <Typography margin={2}>Change which functions are visible to users by toggling the switches below. Functional changes will appear next time a user logs in.</Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', flexDirection: "column", flex: 1, overflow: "auto" }}>
+                        
+                            <Paper sx={{ display: "flex", margin: 1, padding : "6px 20px" }}>
+                                <Box sx={{ display: 'flex', flexDirection: "column" }}>
+                                    <Stack direction="row" alignItems="center" justifyContent="space-between">
+                                        <Typography variant="h7">Create Account</Typography>
+                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                            <Switch
+                                            checked={createAccountEnabled}
+                                            onChange={handleToggleFunctionalityLoginCreateAccount}
+                                            name="loginCreateAccountEnabled"
+                                            inputProps={{ 'aria-label': 'Toggle enable create account' }}
+                                            />
+                                            <Typography>{createAccountEnabled ? "On" : "Off"}</Typography>
+                                        </Box>
+                                    </Stack>
+                                    <Typography variant="caption">
+                                        Enabling Create Account will provide a tab on the Login screen that will enable anyone with access to that screen to create an account with a username and password of their choice. Disable this if you want to use an alternative account creation method such as via a Single Sign-On provider.
+                                    </Typography>
+                                </Box>
+                            </Paper>
 
-              )}
-              {tabIndex === TAB_DELETE_ACCOUNT && (
-                  <Box style={inputContainerStyle} component="form" gap={2}>
-                      <Typography margin={6}>Warning: This will delete your account and your database with all your chats and notes.
-                      <br/><br/>Make sure you have copies of anything you need before proceeding.</Typography>
-                      <TextField type="password" label="Current Password" value={currentPassword} 
-                          autoComplete="off" onChange={handleCurrentPasswordChange} 
-                          sx={{ width: "300px" }} /* disable autoComplete of password for deleting accounts *//>
-                      <TextField label="Type your userid to confirm" value={confirmUser} autoComplete="off"
-                          onChange={handleConfirmNameChange}
-                          sx={{ width: "300px" }} />
-                      <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                          <Button type="button" onClick={handleDeleteAccount} sx={{ mr: 1 }}>Delete</Button>
-                          <Button type="button" onClick={handleCancelChangePassword}>Cancel</Button>
-                      </Box>
-                  </Box>
-              )}
-          </Paper>
-      </Box>
+                            <Paper sx={{ display: "flex",  margin: 1, padding : "6px 20px" }}>
+                                <Box sx={{ display: 'flex', flexDirection: "column" }}>
+                                    <Stack direction="row" alignItems="center" justifyContent="space-between">
+                                        <Typography variant="h7">Change Password</Typography>
+                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                            <Switch
+                                            checked={changePasswordEnabled}
+                                            onChange={handleToggleFunctionalityAppSettingsChangePassword}
+                                            name="appSettingsChangePasswordEnabled"
+                                            inputProps={{ 'aria-label': 'Toggle enable change password' }}
+                                            />
+                                            <Typography>{changePasswordEnabled ? "On" : "Off"}</Typography>
+                                        </Box>
+                                    </Stack>
+                                    <Typography variant="caption">
+                                        Enable Change Password if you are using Sidekick's built-in authentication. Disabling Change Password will remove the Change Password tab from the Settings screen. Disable this if you want to use an alternative password change method such as via a Single Sign-On provider.
+                                    </Typography>
+                                </Box>
+                            </Paper>
+
+                            <Paper sx={{ display: "flex",  margin: 1, padding : "6px 20px" }}>
+                                <Box sx={{ display: 'flex', flexDirection: "column" }}>
+                                    <Stack direction="row" alignItems="center" justifyContent="space-between">
+                                        <Typography variant="h7">Delete Account</Typography>
+                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                            <Switch
+                                            checked={deleteAccountEnabled}
+                                            onChange={handleToggleFunctionalityAppSettingsDeleteAccount}
+                                            name="appSettingsDeleteAccountEnabled"
+                                            inputProps={{ 'aria-label': 'Toggle enable delete account' }}
+                                            />
+                                            <Typography>{deleteAccountEnabled ? "On" : "Off"}</Typography>
+                                        </Box>
+                                    </Stack>
+                                    <Typography variant="caption">
+                                        Enabling Delete Account will provide a tab on the Settings screen that will enable users to delete their account and remove all their data from the database. Disable this if you want to use an alternative account deletion method such as via a Single Sign-On provider, or want to safeguard the data.
+                                    </Typography>
+                                </Box>
+                            </Paper>
+
+                        </Box>
+                    </Box>
+                )}
+                {tabIndex === TAB_CREATE_ACCOUNT && (
+
+                <Box style={inputContainerStyle} gap={2}>
+                    <Typography variant="h6">Create a new user account</Typography>
+                    <Typography margin={4}>Enter the username and password below to create the account, then provide these to the user in a secure way.</Typography>
+                    <AccountCreate serverUrl={serverUrl} />
+                </Box>
+                )}
+                {tabIndex === TAB_RESET_PASSWORD && (
+                    <Box style={inputContainerStyle} gap={2}>
+                    <Typography variant="h6">Reset password for user</Typography>
+                    <Typography margin={4}>Enter the username and new password below to reset their password, then provide these to the user in a secure way.</Typography>
+                    <AccountResetPassword serverUrl={serverUrl} token={token} setToken={setToken}/>
+                    </Box>
+
+                )}
+                {tabIndex === TAB_DELETE_ACCOUNT && (
+                <Box style={inputContainerStyle} gap={2}>
+                    <AccountDelete
+                        warningMessage = {<Typography>Warning: This will delete the user's account and all their data.<br/><br/>Make sure they have copies of anything they need before proceeding.</Typography>}
+                        serverUrl={serverUrl} token={token} setToken={setToken}
+                        onCancel={() => {setTabIndex(0);}}
+                    />
+                </Box>
+                )}
+            </Box>
+        </Paper>
     </Box>
   </Card>;
 
