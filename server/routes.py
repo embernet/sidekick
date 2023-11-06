@@ -69,12 +69,11 @@ def feedback():
     app.logger.info(f"/feedback [POST] request from:{request.remote_addr}")
     try:
         DBUtils.create_document(
-            user_id=get_jwt_identity(),
+            user_id=get_jwt_identity(), type="feedback",
             name=f"Feedback {datetime.now().strftime('%Y%m%d%H%M%S')}",
             tags=[request.json.get('type')],
             properties={"status": "new"},
-            content={"feedback": request.json.get('text')},
-            doctype_name="feedback"
+            content={"feedback": request.json.get('text')}
         )
         return jsonify(
             {'success': True, 'message': 'Feedback submitted successfully'})
@@ -94,10 +93,10 @@ def get_system_settings(name):
     app.logger.info(
         f"/system_settings/{name} GET request from:{request.remote_addr}")
 
-    settings = DBUtils.get_document_by_name(
+    settings = DBUtils.get_document(
         user_id="sidekick",
         name=name,
-        doctype_name="system_settings"
+        type="system_settings"
     )["content"]
     response = app.response_class(
         response=json.dumps(settings, indent=4, cls=OrderedEncoder),
@@ -112,54 +111,43 @@ DOCTYPE_SYSTEM_SETTINGS = "system_settings"
 @jwt_required()
 def save_system_settings(name):
     app.logger.info(f"/{DOCTYPE_SYSTEM_SETTINGS}/{name} PUT request from"
-                    f":{request.remote_addr}"
-                    f"request: {request.json}")
-    # TODO - check if user has role admin
-    # user = DBUtils.get_user_by_id(get_jwt_identity())
-    # try:
-    #     if user["properties"]["roles"]["admin"]:
+                    f":{request.remote_addr}")
     try:
-        document_id = DBUtils.get_document_by_name(
-            user_id="sidekick",
-            name=name,
-            doctype_name=DOCTYPE_SYSTEM_SETTINGS
-        )["metadata"]["id"]
-        DBUtils.update_document(id=document_id,
-                                name=name,
-                                tags=[],
-                                properties={},
-                                content=request.json)
-    except NoResultFound:
-        DBUtils.create_document(user_id=get_jwt_identity(),
-                                name=name,
-                                tags=[], properties={},
-                                content=request.json,
-                                doctype_name=DOCTYPE_SYSTEM_SETTINGS)
-    return app.response_class(
-        response=json.dumps({"success": True}),
-        status=200,
-        mimetype='application/json'
-    )
-    # except KeyError:
-    #     pass
-    # except Exception as e:
-    #     log_exception(e)
-    #     return str(e), 500
-    # return app.response_class(
-    #     response=json.dumps({"success": False}),
-    #     status=403,
-    #     mimetype='application/json'
-    # )
+        user = DBUtils.get_user(get_jwt_identity())
+        if DBUtils.user_isadmin(user.id):
+            try:
+                document = DBUtils.get_document(user_id="sidekick", name=name,
+                                                type=DOCTYPE_SYSTEM_SETTINGS)
+                DBUtils.update_document(id=document["metadata"]["id"],
+                                        name=name, tags=[], properties={},
+                                        content=request.json)
+            except NoResultFound:
+                DBUtils.create_document(user_id="sidekick", name=name,
+                                        type=DOCTYPE_SYSTEM_SETTINGS, tags=[],
+                                        properties={}, content=request.json)
+            return app.response_class(
+                response=json.dumps({"success": True}),
+                status=200,
+                mimetype='application/json'
+            )
+        return app.response_class(
+            response=json.dumps({"success": False}),
+            status=403,
+            mimetype='application/json'
+        )
+    except Exception as e:
+        log_exception(e)
+        return str(e), 500
 
 @app.route('/settings/<name>', methods=['GET'])
 @jwt_required()
 def get_settings(name):
     app.logger.info(f"/settings/{name} GET request from:{request.remote_addr}")
     try:
-        settings = DBUtils.get_document_by_name(
+        settings = DBUtils.get_document(
             user_id=get_jwt_identity(),
             name=name,
-            doctype_name="settings"
+            type="settings"
         )["content"]
         response = app.response_class(
             response=json.dumps(settings, indent=4, cls=OrderedEncoder),
@@ -174,7 +162,7 @@ def get_settings(name):
             settings = json.load(f, object_pairs_hook=OrderedDict)
             DBUtils.create_document(user_id=get_jwt_identity(), name=name,
                                     tags=[], properties={},
-                                    content=settings, doctype_name="settings")
+                                    content=settings, type="settings")
             response = app.response_class(
                 response=json.dumps(settings, indent=4, cls=OrderedEncoder),
                 status=200,
@@ -191,10 +179,10 @@ def get_settings(name):
 def save_settings(name):
     app.logger.info(f"/settings/{name} PUT request from:{request.remote_addr}")
     try:
-        document_id = DBUtils.get_document_by_name(
+        document_id = DBUtils.get_document(
             user_id=get_jwt_identity(),
             name=name,
-            doctype_name="settings"
+            type="settings"
         )["metadata"]["id"]
         DBUtils.update_document(id=document_id,
                                 name=name,
@@ -210,7 +198,7 @@ def save_settings(name):
     except NoResultFound:
         DBUtils.create_document(user_id=get_jwt_identity(), name=name,
                                 tags=[], properties={},
-                                content=request.json, doctype_name="settings")
+                                content=request.json, type="settings")
         response = app.response_class(
             response=json.dumps({"success": True}),
             status=200,
@@ -348,9 +336,8 @@ You always do your best to generate text in the same style as the context text p
 def chat_v1():
     app.logger.info(f"/chat/v1 POST request from:{request.remote_addr}")
     app.logger.debug("/chat/v1 request:\n", json.dumps(request.json, indent=4))
-    doctype_name = "chats"
     document = DBUtils.save_chat(user_id=get_jwt_identity(),
-                                 doctype_name=doctype_name,
+                                 type="chats",
                                  chat=request)
 
     ai_request = construct_ai_request(request)
@@ -485,87 +472,75 @@ def chat_v2_cancel(id):
     return response
 
 
-@app.route('/docdb', methods=['GET'])
-@jwt_required()
-def docdb_list_doctypes():
-    app.logger.info(f"/docdb [GET] request from:{request.remote_addr}")
-    doctypes = DBUtils.list_doctypes()
-    return jsonify(doctypes)
-
-
 @app.route('/docdb//documents', methods=['GET'])
-@app.route('/docdb/<doctype_name>/documents', methods=['GET'])
+@app.route('/docdb/<document_type>/documents', methods=['GET'])
 @jwt_required()
-def docdb_list_documents(doctype_name=""):
+def docdb_list_documents(document_type=""):
     app.logger.info(
-        f"/docdb/{doctype_name}/documents "
+        f"/docdb/{document_type}/documents "
         f"[GET] request from:{request.remote_addr}")
-    doctype = DBUtils.get_doctype_by_name(get_jwt_identity(), doctype_name)
-    documents = DBUtils.list_documents(doctype["id"])
+    documents = DBUtils.list_documents(document_type)
     return jsonify(documents)
 
 
 @app.route('/docdb//ai_library', methods=['GET'])
-@app.route('/docdb/<doctype_name>/ai_library', methods=['GET'])
+@app.route('/docdb/<document_type>/ai_library', methods=['GET'])
 @jwt_required()
 # Returns a list of documents that are in the AI library
-def docdb_list_ai_library(doctype_name=""):
+def docdb_list_ai_library(document_type=""):
     app.logger.info(
-        f"/docdb/{doctype_name}/ai_library "
+        f"/docdb/{document_type}/ai_library "
         f"[GET] request from:{request.remote_addr}")
-    doctype = DBUtils.get_doctype_by_name(get_jwt_identity(), doctype_name)
-    # documents = DBUtils.list_documents(doctype["id"])
-    # ai_library_documents = [doc for doc in documents if isinstance(doc, dict) and isinstance(doc.get("content"), dict) and doc["content"].get("inAiLibrary")]
-    ai_library_documents = DBUtils.list_documents(doctype["id"])
+    ai_library_documents = DBUtils.list_documents(document_type)
     return jsonify(ai_library_documents)
 
 
 @app.route('/docdb//documents', methods=['POST'])
-@app.route('/docdb/<doctype_name>/documents', methods=['POST'])
+@app.route('/docdb/<document_type>/documents', methods=['POST'])
 @jwt_required()
-def docdb_create_document(doctype_name=""):
+def docdb_create_document(document_type=""):
     app.logger.info(
-        f"/docdb/{doctype_name}/documents "
+        f"/docdb/{document_type}/documents "
         f"[POST] request from:{request.remote_addr}")
     data = request.get_json()
     document = DBUtils.create_document(
-        user_id=get_jwt_identity(),
+        user_id=get_jwt_identity(), type=document_type,
         name=data['name'] if 'name' in data else "",
         tags=data['tags'] if 'tags' in data else [],
         properties=data['properties'] if 'properties' in data else {},
-        content=data['content'] if 'content' in data else {},
-        doctype_name=doctype_name
+        content=data['content'] if 'content' in data else {}
     )
     return jsonify(document)
 
 
-@app.route('/docdb//documents/<id>', methods=['GET'])
-@app.route('/docdb/<doctype_name>/documents/<id>', methods=['GET'])
+@app.route('/docdb//documents/<document_id>', methods=['GET'])
+@app.route('/docdb/<document_type>/documents/<document_id>', methods=['GET'])
 @jwt_required()
-def docdb_load_document(id, doctype_name=""):
+def docdb_load_document(document_id, document_type=""):
     tid = str(uuid.uuid4())
     app.logger.info(
-        f"/docdb/{doctype_name}/documents/{id} "
+        f"/docdb/{document_type}/documents/{document_id} "
         f"[GET] from:{request.remote_addr} tid:{tid}")
     try:
-        document = DBUtils.get_document_by_id(id)
+        document = DBUtils.get_document(document_id=document_id)
         return jsonify(document)
     except Exception as e:
-        app.logger.error(f"tid:{tid} docdb_load_document({id}) error:{str(e)}")
+        app.logger.error(f"tid:{tid} docdb_load_document({document_id}) "
+                         f"error:{str(e)}")
         log_exception(e)
         return "Document not found", 404
 
 
 @app.route('/docdb//documents/<id>', methods=['PUT'])
-@app.route('/docdb/<doctype_name>/documents/<id>', methods=['PUT'])
+@app.route('/docdb/<document_type>/documents/<document_id>', methods=['PUT'])
 @jwt_required()
-def docdb_save_document(id, doctype_name=""):
+def docdb_save_document(document_id, document_type=""):
     app.logger.info(
-        f"/docdb/{doctype_name}/documents/{id} "
+        f"/docdb/{document_type}/documents/{document_id} "
         f"[PUT] request from:{request.remote_addr}")
     data = request.get_json()
     document = DBUtils.update_document(
-        id=id,
+        id=document_id,
         name=data['metadata']['name'],
         tags=data['metadata']['tags'],
         properties=data['metadata']['properties'] if 'properties' in data[
@@ -575,34 +550,38 @@ def docdb_save_document(id, doctype_name=""):
     return jsonify(document)
 
 
-@app.route('/docdb/<doctype_name>/documents/<id>/rename', methods=['PUT'])
+@app.route('/docdb/<document_type>/documents/<document_id>/rename', methods=[
+    'PUT'])
 @jwt_required()
-def docdb_rename_document(doctype_name, id):
+def docdb_rename_document(document_type, document_id):
     app.logger.info(
-        f"/docdb/{doctype_name}/documents/{id}/rename "
+        f"/docdb/{document_type}/documents/{document_id}/rename "
         f"[PUT] request from:{request.remote_addr}")
-    document = DBUtils.update_document_name(id, request.get_json()["name"])
+    document = DBUtils.update_document_name(document_id,
+                                            request.get_json()["name"])
     return jsonify(document)
 
 
-@app.route('/docdb/<doctype_name>/documents/<id>/move', methods=['PUT'])
+@app.route('/docdb/<document_type>/documents/<document_id>/move',
+           methods=['PUT'])
 @jwt_required()
-def docdb_move_document(doctype_name, id):
+def docdb_move_document(document_type, document_id):
     app.logger.info(
-        f"/docdb/{doctype_name}/documents/{id}/move "
+        f"/docdb/{document_type}/documents/{document_id}/move "
         f"[PUT] from:{request.remote_addr}")
-    document = DBUtils.update_document_doctype(id, request.get_json()[
-        "doctype_name"])
+    document = DBUtils.update_document_type(id, request.get_json()[
+        "type"])
     return jsonify(document)
 
 
-@app.route('/docdb/<doctype_name>/documents/<id>', methods=['DELETE'])
+@app.route('/docdb/<document_type>/documents/<document_id>',
+           methods=['DELETE'])
 @jwt_required()
-def docdb_delete_document(doctype_name, id):
+def docdb_delete_document(document_type, document_id):
     app.logger.info(
-        f"/docdb/{doctype_name}/documents/{id} "
+        f"/docdb/{document_type}/documents/{document_id} "
         f"[DELETE] from:{request.remote_addr}")
-    document = DBUtils.delete_document(id)
+    document = DBUtils.delete_document(document_id)
     return jsonify(document)
 
 

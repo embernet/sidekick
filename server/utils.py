@@ -9,7 +9,7 @@ from datetime import datetime
 from sqlalchemy.exc import NoResultFound
 
 from app import app, db
-from models import User, Doctype, Document, Tag, DocumentTag, UserTag
+from models import User, Document, Tag, DocumentTag, UserTag
 
 
 server_stats = {
@@ -55,12 +55,6 @@ class DBUtils:
         db.session.add(user)
         db.session.commit()
 
-        # Setup default user doctypes
-        for doctype_name in ["notes", "chats", "feedback", "settings",
-                             "logs", "personas", "prompt_templates",
-                             "note_templates"]:
-            DBUtils.create_doctype(user_id, doctype_name)
-
         # Setup default user settings
         for filename in os.listdir("default_settings"):
             if filename.endswith(".json"):
@@ -73,14 +67,14 @@ class DBUtils:
                                             tags=[],
                                             properties={},
                                             content=settings,
-                                            doctype_name="settings")
+                                            type="settings")
         # Setup default user documents
         for filename in os.listdir("default_documents"):
             if filename.endswith(".json"):
                 with open(os.path.join("default_documents", filename),
                           "r") as f:
-                    doctypes = json.load(f)
-                    for doctype, documents in doctypes.items():
+                    document_types = json.load(f)
+                    for type, documents in document_types.items():
                         for name, document in documents.items():
                             DBUtils.create_document(
                                 user_id=user_id,
@@ -91,7 +85,7 @@ class DBUtils:
                                 if "properties" in document else "{}",
                                 content=document["content"]
                                 if "content" in document else "{}",
-                                doctype_name=doctype)
+                                type=type)
 
     @staticmethod
     def login(user_id, password):
@@ -136,13 +130,10 @@ class DBUtils:
     def delete_user(user_id):
         try:
             user = User.query.filter_by(id=user_id).one()
-            user_as_dict = user.as_dict()
             for document in user.documents:
                 DocumentTag.query.filter_by(document_id=document.id).delete()
                 DBUtils.delete_document(document.id)
             UserTag.query.filter_by(user_id=user_id).delete()
-            for doctype in user.doctypes:
-                db.session.delete(doctype)
             db.session.delete(user)
             db.session.commit()
             return {'success': True}
@@ -152,9 +143,16 @@ class DBUtils:
             return {'success': False, 'message': 'Error deleting user'}
 
     @staticmethod
-    def get_user_by_id(user_id):
+    def get_user(user_id):
         user = User.query.filter_by(id=user_id).one()
         return user.as_dict()
+
+    @staticmethod
+    def user_isadmin(user_id):
+        user = User.query.filter_by(id=user_id).one()
+        return user.as_dict().get("properties", {}).get("roles", {}).get(
+            "admin", False) is True
+
 
     @staticmethod
     def add_tags(tags, document_id=None, user_id=None):
@@ -183,8 +181,8 @@ class DBUtils:
             db.session.commit()
 
     @staticmethod
-    def create_document(user_id, name, tags=[], properties={}, content={},
-                        doctype_name=""):
+    def create_document(user_id, name, type="",tags=[],
+                        properties={}, content={}):
         try:
             User.query.filter_by(id=user_id).one()
         except NoResultFound:
@@ -192,26 +190,11 @@ class DBUtils:
                              f"{user_id}, but that user doesn't exist.")
             return
 
-        if doctype_name:
-            try:
-                doctype = Doctype.query.filter_by(user_id=user_id,
-                                                 name=doctype_name).one()
-                document = Document(id=str(uuid.uuid4()),
-                                    user_id=user_id, name=name,
-                                    doctype_id=doctype.as_dict()["id"],
-                                    properties=properties,
-                                    updated_date = str(datetime.now()),
-                                    created_date = str(datetime.now()),
-                                    content=content)
-            except NoResultFound:
-                app.logger.error(f"Tried to create a document with doctype: "
-                                 f"{doctype_name}, but that doctype doesn't "
-                                 f"exist.")
-                return
-        else:
-            document = Document(id=str(uuid.uuid4()), user_id=user_id,
-                                name=name, properties=properties,
-                                content=content)
+        document = Document(id=str(uuid.uuid4()), user_id=user_id, name=name,
+                            type=type, properties=properties,
+                            updated_date=str(datetime.now()),
+                            created_date=str(datetime.now()),
+                            content=content)
 
         db.session.add(document)
         db.session.commit()
@@ -244,30 +227,39 @@ class DBUtils:
         return document.as_dict()
 
     @staticmethod
-    def update_document_doctype(id, doctype_name):
+    def update_document_type(document_id, document_type):
         document = Document.query.filter_by(id=id).first()
-        document.doctype_name = doctype_name
+        document.type = document_type
         db.session.add(document)
         db.session.commit()
         return document.as_dict()
 
     @staticmethod
-    def get_document_by_id(document_id):
-        document = Document.query.filter_by(id=document_id).one()
+    def get_document(document_id=None, user_id=None, name=None, type=None):
+        if document_id:
+            document = Document.query.filter_by(id=document_id).one()
+        elif user_id and name and type:
+            document = Document.query.filter_by(user_id=user_id, name=name,
+                                                type=type).one()
+        else:
+            document = {}
         return document.as_dict()
 
-    @staticmethod
-    def get_document_by_name(user_id, name, doctype_name=""):
-        if doctype_name:
-            doctype = DBUtils.get_doctype_by_name(user_id, doctype_name)
-        document = Document.query.filter_by(user_id=user_id, name=name,
-                                            doctype_id=doctype["id"]).one()
-        return document.as_dict()
+    # @staticmethod
+    # def get_document_by_id(document_id):
+    #     document = Document.query.filter_by(id=document_id).one()
+    #     return document.as_dict()
+    #
+    # @staticmethod
+    # def get_document_by_name(user_id, name, type=""):
+    #     document = Document.query.filter_by(user_id=user_id, name=name,
+    #                                         type=type).one()
+    #     return document.as_dict()
 
     @staticmethod
-    def list_documents(doctype_id):
+    def list_documents(document_type):
         documents = [document.as_dict()["metadata"] for document in
-                     Document.query.filter_by(doctype_id=doctype_id).all()]
+                     Document.query.filter_by(type=document_type).all()]
         return {
             "file_count": len(documents),
             "error_count": 0,
@@ -293,37 +285,20 @@ class DBUtils:
             return
 
     @staticmethod
-    def save_chat(user_id, doctype_name, chat):
+    def save_chat(user_id, type, chat):
         name = chat["name"] if "name" in chat else "New Chat"
         tags = chat["tags"] if "tags" in chat else []
         properties = chat["properties"] if "properties" in chat else "{}"
         content = {"chat": chat["chatHistory"]} if "chatHistory" in chat \
             else {"chat": []}
         if "id" not in chat or chat["id"] == "":
-            document = DBUtils.create_document(user_id=user_id,
-                                               name=name, tags=tags,
+            document = DBUtils.create_document(user_id=user_id, name=name,
+                                               type=type, tags=tags,
                                                properties=properties,
-                                               content=content,
-                                               doctype_name=doctype_name)
+                                               content=content)
             server_stats["new_chats_count"] += 1
         else:
             DBUtils.update_document(id=chat["id"], name=name, tags=[],
                                     properties={}, content=chat)
 
         return document.as_dict()
-
-    @staticmethod
-    def create_doctype(user_id, name, properties={}):
-        doctype = Doctype(id=str(uuid.uuid4()), user_id=user_id,
-                          name=name, properties=properties)
-        db.session.add(doctype)
-        db.session.commit()
-
-    @staticmethod
-    def get_doctype_by_name(user_id, name):
-        doctype = Doctype.query.filter_by(user_id=user_id, name=name).one()
-        return doctype.as_dict()
-
-    @staticmethod
-    def list_doctypes():
-        return [doctype.name for doctype in Doctype.query.all()]
