@@ -170,6 +170,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         if (name === newNoteName && content.length > 200) {
             considerAutoNaming(content);
         }
+        setNoteChanged(true);
     }, [content]);
 
     useEffect(()=>{
@@ -183,7 +184,6 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 }
                 newNote += newNotePart;
                 setContent(newNote);
-                setNoteChanged(true);
                 focusOnContent();
             }
         }
@@ -249,7 +249,6 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     useEffect(()=>{
         if (AIResponse !== "") {
             setContent( text => text + "\n" + AIResponse + "\n");
-            setNoteChanged(true);
             considerAutoNaming(content);
             focusOnContent(); // this also saves the note on blur
         }
@@ -286,6 +285,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     }
 
     const save = () => {
+        console.log("save", id, name, content);
         if (id === "" && content !== "") {
             create({name: name, content: content});
         } else {
@@ -343,7 +343,6 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         const reader = new FileReader();
         reader.onload = (event) => {
           setContent(event.target.result);
-          setNoteChanged(true);
         };
         reader.readAsText(event);
         setUploadingFile(false);
@@ -369,6 +368,9 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         axios.post(`${serverUrl}/docdb/${folder}/documents`, {
             "name": name,
             "tags": tags,
+            "properties": {
+                "inAILibrary": inAILibrary,
+            },
             "content": {
                 "note": content
             },
@@ -402,6 +404,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         setTags([]);
         setContent("");
         setAIResponse('');
+        setInAILibrary(false);
         setNoteChanged(false); // This is now a new empty note
     }
 
@@ -562,7 +565,6 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     };
 
     const handleContentKeyDown = async (event) => {
-        setNoteChanged(true);
         if(event.key === 'Enter') {
             considerAutoNaming(event.target.value);
         }

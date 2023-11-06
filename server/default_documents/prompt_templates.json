@@ -5,7 +5,7 @@
             "content": { "prompt_template": "Explain the concept of {TOPIC_NAME} in simple terms, including its origins, importance, real-world applications, and related concepts." }
         },
         "Help with homework": {
-            "tags": ["home", "student", "homework", "help", "learning", "help"],
+            "tags": ["home", "student", "homework", "learning", "help"],
             "content": { "prompt_template": "Help with the following homework question: {QUESTION}, providing step-by-step solution and explanation. Also provide interesting examples of how this concept is used in the real world." }
         },
         "Help teaching": {

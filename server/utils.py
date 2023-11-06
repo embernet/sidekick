@@ -186,7 +186,7 @@ class DBUtils:
         try:
             User.query.filter_by(id=user_id).one()
         except NoResultFound:
-            app.logger.error(f"Tried to create a document with document ID: "
+            app.logger.error(f"Tried to create a document with user_id: "
                              f"{user_id}, but that user doesn't exist.")
             return
 

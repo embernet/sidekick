@@ -417,12 +417,12 @@ const Chat = ({
     }
 
     const loadAiLibrary = () => {
-        axios.get(`${serverUrl}/docdb/notes/ai_library`, {
+        axios.get(`${serverUrl}/docdb/notes/documents`, {
             headers: {
                 Authorization: 'Bearer ' + token
               }
         }).then(response => {
-            console.log("/docdb/notes/ai_library Response", response);
+            console.log("/docdb/notes/documents Response", response);
             response.data.access_token && setToken(response.data.access_token);
             response.data.documents.sort((a, b) => (a.name > b.name) ? 1 : -1);
             setAiLibrary(response.data.documents);
