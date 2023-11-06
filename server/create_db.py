@@ -1,7 +1,8 @@
 import os
 import json
-from sqlalchemy_utils import database_exists
+from sqlalchemy.engine.url import make_url
 from sqlalchemy.exc import NoResultFound
+from flask_migrate import upgrade
 
 from app import app, db
 from utils import DBUtils, get_random_string
@@ -9,11 +10,15 @@ from utils import DBUtils, get_random_string
 SQLALCHEMY_DATABASE_URI = os.environ.get(
     "SQLALCHEMY_DATABASE_URI", "sqlite:///sqlite.db")
 
+url = make_url(SQLALCHEMY_DATABASE_URI)
+database = url.database
+dialect_name = url.get_dialect().name
+
 with app.app_context():
-    if not database_exists(SQLALCHEMY_DATABASE_URI):
-        print("Database doesn't exist, attempting to create one now.")
+    if dialect_name == "sqlite":
         db.create_all()
-        print(f"Created database {SQLALCHEMY_DATABASE_URI}")
+    if dialect_name == "postgres":
+        upgrade(directory="migrations")
 
     # Create sidekick user they don't exist
     try:
