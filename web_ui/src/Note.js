@@ -378,7 +378,6 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 "note": content
             }
         };
-        console.log("create fubar", noteDocument);
         axios.post(`${serverUrl}/docdb/${folder}/documents`, noteDocument,
         {
             headers: {

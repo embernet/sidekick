@@ -69,7 +69,7 @@ function Login({setUser, serverUrl, setToken}) {
         console.log(response);
       if (response.data.success) {
         console.log(`User ${userId} logged in`);
-        setUser(userId);
+        setUser(response.data.user);
         setToken(response.data.access_token)
         system.setServerUp(true);
       } else {

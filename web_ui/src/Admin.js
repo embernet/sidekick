@@ -20,7 +20,7 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 }));
 
 const Admin = ({ adminOpen, setAdminOpen, user, setUser,
-     onClose, serverUrl, token, setToken, userPermissions }) => {
+     onClose, serverUrl, token, setToken }) => {
     const system = useContext(SystemContext);
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -35,9 +35,6 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
     const [appSystemSettings, setAppSystemSettings] = useState({});
     const [loginSystemSettings, setLoginSystemSettings] = useState({});
     const [appSettingsSystemSettings, setAppSettingsSystemSettings] = useState({});
-    const [loginSystemSettingsLoaded, setLoginSystemSettingsLoaded] = useState(false);
-    const [appSettingsSystemSettingsLoaded, setAppSettingsSystemSettingsLoaded] = useState(false);
-    const [chatSystemSettingsLoaded, setChatSystemSettingsLoaded] = useState(false);
     const [chatSystemSettings, setChatSystemSettings] = useState({});
     const [noteSystemSettingsLoaded, setNoteSystemSettingsLoaded] = useState(false);
     const [noteSystemSettings, setNoteSystemSettings] = useState({});
@@ -125,42 +122,35 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
     }, []);
 
     useEffect(() => {
-        if (!loginSystemSettingsLoaded && loginSystemSettings.functionality) {
+        if (loginSystemSettings.functionality) {
             console.log("loginSystemSettings: ",loginSystemSettings);
-            setLoginSystemSettingsLoaded(true);
             setCreateAccountEnabled(loginSystemSettings.functionality.createAccount);
             setPreLoginMessage(loginSystemSettings.preLogin.message);
         }
     }, [loginSystemSettings]);
 
     useEffect(() => {
-        if (!appSettingsSystemSettingsLoaded && appSettingsSystemSettings.functionality) {
-            setAppSettingsSystemSettingsLoaded(true);
-            setDeleteAccountEnabled(appSettingsSystemSettings.functionality.deleteAccount);
-            setChangePasswordEnabled(appSettingsSystemSettings.functionality.changePassword);
+        if (appSettingsSystemSettings.functionality) {
+            setDeleteAccountEnabled(appSettingsSystemSettings.functionality?.deleteAccount ? true : false);
+            setChangePasswordEnabled(appSettingsSystemSettings.functionality?.changePassword ? true : false);
         }
-    }, [appSettingsSystemSettings]);
+}, [appSettingsSystemSettings]);
 
     useEffect(() => {
-        if (!chatSystemSettingsLoaded && chatSystemSettings.userPromptReady) {
-            setChatSystemSettingsLoaded(true);
+        if (chatSystemSettings.userPromptReady) {
             setChatUserPromptReady(chatSystemSettings.userPromptReady);
         }
     }, [chatSystemSettings]);
 
     useEffect(() => {
-        if (!noteSystemSettingsLoaded && noteSystemSettings.userPromptReady) {
-            setNoteSystemSettingsLoaded(true);
+        if (noteSystemSettings.userPromptReady) {
             setNoteUserPromptReady(noteSystemSettings.userPromptReady);
         }
     }, [noteSystemSettings]);
 
     useEffect(() => {
-        if (!appSystemSettingsLoaded) {
-            setAppSystemSettingsLoaded(true);
-            setInstanceName(appSystemSettings?.instanceName ? appSystemSettings.instanceName : '');
-            setInstanceUsage(appSystemSettings?.instanceUsage ? appSystemSettings.instanceUsage : '');
-        }
+        setInstanceName(appSystemSettings?.instanceName ? appSystemSettings.instanceName : '');
+        setInstanceUsage(appSystemSettings?.instanceUsage ? appSystemSettings.instanceUsage : '');
     }, [appSystemSettings]);
 
     useEffect(() => {

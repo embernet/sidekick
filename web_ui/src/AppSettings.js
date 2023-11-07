@@ -17,7 +17,7 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 }));
 
 const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
-     onClose, serverUrl, token, setToken, userPermissions }) => {
+     onClose, serverUrl, token, setToken }) => {
     const system = useContext(SystemContext);
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -112,7 +112,7 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
     }
     axios.post(`${serverUrl}/change_password`,
         {
-            "user_id": user,
+            "user_id": user?.id,
             "current_password": currentPassword,
             "new_password": newPassword
         },
@@ -146,7 +146,7 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
       <SettingsIcon/>
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }} gap={2}>
           <Typography variant="h6">Settings for user: </Typography>
-          <Typography sx={{ fontWeight: "bold" }}>{user}</Typography>
+          <Typography sx={{ fontWeight: "bold" }}>{user?.id}</Typography>
       </Box>
       <Box ml="auto">
           <IconButton onClick={() => setAppSettingsOpen(false)}>

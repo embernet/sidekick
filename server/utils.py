@@ -93,7 +93,13 @@ class DBUtils:
             user = User.query.filter_by(id=user_id).one()
             if bcrypt.checkpw(password.encode('utf-8'),
                               user.password_hash.encode('utf-8')):
-                return{'success': True}
+                return { 
+                    'user': {
+                        'id': user.id, 
+                        'properties': json.loads(user.properties)
+                    },
+                    'success': True
+                }
             else:
                 return {'success': False, 'message': 'Invalid login'}
         except NoResultFound:
@@ -115,16 +121,12 @@ class DBUtils:
     def reset_password(acting_user_id, user_id, new_password):
         acting_user = User.query.filter_by(id=acting_user_id).one()
         app.logger.info(f"/reset_password {acting_user.as_dict()}")
-        # TODO: Check user has admin role
-        # if "admin" in acting_user_roles and acting_user_roles["admin"]:
         user = User.query.filter_by(id=user_id).one()
         new_password_hash = bcrypt.hashpw(new_password.encode('utf-8'),
                                         bcrypt.gensalt()).decode('utf-8')
         user.password_hash = new_password_hash
         db.session.commit()
         return {'success': True}
-        # else:
-        #     return {'success': False, 'message': 'Not authorized'}
 
     @staticmethod
     def delete_user(user_id):
@@ -136,11 +138,12 @@ class DBUtils:
             UserTag.query.filter_by(user_id=user_id).delete()
             db.session.delete(user)
             db.session.commit()
-            return {'success': True}
+            app.logger.info(f"Deleted user: {user_id}")
+            return {'success': True, 'message': f'Deleted user: {user_id}'}
         except NoResultFound:
             app.logger.error(f"Tried to delete a user with user ID: "
                              f"{user_id}, but that document doesn't exist.")
-            return {'success': False, 'message': 'Error deleting user'}
+            return {'success': False, 'message': f'Error deleting user: {user_id}'}
 
     @staticmethod
     def get_user(user_id):

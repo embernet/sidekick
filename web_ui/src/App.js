@@ -109,11 +109,6 @@ function App() {
   const [instanceUsage, setInstanceUsage] = useState("");
   const [appSettings, setAppSettings] = useState({});
   const [appMenuAnchorEl, setAppMenuAnchorEl] = useState(null);
-  const [userPermissions, setUserPermissions] = useState({
-    "roles": {
-      "admin": true,
-    }
-  });
 
   const mySettingsManager = useRef(null);
 
@@ -461,15 +456,15 @@ function App() {
                   <MenuItem key="menuAppSettings" onClick={() => { handleAppMenuClose(); handleToggleAppSettingsOpen(); }}>
                     <SettingsIcon/><Typography  sx={{ ml: 1 }}>{ appSettingsOpen ? "Settings - Close App Settings" : "Settings - Open App Setings" }</Typography>
                   </MenuItem>
-                  <MenuItem key="menuAdmin" onClick={() => { handleAppMenuClose(); handleToggleAdminOpen(); }}>
+                  { user?.properties?.roles?.admin && <MenuItem key="menuAdmin" onClick={() => { handleAppMenuClose(); handleToggleAdminOpen(); }}>
                     <AdminPanelSettingsIcon/><Typography sx={{ ml: 1 }}>Admin</Typography>
-                  </MenuItem>
+                  </MenuItem> }
                   <MenuItem key="menuLogout" onClick={() => { handleAppMenuClose(); handleLogout(); }}>
                     <LogoutIcon/><Typography sx={{ ml: 1 }}>Logout</Typography>
                   </MenuItem>
                 </Menu>          
                 {appInfo}
-                <Typography sx={{ mr: 2, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>({user})</Typography>
+                <Typography sx={{ mr: 2, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>({user?.id})</Typography>
                 <Tooltip title="Sidekick AI help">
                   <IconButton edge="start" color="inherit" aria-label="Sidekick AI help" onClick={handleToggleSidekickAIOpen}>
                     <HelpIcon/>
@@ -544,13 +539,12 @@ function App() {
               chatStreamingOn={chatStreamingOn} 
               serverUrl={serverUrl} token={token} setToken={setToken}
             />
-            { userPermissions.roles.admin && adminOpen ? <Admin 
+            { user?.properties?.roles?.admin && adminOpen ? <Admin 
               adminOpen={adminOpen}
               setAdminOpen={setAdminOpen}
               user={user}
               setUser={setUser}
               serverUrl={serverUrl} token={token} setToken={setToken}
-              userPermissions={userPermissions}
             /> : null }
             <AppSettings 
               appSettingsOpen={appSettingsOpen}
@@ -558,7 +552,6 @@ function App() {
               user={user}
               setUser={setUser}
               serverUrl={serverUrl} token={token} setToken={setToken}
-              userPermissions={userPermissions}
             />
             { chatsOpen ? <Explorer
             handleToggleExplorer={handleToggleChatsOpen}
