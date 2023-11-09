@@ -2,19 +2,21 @@ version: '3'
 
 services:
   sidekick-web-ui:
-    image: sidekick/web-ui:latest
+    image: sidekick-web-ui:latest
     ports:
-      - "127.0.0.1:8081:8081"
+      - "8081:8081"
     environment:
-      - REACT_APP_SERVER_URL=
+      - REACT_APP_SERVER_URL=http://127.0.0.1:8000
     restart: always
+    depends_on:
+      - sidekick-server
 
   sidekick-server:
-    image: sidekick/server:latest
+    image: sidekick-server:latest
     ports:
-      - "5003:5003"
+      - "127.0.0.1:8000:80"
     environment:
       - OPENAI_API_KEY=
-      - JWT_SECRET=
+      - JWT_SECRET_KEY=
       - SQLALCHEMY_DATABASE_URI=
     restart: always

@@ -15,10 +15,6 @@ run-dev-locally: init
 run-prod-locally: init
 	pipenv run gunicorn -w 4 -b 0.0.0.0:5003 app:app
 
-run-container:
-	docker run -d -p 5004:5004 --name sidekick-server app \
-	docker ps
-
 stop-container:
 	docker stop sidekick-server; \
 	docker ps

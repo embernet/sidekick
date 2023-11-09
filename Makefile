@@ -30,3 +30,7 @@ server_api:
 test-locally:
 	$(MAKE) -C web_ui test-locally
 	$(MAKE) -C server test-locally
+
+build-docker:
+	docker build --tag sidekick-server server/
+	docker build --tag sidekick-web-ui web_ui/

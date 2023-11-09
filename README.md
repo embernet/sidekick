@@ -28,6 +28,7 @@
 - [Running Sidekick](#running-sidekick)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
+    - [Quickstart](#quickstart)
   - [Configuration](#configuration)
 - [About](#about)
   - [License](#license)
@@ -215,6 +216,14 @@ Go here: [Release notes](docs/release_notes.md)
 - Tech stack is: Python Flask NodeJS React MaterialUI, and you will need pipenv, npm, python3
 
 ## Installation
+
+### Quickstart
+To get the web-ui and server running as quickly as possible, you can build the Docker images and run them using docker-compose.
+
+Build the Docker images: `make build-docker`
+
+Update the JWT_SECRET_KEY, OPENAI_KEY and SQLALCHEMY_DATABASE_URI environment variables in docker-compose.yaml and the run: `docker-compose up -d`
+
 
 See the [Local installation guide](docs/local-installation.md) for how to get this up and running.
 
