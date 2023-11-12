@@ -13,7 +13,8 @@ Create a .env file in the server directory to store the keys
 
 ```
 OPENAI_API_KEY=<Your-OpenAI-API-Key>
-JWT_SECRET=<Your-JWT-SECRET>
+JWT_SECRET_KEY=<Your-JWT-SECRET>
+SQLALCHEMY_DATABASE_URI=<The Database URI>
 ```
 
 ## Installation
@@ -29,6 +30,13 @@ Or if you are using GitHub CLI:
 ```shell
 gh repo clone embernet/sidekick
 ```
+
+### Quickstart with Docker Compose
+To get the web-ui and server running as quickly as possible, you can build the Docker images and run them using docker-compose.
+
+Build the Docker images: `make build-docker`
+
+Run: `docker-compose up -d`
 
 ### Build the server
 
