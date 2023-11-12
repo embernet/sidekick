@@ -27,9 +27,27 @@ class OrderedEncoder(json.JSONEncoder):
             return dict(obj)
         return json.JSONEncoder.default(self, obj)
 
+
 @app.route('/', methods=['GET'])
 def index():
     return ""
+
+
+@app.route('/health', methods=['GET'])
+def health():
+    app.logger.debug(f"/health GET request from:{request.remote_addr}")
+    try:
+        return app.response_class(
+            response=json.dumps({"success": True}),
+            status=200,
+            mimetype='application/json'
+        )
+    except Exception:
+        return app.response_class(
+            response=json.dumps({"success": False}),
+            status=500,
+            mimetype='application/json'
+        )
 
 
 @app.route('/ping', methods=['GET'])
@@ -49,6 +67,7 @@ def test_server_up():
 
 @app.route('/test/ai', methods=['GET'])
 def test_ai():
+    openai.verify_ssl_certs = False
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
