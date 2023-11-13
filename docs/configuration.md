@@ -13,11 +13,7 @@ The server supports multiple configuration options that can be supplied as envir
 | SQLALCHEMY_DATABASE_URI | The database connection URI, for example `sqlite:///sqlite.db` or `postgresql://sidekick_user:sidekick_password@127.0.0.1/sidekick_db` | ✓            |                     |
 | LOG_LEVEL               | The minimum urgency of logs to write to standard out. Supported values: 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'.           |              | ERROR               |
 | FLASK_DEBUG             | Whether or not to run the Flask app in debug mode. Supported values: 'True', 'False'.                                              |              | False               |
-| HTTPS_PROXY_USER        | The proxy username to authenticate with if using a proxy for HTTPS requests.                                                      |              |                     |
-| HTTPS_PROXY_PASSWORD    | The proxy password to authenticate with if using a proxy for HTTPS requests.                                                      |              |                     |
-| HTTPS_PROXY_HOST        | The proxy host to use if using a proxy for HTTPS requests.                                                                         |              |                     |
-| HTTPS_PROXY_PORT        | The proxy port to use if using a proxy for HTTPS requests.                                                                         |              |                     |
-| HTTPS_PROXY             | The full proxy URL, if using a proxy for HTTPS requests, in the format `protocol://username:password@host:port`. This will be overwritten if `HTTPS_PROXY_USER`, `HTTPS_PROXY_PASSWORD`, and `HTTPS_PROXY_HOST` are set. |              |                     |
+| HTTPS_PROXY             | The full proxy URL, if using a proxy for HTTPS requests, in the format `protocol://username:password@host:port`.|              |                     |
 
 ### System settings
 

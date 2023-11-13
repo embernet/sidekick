@@ -27,18 +27,6 @@ CORS(app)
 migrate = Migrate(app, db)
 # oidc = OpenIDConnect(app)
 
-proxy_user = os.environ.get('HTTPS_PROXY_USER', '')
-proxy_password = os.environ.get('HTTPS_PROXY_PASSWORD', '')
-proxy_host = os.environ.get('HTTPS_PROXY_HOST', '')
-proxy_port = os.environ.get('HTTPS_PROXY_PORT', '')
-proxy_protocol = proxy_host.split('://', 1)[0] if '://' in proxy_host else ''
-proxy_host = proxy_host.split('://', 1)[1] if '://' in proxy_host else proxy_host
-if proxy_user and proxy_password and proxy_host and proxy_port:
-    os.environ['HTTPS_PROXY'] = urljoin(
-        f"{proxy_protocol}://{quote(proxy_user)}:{quote(proxy_password)}@"
-        f"{quote(proxy_host)}:{proxy_port}", ''
-    )
-
 from utils import DBUtils, get_random_string
 
 url = make_url(app.config["SQLALCHEMY_DATABASE_URI"])
