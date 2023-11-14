@@ -9,7 +9,9 @@
   - This should be a random alphanumeric string of at leat 32 characters
   - This is for encrypting JSON Web Tokens used to secure the server REST end-points
 
-Create a .env file in the server directory to store the keys
+Copy the .env.example file and update the values with the keys and databse URI
+
+```cp .env.example .env```
 
 ```
 OPENAI_API_KEY=<Your-OpenAI-API-Key>

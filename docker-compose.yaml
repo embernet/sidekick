@@ -17,4 +17,6 @@ services:
       - "127.0.0.1:8000:80"
     env_file:
       - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: always
