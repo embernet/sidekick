@@ -9,12 +9,12 @@ import axios from 'axios';
 import { SystemProvider } from './SystemContext';
 import { useContext, useRef } from 'react';
 import { SystemContext } from './SystemContext';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 import useToken from './useToken';
 import { useEffect, useState } from 'react';
 import { CssBaseline, Box, AppBar, Toolbar, IconButton, Typography, Tooltip } from '@mui/material';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { Menu, MenuItem, ListItemText } from '@mui/material';
+import { ThemeProvider } from '@mui/material/styles';
+import { Menu, MenuItem } from '@mui/material';
 
 // Import icons
 import MenuIcon from '@mui/icons-material/Menu';
@@ -51,8 +51,7 @@ import SidekickAI from './SidekickAI';
 
 import { theme } from './theme';
 
-import { Toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import StatusBar from './StatusBar';
 
 const VERSION = "0.1";
 
@@ -100,7 +99,7 @@ function App() {
   const [openChatId, setOpenChatId] = useState(null);
   const [openPromptTemplateId, setOpenPromptTemplateId] = useState(null);
   const [openNoteId, setOpenNoteId] = useState(null);
-  const [serverUrl, setServerUrl] = useState(process.env.REACT_APP_SERVER_URL || 'http://localhost:5003');
+  const [serverUrl, setServerUrl] = useState(process.env.REACT_APP_SERVER_URL || 'http://127.0.0.1:8000');
   const [shouldAskAgainWithPersona, setShouldAskAgainWithPersona] = useState(null);
   const [streamingChatResponse, setStreamingChatResponse] = useState("");
   const [chatStreamingOn, setChatStreamingOn] = useState(true);
@@ -109,7 +108,7 @@ function App() {
   const [instanceUsage, setInstanceUsage] = useState("");
   const [appSettings, setAppSettings] = useState({});
   const [appMenuAnchorEl, setAppMenuAnchorEl] = useState(null);
-
+  const [statusUpdates, setStatusUpdates] = useState([]);
   const mySettingsManager = useRef(null);
 
   const applyCustomSettings = () => {
@@ -159,7 +158,7 @@ function App() {
       },
       (error) => {
           console.log("get app settings:", error);
-          system.error("Error loading app settings: " + error);
+          setStatusUpdates( prev => [ ...prev, { message: "Error loading app settings. Using defaults."}]);
       }
       );
     }
@@ -190,8 +189,7 @@ function App() {
         console.log("Save app settings saved:", data);
       },
       (error) => {
-          console.log("save app settings error:", error);
-          system.error("Error saving app settings: " + error);
+          system.error("System Error saving app settings.", error);
       }
       );
     }
@@ -226,6 +224,7 @@ function App() {
 
   const handleLogout = () => {
     setUser(null);
+    setStatusUpdates([]);
     axios({
       method: "POST",
       url:`${serverUrl}/logout`,
@@ -410,7 +409,7 @@ function App() {
 
   const appRender =
   <BrowserRouter>
-    <SystemProvider serverUrl={serverUrl}>
+    <SystemProvider serverUrl={serverUrl}  setStatusUpdates={setStatusUpdates}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Box sx={{display:"flex", height:"100vh", flexDirection:"column", overflow:"hidden"}}>
@@ -530,7 +529,6 @@ function App() {
           </AppBar>
           <Box id="app-workspace" display="flex" height="100%" flexDirection="row" flex="1" 
             overflow-y="hidden" overflow="auto" width="100%">
-            <ToastContainer/>
             <SidekickAI
               sidekickAIOpen={sidekickAIOpen}
               setSidekickAIOpen={setSidekickAIOpen}
@@ -678,13 +676,14 @@ function App() {
               serverUrl={serverUrl} token={token} setToken={setToken}
               /> : null}
         </Box>
+        <StatusBar statusUpdates={statusUpdates}/>
       </Box>
     </ThemeProvider>
   </SystemProvider>
 </BrowserRouter>
 
 const loginRender = 
-  <SystemProvider serverUrl={serverUrl}>
+  <SystemProvider serverUrl={serverUrl} setStatusUpdates={setStatusUpdates}>
     <BrowserRouter>
       <ThemeProvider theme={theme}>
         <CssBaseline />
@@ -697,9 +696,9 @@ const loginRender =
           <Box sx={{display:"flex", flexDirection:"row", flex:"1",
           overflowY:"hidden", overflow:"auto", width:"100%",
           justifyContent:"center", alignItems:"center"}}>
-            <ToastContainer/>
             <Login setUser={setUser} serverUrl={serverUrl} setToken={setToken}/>
           </Box>
+          <StatusBar statusUpdates={statusUpdates}/>
         </Box>
       </ThemeProvider>
     </BrowserRouter>

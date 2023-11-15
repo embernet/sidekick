@@ -4,7 +4,7 @@ import Box from '@mui/material/Box';
 import axios from 'axios';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
-import { Card, Toolbar, Button, TextField, Typography, IconButton, Tooltip } from '@mui/material';
+import { Toolbar, Button, TextField, Typography, IconButton, Tooltip } from '@mui/material';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -62,11 +62,12 @@ const FeedbackButton = ({icon, serverUrl, token, setToken}) => {
   }
 
   function handleFeedbackSubmit() {
+    let url = `${serverUrl}/feedback`;
     const request = {
         type: feedbackType,
         text: feedbackText
     }
-    axios.post(`${serverUrl}/feedback`, request, {
+    axios.post(url, request, {
         headers: {
             Authorization: 'Bearer ' + token
           }
@@ -74,12 +75,11 @@ const FeedbackButton = ({icon, serverUrl, token, setToken}) => {
     .then(response => {
         console.log('Feedback submitted successfully');
         response.data.access_token && setToken(response.data.access_token);
-        system.info('Thank you for the feedback!');
+        system.info('Feedback sent. Thank you for the feedback!');
         setShowModal(false);
     })
     .catch(error => {
-      console.error('Error submitting feedback:', error);
-      system.error(`Error submitting feedback: ${error}`);
+      system.error(`System Error submitting feedback.`, error, url + " POST");
     });
   }
 

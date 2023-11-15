@@ -32,3 +32,13 @@ Open `http://localhost:5001/v2/_catalog` in your browser to see the contents of 
 ## Running the docker images
 
 Run `docker-compose -f docker-compose-local.yaml up` to start the containers.
+
+## Docker quick reference
+
+- List running docker containers: `docker ps`
+- List all docker containers: `docker ps -a`
+- Stop a docker container: `docker stop <container name or id>`
+- Inspect a containers restart policy: `docker inspect --format='{{ .HostConfig.RestartPolicy }}' <container name or id>`
+- Change a containers restart policy to auto-restart: `docker update --restart=always <container name or id>`
+- Change a containers restart policy to not auto-restart: `docker update --restart=no <container name or id>`
+- Remove a docker container: `docker rm <container name or id>`

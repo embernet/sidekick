@@ -2,7 +2,7 @@ import { debounce } from "lodash";
 import axios from 'axios';
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { SystemContext } from './SystemContext';
-import { Card, Toolbar, Tooltip, IconButton, Box, Paper, Tabs, Tab, TextField, Button, Typography,
+import { Card, Toolbar, IconButton, Box, Paper, Tabs, Tab, TextField, Button, Typography,
     Stack, Switch } from '@mui/material';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
@@ -57,35 +57,44 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
     const [noteUserPromptReady, setNoteUserPromptReady] = useState('');
 
     const loadSystemSettings = () => {
-        axios.get(`${serverUrl}/system_settings/app`).then(response => {
+        const getAppSystemSettingsUrl = `${serverUrl}/system_settings/app`;
+        axios.get(getAppSystemSettingsUrl).then(response => {
             setAppSystemSettings(response.data);
-            console.log("App system settings:", response);
+            system.debug("App system settings", response, `${getAppSystemSettingsUrl} GET response`);
         }).catch(error => {
-            console.error("Error getting App system settings:", error);
+            system.error("Error getting App system settings.", error, getAppSystemSettingsUrl);
         });
-        axios.get(`${serverUrl}/system_settings/login`).then(response => {
+
+        const getLoginSystemSettingsUrl = `${serverUrl}/system_settings/login`;
+        axios.get(getLoginSystemSettingsUrl).then(response => {
           setLoginSystemSettings(response.data);
-          console.log("Login system settings:", response);
+          system.debug("Login system settings", response, `${getLoginSystemSettingsUrl} GET response`);
         }).catch(error => {
-          console.error("Error getting Login system settings:", error);
+          system.error("Error getting Login system settings.", error, getLoginSystemSettingsUrl);
         });
-        axios.get(`${serverUrl}/system_settings/appsettings`).then(response => {
+
+        const getAppSettingsSystemSettingsUrl = `${serverUrl}/system_settings/appsettings`;
+        axios.get(getAppSettingsSystemSettingsUrl).then(response => {
             setAppSettingsSystemSettings(response.data);
-            console.log("AppSettings system settings:", response);
+            system.debug("AppSettings system settings", response, `${getAppSettingsSystemSettingsUrl} GET response`);
         }).catch(error => {
-            console.error("Error getting AppSettings system settings:", error);
+            system.error("Error getting AppSettings system settings.", error, getAppSettingsSystemSettingsUrl);
         });
-        axios.get(`${serverUrl}/system_settings/chat`).then(response => {
+
+        const getChatSystemSettingsUrl = `${serverUrl}/system_settings/chat`;
+        axios.get(getChatSystemSettingsUrl).then(response => {
             setChatSystemSettings(response.data);
-            console.log("Chat system settings:", response);
+            system.debug("Chat system settings", response, `${getChatSystemSettingsUrl} GET response`);
         }).catch(error => {
-            console.error("Error getting Chat system settings:", error);
+            system.error("Error getting Chat system settings.", error, getChatSystemSettingsUrl);
         });
-        axios.get(`${serverUrl}/system_settings/note`).then(response => {
+
+        const getNoteSystemSettingsUrl = `${serverUrl}/system_settings/note`;
+        axios.get(getNoteSystemSettingsUrl).then(response => {
             setNoteSystemSettings(response.data);
-            console.log("Note system settings:", response);
+            system.debug("Note system settings", response, `${getNoteSystemSettingsUrl} GET response`);
         }).catch(error => {
-            console.error("Error getting Note system settings:", error);
+            system.error("Error getting Note system settings.", error, getNoteSystemSettingsUrl);
         });
     }
     
@@ -118,12 +127,11 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
 
     useEffect(() => {
         loadSystemSettings();
-        console.log("AppSettings instantiated");
     }, []);
 
     useEffect(() => {
         if (loginSystemSettings.functionality) {
-            console.log("loginSystemSettings: ",loginSystemSettings);
+            system.debug("loginSystemSettings", loginSystemSettings, "enabling functionality");
             setCreateAccountEnabled(loginSystemSettings.functionality.createAccount);
             setPreLoginMessage(loginSystemSettings.preLogin.message);
         }

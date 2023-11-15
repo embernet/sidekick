@@ -1,8 +1,8 @@
 import axios from 'axios'
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useContext } from 'react';
 import { SystemContext } from './SystemContext';
-import { Box, Tabs, Tab, Button, TextField } from '@mui/material';
+import { Box, Button, TextField } from '@mui/material';
 
 function AccountCreate({serverUrl, onAccountCreated}) {
     const system = useContext(SystemContext);
@@ -25,17 +25,15 @@ function AccountCreate({serverUrl, onAccountCreated}) {
         axios
         .post(`${serverUrl}/create_account`, { user_id: userId, properties: properties, password: password })
         .then((response) => {
-            console.log(response);
+            system.debug("Create account", response, "response");
           if (response.data.success) {
-            console.log(`User ${userId} created`);
-            system.info(`User ${userId} created`);
+            system.info(`User account "${userId}" created.`);
             onAccountCreated && onAccountCreated({userId: userId, password: password});
             setUserId('');
             setPassword('');
             setVerifiedPassword('');
           } else {
-            system.error(response.data.message);
-            console.log(response.data.message);
+            system.error("Error creating account", response.data.message);
           }
         })
         .catch((error) => {

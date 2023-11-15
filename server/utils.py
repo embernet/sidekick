@@ -6,21 +6,64 @@ import string
 import bcrypt
 import traceback
 from datetime import datetime
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy.exc import NoResultFound, OperationalError
+import tiktoken
 
 from app import app, db
 from models import User, Document, Tag, DocumentTag, UserTag
 
 
 server_stats = {
-    "server_start_time": datetime.now(),
-    "server_uptime": "0 days 0 hours 0 minutes 0 seconds",
-    "new_chats_count": 0,
-    "chat_interaction_count": 0,
-    "prompt_tokens": 0,
-    "completion_tokens": 0,
-    "total_tokens": 0
+    "serverStartTime": datetime.now()
 }
+
+def increment_server_stat(category, stat_name, increment=1):
+    if category not in server_stats:
+        server_stats[category] = {}
+    server_stats[category][stat_name] = server_stats[category].get(stat_name, 0) + increment
+
+
+def openai_num_tokens_from_messages(messages, model="gpt-3.5-turbo-0613"):
+    """Return the number of tokens used by a list of messages.
+    from: https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
+    """
+    try:
+        encoding = tiktoken.encoding_for_model(model)
+    except KeyError:
+        # Model not found. Using cl100k_base encoding.
+        encoding = tiktoken.get_encoding("cl100k_base")
+    if model in {
+        "gpt-3.5-turbo-0613",
+        "gpt-3.5-turbo-16k-0613",
+        "gpt-4-0314",
+        "gpt-4-32k-0314",
+        "gpt-4-0613",
+        "gpt-4-32k-0613",
+        }:
+        tokens_per_message = 3
+        tokens_per_name = 1
+    elif model == "gpt-3.5-turbo-0301":
+        tokens_per_message = 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
+        tokens_per_name = -1  # if there's a name, the role is omitted
+    elif "gpt-3.5-turbo" in model:
+        # Warning: gpt-3.5-turbo may update over time. Returning num tokens assuming gpt-3.5-turbo-0613.
+        return openai_num_tokens_from_messages(messages, model="gpt-3.5-turbo-0613")
+    elif "gpt-4" in model:
+        # Warning: gpt-4 may update over time. Returning num tokens assuming gpt-4-0613.
+        return openai_num_tokens_from_messages(messages, model="gpt-4-0613")
+    else:
+        raise NotImplementedError(
+            f"""openai_num_tokens_from_messages() is not implemented for model {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens."""
+        )
+    num_tokens = 0
+    for message in messages:
+        num_tokens += tokens_per_message
+        for key, value in message.items():
+            num_tokens += len(encoding.encode(value))
+            if key == "name":
+                num_tokens += tokens_per_name
+    num_tokens += 3  # every reply is primed with <|start|>assistant<|message|>
+    return num_tokens
 
 def construct_ai_request(request):
     model_settings = request.json["model_settings"]
@@ -37,11 +80,12 @@ def construct_ai_request(request):
 
 def log_exception(e):
     tb = traceback.format_exc()
-    app.logger.error(f"An error occurred: {str(e)}\n{tb}")
+    error = f"An error occurred: {str(e)}\n{tb}"
+    app.logger.error(error)
+    print(error)
 
 def get_random_string(len=32):
     return "".join(random.choice(string.ascii_lowercase) for i in range(len))
-
 
 
 class DBUtils:
@@ -286,9 +330,27 @@ class DBUtils:
                                                type=type, tags=tags,
                                                properties=properties,
                                                content=content)
-            server_stats["new_chats_count"] += 1
+            server_stats["newChats"] += 1
         else:
             DBUtils.update_document(id=chat["id"], name=name, tags=[],
                                     properties={}, content=chat)
 
         return document.as_dict()
+
+    @staticmethod
+    def health():
+        database_health = {}
+        if "DB_DIALECT_NAME" in app.config:
+            database_health["dialect"] = app.config["DB_DIALECT_NAME"]
+        if "DB_NAME" in app.config:
+            database_health["name"] = app.config["DB_NAME"]
+        if "DB_HOST" in app.config:
+            database_health["host"] = app.config["DB_HOST"]
+
+        try:
+            database_health["status"] = "UP"
+            database_health["documents"] = Document.query.count()
+            database_health["users"] = User.query.count()  
+        except OperationalError:
+            database_health["status"] = "DOWN"
+        return database_health

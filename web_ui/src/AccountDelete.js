@@ -1,5 +1,5 @@
 import axios from 'axios'
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { useContext } from 'react';
 import { SystemContext } from './SystemContext';
 import { Box, Typography,Button, TextField } from '@mui/material';
@@ -19,7 +19,7 @@ function AccountDelete({warningMessage, serverUrl, token, setToken, onAccountDel
     const handleDeleteAccount = () => {
         if (userToDelete !== confirmedUserToDelete) {
             resetFields();
-            system.error('Userid does not match!');
+            system.error('Error deleting account: Confirmed Userid does not match Userid to delete.');
             return;
         }
         axios.post(`${serverUrl}/delete_user`,
@@ -36,14 +36,13 @@ function AccountDelete({warningMessage, serverUrl, token, setToken, onAccountDel
                 console.log("delete_user response: ", response);
                 response.data.access_token && setToken(response.data.access_token);
                 if (response.data.success) {
-                    system.info('Account deleted successfully.');
+                    system.info(`Account for user "${userToDelete}" deleted successfully.`);
                     onAccountDeleted && onAccountDeleted();
                 } else {
-                    system.error(`Failed to delete account: ${response.data.message}`);
+                    system.error(`Failed to delete account.`, response.data.message);
                 }
             }).catch(error => {
-                console.error(error);
-                system.error(`An error occurred while deleting the account: ${error}`);
+                system.error(`System Error deleting account.`, error);
             }
         );
       };

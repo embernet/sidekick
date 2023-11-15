@@ -1,9 +1,8 @@
 import { debounce } from "lodash";
 import axios from 'axios'
 import { useEffect, useState, useContext, useCallback, useRef } from 'react';
-import { Card, Accordion, AccordionSummary, AccordionDetails ,Tabs, Tab, Box, Toolbar, IconButton, Typography, TextField,
+import { Card, Tabs, Tab, Box, Toolbar, IconButton, Typography, TextField,
     List, ListItem, Menu, MenuItem, Tooltip } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
 import ReactMarkdown from 'react-markdown';
@@ -180,8 +179,8 @@ const SidekickAI = ({
     }
 
     const getChatStream = useCallback(async (requestData) => {
+        const url = `${serverUrl}/chat/v2`;
         try {
-            const url = `${serverUrl}/chat/v2`;
             const request = {
                 method: 'POST',
                 headers: {
@@ -225,8 +224,7 @@ const SidekickAI = ({
                 reader.releaseLock();
             }
         } catch (error) {
-          console.log(error);
-          system.error(`Error reading chat stream: ${error}`);
+          system.error(`System Error reading chat stream.`, error, url + " POST");
         }
 
     }, [stopStreaming]);

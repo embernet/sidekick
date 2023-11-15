@@ -1,8 +1,8 @@
 import axios from 'axios'
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useContext } from 'react';
 import { SystemContext } from './SystemContext';
-import { Box, Tabs, Tab, Button, TextField } from '@mui/material';
+import { Box, Button, TextField } from '@mui/material';
 
 function AccountResetPassword({serverUrl, token, setToken, onAccountUserIdPasswordReset}) {
     const system = useContext(SystemContext);
@@ -18,7 +18,7 @@ function AccountResetPassword({serverUrl, token, setToken, onAccountUserIdPasswo
             setNewPassword('');
             setVerifiedNewPassword('');
             AccountResetPasswordRef.current.focus();
-            system.error("Passwords don't match");
+            system.error("Failed to reset password: Confirmed password does not match.");
             return;
         }
         axios
@@ -31,20 +31,17 @@ function AccountResetPassword({serverUrl, token, setToken, onAccountUserIdPasswo
         .then((response) => {
             console.log(response);
           if (response.data.success) {
-            console.log(`User ${userId} password reset`);
-            system.info(`User ${userId} password reset`);
+            system.info(`User account "${userId}" password reset.`);
             onAccountUserIdPasswordReset && onAccountUserIdPasswordReset({userId: userId, password: newPassword});
             setUserId('');
             setNewPassword('');
             setVerifiedNewPassword('');
           } else {
-            system.error(`Error resetting password: ${response.data.message}`);
-            console.log(response.data.message);
+            system.error(`Error resetting password.`, response.data.message);
           }
         })
         .catch((error) => {
-            system.error("Error ", error.message);
-            console.error(error);
+            system.error("System error resetting password.", error.message);
         });
     };
   

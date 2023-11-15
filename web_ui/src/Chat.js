@@ -145,8 +145,7 @@ const Chat = ({
             setSettings(response.data);
             setSettingsLoaded(true);
         }).catch(error => {
-            console.log("get chat_settings error:", error);
-            system.error(`Error loading chat settings: ${error}`);
+            system.error(`System Error loading chat settings.`, error, "/settings/chat_settings GET");
         });
         applyCustomSettings();
     }, []);
@@ -190,8 +189,7 @@ const Chat = ({
                 console.log("chat settings response", response);
             }
             ).catch(error => {
-                console.log("put chat_settings error:", error);
-                system.error(`Error saving chat settings: ${error}`);
+                system.error(`System Error saving chat settings.`, error, "/settings/chat_settings PUT");
                 }
             )
         }
@@ -245,7 +243,7 @@ const Chat = ({
             console.log("newPromptPart", newPromptPart);
             if (!chatOpen) { setChatOpen(true); }
             if (streamingChatResponse !== "") {
-                system.info("Please wait for the current chat to finish loading before adding a prompt part.");
+                system.warning("Please wait for the current chat to finish loading before adding a prompt part.");
             } else {
                 let newPrompt = prompt.trim() + " " + newPromptPart?.text?.trim() + " ";
                 setPrompt(newPrompt);
@@ -259,7 +257,7 @@ const Chat = ({
             console.log("newPrompt", newPrompt);
             if (!chatOpen) { setChatOpen(true); }
                 if (streamingChatResponse !== "") {
-                system.info("Please wait for the current chat to finish loading before loading a prompt template.");
+                system.warning("Please wait for the current chat to finish loading before loading a prompt template.");
             } else {
                 axios.get(`${serverUrl}/docdb/prompt_templates/documents/${newPromptTemplate["id"]}`, {
                     headers: {
@@ -271,8 +269,7 @@ const Chat = ({
                     setLastPrompt(prompt);
                     setPrompt("# " + response.data.metadata.name + "\n" + response.data.content.prompt_template);
                 }).catch(error => {
-                    console.error("/docdb/prompt_templates GET error", error);
-                    system.error(`Error loading prompt_template: ${error}`);
+                    system.error(`System Error loading prompt_template`, error, "/docdb/prompt_templates GET");
                 });
             }
         }
@@ -332,7 +329,7 @@ const Chat = ({
         setChatLoaded(false); // set true in chat load callback
         if (loadChat) {
             if (streamingChatResponse !== "") {
-                system.info("Please wait for the current chat to finish loading before loading another chat.");
+                system.warning("Please wait for the current chat to finish loading before loading another chat.");
             } else {
                 console.log("loadChat", loadChat);
                 axios.get(`${serverUrl}/docdb/${folder}/documents/${loadChat["id"]}`, {
@@ -362,8 +359,7 @@ const Chat = ({
                     }
                     if (!chatOpen) { setChatOpen(true); }
                 }).catch(error => {
-                    console.error("/docdb/chat error", error);
-                    system.error(`Error loading chat: ${error}`);
+                    system.error(`System Error loading chat.`, error, "/docdb/chat GET");
                 });
             }
         }
@@ -394,12 +390,12 @@ const Chat = ({
                 chat: messages,
             }
         };
-        axios.post(`${serverUrl}/docdb/${folder}/documents`, request, {
+        const url = `${serverUrl}/docdb/${folder}/documents`;
+        axios.post(url, request, {
             headers: {
                 Authorization: 'Bearer ' + token
             }
         }).then(response => {
-            console.log("New chat Response", response);
             response.data.access_token && setToken(response.data.access_token);
             setId(response.data.metadata.id);
             setName(response.data.metadata.name);
@@ -409,10 +405,10 @@ const Chat = ({
             onChange(id, name, "created", "");
             document.getElementById("chat-name")?.focus();
             document.getElementById("chat-name")?.select();
-            console.log("create chat Response", response);
+            system.info(`Chat "${response.data.metadata.name}" created.`);
+            system.debug("Chat created", response, url + " POST");
         }).catch(error => {
-            console.log("create chat error", error);
-            system.error(`Error creating chat: ${error}`);
+            system.error(`System Error creating chat`, error, url + " POST");
         });
     }
 
@@ -427,8 +423,7 @@ const Chat = ({
             response.data.documents.sort((a, b) => (a.name > b.name) ? 1 : -1);
             setAiLibrary(response.data.documents);
         }).catch(error => {
-            console.error("Chat error loading AI Library:", error);
-            system.error(`Chat error loading AI Library: ${error}`);
+            system.error(`System Error loading Chat AI Library.`, error, "/docdb/notes/documents GET");
         });
     };
 
@@ -457,8 +452,7 @@ const Chat = ({
             response.data.access_token && setToken(response.data.access_token);
             onChange(id, name, "changed", "");
         }).catch(error => {
-            console.log("/docdb/save error", error);
-            system.error(`Error saving chat: ${error}`);
+            system.error(`System Error saving chat.`, error, `/docdb/${folder}/documents/${id} PUT`);
         })
     }
 
@@ -473,10 +467,10 @@ const Chat = ({
                     },
                     body: JSON.stringify(requestData),
                 };
-                console.log("getChatStream request", request);
 
+                system.debug("getChatStream Request", request, url + " POST");
                 const response = await fetch(url , request);
-                console.log("getChatStream response", response);
+                system.debug("getChatStream Response", response, url + " POST");
             
                 let decoder = new TextDecoderStream();
                 if (!response.body) return;
@@ -502,12 +496,13 @@ const Chat = ({
                         }
                     }
                     stopStreamingRef.current = false;
+                } catch(error) {
+                    system.error(`System Error reading chat stream.`, error, "/chat/v2 POST");
                 } finally {
                     reader.releaseLock();
                 }
             } catch (error) {
-            console.log(error);
-            system.error(`Error reading chat stream: ${error}`);
+                system.error(`System Error reading chat stream.`, error, "/chat/v2 POST");
             }
 
     }, [stopStreamingRef.current]);
@@ -550,10 +545,14 @@ const Chat = ({
 
         // Get GPT to name the chat based on the content of the first message
         if (name === newChatName) {
-            // Use AI to name the chat
-            const ai = new AI(serverUrl, token, setToken, system);
-            let generatedName = await ai.nameTopic(requestData.prompt);
-            if (generatedName && generatedName !== "") { setName(generatedName); }
+            try {
+                // Use AI to name the chat
+                const ai = new AI(serverUrl, token, setToken, system);
+                let generatedName = await ai.nameTopic(requestData.prompt);
+                if (generatedName && generatedName !== "") { setName(generatedName); }
+            } catch (err) {
+                system.error("System Error auto-naming chat", err, "ai.nameTopic");
+            }
         }
 
         // Send the chat history and prompt using the streaming/non-streaming API
@@ -600,7 +599,10 @@ const Chat = ({
     const handleRegenerateChatName = async () => {
         const ai = new AI(serverUrl, token, setToken, system);
         let generatedName = await ai.nameTopic(messagesAs("text"));
-        if (generatedName && generatedName !== "") { renameChat(generatedName); }
+        if (generatedName && generatedName !== "") { 
+            system.info(`Generated name for chat: "${generatedName}".`);
+            renameChat(generatedName);
+        }
     }
 
     const handleStopStreaming = (event) => {
@@ -631,7 +633,8 @@ const Chat = ({
     const handleSavePromptAsTemplate = () => {
         const promptTemplateName = extractNameFromPrompt(prompt);
         if (promptTemplateName) {
-            axios.post(`${serverUrl}/docdb/prompt_templates/documents`, {
+            const url = `${serverUrl}/docdb/prompt_templates/documents`;
+            axios.post(url, {
                 "name": promptTemplateName,
                 "tags": [],
                 "content": {
@@ -645,13 +648,13 @@ const Chat = ({
                 console.log("Create prompt template Response", response);
                 response.data.access_token && setToken(response.data.access_token);
                 onChange(response.data.metadata.id, response.data.metadata.name, "created", "promptTemplate");
-                system.info(`Prompt template ${response.data.metadata.name} created.`);
+                system.info(`Prompt template "${response.data.metadata.name}" created.`);
+                system.debug("Prompt template created", response, "/docdb/prompt_templates/documents POST");
             }).catch(error => {
-                console.log("create prompt template error", error);
-                system.error(`Error creating prompt template: ${error}`);
+                system.error(`System Error creating prompt template.`, error, url + " POST");
             });
         } else {
-            system.error("Please start your prompt template with a heading on the first line, e.g. # My Prompt Template (press Shift+Return to enter a newline). Prompt template not saved. ");
+            system.warning("Failed to save prompt template: Please start your prompt template with a heading on the first line, e.g. # My Prompt Template (press Shift+Return to enter a newline). Prompt template not saved.");
         }
     }
     
@@ -666,21 +669,22 @@ const Chat = ({
 
     const renameChat = (newName) => {
         setName(newName);
-        axios.put(`${serverUrl}/docdb/${folder}/documents/${id}/rename`, {
+        let url = `${serverUrl}/docdb/${folder}/documents/${id}/rename`;
+        axios.put(url, {
             name: newName,
         }, {
             headers: {
                 Authorization: 'Bearer ' + token
             }
         }).then(response => {
-            console.log("/renameChat Response", response);
             response.data.access_token && setToken(response.data.access_token);
             setPreviousName(name);
             setPromptFocus();
             onChange(id, name, "renamed", "");
+            system.info(`Chat renamed to "${name}".`);
+            system.debug("Chat renamed", response, url + " PUT");
         }).catch(error => {
-            console.log(error);
-            system.error(`Error renaming chat: ${error}`);
+            system.error(`System Error renaming chat`, error, url + " PUT");
         })
     }
 
@@ -777,18 +781,19 @@ const Chat = ({
     };
 
     const deleteChat = () => {
-        axios.delete(`${serverUrl}/docdb/${folder}/documents/${id}`, {
+        let url = `${serverUrl}/docdb/${folder}/documents/${id}`;
+        axios.delete(url, {
             headers: {
                 Authorization: 'Bearer ' + token
               }
         }).then(response => {
-            console.log("delete chat Response", response);
+            system.info(`Chat "${name}" deleted.`);
+            system.debug("Chat deleted", response, url + " DELETE");
             response.data.access_token && setToken(response.data.access_token);
             onChange(id, name, "deleted", "");
             closeChatWindow();
         }).catch(error => {
-            console.log("delete chat error", error);
-            system.error(`Error deleting chat: ${error}`);
+            system.error(`System Error deleting chat.`, error, url + " DELETE");
         });
     }
 
@@ -861,8 +866,10 @@ const Chat = ({
     const handleloadKnowledgeToAi = (event) => {
         const noteStub = event.target.value;
         if (noteStub && noteStub.id) {
-            console.log("Chat loading knowledge to AI", noteStub.id, noteStub.name);
-            axios.get(`${serverUrl}/docdb/notes/documents/${noteStub.id}`, {
+            system.info(`Chat loading knowledge to AI: "${noteStub.name}"`);
+            system.debug("Chat loading knowledge to AI", noteStub);
+            let url = `${serverUrl}/docdb/notes/documents/${noteStub.id}`;
+            axios.get(url, {
                 headers: {
                     Authorization: 'Bearer ' + token
                   }
@@ -877,14 +884,15 @@ const Chat = ({
                 setSelectedAiLibraryNoteId("");
             }).catch(error => {
                 console.log("Chat AI library note load error", error);
-                system.error(`Error loading Chat AI library note: ${error}`);
+                system.error(`System Error loading Chat AI library note`, error, url);
             });
         }
     }
 
     const handleUnloadKnowledgeFromAi = (id) => {
         if (id && id in selectedAiLibraryNotes) {
-            console.log("Unloading knowledge from AI: ", id);
+            system.info(`Chat unloading knowledge from AI: "${selectedAiLibraryNotes[id].metadata.name}"`);
+            system.debug("Chat unloading knowledge from AI", selectedAiLibraryNotes[id].metadata);
             const updatedSelectedAiLibraryNotes = { ...selectedAiLibraryNotes };
             delete updatedSelectedAiLibraryNotes[id];
             setSelectedAiLibraryNotes(updatedSelectedAiLibraryNotes);

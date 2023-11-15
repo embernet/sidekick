@@ -74,18 +74,18 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
     }, [docNameChanged]);
 
     const loadItems = () => {
-        axios.get(`${serverUrl}/docdb/${myFolder}/documents`, {
+        let url = `${serverUrl}/docdb/${myFolder}/documents`;
+        axios.get(url, {
             headers: {
                 Authorization: 'Bearer ' + token
               }
         }).then(response => {
-            console.log("/docdb Response", response);
+            system.debug(`Response loading items in ${name} Explorer`, response, url + " GET");
             response.data.access_token && setToken(response.data.access_token);
             response.data.documents.sort((a, b) => (a.name > b.name) ? 1 : -1);
             setDocs(sortedList(response.data.documents, sortOrder, sortOrderDirection));
         }).catch(error => {
-            console.error("Explorer error loading items:", error);
-            system.error(`Explorer error loading items: ${error}`);
+            system.error(`System Error loading items in ${name} Explorer`, error, url + " GET");
         });
     };
 
@@ -139,24 +139,28 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
     const handleDeleteFilteredItems = () => {
         console.log("handleDeleteFilteredItems", itemOpen);
         let count = 0;
+        let url = `${serverUrl}/docdb/${myFolder}/documents/`;
         const deletePromises = filteredDocs.map(doc => {
-            console.log("Deleting", doc.id);
             if (openItemId === doc.id) {
                 setItemOpen(false);
             }
-            return axios.delete(`${serverUrl}/docdb/${myFolder}/documents/${doc.id}`,{
+            return axios.delete(url + doc.id,{
                 headers: {
                     Authorization: 'Bearer ' + token
                   }
-            }).then(() => { count++; });
+            }).then(() => { 
+                count++;
+                console.log("Deleted", doc.id);
+                system.info(`${name} Explorer deleted: "${doc.name}"`);
+    
+            });
         });
         Promise.all(deletePromises).then(() => {
             setFilterText("");
             loadItems();
-            system.info(`Deleted ${count} items`);
+            system.info(`${name} Explorer deleted ${count} items`);
         }).catch(error => {
-            console.error("handleDeleteFilteredItems error", error);
-            system.error(`Error deleting items: ${error}`);
+            system.error(`System Error deleting filtered items in ${name} Explorer`, error, url + " DELETE");
         });
     };
 

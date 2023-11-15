@@ -9,7 +9,6 @@ import { ClassNames } from "@emotion/react";
 // Icons
 import CloseIcon from '@mui/icons-material/Close';
 import ReplayIcon from '@mui/icons-material/Replay';
-import SendIcon from '@mui/icons-material/Send';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import CodeIcon from '@mui/icons-material/Code';
 import CodeOffIcon from '@mui/icons-material/CodeOff';
@@ -19,10 +18,9 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
 import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
-import { green, grey } from '@mui/material/colors';
+import { green } from '@mui/material/colors';
 import { MuiFileInput } from 'mui-file-input';
 import SidekickMarkdown from './SidekickMarkdown';
-import HelpIcon from '@mui/icons-material/Help';
 
 
 import { SystemContext } from './SystemContext';
@@ -35,11 +33,7 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     marginRight: theme.spacing(2),
   }));
 
-const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
-    backgroundColor: grey[300],
-}));
-
-  const Note = ({noteOpen, setNoteOpen, appendNoteContent, loadNote, createNote,
+const Note = ({noteOpen, setNoteOpen, appendNoteContent, loadNote, createNote,
     setNewPromptPart, setNewPrompt, setChatRequest, onChange, setOpenNoteId, serverUrl, token, setToken, maxWidth}) => {
 
     const newNoteName = "New Note";
@@ -128,12 +122,13 @@ You always do your best to generate text in the same style as the context text p
     const streamingChatResponseRef = useRef("");
     const [AIResponse, setAIResponse] = useState("");
     const [inAILibrary, setInAILibrary] = useState(false);
-    const [showLibraryHelp, setShowLibraryHelp] = useState(false);
     const saveStatus = useRef("");
+    const noteInstantiated = useRef(false);
+    const [initialContent, setInitialContent] = useState("");
 
 
     useEffect(() => {
-        if (noteOpen) {
+        if (noteInstantiated.current) {
             console.log("Note inAILibrary", inAILibrary);
             saveStatus.current = "changed";
             save();
@@ -169,10 +164,14 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     }, [createNote]);
 
     useEffect(() => {
-        if (name === newNoteName && content.length > 200) {
-            considerAutoNaming(content);
+        if (!noteInstantiated.current) {
+            noteInstantiated.current = true; // the first time the content changes, we know the note has been instantiated
+        } else {
+            if (name === newNoteName && content.length > 200) {
+                considerAutoNaming(content);
+            }
+            saveStatus.current = "changed";
         }
-        saveStatus.current = "changed";
     }, [content]);
 
     useEffect(()=>{
@@ -203,10 +202,12 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
 
     useEffect(()=>{
         if(loadNote) {
+            noteInstantiated.current = false; // we set it to instantiated when the [content] hook runs
             setNoteOpen({id: loadNote.id, timestamp: Date.now()});
             if (loadNote.id !== null) {
+                let url = `${serverUrl}/docdb/${folder}/documents/${loadNote.id}`;
                 console.log("loadNote", loadNote.id);
-                axios.get(`${serverUrl}/docdb/${folder}/documents/${loadNote.id}`, {
+                axios.get(url, {
                     headers: {
                         Authorization: 'Bearer ' + token
                       }
@@ -218,6 +219,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     setName(response.data.metadata.name);
                     setTags(response.data.metadata.tags);
                     setPreviousName(response.data.metadata.name);
+                    setInitialContent(response.data.content.note);
                     setContent(response.data.content.note);
                     if ("inAILibrary" in response.data.metadata.properties) {
                         setInAILibrary(response.data.metadata.properties.inAILibrary);
@@ -226,8 +228,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     }
                     focusOnContent();
                 }).catch(error => {
-                    console.log("loadNote error", error);
-                    system.error(`Error loading note: ${error}`);
+                    system.error(`System Error loading note.`, error, url + " GET");
                 });
                 // Wait for the note to load before scrolling to the top
                 setTimeout(() => {
@@ -270,7 +271,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 showReady();
             }).catch((error) => {
                 console.log(error);
-                system.error(`Error generating text: ${error}`);
+                system.error(`System Error generating text.`, error, "ai.generateText");
             });
         }
     }, [promptToSend]);
@@ -288,10 +289,10 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
 
     const save = () => {
         console.log("save", id, name, content);
-        if (id === "" && saveStatus.current !== "unsaved") {
+        if (id === "") {
             create({name: name, content: content});
         } else {
-            if (saveStatus.current === "changed") {
+            if (noteInstantiated.current && saveStatus.current === "changed") {
                 const request = {
                     metadata: {
                         id: id,
@@ -303,8 +304,8 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     },
                     content: { note: content },
                 }
-                console.log("save request", request);
-                axios.put(`${serverUrl}/docdb/${folder}/documents/${id}`, request, {
+                let url = `${serverUrl}/docdb/${folder}/documents/${id}`;
+                axios.put(url, request, {
                     headers: {
                         Authorization: 'Bearer ' + token
                     }
@@ -317,8 +318,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     onChange(id, name, "changed", "");
                     console.log("note save Response", response);
                 }).catch(error => {
-                    console.error("note save error", request, error);
-                    system.error(`Error saving note: ${error}`);
+                    system.error(`System Error saving note.`, error, url + " PUT");
                 });
             }
         }
@@ -356,7 +356,6 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     }
 
     const create = ({name, content}) => {
-        console.log("create", saveStatus.current)
         if (saveStatus.current === "saved" || saveStatus.current === "creating") {
             return;
         } else {
@@ -378,14 +377,14 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 "note": content
             }
         };
-        axios.post(`${serverUrl}/docdb/${folder}/documents`, noteDocument,
+        let url = `${serverUrl}/docdb/${folder}/documents`;
+        axios.post(url, noteDocument,
         {
             headers: {
                 Authorization: 'Bearer ' + token
               }
         }).then(response => {
             saveStatus.current = "saved";
-            console.log("Create note Response", response);
             response.data.access_token && setToken(response.data.access_token);
             setId(response.data.metadata.id);
             if (name !== response.data.metadata.name) {
@@ -395,15 +394,17 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
             setTags(response.data.metadata.tags);
             onChange(response.data.metadata.id, response.data.metadata.name, "created", "");
             setOpenNoteId({ id: response.data.metadata.id, timestamp: Date.now()});
+            system.info(`Note "${response.data.metadata.name}" created.`);
+            system.debug(`Note "${response.data.metadata.name}" created.`, response, url + " POST");
         }).catch(error => {
-            console.log("create note error", error);
-            system.error(`Error creating note: ${error}`);
+            system.error(`System Error creating note.`, error, url + " POST");
         });
     }
 
     const resetNote = () => {
         saveStatus.current = "";
         setId("");
+        noteInstantiated.current = false;
         setMarkdownRenderingOn(false);
         setName(newNoteName);
         setPreviousName(newNoteName);
@@ -417,19 +418,22 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         const idToDelete = id;
         const nameToDelete = name;
         resetNote();
-        axios.delete(`${serverUrl}/docdb/${folder}/documents/${idToDelete}`, {
+        let url = `${serverUrl}/docdb/${folder}/documents/${idToDelete}`;
+        axios.delete(url, {
             headers: {
                 Authorization: 'Bearer ' + token
               }
         }).then(response => {
             saveStatus.current = "";
+            system.info(`Note "${nameToDelete}" deleted.`);
+            system.debug(`Note "${nameToDelete}" deleted.`, response, url + " DELETE");
             console.log("delete note Response", response);
             response.data.access_token && setToken(response.data.access_token);
             onChange(idToDelete, nameToDelete, "deleted", "");
             setNoteOpen(false);
+            resetNote();
         }).catch(error => {
-            console.log("delete note error", error);
-            system.error(`Error deleting note: ${error}`);
+            system.error(`System Error deleting note.`, error, url + " DELETE");
         });
     }
 
@@ -449,7 +453,8 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         if (id === "") {
             create({name: newName, content: content});
         } else {
-            axios.put(`${serverUrl}/docdb/${folder}/documents/${id}/rename`, {
+            let url = `${serverUrl}/docdb/${folder}/documents/${id}/rename`;
+            axios.put(url, {
                 id: id,
                 name: newName,
             }, {
@@ -457,14 +462,14 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     Authorization: 'Bearer ' + token
                 }
             }).then(response => {
-                saveStatus.current = "saved";
                 console.log("renameNote Response", response);
                 response.data.access_token && setToken(response.data.access_token);
                 setPreviousName(name);
                 onChange(id, name, "renamed", newName);
+                system.info(`Note renamed to "${newName}".`);
             }).catch(error => {
                 console.log(error);
-                system.error(`Error renaming note: ${error}`);
+                system.error(`System Error renaming note.`, error, url + " PUT");
             });
         }
     }

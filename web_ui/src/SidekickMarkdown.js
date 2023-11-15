@@ -51,9 +51,8 @@ const SidekickMarkdown = ({ markdown }) => {
                 renderedMarkdown.push(<ReactMarkdown key={lastIndex} sx={{ whiteSpace: 'pre-wrap' }}>{markdown.slice(lastIndex)}</ReactMarkdown>);
             }
             return <>{renderedMarkdown}</>;
-            } catch (err) {
-            console.log(err);
-            system.error(`Error highlighting code blocks: ${err}`);
+        } catch (err) {
+            system.error(`System Error rendering markdown.`, err, "Rendering markdown");
             return <Typography sx={{ whiteSpace: 'pre-wrap' }}>{markdown}</Typography>;
         }
     };

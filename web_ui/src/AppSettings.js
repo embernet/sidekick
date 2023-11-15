@@ -2,13 +2,12 @@ import { debounce } from "lodash";
 import axios from 'axios';
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { SystemContext } from './SystemContext';
-import { Card, Toolbar, Tooltip, IconButton, Box, Paper, Tabs, Tab, TextField, Button, Typography } from '@mui/material';
+import { Card, Toolbar, IconButton, Box, Paper, Tabs, Tab, TextField, Button, Typography } from '@mui/material';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
 import CloseIcon from '@mui/icons-material/Close';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { grey } from '@mui/material/colors';
-import { use } from 'marked';
 import AccountDelete from "./AccountDelete";
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
@@ -107,7 +106,7 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
 
   const handleChangePassword = async () => {
     if (newPassword !== reEnteredNewPassword) {
-        system.error('New passwords do not match!');
+        system.error('Failed to change passwords: New passwords do not match.');
         return;
     }
     axios.post(`${serverUrl}/change_password`,
@@ -126,16 +125,15 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
             console.log("handleChangePassword response: ", response);
             response.data.access_token && setToken(response.data.access_token);
             if (response.data.success) {
-                system.info('Password changed successfully!');
+                system.info('Password changed successfully.');
             } else {
-                system.error(`Failed to change password: ${response.data.message}`);
+                system.error(`Error changing password.`, response.data.message);
             }
         }).catch(error => {
             setCurrentPassword('');
             setNewPassword('');
             setReEnteredNewPassword('');
-            console.error(error);
-            system.error(`An error occurred while changing password: ${error}`);
+            system.error("System Error changing password.", error);
         }
     );
   };

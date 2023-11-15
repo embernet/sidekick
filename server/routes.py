@@ -8,7 +8,7 @@ import sseclient
 
 from collections import OrderedDict
 from datetime import datetime
-from utils import DBUtils, log_exception, construct_ai_request, server_stats
+from utils import DBUtils, log_exception, construct_ai_request, server_stats, increment_server_stat, openai_num_tokens_from_messages
 
 from flask import request, jsonify, Response, stream_with_context
 from flask_jwt_extended import get_jwt_identity, jwt_required, \
@@ -37,12 +37,40 @@ def index():
 def health():
     app.logger.debug(f"/health GET request from:{request.remote_addr}")
     try:
+        # calculate uptime
+        uptime = datetime.now() - server_stats["serverStartTime"]
+        days, seconds = uptime.days, uptime.seconds
+        hours = seconds // 3600
+        minutes = (seconds % 3600) // 60
+        seconds = (seconds % 60)
+        database_health = DBUtils.health()
+        health_response = {
+            "success": True,
+            "status": "UP",
+            "version": f"{VERSION}",
+            "timestamp": datetime.now().isoformat(),
+            "hostname": socket.gethostname(),
+            "serverStartTime": server_stats["serverStartTime"].strftime("%Y-%m-%d %H:%M:%S"),
+            "serverUpTime": f"{uptime}",
+            "serverUptimeString": f"{days} days {hours} hours {minutes} minutes {seconds} seconds",
+            "stats": {},
+            "dependencies": {
+                "database": database_health
+            }
+        }
+        for key, value in server_stats.items():
+            try:
+                json.dumps(value)
+                health_response["stats"][key] = value
+            except TypeError:
+                pass
         return app.response_class(
-            response=json.dumps({"success": True}),
+            response=json.dumps(health_response, indent=4, cls=OrderedEncoder),
             status=200,
             mimetype='application/json'
         )
-    except Exception:
+    except Exception as e:
+        app.logger.error(f"/health error:{str(e)}")
         return app.response_class(
             response=json.dumps({"success": False}),
             status=500,
@@ -53,6 +81,7 @@ def health():
 @app.route('/ping', methods=['GET'])
 @app.route('/test/server/up', methods=['GET'])
 def test_server_up():
+    increment_server_stat(category="requests", stat_name="ping")
     response = {
         "message": "sidekick-server is up and running.",
         "topic": "test",
@@ -65,26 +94,48 @@ def test_server_up():
     return response
 
 
-@app.route('/test/ai', methods=['GET'])
+@app.route('/health/ai', methods=['GET'])
 def test_ai():
+    increment_server_stat(category="requests", stat_name="healthAi")
     openai.verify_ssl_certs = False
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system",
-             "content": "You are an AI that has just run a self-test."},
-            {"role": "user",
-             "content": "Give me an update on your status. Do not ask any "
-                        "questions or offer any help."}],
-        temperature=0.9
+    openai_health = {}
+    try:
+        completion = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an AI that has just run a self-test."},
+                {
+                    "role": "user",
+                    "content": "Give me an update on your status. Do not ask any "
+                                "questions or offer any help."}],
+            temperature=0.9
+        )
+        app.logger.debug(completion.choices[0].message.content)
+        openai_health["success"] = True
+        openai_health["status"] = "UP"
+        openai_health["ai_response"] = completion.choices[0].message.content
+        openai_health["timestamp"] = datetime.now().isoformat()
+    except:
+        openai_health["success"] = False
+        openai_health["status"] = "DOWN"
+        return app.response_class(
+            response=json.dumps(openai_health),
+            status=500,
+            mimetype='application/json'
+        )
+    return app.response_class(
+        response=json.dumps(openai_health),
+        status=200,
+        mimetype='application/json'
     )
-    app.logger.debug(response)
-    return response
 
 
 @app.route('/feedback', methods=['POST'])
 @jwt_required()
 def feedback():
+    increment_server_stat(category="requests", stat_name="feedback")
     app.logger.info(f"/feedback [POST] request from:{request.remote_addr}")
     try:
         DBUtils.create_document(
@@ -100,15 +151,9 @@ def feedback():
         return jsonify({'success': False, 'message': str(e)})
 
 
-@app.route('/models', methods=['GET'])
-@jwt_required()
-def get_models():
-    models = openai.Model.list()
-    return jsonify(models)
-
-
 @app.route('/system_settings/<name>', methods=['GET'])
 def get_system_settings(name):
+    increment_server_stat(category="requests", stat_name=f"getSystemSettings({name})")
     app.logger.info(
         f"/system_settings/{name} GET request from:{request.remote_addr}")
 
@@ -129,6 +174,7 @@ DOCTYPE_SYSTEM_SETTINGS = "system_settings"
 @app.route(f'/{DOCTYPE_SYSTEM_SETTINGS}/<name>', methods=['PUT'])
 @jwt_required()
 def save_system_settings(name):
+    increment_server_stat(category="requests", stat_name=f"updateSystemSettings({name})")
     app.logger.info(f"/{DOCTYPE_SYSTEM_SETTINGS}/{name} PUT request from"
                     f":{request.remote_addr}")
     try:
@@ -234,6 +280,7 @@ def save_settings(name):
 @jwt_required()
 def name_topic():
     def construct_name_topic_request(request):
+        increment_server_stat(category="requests", stat_name="nameTopic")
         ai_request = {
             "model": "gpt-3.5-turbo",
             "temperature": 0.9,
@@ -254,29 +301,25 @@ def name_topic():
                      json.dumps(request.json, indent=4))
     ai_request = construct_name_topic_request(request)
     try:
-        response = openai.ChatCompletion.create(**ai_request)
-        app.logger.debug("/nametopic/v1 openai response:\n",
-                     json.dumps(response, indent=4))
-        topic_name = response.choices[0]["message"]["content"]
+        completion = openai.chat.completions.create(**ai_request)
+        topic_name = completion.choices[0].message.content
         if "\n" in topic_name:
             topic_name = topic_name.split("\n", 1)[0]  # if there are multiple lines, just use the first one
         topic_name = topic_name.strip('"\'')  # remove surrounding quotes
         topic_name = topic_name.lstrip('- ')  # remove leading dash or space
+        topic_name = topic_name.rstrip(':')  # remove trailing colon
         ai_response = {
             "success": True,
             "topic_name": topic_name
         }
-        server_stats["chat_interaction_count"] += 1
-        server_stats["prompt_tokens"] += response["usage"][
-            "prompt_tokens"]
-        server_stats["completion_tokens"] += response["usage"][
-            "completion_tokens"]
-        server_stats["total_tokens"] += response["usage"]["total_tokens"]
+        increment_server_stat(category="usage", stat_name="promptTokens", increment=completion.usage.prompt_tokens)
+        increment_server_stat(category="usage", stat_name="completionTokens", increment=completion.usage.completion_tokens)
+        increment_server_stat(category="usage", stat_name="totalTokens", increment=completion.usage.total_tokens)
         # Usage is metadata about the chat rather than the document that contains the chat, so it goes in the content
         message_usage = {
-            "prompt_tokens": response["usage"]["prompt_tokens"],
-            "completion_tokens": response["usage"]["completion_tokens"],
-            "total_tokens": response["usage"]["total_tokens"],
+            "prompt_tokens": completion.usage.prompt_tokens,
+            "completion_tokens": completion.usage.completion_tokens,
+            "total_tokens": completion.usage.total_tokens,
         }
         ai_response["usage"] = message_usage
         ai_response_json = ai_response
@@ -295,6 +338,7 @@ def name_topic():
 @jwt_required()
 def query_ai():
     def construct_query_ai_request(request):
+        increment_server_stat(category="requests", stat_name=f"generatetext")
         ai_request = {
             "model": "gpt-3.5-turbo",
             "temperature": 0.9,
@@ -318,24 +362,21 @@ You always do your best to generate text in the same style as the context text p
                      json.dumps(request.json, indent=4))
     ai_request = construct_query_ai_request(request)
     try:
-        response = openai.ChatCompletion.create(**ai_request)
-        generated_text = response.choices[0]["message"]["content"]
+        completion = openai.chat.completions.create(**ai_request)
+        generated_text = completion.choices[0]["message"]["content"]
         ai_response = {
             "success": True,
             "generated_text": generated_text
         }
-        app.logger.debug(f"openai response: {response}")
-        server_stats["chat_interaction_count"] += 1
-        server_stats["prompt_tokens"] += response["usage"][
-            "prompt_tokens"]
-        server_stats["completion_tokens"] += response["usage"][
-            "completion_tokens"]
-        server_stats["total_tokens"] += response["usage"]["total_tokens"]
+        app.logger.debug(f"openai response: {completion}")
+        increment_server_stat(category="usage", stat_name="promptTokens", increment=completion.usage.prompt_tokens)
+        increment_server_stat(category="usage", stat_name="completionTokens", increment=completion.usage.completion_tokens)
+        increment_server_stat(category="usage", stat_name="totalTokens", increment=completion.usage.total_tokens)
         # Usage is metadata about the chat rather than the document that contains the chat, so it goes in the content
         message_usage = {
-            "prompt_tokens": response["usage"]["prompt_tokens"],
-            "completion_tokens": response["usage"]["completion_tokens"],
-            "total_tokens": response["usage"]["total_tokens"],
+            "prompt_tokens": completion.usage.prompt_tokens,
+            "completion_tokens": completion.usage.completion_tokens,
+            "total_tokens": completion.usage.total_tokens,
         }
         ai_response["usage"] = message_usage
     except Exception as e:
@@ -356,37 +397,38 @@ You always do your best to generate text in the same style as the context text p
 def chat_v1():
     app.logger.info(f"/chat/v1 POST request from:{request.remote_addr}")
     app.logger.debug("/chat/v1 request:\n", json.dumps(request.json, indent=4))
+    increment_server_stat(category="requests", stat_name="chatV1")
     document = DBUtils.save_chat(user_id=get_jwt_identity(),
                                  type="chats",
                                  chat=request)
 
     ai_request = construct_ai_request(request)
     try:
-        response = openai.ChatCompletion.create(**ai_request)
-        ai_response = response.choices[0]["message"]["content"]
+        completion = openai.chat.completions.create(**ai_request)
+        ai_response = completion.choices[0]["message"]["content"]
         chat_response = [
             {
                 "role": "user",
                 "content": request.json["prompt"],
-                "metadata": { "usage": response["usage"]["prompt_tokens"] }
+                "metadata": { "usage": completion.usage.prompt_tokens }
             },
             {
                 "role": "assistant",
                 "content": ai_response,
-                "metadata": { "usage": response["usage"]["completion_tokens"] }
+                "metadata": { "usage": completion.usage.completion_tokens }
             }
         ]
         document["content"]["chat"].append(chat_response)
-        app.logger.debug(f"openai response: {response}")
-        server_stats["chat_interaction_count"] += 1
-        server_stats["prompt_tokens"] += response["usage"]["prompt_tokens"]
-        server_stats["completion_tokens"] += response["usage"]["completion_tokens"]
-        server_stats["total_tokens"] += response["usage"]["total_tokens"]
+        increment_server_stat(category="responses", stat_name="chatV1")
+        app.logger.debug(f"openai response: {completion}")
+        increment_server_stat(category="usage", stat_name="promptTokens", increment=completion.usage.prompt_tokens)
+        increment_server_stat(category="usage", stat_name="completionTokens", increment=completion.usage.completion_tokens)
+        increment_server_stat(category="usage", stat_name="totalTokens", increment=completion.usage.total_tokens)
         # Usage is metadata about the chat rather than the document that contains the chat, so it goes in the content
         message_usage = {
-            "prompt_tokens": response["usage"]["prompt_tokens"],
-            "completion_tokens": response["usage"]["completion_tokens"],
-            "total_tokens": response["usage"]["total_tokens"],
+            "prompt_tokens": completion.usage.prompt_tokens,
+            "completion_tokens": completion.usage.completion_tokens,
+            "total_tokens": completion.usage.total_tokens,
         }
         if "usage" not in document["content"]:
             document["content"]["usage"] = message_usage
@@ -430,6 +472,7 @@ CHATV2_ROUTE = '/chat/v2'
 @app.route(CHATV2_ROUTE, methods=['POST'])
 @jwt_required()
 def chat_v2():
+    increment_server_stat(category="requests", stat_name="chatV2")
     tid = str(uuid.uuid4())
     app.logger.info(
         f"{CHATV2_ROUTE} [POST] request from:{request.remote_addr} tid:{tid}")
@@ -443,11 +486,23 @@ def chat_v2():
         }
         ai_request = construct_ai_request(request)
         ai_request["stream"] = True
+        try:
+            prompt_tokens = openai_num_tokens_from_messages(ai_request["messages"], ai_request["model"])
+            increment_server_stat(category="usage", stat_name="promptTokens", increment=prompt_tokens)
+        except Exception as e:
+            log_exception(e)
+            app.logger.error(f"{CHATV2_ROUTE} tid:{tid} error calculating prompt tokens: {str(e)}")
         response = requests.post(url, headers=headers,
                                  data=json.dumps(ai_request), stream=True)
+        increment_server_stat(category="responses", stat_name="chatV2")
+
         client = sseclient.SSEClient(response)
         app.logger.debug(f"{CHATV2_ROUTE} Begin processing received SSE stream")
         for event in client.events():
+            # The streaming interface does not provide the number of tokens used
+            # but as it returns one token at a time, we can count them
+            increment_server_stat(category="usage", stat_name="completionTokens", increment=1)
+            increment_server_stat(category="usage", stat_name="totalTokens", increment=1)
             if event.data != '[DONE]':
                 try:
                     data = json.loads(event.data)
@@ -508,6 +563,7 @@ def docdb_list_documents(document_type=""):
 @app.route('/docdb/<document_type>/documents', methods=['POST'])
 @jwt_required()
 def docdb_create_document(document_type=""):
+    increment_server_stat(category="requests", stat_name=f"docdbCreate({document_type})")
     app.logger.info(
         f"/docdb/{document_type}/documents "
         f"[POST] request from:{request.remote_addr}")
@@ -526,6 +582,7 @@ def docdb_create_document(document_type=""):
 @app.route('/docdb/<document_type>/documents/<document_id>', methods=['GET'])
 @jwt_required()
 def docdb_load_document(document_id, document_type=""):
+    increment_server_stat(category="requests", stat_name=f"docdbGet({document_type})")
     tid = str(uuid.uuid4())
     app.logger.info(
         f"/docdb/{document_type}/documents/{document_id} "
@@ -544,6 +601,7 @@ def docdb_load_document(document_id, document_type=""):
 @app.route('/docdb/<document_type>/documents/<document_id>', methods=['PUT'])
 @jwt_required()
 def docdb_save_document(document_id, document_type=""):
+    increment_server_stat(category="requests", stat_name=f"docdbSave({document_type})")
     app.logger.info(
         f"/docdb/{document_type}/documents/{document_id} "
         f"[PUT] request from:{request.remote_addr}")
@@ -559,10 +617,10 @@ def docdb_save_document(document_id, document_type=""):
     return jsonify(document)
 
 
-@app.route('/docdb/<document_type>/documents/<document_id>/rename', methods=[
-    'PUT'])
+@app.route('/docdb/<document_type>/documents/<document_id>/rename', methods=['PUT'])
 @jwt_required()
 def docdb_rename_document(document_type, document_id):
+    increment_server_stat(category="requests", stat_name=f"docdbRename({document_type})")
     app.logger.info(
         f"/docdb/{document_type}/documents/{document_id}/rename "
         f"[PUT] request from:{request.remote_addr}")
@@ -587,6 +645,7 @@ def docdb_move_document(document_type, document_id):
            methods=['DELETE'])
 @jwt_required()
 def docdb_delete_document(document_type, document_id):
+    increment_server_stat(category="requests", stat_name=f"docdbDelete({document_type})")
     app.logger.info(
         f"/docdb/{document_type}/documents/{document_id} "
         f"[DELETE] from:{request.remote_addr}")
@@ -596,6 +655,7 @@ def docdb_delete_document(document_type, document_id):
 
 @app.route('/create_account', methods=['POST'])
 def create_account():
+    increment_server_stat(category="requests", stat_name="createAccount")
     try:
         data = request.get_json()
         # if 'sidekick' appears in the user_id, throw an exception
@@ -621,6 +681,7 @@ def create_account():
 
 @app.route('/login', methods=['POST'])
 def login():
+    increment_server_stat(category="requests", stat_name="loginAttempt")
     data = request.get_json()
     app.logger.info(
         f"/login user_id:{data['user_id']} [POST] request from"
@@ -630,10 +691,12 @@ def login():
         if result['success']:
             access_token = create_access_token(identity=data['user_id'])
             result['access_token'] = access_token
+            increment_server_stat(category="requests", stat_name="loginSuccess")
         else:
             app.logger.info(
                 f"/login user_id:{data['user_id']} "
                 f"[POST] invalid login attempt from:{request.remote_addr}")
+            increment_server_stat(category="requests", stat_name="loginFailure")
         return jsonify(result)
     except Exception as e:
         app.logger.error(f"/login user_id:{data['user_id']} error:{str(e)}")
@@ -644,6 +707,7 @@ def login():
 @app.route('/change_password', methods=['POST'])
 @jwt_required()
 def change_password():
+    increment_server_stat(category="requests", stat_name="changePassword")
     data = request.get_json()
     user_id = data['user_id']
     app.logger.info(
@@ -664,6 +728,7 @@ def change_password():
 @app.route('/reset_password', methods=['POST'])
 @jwt_required()
 def reset_password():
+    increment_server_stat(category="requests", stat_name="resetPassword")
     data = request.get_json()
     user_id = data['user_id']
     new_password=data['new_password']
@@ -701,6 +766,7 @@ def reset_password():
 @app.route('/delete_user', methods=['POST'])
 @jwt_required()
 def delete_user():
+    increment_server_stat(category="requests", stat_name="deleteUser")
     data = request.get_json()
     user_id_to_delete = data['user_id']
     password=data['password']
@@ -730,6 +796,7 @@ def delete_user():
 @app.route('/logout', methods=['POST'])
 @jwt_required()
 def logout():
+    increment_server_stat(category="requests", stat_name="logout")
     app.logger.info(f"/logout [POST] request from:{request.remote_addr}")
     try:
         response = jsonify({'success': True})

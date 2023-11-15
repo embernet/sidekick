@@ -4,9 +4,9 @@ services:
   sidekick-web-ui:
     image: sidekick-web-ui:latest
     ports:
-      - "8081:8081"
-    environment:
-      - REACT_APP_SERVER_URL=http://127.0.0.1:8000
+      - "8081:3000"
+    env_file:
+      - .env
     restart: always
     depends_on:
       - sidekick-server

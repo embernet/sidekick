@@ -14,6 +14,7 @@ from flask_oidc import OpenIDConnect
 app = Flask(__name__)
 app.logger.setLevel(logging.getLevelName(
     os.environ.get("LOG_LEVEL", "ERROR")))
+print("-----", os.environ["JWT_SECRET_KEY"])
 app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = False
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["SQLALCHEMY_DATABASE_URI"]
@@ -29,13 +30,19 @@ migrate = Migrate(app, db)
 
 from utils import DBUtils, get_random_string
 
-url = make_url(app.config["SQLALCHEMY_DATABASE_URI"])
-dialect_name = url.get_dialect().name
+db_url = make_url(app.config["SQLALCHEMY_DATABASE_URI"])
+db_dialect_name = db_url.get_dialect().name
+app.config["DB_DIALECT_NAME"] = db_dialect_name
+try:
+    app.config["DB_NAME"] = db_url.database
+    app.config["DB_HOST"] = db_url.host
+except:
+    pass
 
 with app.app_context():
-    if dialect_name == "sqlite":
+    if db_dialect_name == "sqlite":
         db.create_all()
-    if dialect_name == "postgresql":
+    if db_dialect_name == "postgresql":
         upgrade(directory="migrations")
 
     # Create sidekick user they don't exist

@@ -1,11 +1,9 @@
 import { debounce } from "lodash";
-import axios from 'axios';
 import { useEffect, useState, useContext, Fragment, useCallback } from 'react';
 import { Card, Box, IconButton, Tooltip, Typography, TextField,
-    List, ListItem, ListItemText, Menu, MenuItem, Divider } from '@mui/material';
+    List, ListItem, ListItemText, Menu, MenuItem } from '@mui/material';
 import { ClassNames } from "@emotion/react";
 import PersonIcon from '@mui/icons-material/Person';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandIcon from '@mui/icons-material/Expand';
 import FavouriteIcon from '@mui/icons-material/Favorite';
@@ -69,9 +67,8 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
                 setPersonasLoaded(true);
             },
             (error) => {
-                console.log("get personas:", error);
-                setLoadingPersonasMessage("Error loading personas: " + error);
-                system.error("Error loading personas: " + error);
+                setLoadingPersonasMessage("Error loading personas.");
+                system.error("System Error loading personas.", error, "settingsManager.loadSettings");
             }
         )
     }, []);

@@ -26,13 +26,13 @@ class AI {
                 console.log(`${NAMETOPIC_API} result:`, response.data.topic_name);
                 result = response.data.topic_name;
             } else {
-                this.system.error(`Error naming topic: ${response.data.error}`);
+                this.system.error(`Error naming topic.`, response.data.error);
                 result = "";
             }
         })
         .catch((error) => {
             console.log(error);
-            this.system.error(`Error naming topic: ${error}`);
+            this.system.error(`Error naming topic.`, error);
             result = "";
         });
         // remove surrounding quotes if they are there
@@ -58,13 +58,13 @@ class AI {
                 console.log(`${GENERATETEXT_API} result:`, response.data.generated_text);
                 result = response.data.generated_text;
             } else {
-                this.system.error(`Error generating text: ${response.error}`);
+                this.system.debug(`Error generating text from AI.`, response.error);
                 result = "";
             }
         })
         .catch((error) => {
             console.log(error);
-            this.system.error(`Error generating text: ${error}`);
+            this.system.debug(`System Error generating text from AI.`, error);
             result = "";
         });
         // remove surrounding quotes if they are there

@@ -7,7 +7,6 @@ import { ClassNames } from "@emotion/react";
 import CloseIcon from '@mui/icons-material/Close';
 import { StyledToolbar } from './theme';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
-import ExpandIcon from '@mui/icons-material/Expand';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import BuildIcon from '@mui/icons-material/Build';
 import PushPinIcon from '@mui/icons-material/PushPin';

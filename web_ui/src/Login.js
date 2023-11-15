@@ -12,7 +12,6 @@ function Login({setUser, serverUrl, setToken}) {
   const [password, setPassword] = useState('');
   const [tabIndex, setTabIndex] = useState(0);
   const [pageLoaded, setPageLoaded] = useState(false);
-  const [preLoginMessage, setPreLoginMessage] = useState('');
   const loginPasswordRef = useRef(null);
   const [systemSettings, setSystemSettings] = useState({});
 
@@ -63,23 +62,22 @@ function Login({setUser, serverUrl, setToken}) {
   }, [pageLoaded]);
 
   const login = ({userId, password}) => {
+    let url = `${serverUrl}/login`;
     axios
-    .post(`${serverUrl}/login`, { user_id: userId, password: password })
+    .post(url, { user_id: userId, password: password })
     .then((response) => {
         console.log(response);
       if (response.data.success) {
-        console.log(`User ${userId} logged in`);
+        system.info(`User account "${userId}" logged in. Welcome.`)
         setUser(response.data.user);
         setToken(response.data.access_token)
         system.setServerUp(true);
       } else {
-        console.log(response.data.message);
-        system.error(response.data.message);
+        system.error(`Failed to login`, response.data.message, url + " POST");
       }
     })
     .catch((error) => {
-      console.error(error);
-      system.error(`Server not available: ${error}`);
+      system.error(`System Error: Server not available. Please try later.`, error, url + " POST");
     });
   }
 
@@ -89,7 +87,6 @@ function Login({setUser, serverUrl, setToken}) {
       setUserId('');
       setPassword('');
   };
-
   
   const handleTabChange = (event, newValue) => {
     setTabIndex(newValue);
@@ -131,7 +128,7 @@ function Login({setUser, serverUrl, setToken}) {
       filenameExtension=".png" altText="Sidekick logo"
       transitions="8" cycleTime="250" />
       <Box sx={{ flex: 1 }}>
-        {system.serverUp ? ui : <Typography variant="h5" color="error">Server not available. Please try later.</Typography>}
+      {system.serverUp ? ui : <Typography variant="h5" color="error">Server not available. Please try later.</Typography>}
       </Box>
     </Box>
   );

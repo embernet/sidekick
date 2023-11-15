@@ -12,13 +12,14 @@ flask-migrate = "==4.0.5"
 flask-oidc = "==2.1.0"
 flask-sqlalchemy = "==3.1.1"
 sqlalchemy-utils = "==0.41.1"
-openai = "==0.28.1"
+openai = "*"
 requests = "==2.31.0"
 sseclient-py = "==1.8.0"
 pyyaml = "==6.0.1"
 gunicorn = "==21.2.0"
 psycopg2-binary = "*"
 pytest = "7.4.2"
+tiktoken = "*"
 
 [dev-packages]
 

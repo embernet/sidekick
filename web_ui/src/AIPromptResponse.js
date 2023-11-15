@@ -10,12 +10,10 @@ import RedoIcon from '@mui/icons-material/Redo';
 import ReplayIcon from '@mui/icons-material/Replay';
 import StopCircleIcon from '@mui/icons-material/StopCircle';
 import SendIcon from '@mui/icons-material/Send';
-import SaveIcon from '@mui/icons-material/Save';
 
 import { SystemContext } from './SystemContext';
 
-import { grey, blue } from '@mui/material/colors';
-import { use } from 'marked';
+import { grey } from '@mui/material/colors';
 
 const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
     backgroundColor: grey[300],
@@ -237,8 +235,7 @@ const AIPromptResponse = ({serverUrl, token, setToken, customUserPromptReady, sy
                 reader.releaseLock();
             }
         } catch (error) {
-          console.log(error);
-          system.error(`Error reading chat stream: ${error}`);
+          system.error(`System Error reading chat stream.`, error);
         }
 
     }, [stopStreamingRef.current]);

@@ -21,6 +21,9 @@ Functional changes:
       2. Reset the password of a user
       3. Delete a user account
    4. Login page now detects if the sidekick server is not running and displays a message to that effect
+3. System information and error messages are now displayed in a status bar along the bottom of the App rather than in popup toasts. The status bar reverts to an information display after a short period of displaying a message. Clicking on the status bar will give a popup list of recent messages that have been displayed this session.
+4. /health route added to server for the Python Flask back end. This endpoint returns 200 OK if the server is running and 500 Internal Server Error if it is not (assuming it is healthy enough to realise it has a problem versus simply being down). It also provides a JSON response with various health data and some stats including uptime, whether the database is up and counts of endpoint requests since server start. For the web_ui, if you want the health end point you currently need to run `npm start server.js`. The other ways of running the web_ui as statically built files do not support the health endpoint as there is no server running to be able to provide the 200 or 500 response.
+5. /health endpoints also provides stats on prompt and completion tokens used against the OpenAI API since server start.
 
 Code improvements:
 
@@ -28,13 +31,14 @@ Code improvements:
 2. system_settings folder now contains the default settings for the admin user, and the admin user can change these settings via the Admin page.
 3. Changed SidekickAI ReactMarkdown to use components prop instead of deprecated renderers prop
 4. /ping route now returns version of the Sidekick server
+5. docker-compose.yml updated so you can run `docker compose up` to run the web_ui and server locally in containers on different ports to running `make run-dev-locally` from within the server and web_ui folders respectively if you set your .env files in each of those folders accordingly
 
 Bug fixes:
 
 1. Note no longer creates duplicate notes when creating a new note directly from Chat by clicking the append message(s) to note menu
 2. Explorers now maintain their sort order when they refresh due to new Notes or Chats being created
 3. Attempting to create a user that already exists now returns a message saying "user already exists" rather than returning a database error
-4. Chats used to save when loaded, updating their updated_date. They now only save when changed.
+4. Chats and Notes used to save when loaded, updating their updated_date. They now only save when changed.
 
 # v0.0.9
 
