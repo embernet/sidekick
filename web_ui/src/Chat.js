@@ -398,10 +398,6 @@ const Chat = ({
         }).then(response => {
             response.data.access_token && setToken(response.data.access_token);
             setId(response.data.metadata.id);
-            setName(response.data.metadata.name);
-            setPreviousName(response.data.metadata.name);
-            setTags(response.data.metadata.tags);
-            setMessages(response.data.content.chat);
             onChange(id, name, "created", "");
             document.getElementById("chat-name")?.focus();
             document.getElementById("chat-name")?.select();

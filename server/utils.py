@@ -269,6 +269,7 @@ class DBUtils:
     def update_document_name(id, name):
         document = Document.query.filter_by(id=id).first()
         document.name = name
+        document.updated_date = str(datetime.now())
         db.session.add(document)
         db.session.commit()
         return document.as_dict()
@@ -277,6 +278,7 @@ class DBUtils:
     def update_document_type(document_id, document_type):
         document = Document.query.filter_by(id=id).first()
         document.type = document_type
+        document.updated_date = str(datetime.now())
         db.session.add(document)
         db.session.commit()
         return document.as_dict()
