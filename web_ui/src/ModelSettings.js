@@ -261,6 +261,10 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
                 sx={{ mt: 2, mb: 3 }}
                 renderInput={(params) => <TextField {...params} label="Model" />}
             />
+
+            {/* This option to turn off streaming was only added for testing
+                in some environments where streaming was blocked. It is not
+                a good user experience and hence is not exposed to the user.
             <Paper sx={{ margin: 1, padding : "6px 20px" }}>
             <Box sx={{ display: 'flex', flexDirection: "column" }}>
                 <Stack direction="row" alignItems="center" justifyContent="space-between">
@@ -279,7 +283,8 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
                     When streaming is on, the response is displayed to the user as it is generated. When off, the response is displayed only after the model has finished generating the response. Streaming can be blocked by some network and security setups, so turn this off if you are having problems.
                 </Typography> : null }
             </Box>
-            </Paper>
+            </Paper> */}
+
             <Paper sx={{ margin: 1, padding : "6px 20px" }}>
                 <Typography variant="h7">temperature {temperature} ({temperatureText})</Typography>
                 <Slider
