@@ -1,7 +1,6 @@
 import os
 import json
 import logging
-from urllib.parse import quote, urljoin
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
@@ -14,19 +13,18 @@ from flask_oidc import OpenIDConnect
 app = Flask(__name__)
 app.logger.setLevel(logging.getLevelName(
     os.environ.get("LOG_LEVEL", "ERROR")))
-print("-----", os.environ["JWT_SECRET_KEY"])
 app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = False
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["SQLALCHEMY_DATABASE_URI"]
 app.config["OPENAI_API_KEY"] = os.environ["OPENAI_API_KEY"]
-# app.config["OIDC_CLIENT_SECRETS"] = "client_secrets.json"
-# app.config["SECRET_KEY"] =""
+app.config["OIDC_CLIENT_SECRETS"] = "client_secrets.json"
+app.config["SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
 db = SQLAlchemy()
 db.init_app(app)
 jwt = JWTManager(app)
 CORS(app)
 migrate = Migrate(app, db)
-# oidc = OpenIDConnect(app)
+oidc = OpenIDConnect(app)
 
 from utils import DBUtils, get_random_string
 

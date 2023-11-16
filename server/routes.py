@@ -17,7 +17,7 @@ from flask_jwt_extended import get_jwt_identity, jwt_required, \
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.exc import IntegrityError
 
-from app import app
+from app import app, oidc
 
 VERSION = "0.1"
 
@@ -806,3 +806,23 @@ def logout():
         app.logger.error(f"/logout error:{str(e)}")
         log_exception(e)
         return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/oidc-login')
+@oidc.require_login
+def oidc_login():
+    user_id = oidc.user_getfield('sub')
+    try:
+        DBUtils.get_user(user_id)
+    except NoResultFound:
+        DBUtils.create_user(user_id=user_id, password="", properties={})
+
+    access_token = create_access_token(user_id)
+    return jsonify({
+        'user': {
+            'id': user_id,
+            'properties': {}
+        },
+        'success': True,
+        'access_token': access_token
+    })
