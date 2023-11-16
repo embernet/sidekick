@@ -124,7 +124,7 @@ You always do your best to generate text in the same style as the context text p
     const [inAILibrary, setInAILibrary] = useState(false);
     const saveStatus = useRef("");
     const noteInstantiated = useRef(false);
-    const [initialContent, setInitialContent] = useState("");
+    const [renameInProcess, setRenameInProcess] = useState(false);
 
 
     useEffect(() => {
@@ -219,7 +219,6 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     setName(response.data.metadata.name);
                     setTags(response.data.metadata.tags);
                     setPreviousName(response.data.metadata.name);
-                    setInitialContent(response.data.content.note);
                     setContent(response.data.content.note);
                     if ("inAILibrary" in response.data.metadata.properties) {
                         setInAILibrary(response.data.metadata.properties.inAILibrary);
@@ -494,10 +493,20 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     }
 
     const generateNoteName = async (text) => {
-        const ai = new AI(serverUrl, token, setToken, system);
-        let generatedName = await ai.nameTopic(text);
-        if (generatedName && generatedName !== "") { 
-            renameNote(generatedName);
+        if (renameInProcess) {
+            return;
+        }
+        setRenameInProcess(true);
+        try {
+            const ai = new AI(serverUrl, token, setToken, system);
+            let generatedName = await ai.nameTopic(text);
+            if (generatedName && generatedName !== "") { 
+                await renameNote(generatedName);
+            }
+        } catch (error) {
+            system.debug(`System Error generating note name.`, error, "generateNoteName");
+        } finally {
+            setRenameInProcess(false);
         }
     }
 
@@ -506,7 +515,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     }
 
     const considerAutoNaming = async (text) => {
-        if (name !== newNoteName || content.trim() === "") {
+        if (renameInProcess || name !== newNoteName || content.trim() === "") {
             return;
         }
         generateNoteName(text);
