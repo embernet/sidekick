@@ -9,7 +9,7 @@ test:
 build-locally: init
 	npm run build
 
-build-docker: build
+build-docker:
 	docker build --tag sidekick-web-ui .
 
 run-dev-locally: init
