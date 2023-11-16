@@ -10,7 +10,7 @@ from collections import OrderedDict
 from datetime import datetime
 from utils import DBUtils, log_exception, construct_ai_request, server_stats, increment_server_stat, openai_num_tokens_from_messages
 
-from flask import request, jsonify, Response, stream_with_context
+from flask import request, jsonify, Response, stream_with_context, redirect
 from flask_jwt_extended import get_jwt_identity, jwt_required, \
     create_access_token, unset_jwt_cookies
 
@@ -818,11 +818,5 @@ def oidc_login():
         DBUtils.create_user(user_id=user_id, password="", properties={})
 
     access_token = create_access_token(user_id)
-    return jsonify({
-        'user': {
-            'id': user_id,
-            'properties': {}
-        },
-        'success': True,
-        'access_token': access_token
-    })
+    return redirect('http://localhost:8080/callback?access_token=' +
+                    access_token)
