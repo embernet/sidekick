@@ -68,13 +68,13 @@ with app.app_context():
                                  name=settings_name,
                                  type="system_settings")
             # If there are new settings that aren't present in the database, add them
-            system_settings, settings_updated = merge_settings(system_settings, filesystem_settings)
+            updated_system_settings, settings_updated = merge_settings(system_settings, { 'content': filesystem_settings })
             if settings_updated:
-                DBUtils.update_document(id=system_settings["metadata"]["id"],
-                                        name=system_settings["metadata"]["name"],
-                                        tags=system_settings["metadata"]["tags"],
-                                        properties=system_settings["metadata"]["properties"],
-                                        content=system_settings["content"])
+                DBUtils.update_document(id=updated_system_settings["metadata"]["id"],
+                                        name=updated_system_settings["metadata"]["name"],
+                                        tags=updated_system_settings["metadata"]["tags"],
+                                        properties=updated_system_settings["metadata"]["properties"],
+                                        content=updated_system_settings["content"])
         except NoResultFound:
             DBUtils.create_document(user_id="sidekick",
                                     name=settings_name,
