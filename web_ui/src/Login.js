@@ -53,12 +53,53 @@ function Login({setUser, serverUrl, setToken}) {
     });
   }
 
+  const loginWithOidc = () => {
+    system.debug("Login with OIDC");
+    // get the access token provided in the URL
+    let url = window.location.href;
+    let token = url.split('access_token=')[1];
+    // remove the token from the URL
+    window.history.replaceState({}, document.title, "/");
+    if (token) {
+      let url = `${serverUrl}/oidc_login_get_user`;
+      axios
+      .post(url, { }, {
+          headers: {
+              Authorization: 'Bearer ' + token
+          }
+      })
+      .then((response) => {
+        system.debug("OIDC login_get_user response:", response);
+        if (response.data.success) {
+          system.info(`User account "${userId}" logged in. Welcome.`)
+          setUser(response.data.user);
+          setToken(response.data.access_token)
+          system.setServerUp(true);
+        } else {
+          system.error(`Failed to login`, response.data.message, url + " POST");
+        }
+      })
+      .catch((error) => {
+        system.error(`System Error: Server not available. Please try later.`, error, url + " POST");
+      });
+    } else if (systemSettings?.functionality?.oidcUrl) {
+      // redirect to the OIDC login page
+      let redirectUri = window.location.href;
+      let loginUrl = `${systemSettings?.functionality?.oidcUrl}` //?response_type=token&client_id=${systemSettings.functionality.oidc.clientId}&redirect_uri=${redirectUri}`;
+      window.location.replace(loginUrl);
+    }
+  }    
+
   useEffect(() => {
       if (!pageLoaded) {
           setPageLoaded(true);
       }
       system.checkServerUp();
       applySystemSettings();
+      loginWithOidc();
+      if (systemSettings?.functionality?.oidc) {
+        loginWithOidc();
+      }
   }, [pageLoaded]);
 
   const login = ({userId, password}) => {

@@ -1,0 +1,9 @@
+{
+    "web": {
+      "client_id": "d79baad8-f362-4d8c-b16a-9b0f49459987",
+      "client_secret": "A~m8Q~WBGYVRPCl8aVo2e31yK57NcLqNby2hAcI4",
+      "redirect_uris": ["http://localhost:5000/authorize"],
+      "javascript_origins": ["http://localhost:5000"],
+      "issuer": "https://login.microsoftonline.com/b68b23ab-6083-4343-adc1-b497165cc885/v2.0"
+    }
+}
