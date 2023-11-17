@@ -60,6 +60,8 @@ function Login({setUser, serverUrl, setToken}) {
     let token = url.split('access_token=')[1];
     // remove the token from the URL
     window.history.replaceState({}, document.title, "/");
+    // get the user info from the token
+    
     if (token) {
       let url = `${serverUrl}/oidc_login_get_user`;
       axios

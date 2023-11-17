@@ -4,7 +4,6 @@
     },
     "functionality": {
         "createAccount": true,
-        "oidc": false,
-        "oidcUrl": "http://localhost:5001/oidc_login"
+        "oidc": false
     }
 }

@@ -65,6 +65,7 @@ def openai_num_tokens_from_messages(messages, model="gpt-3.5-turbo-0613"):
     num_tokens += 3  # every reply is primed with <|start|>assistant<|message|>
     return num_tokens
 
+
 def construct_ai_request(request):
     model_settings = request.json["model_settings"]
     system_prompt = request.json["system_prompt"]
@@ -78,14 +79,36 @@ def construct_ai_request(request):
     app.logger.debug(f"ai_request: {ai_request}")
     return ai_request
 
+
 def log_exception(e):
     tb = traceback.format_exc()
     error = f"An error occurred: {str(e)}\n{tb}"
     app.logger.error(error)
     print(error)
 
+
 def get_random_string(len=32):
     return "".join(random.choice(string.ascii_lowercase) for i in range(len))
+
+
+def merge_settings(settings, new_settings):
+    """
+    Recursively merge new keys of new_settings dictionary into settings dictionary.
+    Existing keys in settings dictionary are not overwritten.
+
+    Returns:
+        settings: The updated settings dictionary
+        settings_updated: True if any new settings were added, False otherwise
+    """
+    settings_updated = False
+    for key, value in new_settings.items():
+        if key not in settings:
+            settings[key] = value
+            settings_updated = True
+        elif isinstance(value, dict):
+            settings[key], new_nested_settings = merge_settings(settings.get(key, {}), value)
+            settings_updated = settings_updated or new_nested_settings
+    return settings, settings_updated
 
 
 class DBUtils:

@@ -26,7 +26,7 @@ CORS(app)
 migrate = Migrate(app, db)
 oidc = OpenIDConnect(app)
 
-from utils import DBUtils, get_random_string
+from utils import DBUtils, get_random_string, merge_settings
 
 db_url = make_url(app.config["SQLALCHEMY_DATABASE_URI"])
 db_dialect_name = db_url.get_dialect().name
@@ -58,20 +58,6 @@ with app.app_context():
                             password="changemenow",
                             properties={"roles": {"admin": True}})
         
-    def merge_settings(settings, new_settings):
-        """
-        Recursively merge new_settings dictionary into settings dictionary.
-        """
-        settings_updated = False
-        for key, value in new_settings.items():
-            if key not in settings:
-                settings[key] = value
-                settings_updated = True
-            elif isinstance(value, dict):
-                settings[key], new_nested_settings = merge_settings(settings.get(key, {}), value)
-                new_settings = new_settings or new_nested_settings
-        return settings, new_settings
-
     # Create system settings documents if they don't exist
     for settings_file in os.listdir("system_settings"):
         settings_name = settings_file.split(".")[0]
@@ -93,6 +79,6 @@ with app.app_context():
             DBUtils.create_document(user_id="sidekick",
                                     name=settings_name,
                                     type="system_settings",
-                                    content=settings)
+                                    content=filesystem_settings)
 
 import routes
