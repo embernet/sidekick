@@ -739,11 +739,11 @@ def oidc_login():
     """
     user_id = oidc.user_getfield('sub')
     try:
-        DBUtils.get_user(user_id)
+        user = DBUtils.get_user(user_id)
     except NoResultFound:
-        DBUtils.create_user(user_id=user_id, password="", properties={})
+        user = DBUtils.create_user(user_id=user_id, password="", properties={})
 
-    access_token = create_access_token(user_id)
+    access_token = create_access_token(user_id, additional_claims=user)
     return redirect('http://localhost:8080?access_token=' +
                     access_token)
 
@@ -761,6 +761,12 @@ def logout():
         app.logger.error(f"/logout error:{str(e)}")
         log_exception(e)
         return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/oidc_logout')
+@oidc.require_login
+def oidc_logout():
+    return redirect(oidc.end_session_endpoint)
 
 
 @app.route('/change_password', methods=['POST'])

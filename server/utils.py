@@ -153,6 +153,7 @@ class DBUtils:
                                 content=document["content"]
                                 if "content" in document else "{}",
                                 type=type)
+        return user.as_dict()
 
     @staticmethod
     def login(user_id, password):
