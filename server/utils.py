@@ -114,11 +114,11 @@ def merge_settings(settings, new_settings):
 class DBUtils:
 
     @staticmethod
-    def create_user(user_id, password, properties={}):
+    def create_user(user_id, password, name="", is_oidc=False, properties={}):
         password_hash = bcrypt.hashpw(password.encode("utf-8"),
                                       bcrypt.gensalt()).decode("utf-8")
         user = User(id=user_id, password_hash=password_hash,
-                    properties=properties)
+                    name=name, is_oidc=is_oidc, properties=properties)
         db.session.add(user)
         db.session.commit()
 
