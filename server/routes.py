@@ -738,12 +738,12 @@ def oidc_login():
     and redirect to the web_ui with the user's JWT access_token
     """
     user_id = oidc.user_getfield("sub")
-    user_id = oidc.user_getfield("name")
+    name = oidc.user_getfield("name")
     redirect_uri = request.args.get("redirect_uri")
     try:
         user = DBUtils.get_user(user_id)
     except NoResultFound:
-        user = DBUtils.create_user(user_id=user_id, password="", properties={})
+        user = DBUtils.create_user(user_id=user_id, name=name, is_oidc=True, password="", properties={})
 
     access_token = create_access_token(user_id, additional_claims=user)
     return redirect(f"{redirect_uri}?access_token={access_token}")
