@@ -580,7 +580,6 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
 
     const handleUseNoteAsChatInput = () => {
         // Just get the selected text
-        //TODO to replace whole prompt
         setNewPrompt({text: content, timestamp: Date.now()});
         setNoteContextMenu(null);
     };

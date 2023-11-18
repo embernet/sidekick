@@ -225,6 +225,7 @@ function App() {
   const handleLogout = () => {
     setUser(null);
     setStatusUpdates([]);
+    // Logout from the Sidekick server
     axios({
       method: "POST",
       url:`${serverUrl}/logout`,
@@ -242,6 +243,14 @@ function App() {
         console.log(error.response.headers)
         }
     })
+    // Logout from the OIDC server
+    axios({
+      method: "GET",
+      url:`${serverUrl}/oidc_logout`
+    })
+
+    // reset the browser URL to the root
+    window.history.replaceState({}, document.title, "/");
   }
 
   const closeUnpinnedLeftSideWindows = (event) => {
@@ -463,7 +472,9 @@ function App() {
                   </MenuItem>
                 </Menu>          
                 {appInfo}
-                <Typography sx={{ mr: 2, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>({user?.id})</Typography>
+                <Typography sx={{ mr: 2, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
+                  ({ user?.name ? user.name : user?.id })
+                </Typography>
                 <Tooltip title="Sidekick AI help">
                   <IconButton edge="start" color="inherit" aria-label="Sidekick AI help" onClick={handleToggleSidekickAIOpen}>
                     <HelpIcon/>

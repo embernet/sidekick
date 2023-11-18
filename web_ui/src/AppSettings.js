@@ -144,7 +144,7 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
       <SettingsIcon/>
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }} gap={2}>
           <Typography variant="h6">Settings for user: </Typography>
-          <Typography sx={{ fontWeight: "bold" }}>{user?.id}</Typography>
+          <Typography sx={{ fontWeight: "bold" }}>{user?.name ? user?.name : user?.id}</Typography>
       </Box>
       <Box ml="auto">
           <IconButton onClick={() => setAppSettingsOpen(false)}>

@@ -84,7 +84,6 @@ def log_exception(e):
     tb = traceback.format_exc()
     error = f"An error occurred: {str(e)}\n{tb}"
     app.logger.error(error)
-    print(error)
 
 
 def get_random_string(len=32):
@@ -153,6 +152,19 @@ class DBUtils:
                                 content=document["content"]
                                 if "content" in document else "{}",
                                 type=type)
+        return user.as_dict()
+    
+    @staticmethod
+    def update_user(user_id, name=None, properties=None):
+        if not name and not properties:
+            return
+        user = User.query.filter_by(id=user_id).one()
+        if name:
+            user.name = name
+        if properties:
+            user.properties = json.dumps(properties)
+        db.session.add(user)
+        db.session.commit()
         return user.as_dict()
 
     @staticmethod
