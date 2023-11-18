@@ -425,9 +425,8 @@ const SidekickAI = ({
     const handleLinkClick = (event) => {
         event.preventDefault();
         event.stopPropagation();
-        // Handle link click here
         setTimeout(() => {
-          window.history.replaceState(null, null, window.location.href);
+            window.history.replaceState({}, document.title, "/");
         }, 0);
     };
 
@@ -442,7 +441,7 @@ const SidekickAI = ({
                 </IconButton>
             </Tooltip>
             <Tooltip title="Close window">
-                <IconButton onClick={() => { setSidekickAIOpen(false); }}>
+                <IconButton onClick={() => { window.history.replaceState({}, document.title, "/"); setSidekickAIOpen(false); }}>
                     <CloseIcon />
                 </IconButton>
             </Tooltip>
