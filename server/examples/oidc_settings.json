@@ -1,0 +1,9 @@
+{
+    "web": {
+      "client_id": "YOUR_CLIENT_ID",
+      "client_secret": "YOUR_CLIENT_SECRET",
+      "redirect_uris": ["http://localhost:5001","http://localhost:8080/"],
+      "javascript_origins": ["http://localhost:5001","http://localhost:8080/"],
+      "issuer": "YOUR_OIDC_ISSUER_URL_AND_ID"
+    }
+}
