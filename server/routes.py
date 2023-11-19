@@ -8,7 +8,9 @@ import sseclient
 
 from collections import OrderedDict
 from datetime import datetime
-from utils import DBUtils, log_exception, construct_ai_request, server_stats, increment_server_stat, openai_num_tokens_from_messages
+from utils import DBUtils, log_exception, construct_ai_request, \
+    server_stats, increment_server_stat, openai_num_tokens_from_messages, \
+    get_random_string
 
 from flask import request, jsonify, Response, stream_with_context, redirect, session, url_for
 from flask_jwt_extended import get_jwt_identity, jwt_required, \
@@ -748,10 +750,11 @@ def oidc_login():
         if user["name"] != name:
             DBUtils.update_user(user_id, name=name)
     except NoResultFound:
-        user = DBUtils.create_user(user_id=user_id, name=name, is_oidc=True, password="", properties={})
+        user = DBUtils.create_user(user_id=user_id, name=name, is_oidc=True,
+                                   password=get_random_string(), properties={})
 
     access_token = create_access_token(user_id, additional_claims=user)
-    return redirect(f"http://localhost:8080?access_token={access_token}")
+    return redirect(f"{redirect_uri}?access_token={access_token}")
 
 
 @app.route('/logout', methods=['POST'])
@@ -772,8 +775,9 @@ def logout():
 @app.route('/oidc_logout')
 @oidc.require_login
 def oidc_logout():
-    session.clear()
-    return redirect(oidc.end_session_endpoint)
+    redirect_uri = request.args.get("redirect_uri")
+    oidc.logout()
+    return redirect(redirect_uri)
 
 
 @app.route('/change_password', methods=['POST'])
