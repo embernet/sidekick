@@ -244,9 +244,13 @@ function App() {
         }
     })
     // Logout from the OIDC server
+    // Get the redirect URL (this page) for the OIDC provider to call with the access_token once the user is authenticated
+    let redirectUrl = window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port: '');
+    let logoutUrl = `${serverUrl}/oidc_logout?redirect_uri=${redirectUrl}` 
+    
     axios({
       method: "GET",
-      url:`${serverUrl}/oidc_logout`
+      url: logoutUrl
     })
 
     // reset the browser URL to the root
