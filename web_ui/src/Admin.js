@@ -108,7 +108,7 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
     );
 
     useEffect(() => {
-        const element = document.getElementById("chat-panel");
+        const element = document.getElementById("admin-panel");
         const observer = new ResizeObserver((entries) => {
             if (entries && entries.length > 0 && entries[0].target === element) {
               handleResize();
@@ -315,7 +315,7 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
     const TAB_RESET_PASSWORD = 4;
     const TAB_DELETE_ACCOUNT = 5;
 
-  const render = <Card sx={{display:"flex", flexDirection:"column", 
+  const render = <Card id="admin-panel" sx={{display:"flex", flexDirection:"column", 
     padding:"6px", margin:"6px", flex:1, 
     minWidth: "600px", maxWidth: "800px"}}>
     

@@ -35,7 +35,7 @@ const PromptEngineer = ({handleTogglePromptEngineer, setNewPromptPart, setNewPro
     );
 
     useEffect(() => {
-        const element = document.getElementById("chat-panel");
+        const element = document.getElementById("prompt-engineer-panel");
         const observer = new ResizeObserver((entries) => {
             if (entries && entries.length > 0 && entries[0].target === element) {
               handleResize();
