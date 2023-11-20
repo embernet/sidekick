@@ -147,7 +147,7 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
       <SettingsIcon/>
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }} gap={2}>
           <Typography variant="h6">Settings for user: </Typography>
-          <Typography sx={{ fontWeight: "bold" }}>{user?.id}</Typography>
+          <Typography sx={{ fontWeight: "bold" }}>{user?.name ? user?.name : user?.id}</Typography>
       </Box>
       <Box ml="auto">
           <IconButton onClick={() => setAppSettingsOpen(false)}>
@@ -162,8 +162,10 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
               <Tabs value={tabIndex} onChange={handleTabChange} orientation="vertical"
                   sx={{  textAlign: "left" }}>
                   <Tab label="About" />
-                  {appSettingsSystemSettings?.functionality?.changePassword ? <Tab label="Change Password" /> : null}
-                  {appSettingsSystemSettings?.functionality?.deleteAccount ? <Tab label="Delete Account" /> : null}
+                  {appSettingsSystemSettings?.functionality?.changePassword &&
+                  !user?.is_oidc ? <Tab label="Change Password" /> : null}
+                  {appSettingsSystemSettings?.functionality?.deleteAccount &&
+                  !user?.is_oidc ? <Tab label="Delete Account" /> : null}
               </Tabs>
           </Box>
           <Paper sx={{ flexDirection: "column", justifyContent: "top",

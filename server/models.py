@@ -10,6 +10,8 @@ class User(db.Model):
 
     id = db.Column(db.String, primary_key=True)
     password_hash = db.Column(db.String, nullable=False)
+    name = db.Column(db.String, nullable=False)
+    is_oidc = db.Column(db.Boolean, default=False, nullable=False)
     properties = db.Column(db.String, default="{}", nullable=False)
 
     documents = db.relationship("Document", back_populates="user")
@@ -23,10 +25,8 @@ class User(db.Model):
         return "<User %r>" % self.id
     
     def as_dict(self):
-        return {
-            "id": self.id,
-            "properties": json.loads(self.properties)
-        }
+        return {"id": self.id, "name": self.name, "is_oidc": self.is_oidc,
+                "properties": json.loads(self.properties)}
 
 
 class Document(db.Model):

@@ -8,16 +8,18 @@ import sseclient
 
 from collections import OrderedDict
 from datetime import datetime
-from utils import DBUtils, log_exception, construct_ai_request, server_stats, increment_server_stat, openai_num_tokens_from_messages
+from utils import DBUtils, log_exception, construct_ai_request, \
+    server_stats, increment_server_stat, openai_num_tokens_from_messages, \
+    get_random_string
 
-from flask import request, jsonify, Response, stream_with_context
+from flask import request, jsonify, Response, stream_with_context, redirect, session, url_for
 from flask_jwt_extended import get_jwt_identity, jwt_required, \
     create_access_token, unset_jwt_cookies
 
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.exc import IntegrityError
 
-from app import app
+from app import app, oidc
 
 VERSION = "0.1"
 
@@ -687,6 +689,7 @@ def create_account():
             f"from:{request.remote_addr}")
         DBUtils.create_user(
             user_id=data["user_id"],
+            name=data["name"],
             password=data["password"],
             properties=data['properties'] if 'properties' in data else {})
         return jsonify({'success': True})
@@ -723,6 +726,79 @@ def login():
         app.logger.error(f"/login user_id:{data['user_id']} error:{str(e)}")
         log_exception(e)
         return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/oidc_login_get_user', methods=['POST'])
+@jwt_required()
+def oidc_login_get_user():
+    """
+    Return the sidekick user details in the same format as /login
+    For use by the web_ui after logging in with OIDC via /oidc_login
+    """
+    increment_server_stat(category="requests", stat_name="oidcLoginGetUser")
+    try:
+        user_id = get_jwt_identity()
+        result = DBUtils.login_user_details(user_id)
+        access_token = create_access_token(identity=user_id)
+        result['access_token'] = access_token
+        app.logger.info(
+            f"/oidc_login_get_user user_id:{user_id} [POST] request from"
+            f":{request.remote_addr}")
+    except Exception as e:
+        app.logger.error(f"/oidc_login_get_user user_id:{user_id} "
+                         f"error:{str(e)}")
+        log_exception(e)
+        result = {'success': False, 'message': str(e)}
+    return jsonify(result)
+
+
+@app.route('/oidc_login')
+@oidc.require_login
+def oidc_login():
+    """
+    Login via OIDC,
+    Create the user if they don't exist,
+    and redirect to the web_ui with the user's JWT access_token
+    """
+    user_id = oidc.user_getfield("sub")
+    name = oidc.user_getfield("name")
+    redirect_uri = request.args.get("redirect_uri")
+    app.logger.info(
+        f"/oidc_login user_id:{user_id} name:{name} logged in")
+    try:
+        user = DBUtils.get_user(user_id)
+        # If the user exists and their name in the OIDC provider has changed, update their name
+        if user["name"] != name:
+            DBUtils.update_user(user_id, name=name)
+    except NoResultFound:
+        user = DBUtils.create_user(user_id=user_id, name=name, is_oidc=True,
+                                   password=get_random_string(), properties={})
+
+    access_token = create_access_token(user_id, additional_claims=user)
+    return redirect(f"{redirect_uri}?access_token={access_token}")
+
+
+@app.route('/logout', methods=['POST'])
+@jwt_required()
+def logout():
+    increment_server_stat(category="requests", stat_name="logout")
+    app.logger.info(f"/logout [POST] request from:{request.remote_addr}")
+    try:
+        response = jsonify({'success': True})
+        unset_jwt_cookies(response)
+        return response
+    except Exception as e:
+        app.logger.error(f"/logout error:{str(e)}")
+        log_exception(e)
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/oidc_logout')
+@oidc.require_login
+def oidc_logout():
+    redirect_uri = request.args.get("redirect_uri")
+    oidc.logout()
+    return redirect(redirect_uri)
 
 
 @app.route('/change_password', methods=['POST'])
@@ -813,17 +889,12 @@ def delete_user():
         log_exception(e)
         return jsonify({'success': False, 'message': str(e)})
 
-
-@app.route('/logout', methods=['POST'])
+@app.route('/web_ui_log', methods=['POST'])
 @jwt_required()
-def logout():
-    increment_server_stat(category="requests", stat_name="logout")
-    app.logger.info(f"/logout [POST] request from:{request.remote_addr}")
-    try:
-        response = jsonify({'success': True})
-        unset_jwt_cookies(response)
-        return response
-    except Exception as e:
-        app.logger.error(f"/logout error:{str(e)}")
-        log_exception(e)
-        return jsonify({'success': False, 'message': str(e)})
+def log():
+    increment_server_stat(category="requests", stat_name="web_ui_log")
+    data = request.get_json()
+    app.logger.info(
+        f"/web_ui_log user_id:{data['user_id']} [POST] request from"
+        f":{request.remote_addr} message:{data['message']}")
+    return jsonify({'success': True})

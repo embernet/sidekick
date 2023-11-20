@@ -225,6 +225,7 @@ function App() {
   const handleLogout = () => {
     setUser(null);
     setStatusUpdates([]);
+    // Logout from the Sidekick server
     axios({
       method: "POST",
       url:`${serverUrl}/logout`,
@@ -242,6 +243,21 @@ function App() {
         console.log(error.response.headers)
         }
     })
+    // Logout from the OIDC server
+    // Get the redirect URL (this page) for the OIDC provider to call with the access_token once the user is authenticated
+    let redirectUrl = window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port: '');
+    let logoutUrl = `${serverUrl}/oidc_logout?redirect_uri=${redirectUrl}` 
+    console.log("Redirecting to OIDC logout page: ", logoutUrl);
+    axios({
+      method: "GET",
+      url: logoutUrl
+    }).then((response) => {
+      console.log("Logout from OIDC server:", response);
+    }).catch((error) => {
+      console.error("Error logging out from OIDC server:", error);
+    });
+    // reset the browser URL to the root
+     window.history.replaceState({}, document.title, "/");      
   }
 
   const closeUnpinnedLeftSideWindows = (event) => {
@@ -452,9 +468,9 @@ function App() {
                   <MenuItem key="menuOpenCloseNotes" onClick={() => { handleAppMenuClose(); handleToggleNotesOpen(); }}>
                     <FolderIcon/><Typography  sx={{ ml: 1 }}>{notesOpen ? "Notes - Close Notes" : "Notes - Open Notes"}</Typography>
                   </MenuItem>
-                  <MenuItem key="menuAppSettings" onClick={() => { handleAppMenuClose(); handleToggleAppSettingsOpen(); }}>
+                  { user?.is_oidc ? null : <MenuItem key="menuAppSettings" onClick={() => { handleAppMenuClose(); handleToggleAppSettingsOpen(); }}>
                     <SettingsIcon/><Typography  sx={{ ml: 1 }}>{ appSettingsOpen ? "Settings - Close App Settings" : "Settings - Open App Setings" }</Typography>
-                  </MenuItem>
+                  </MenuItem> }
                   { user?.properties?.roles?.admin && <MenuItem key="menuAdmin" onClick={() => { handleAppMenuClose(); handleToggleAdminOpen(); }}>
                     <AdminPanelSettingsIcon/><Typography sx={{ ml: 1 }}>Admin</Typography>
                   </MenuItem> }
@@ -463,7 +479,9 @@ function App() {
                   </MenuItem>
                 </Menu>          
                 {appInfo}
-                <Typography sx={{ mr: 2, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>({user?.id})</Typography>
+                <Typography sx={{ mr: 2, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
+                  ({ user?.name ? user.name : user?.id })
+                </Typography>
                 <Tooltip title="Sidekick AI help">
                   <IconButton edge="start" color="inherit" aria-label="Sidekick AI help" onClick={handleToggleSidekickAIOpen}>
                     <HelpIcon/>
@@ -514,11 +532,11 @@ function App() {
                 <FeedbackButton icon={<RateReviewIcon/>} serverUrl={serverUrl} token={token} setToken={setToken}>
                     <RateReviewIcon/>
                 </FeedbackButton>
-                <Tooltip title={ appSettingsOpen ? "Close App Settings" : "Open App Setings" }>
+                { user?.is_oidc ? null : <Tooltip title={ appSettingsOpen ? "Close App Settings" : "Open App Setings" }>
                   <IconButton edge="end" color="inherit" aria-label="Settings" onClick={handleToggleAppSettingsOpen}>
                     <SettingsIcon/>
                   </IconButton>
-                </Tooltip>
+                </Tooltip> }
                 <Tooltip title="Logout">
                   <IconButton edge="end" color="inherit" aria-label="Logout" onClick={handleLogout}>
                     <LogoutIcon/>

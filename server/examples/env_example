@@ -1,0 +1,21 @@
+# Example .env file for Sidekick
+# Example Sidekick environment variables
+# Copy this example file to your server directory, rename to .env and add your API keys in below
+
+# API keys
+OPENAI_API_KEY=INSERT-YOUR-API-KEY-HERE
+AWS_BEDROCK_KEY=INSERT-YOUR-API-KEY-HERE
+
+# Server settings
+JWT_SECRET_KEY=INSERT-YOUR-JWT-SECRET-KEY-HERE
+SIDEKICK_SERVER_PORT=5001
+
+# web_ui settings
+# Note: REACT_APP_SERVER_URL must match SIDEKICK_SERVER_PORT
+# Note: If running web_ui and server on the same server with OIDC for single sign-on, REACT_APP_SERVER_URL must be the same as the OIDC redirect URI, and must use localhost rather than 127.0.0.1
+REACT_APP_SERVER_URL=http://localhost:5001
+
+# Database URI - PostgreSQL or SQLite or another SQLAlchemy supported database
+# SQLALCHEMY_DATABASE_URI=postgresql://INSERT_USER:INSERT_PASSWORD@127.0.0.1/INSERT_DB_NAME
+SQLALCHEMY_DATABASE_URI=sqlite:///sidekick.db
+

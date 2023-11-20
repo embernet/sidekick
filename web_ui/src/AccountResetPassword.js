@@ -47,12 +47,12 @@ function AccountResetPassword({serverUrl, token, setToken, onAccountUserIdPasswo
   
     return (
         <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px',position: 'relative',}}>
-            <TextField id="create-account-userid" type="text" placeholder="Enter UserId" 
+            <TextField id="create-account-userid" type="text" placeholder="Enter userid" 
                 value={userId}
                 sx={{ margin: '6px', padding: '4px' }} autoComplete="off"  onChange={(e) => setUserId(e.target.value)} 
                 onKeyDown={(e) => { if (e.key === 'Enter') { AccountResetPasswordRef.current.focus(); }}}
             />
-            <TextField id="create-account-password" type="password" placeholder="Enter Password"
+            <TextField id="create-account-password" type="password" placeholder="Enter password"
                 value={newPassword} 
                 inputRef = {AccountResetPasswordRef}
                 sx={{ margin: '6px', padding: '4px' }} autoComplete="off" onChange={(e) => setNewPassword(e.target.value)}

@@ -17,6 +17,7 @@
 
 # secrets
 /server/.env
+/server/oidc_settings.json
 
 # dependencies
 /web_ui/node_modules

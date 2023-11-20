@@ -44,6 +44,7 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
     const [createAccountEnabled, setCreateAccountEnabled] = useState(false);
     const [changePasswordEnabled, setChangePasswordEnabled] = useState(false);
     const [deleteAccountEnabled, setDeleteAccountEnabled] = useState(false);
+    const [oidcEnabled, setOidcEnabled] = useState(false);
     
     // Custom text settings
     const [customTextChanged, setCustomTextChanged] = useState(false);
@@ -52,6 +53,8 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
     const [instanceUsage, setInstanceUsage] = useState('');
     // Login custom text settings
     const [preLoginMessage, setPreLoginMessage] = useState('');
+    // OIdc custom text settings
+    const [oidcMessage, setOidcMessage] = useState('');
     // Chat custom text settings
     const [chatUserPromptReady, setChatUserPromptReady] = useState('');
     // Note custom text settings
@@ -148,8 +151,10 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
     useEffect(() => {
         if (loginSystemSettings.functionality) {
             system.debug("loginSystemSettings", loginSystemSettings, "enabling functionality");
-            setCreateAccountEnabled(loginSystemSettings.functionality.createAccount);
+            setCreateAccountEnabled(loginSystemSettings.functionality?.createAccount ? true : false);
+            setOidcEnabled(loginSystemSettings.functionality?.oidc ? true : false);
             setPreLoginMessage(loginSystemSettings.preLogin.message);
+            setOidcMessage(loginSystemSettings.preLogin.oidcMessage);
         }
     }, [loginSystemSettings]);
 
@@ -158,7 +163,7 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
             setDeleteAccountEnabled(appSettingsSystemSettings.functionality?.deleteAccount ? true : false);
             setChangePasswordEnabled(appSettingsSystemSettings.functionality?.changePassword ? true : false);
         }
-}, [appSettingsSystemSettings]);
+    }, [appSettingsSystemSettings]);
 
     useEffect(() => {
         if (chatSystemSettings.userPromptReady) {
@@ -264,6 +269,18 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
         console.log("handleToggleFunctionalityLoginCreateAccount", newLoginSystemSettings);
         setLoginSystemSettings(newLoginSystemSettings);
         saveLoginSystemSettings(newLoginSystemSettings);
+    };        
+
+    const handleToggleFunctionalityOidc = () => {
+        let newOidcEnabled = !oidcEnabled;
+        setOidcEnabled(newOidcEnabled);
+        let newLoginSystemSettings = loginSystemSettings;
+        if (!newLoginSystemSettings.functionality) {
+            newLoginSystemSettings.functionality = {};
+        }
+        newLoginSystemSettings.functionality.oidc = newOidcEnabled;
+        setLoginSystemSettings(newLoginSystemSettings);
+        saveLoginSystemSettings(newLoginSystemSettings);
     };
 
     const handleToggleFunctionalityAppSettingsChangePassword = () => {
@@ -298,6 +315,7 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
         // login
         let newLoginSystemSettings = loginSystemSettings;
         newLoginSystemSettings.preLogin.message = preLoginMessage;
+        newLoginSystemSettings.preLogin.oidcMessage = oidcMessage;
         setLoginSystemSettings(newLoginSystemSettings);
         saveLoginSystemSettings(newLoginSystemSettings);
 
@@ -318,6 +336,7 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
 
     const handleCancelCustomTextChanges = () => {
         setPreLoginMessage(loginSystemSettings.preLogin.message);
+        setOidcMessage(loginSystemSettings.preLogin.oidcMessage);
         setInstanceName(appSystemSettings.instanceName);
         setInstanceUsage(appSystemSettings.instanceUsage);
         setChatUserPromptReady(chatSystemSettings.userPromptReady);
@@ -392,6 +411,16 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
                                     onChange = {(e) => {setCustomTextChanged(true); setPreLoginMessage(e.target.value);}}
                                     />
                                     <Typography variant="caption" sx={{mb:1}}>(The pre-login message will appear benath the login form.)</Typography>
+                                <TextField
+                                    id="custom-text-pre-login-oidc-message"
+                                    label="Pre-Login OIDC message"
+                                    multiline
+                                    inputProps={{ maxLength: 200 }}
+                                    sx={{ mt: 2, width: "100%" }}
+                                    value = {oidcMessage}
+                                    onChange = {(e) => {setCustomTextChanged(true); setOidcMessage(e.target.value);}}
+                                    />
+                                    <Typography variant="caption" sx={{mb:1}}>(The pre-login OIDC message will appear benath the login form when OIDC is enabled.)</Typography>
                             </Paper>
 
                             <Paper sx={{ display: "flex", flexDirection: "column", margin: 1, padding : "6px 20px" }}>
@@ -409,7 +438,7 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
                                     id="custom-text-instance-usage"
                                     label="Instance usage"
                                     inputProps={{ maxLength: 20 }}
-                                    sx={{ width: "100%" }}
+                                    sx={{ mt: 2, width: "100%" }}
                                     value = {instanceUsage}
                                     onChange = {(e) => {setCustomTextChanged(true); setInstanceUsage(e.target.value);}}
                                     />
@@ -517,6 +546,26 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
                                     </Stack>
                                     <Typography variant="caption">
                                         Enabling Delete Account will provide a tab on the Settings screen that will enable users to delete their account and remove all their data from the database. Disable this if you want to use an alternative account deletion method such as via a Single Sign-On provider, or want to safeguard the data.
+                                    </Typography>
+                                </Box>
+                            </Paper>
+
+                            <Paper sx={{ display: "flex",  margin: 1, padding : "6px 20px" }}>
+                                <Box sx={{ display: 'flex', flexDirection: "column" }}>
+                                    <Stack direction="row" alignItems="center" justifyContent="space-between">
+                                        <Typography variant="h7">Single Sign-On</Typography>
+                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                            <Switch
+                                            checked={oidcEnabled}
+                                            onChange={handleToggleFunctionalityOidc}
+                                            name="loginOidcEnabled"
+                                            inputProps={{ 'aria-label': 'Toggle enable oidc' }}
+                                            />
+                                            <Typography>{oidcEnabled ? "On" : "Off"}</Typography>
+                                        </Box>
+                                    </Stack>
+                                    <Typography variant="caption">
+                                        Enabling Single Sign-On will provide a button on the Login screen that will enable users to login using a Single Sign-On provider and remove the usual login screen where a username and password can be entered. This is the screen that will be shown when the user navigates to / or /login. For this to work, the oidc_settings.json file on the server needs to be configured with the details of the OIDC provider. The other account related functionality such as create account and delete account will be available at the /login/native endpoint. Also users who are oidc users will not be able to change their password in this app - they will need to do it via their Single Sign-On provider. If you only want users to be able to login via Single Sign-On, disable the Create Account functionality; in that case, the only user able to login via /login/native will be admin.
                                     </Typography>
                                 </Box>
                             </Paper>

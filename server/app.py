@@ -1,7 +1,6 @@
 import os
 import json
 import logging
-from urllib.parse import quote, urljoin
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
@@ -14,21 +13,30 @@ from flask_oidc import OpenIDConnect
 app = Flask(__name__)
 app.logger.setLevel(logging.getLevelName(
     os.environ.get("LOG_LEVEL", "ERROR")))
-print("-----", os.environ["JWT_SECRET_KEY"])
 app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = False
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["SQLALCHEMY_DATABASE_URI"]
 app.config["OPENAI_API_KEY"] = os.environ["OPENAI_API_KEY"]
-# app.config["OIDC_CLIENT_SECRETS"] = "client_secrets.json"
-# app.config["SECRET_KEY"] =""
+
+
+app.config["OIDC_CLIENT_SECRETS"] = {
+    "web": {
+        "client_id": os.environ.get("OIDC_CLIENT_ID", None),
+        "client_secret": os.environ.get("OIDC_CLIENT_SECRET", None),
+        "redirect_uris": [os.environ.get("OIDC_REDIRECT_URI", None)],
+        "issuer": os.environ.get("OIDC_ISSUER", None)
+    }
+}
+app.config["SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
+
 db = SQLAlchemy()
 db.init_app(app)
 jwt = JWTManager(app)
 CORS(app)
 migrate = Migrate(app, db)
-# oidc = OpenIDConnect(app)
+oidc = OpenIDConnect(app)
 
-from utils import DBUtils, get_random_string
+from utils import DBUtils, get_random_string, merge_settings
 
 db_url = make_url(app.config["SQLALCHEMY_DATABASE_URI"])
 db_dialect_name = db_url.get_dialect().name
@@ -59,20 +67,28 @@ with app.app_context():
         DBUtils.create_user(user_id="admin",
                             password="changemenow",
                             properties={"roles": {"admin": True}})
-
+        
     # Create system settings documents if they don't exist
     for settings_file in os.listdir("system_settings"):
         settings_name = settings_file.split(".")[0]
+        filesystem_settings = json.loads(open("system_settings/"
+                                    f"{settings_file}").read())
         try:
-            DBUtils.get_document(user_id="sidekick",
+            system_settings = DBUtils.get_document(user_id="sidekick",
                                  name=settings_name,
                                  type="system_settings")
+            # If there are new settings that aren't present in the database, add them
+            updated_system_settings, settings_updated = merge_settings(system_settings, { 'content': filesystem_settings })
+            if settings_updated:
+                DBUtils.update_document(id=updated_system_settings["metadata"]["id"],
+                                        name=updated_system_settings["metadata"]["name"],
+                                        tags=updated_system_settings["metadata"]["tags"],
+                                        properties=updated_system_settings["metadata"]["properties"],
+                                        content=updated_system_settings["content"])
         except NoResultFound:
-            settings = json.loads(open("system_settings/"
-                                       f"{settings_file}").read())
             DBUtils.create_document(user_id="sidekick",
                                     name=settings_name,
                                     type="system_settings",
-                                    content=settings)
+                                    content=filesystem_settings)
 
 import routes
