@@ -17,8 +17,18 @@ app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = False
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["SQLALCHEMY_DATABASE_URI"]
 app.config["OPENAI_API_KEY"] = os.environ["OPENAI_API_KEY"]
-app.config["OIDC_CLIENT_SECRETS"] = "oidc_settings.json"
+
+
+app.config["OIDC_CLIENT_SECRETS"] = {
+    "web": {
+        "client_id": os.environ.get("OIDC_CLIENT_ID", None),
+        "client_secret": os.environ.get("OIDC_CLIENT_SECRET", None),
+        "redirect_uris": [os.environ.get("OIDC_REDIRECT_URI", None)],
+        "issuer": os.environ.get("OIDC_ISSUER", None)
+    }
+}
 app.config["SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
+
 db = SQLAlchemy()
 db.init_app(app)
 jwt = JWTManager(app)
