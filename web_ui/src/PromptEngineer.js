@@ -145,6 +145,7 @@ const PromptEngineer = ({handleTogglePromptEngineer, setNewPromptPart, setNewPro
                         setWindowPinnedOpen = {setWindowPinnedOpen}
                         serverUrl={serverUrl} token={token} setToken={setToken}
                         hidePrimaryToolbar={true}
+                        deleteEnabled={true}
                         />
                 </AccordionDetails>
             </Accordion>

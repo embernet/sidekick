@@ -23,7 +23,7 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   }));
 
 const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, name, icon, folder, openItemId, setLoadDoc,
-     docNameChanged, refresh, setRefresh, itemOpen, hidePrimaryToolbar,
+     docNameChanged, refresh, setRefresh, itemOpen, hidePrimaryToolbar, deleteEnabled,
     setItemOpen, // to be able to close the item editor if the item is deleted
     serverUrl, token, setToken
     }) => {
@@ -223,7 +223,7 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
                    sx={{ mt: 2, flex: 1 }}
                />
            </Box>
-           <Tooltip title={ filterText.length === 0 
+           {deleteEnabled ? <Tooltip title={ filterText.length === 0 
                ? "Enter a filter to enable bulk delete" 
                : "Delete notes matching filter" 
            }>
@@ -235,7 +235,7 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
                        <DeleteIcon/>
                    </IconButton>
                </Box>
-           </Tooltip>
+           </Tooltip> : null}
        </Box>
        <Box  sx={{ overflow: 'auto', flex: 1 }}>
            <List>

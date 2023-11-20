@@ -151,6 +151,27 @@ def feedback():
         return jsonify({'success': False, 'message': str(e)})
 
 
+@app.route('/feedback', methods=['GET'])
+@jwt_required()
+def get_feedback():
+    increment_server_stat(category="requests", stat_name="getFeedback")
+    app.logger.info(f"/feedback [GET] request from:{request.remote_addr}")
+    acting_user_id = get_jwt_identity()
+    if DBUtils.user_isadmin(acting_user_id):
+        try:
+            feedback = DBUtils.list_documents(document_type="feedback",
+                                            user_id=get_jwt_identity())
+            return jsonify(feedback)
+        except Exception as e:
+            return jsonify({'success': False, 'message': str(e)})
+    else:
+        return app.response_class(
+            response=json.dumps({"success": False, "message": "Only admins can view feedback."}),
+            status=403,
+            mimetype='application/json'
+        )
+
+
 @app.route('/system_settings/<name>', methods=['GET'])
 def get_system_settings(name):
     increment_server_stat(category="requests", stat_name=f"getSystemSettings({name})")

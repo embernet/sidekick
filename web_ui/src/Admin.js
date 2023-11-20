@@ -13,6 +13,7 @@ import { red } from '@mui/material/colors';
 import AccountCreate from "./AccountCreate";
 import AccountResetPassword from "./AccountResetPassword";
 import AccountDelete from "./AccountDelete";
+import Explorer from "./Explorer";
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     backgroundColor: red[500],
@@ -56,6 +57,21 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
     // Note custom text settings
     const [noteUserPromptReady, setNoteUserPromptReady] = useState('');
 
+    // Feedback
+    const [feedbackItemContent, setFeedbackItemContent] = useState('');
+    const [feedbackItemName, setFeedbackItemName] = useState('');
+    const [feedbackItemUserId, setFeedBackItemUserId] = useState('');
+    const [feedbackItemCreatedDate, setFeedbackItemCreatedDate] = useState('');
+    const [feedbackItemTags, setFeedbackItemTags] = useState('');
+
+    const resetFeedbackItem = () => {
+        setFeedbackItemContent('');
+        setFeedbackItemName('');
+        setFeedBackItemUserId('');
+        setFeedbackItemCreatedDate('');
+        setFeedbackItemTags('');
+    }
+
     const loadSystemSettings = () => {
         const getAppSystemSettingsUrl = `${serverUrl}/system_settings/app`;
         axios.get(getAppSystemSettingsUrl).then(response => {
@@ -97,7 +113,7 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
             system.error("Error getting Note system settings.", error, getNoteSystemSettingsUrl);
         });
     }
-    
+
     const [width, setWidth] = useState(0);
     const handleResize = useCallback( 
         // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
@@ -233,6 +249,7 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
     };
 
   const handleTabChange = (event, newValue) => {
+    resetFeedbackItem();
     setTabIndex(newValue);
   };
 
@@ -308,12 +325,17 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
         setTabIndex(0);
     }
 
+    const handleToggleAdmin = () => {
+        setAdminOpen(!adminOpen);
+    }
+
     const TAB_ABOUT = 0;
     const TAB_CUSTOM_TEXT = 1;
     const TAB_FUNCTIONALITY = 2;
     const TAB_CREATE_ACCOUNT = 3;
     const TAB_RESET_PASSWORD = 4;
     const TAB_DELETE_ACCOUNT = 5;
+    const TAB_FEEDBACK = 6;
 
   const render = <Card id="admin-panel" sx={{display:"flex", flexDirection:"column", 
     padding:"6px", margin:"6px", flex:1, 
@@ -325,7 +347,7 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
           <Typography variant="h6">Sidekick Admin</Typography>
       </Box>
       <Box ml="auto">
-          <IconButton onClick={() => setAdminOpen(false)}>
+          <IconButton onClick={handleToggleAdmin}>
               <CloseIcon />
           </IconButton>
       </Box>
@@ -341,6 +363,7 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
                 <Tab label="Create Account" />
                 <Tab label="Reset Password" />
                 <Tab label="Delete Account" />
+                <Tab label="Feedback" />
             </Tabs>
         </Box>
         <Paper sx={{ display: "flex", flexDirection: "column", justifyContent: "top",
@@ -525,6 +548,85 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
                         onCancel={() => {setTabIndex(0);}}
                     />
                 </Box>
+                )}
+                {tabIndex === TAB_FEEDBACK && (
+                    <Box sx={{ display: "flex", flexDirection: "column", flex: 1 }} style={inputContainerStyle} gap={2}>
+                        <Box sx={{ display: "flex", flexDirection: "column", textAlign: "center" }}>
+                            <Typography variant="h6">User feedback</Typography>
+                            <Typography sx={{mt:1}}>Feedback provided by users is shown below.</Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', flexDirection: "column", flex: 1, overflow: "auto", width: "100%" }}>
+
+                        {feedbackItemContent && <Paper sx={{ display: "flex", flexDirection: "column", margin: 1, padding : "6px 20px" }}>
+                            <TextField sx={{mb:2}}
+                                id="feedback-item-user-id"
+                                label="User"
+                                value={feedbackItemUserId}
+                                disabled
+                            />
+                            <TextField sx={{mb:2}}
+                                id="feedback-item-created-date"
+                                label="Created date"
+                                value={feedbackItemCreatedDate}
+                                disabled
+                            />
+                            <TextField sx={{mb:2}} 
+                                id="feedback-item-feedback"
+                                label="Feedback"
+                                multiline
+                                rows={6}
+                                value={feedbackItemContent}
+                                disabled
+                            />
+                            <TextField sx={{mb:2}} 
+                                id="feedback-item-tags"
+                                label="Tags"
+                                value={feedbackItemTags}
+                                disabled
+                            />
+
+                        </Paper>
+                        }
+                        <Explorer sx={{flexGrow:1}}
+                            handleToggleExplorer={handleToggleAdmin}
+                            name="Feedback"
+                            icon={<AdminPanelSettingsIcon/>}
+                            folder="feedback"
+                            openItemId={() => {
+                            }}
+                            setLoadDoc={(docStub) => {
+                                console.log("feedback item docStub", docStub)
+                                let url = `${serverUrl}/docdb/feedback/documents/${docStub.id}`;
+                                axios.get(url, {
+                                    headers: {
+                                        Authorization: 'Bearer ' + token
+                                      }
+                                }).then(response => {
+                                    console.log("feedback item response", response)
+                                    response.data.access_token && setToken(response.data.access_token);
+                                    setFeedbackItemName(response.data.metadata.name);
+                                    setFeedBackItemUserId(response.data.metadata.user_id);
+                                    setFeedbackItemCreatedDate(response.data.metadata.created_date);
+                                    setFeedbackItemTags(response.data.metadata.tags);
+                                    setFeedbackItemContent(response.data.content.feedback);
+                
+                                }).catch(error => {
+                                    console.error("Error getting feedback item.", error);
+                                }
+                            )}}
+                            docNameChanged={() => {}}
+                            refresh={() => {}}
+                            setRefresh={() => {}}
+                            itemOpen={() => {}}
+                            setItemOpen={() => {}}
+                            windowPinnedOpen = {() => {}}
+                            setWindowPinnedOpen = {() => {}}
+                            deleteEnabled={false}
+                            serverUrl={serverUrl} token={token} setToken={setToken}
+                            hidePrimaryToolbar={true}
+                            />
+                        </Box>
+                    </Box>
                 )}
             </Box>
         </Paper>

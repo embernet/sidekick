@@ -565,6 +565,7 @@ function App() {
             setItemOpen={setChatOpen}
             windowPinnedOpen = {chatsPinned}
             setWindowPinnedOpen = {setChatsPinned}
+            deleteEnabled={true}
             serverUrl={serverUrl} token={token} setToken={setToken}
             /> : null }
             <ModelSettings 
@@ -673,6 +674,7 @@ function App() {
               setRefresh={setRefreshNotesExplorer}
               itemOpen={openNoteId} // tell the explorer which note is open
               setItemOpen={setNoteOpen}
+              deleteEnabled={true}
               serverUrl={serverUrl} token={token} setToken={setToken}
               /> : null}
         </Box>
