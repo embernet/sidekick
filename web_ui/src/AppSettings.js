@@ -45,7 +45,7 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
     );
 
     useEffect(() => {
-        const element = document.getElementById("chat-panel");
+        const element = document.getElementById(`app-settings-panel`);
         const observer = new ResizeObserver((entries) => {
             if (entries && entries.length > 0 && entries[0].target === element) {
               handleResize();
@@ -138,7 +138,10 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
     );
   };
 
-  const render = <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "600px", maxWidth: "600px"}}>
+  const render = <Card id="app-settings-panel"
+    sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
+    flex:1, minWidth: "600px", maxWidth: "600px"}}
+    >
     
   <StyledToolbar className={ClassNames.toolbar}>
       <SettingsIcon/>

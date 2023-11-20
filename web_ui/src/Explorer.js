@@ -45,7 +45,7 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
     );
 
     useEffect(() => {
-        const element = document.getElementById("chat-panel");
+        const element = document.getElementById(`${name}-explorer-panel`);
         const observer = new ResizeObserver((entries) => {
             if (entries && entries.length > 0 && entries[0].target === element) {
               handleResize();
@@ -164,110 +164,109 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
         });
     };
 
-    return (
-        <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
-         flex:1, minWidth: "320px", maxWidth: "450px", width: "100%"}}>
-            {
-                hidePrimaryToolbar ? null 
-                :
-                    <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
-                        {icon}
-                        <Typography sx={{mr:2}}>{name}</Typography>
-                        <Tooltip title={showItemDetails ? "Hide details" : "Show details"}>
-                            <IconButton edge="start" onClick={() => { setShowItemDetails(state => !state); }}>
-                                <ListAltIcon />
-                            </IconButton>
-                        </Tooltip>
-                        <Box ml="auto">
-                            <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
-                                <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
-                                    {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
-                                </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Close window">
-                                <IconButton onClick={handleToggleExplorer}>
-                                    <CloseIcon />
-                                </IconButton>
-                            </Tooltip>
-                        </Box>
-                    </StyledToolbar>
-            }
-            <Box sx={{ width: "100%", paddingLeft: 0, paddingRight: 0, display: "flex", flexDirection: "row" }}>
-                <FormControl sx={{ mt: 2, minWidth: 120 }} size="small">
-                    <InputLabel id="{name}-explorer-sort-order-label">Sort order</InputLabel>
-                    <Select
-                        id="{name}-explorer-sort-order}"
-                        labelId="{name}-explorer-sort-order-label"
-                        value={sortOrder}
-                        label="Sort order"
-                        onChange={(event) => { handleSortOrderChange(event.target.value); }}
-                        >
-                                <MenuItem value="name">Name</MenuItem>
-                                <MenuItem value="created">Created</MenuItem>
-                                <MenuItem value="updated">Updated</MenuItem>
-                    </Select>
-                </FormControl>
-                <Tooltip title="Change sort order">
-                    <IconButton onClick={handleToggleSortOrderDirection}>
-                        { sortOrderDirection === 1 ? <ArrowUpwardIcon/> : <ArrowDownwardIcon/> }
-                    </IconButton>
-                </Tooltip>
-                <Box sx={{ flexGrow: 1 }}>
-                    <TextField
-                        id="{name}-explorer-filter"
-                        autoComplete='off'
-                        label="Filter"
-                        value={filterText}
-                        onChange={handleFilterTextChange}
-                        onKeyDown={handleFilterKeyDown}
-                        size="small"
-                        sx={{ mt: 2, flex: 1 }}
-                    />
-                </Box>
-                <Tooltip title={ filterText.length === 0 
-                    ? "Enter a filter to enable bulk delete" 
-                    : "Delete notes matching filter" 
-                }>
-                    <Box sx={{ ml: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <IconButton edge="start" color="inherit" aria-label="delete notes matching filter"
-                            onClick={handleDeleteFilteredItems}
-                            disabled={filterText.length === 0}
-                        >
-                            <DeleteIcon/>
-                        </IconButton>
-                    </Box>
-                </Tooltip>
-            </Box>
-            <Box  sx={{ overflow: 'auto', flex: 1 }}>
-                <List>
-                    {Object.values(filteredDocs).map(doc => (
-                        <ListItem sx={{ padding: 0, pl: 1, cursor: "pointer", backgroundColor: doc.id === openItemId && itemOpen ? "#e0e0e0" : "transparent" }} key={doc.id}>
-                            <ListItemText primary={doc.name}
-                              secondary={
-                                showItemDetails ? (
-                                  <Typography
-                                    sx={{
-                                      fontSize: '12px',
-                                      color: 'text.secondary',
-                                      whiteSpace: 'pre-wrap',
-                                      overflow: 'hidden',
-                                      textOverflow: 'ellipsis',
-                                    }}
-                                  >
-                                    {`Created: ${doc.created_date.substring(0, 19)}\n${doc.updated_date ? 'Updated: ' + doc.updated_date.substring(0, 19) : ''}`}
-                                  </Typography>
-                                ) : null
-                              }                            
-                            selected={openItemId === doc.id}
-                            onClick={() => handleLoadDoc(doc.id)}
-                            primaryTypographyProps={{ typography: 'body2' }}
-                            sx={{ fontSize: '14px' }} />
-                        </ListItem>
-                    ))}
-                </List>
-            </Box>
-        </Card>
-    );
+    const render = <Card id={{name}+"-explorer-panel"} sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
+    flex:1, minWidth: "320px", maxWidth: "450px", width: "100%"}}>
+       {
+           hidePrimaryToolbar ? null 
+           :
+               <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
+                   {icon}
+                   <Typography sx={{mr:2}}>{name}</Typography>
+                   <Tooltip title={showItemDetails ? "Hide details" : "Show details"}>
+                       <IconButton edge="start" onClick={() => { setShowItemDetails(state => !state); }}>
+                           <ListAltIcon />
+                       </IconButton>
+                   </Tooltip>
+                   <Box ml="auto">
+                       <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
+                           <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
+                               {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
+                           </IconButton>
+                       </Tooltip>
+                       <Tooltip title="Close window">
+                           <IconButton onClick={handleToggleExplorer}>
+                               <CloseIcon />
+                           </IconButton>
+                       </Tooltip>
+                   </Box>
+               </StyledToolbar>
+       }
+       <Box sx={{ width: "100%", paddingLeft: 0, paddingRight: 0, display: "flex", flexDirection: "row" }}>
+           <FormControl sx={{ mt: 2, minWidth: 120 }} size="small">
+               <InputLabel id="{name}-explorer-sort-order-label">Sort order</InputLabel>
+               <Select
+                   id="{name}-explorer-sort-order}"
+                   labelId="{name}-explorer-sort-order-label"
+                   value={sortOrder}
+                   label="Sort order"
+                   onChange={(event) => { handleSortOrderChange(event.target.value); }}
+                   >
+                           <MenuItem value="name">Name</MenuItem>
+                           <MenuItem value="created">Created</MenuItem>
+                           <MenuItem value="updated">Updated</MenuItem>
+               </Select>
+           </FormControl>
+           <Tooltip title="Change sort order">
+               <IconButton onClick={handleToggleSortOrderDirection}>
+                   { sortOrderDirection === 1 ? <ArrowUpwardIcon/> : <ArrowDownwardIcon/> }
+               </IconButton>
+           </Tooltip>
+           <Box sx={{ flexGrow: 1 }}>
+               <TextField
+                   id="{name}-explorer-filter"
+                   autoComplete='off'
+                   label="Filter"
+                   value={filterText}
+                   onChange={handleFilterTextChange}
+                   onKeyDown={handleFilterKeyDown}
+                   size="small"
+                   sx={{ mt: 2, flex: 1 }}
+               />
+           </Box>
+           <Tooltip title={ filterText.length === 0 
+               ? "Enter a filter to enable bulk delete" 
+               : "Delete notes matching filter" 
+           }>
+               <Box sx={{ ml: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                   <IconButton edge="start" color="inherit" aria-label="delete notes matching filter"
+                       onClick={handleDeleteFilteredItems}
+                       disabled={filterText.length === 0}
+                   >
+                       <DeleteIcon/>
+                   </IconButton>
+               </Box>
+           </Tooltip>
+       </Box>
+       <Box  sx={{ overflow: 'auto', flex: 1 }}>
+           <List>
+               {Object.values(filteredDocs).map(doc => (
+                   <ListItem sx={{ padding: 0, pl: 1, cursor: "pointer", backgroundColor: doc.id === openItemId && itemOpen ? "#e0e0e0" : "transparent" }} key={doc.id}>
+                       <ListItemText primary={doc.name}
+                         secondary={
+                           showItemDetails ? (
+                             <Typography
+                               sx={{
+                                 fontSize: '12px',
+                                 color: 'text.secondary',
+                                 whiteSpace: 'pre-wrap',
+                                 overflow: 'hidden',
+                                 textOverflow: 'ellipsis',
+                               }}
+                             >
+                               {`Created: ${doc.created_date.substring(0, 19)}\n${doc.updated_date ? 'Updated: ' + doc.updated_date.substring(0, 19) : ''}`}
+                             </Typography>
+                           ) : null
+                         }                            
+                       selected={openItemId === doc.id}
+                       onClick={() => handleLoadDoc(doc.id)}
+                       primaryTypographyProps={{ typography: 'body2' }}
+                       sx={{ fontSize: '14px' }} />
+                   </ListItem>
+               ))}
+           </List>
+       </Box>
+   </Card>;
+    return (render);
   }
 
   export default Explorer;

@@ -45,7 +45,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     );
 
     useEffect(() => {
-        const element = document.getElementById("chat-panel");
+        const element = document.getElementById("model-settings-panel");
         const observer = new ResizeObserver((entries) => {
             if (entries && entries.length > 0 && entries[0].target === element) {
               handleResize();
@@ -222,7 +222,9 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     }, [selectedProvider, selectedModel, temperature, top_p, presence_penalty, frequency_penalty]);
 
     const loadingRender =
-        <Card sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "380px", maxWidth: "450px" }}>
+        <Card
+            sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", 
+            flex:1, minWidth: "380px", maxWidth: "450px" }}>
             <Typography>{loadingModelSettingsOptionsMessage}</Typography>
         </Card>;
 
@@ -364,7 +366,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
         </Box>
 
     const render =
-        <Card sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth:"380px", maxWidth: "450px" }}>
+        <Card id="model-settings-panel" sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth:"380px", maxWidth: "450px" }}>
             <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
                 <TuneIcon/>
                 <Typography sx={{mr:2}}>Settings</Typography>
