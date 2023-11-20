@@ -159,8 +159,10 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
               <Tabs value={tabIndex} onChange={handleTabChange} orientation="vertical"
                   sx={{  textAlign: "left" }}>
                   <Tab label="About" />
-                  {appSettingsSystemSettings?.functionality?.changePassword ? <Tab label="Change Password" /> : null}
-                  {appSettingsSystemSettings?.functionality?.deleteAccount ? <Tab label="Delete Account" /> : null}
+                  {appSettingsSystemSettings?.functionality?.changePassword &&
+                  !user?.is_oidc ? <Tab label="Change Password" /> : null}
+                  {appSettingsSystemSettings?.functionality?.deleteAccount &&
+                  !user?.is_oidc ? <Tab label="Delete Account" /> : null}
               </Tabs>
           </Box>
           <Paper sx={{ flexDirection: "column", justifyContent: "top",
