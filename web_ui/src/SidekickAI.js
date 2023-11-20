@@ -90,7 +90,7 @@ const SidekickAI = ({
     );
 
     useEffect(() => {
-        const element = document.getElementById("chat-panel");
+        const element = document.getElementById("sidekick-ai-panel");
         const observer = new ResizeObserver((entries) => {
             if (entries && entries.length > 0 && entries[0].target === element) {
               handleResize();
@@ -430,7 +430,9 @@ const SidekickAI = ({
         }, 0);
     };
 
-    const render = <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "380px", maxWidth: "450px"}}>
+    const render = <Card id="sidekick-ai-panel"
+        sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", 
+        flex:1, minWidth: "380px", maxWidth: "450px"}}>
     <StyledToolbar className={ClassNames.toolbar}>
         <HelpIcon/>
         <Typography sx={{mr:2}}>Sidekick AI Help</Typography>

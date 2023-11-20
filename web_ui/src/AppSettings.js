@@ -45,7 +45,7 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
     );
 
     useEffect(() => {
-        const element = document.getElementById("chat-panel");
+        const element = document.getElementById(`app-settings-panel`);
         const observer = new ResizeObserver((entries) => {
             if (entries && entries.length > 0 && entries[0].target === element) {
               handleResize();
@@ -138,7 +138,10 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
     );
   };
 
-  const render = <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "600px", maxWidth: "600px"}}>
+  const render = <Card id="app-settings-panel"
+    sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
+    flex:1, minWidth: "600px", maxWidth: "600px"}}
+    >
     
   <StyledToolbar className={ClassNames.toolbar}>
       <SettingsIcon/>
@@ -159,8 +162,10 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
               <Tabs value={tabIndex} onChange={handleTabChange} orientation="vertical"
                   sx={{  textAlign: "left" }}>
                   <Tab label="About" />
-                  {appSettingsSystemSettings?.functionality?.changePassword ? <Tab label="Change Password" /> : null}
-                  {appSettingsSystemSettings?.functionality?.deleteAccount ? <Tab label="Delete Account" /> : null}
+                  {appSettingsSystemSettings?.functionality?.changePassword &&
+                  !user?.is_oidc ? <Tab label="Change Password" /> : null}
+                  {appSettingsSystemSettings?.functionality?.deleteAccount &&
+                  !user?.is_oidc ? <Tab label="Delete Account" /> : null}
               </Tabs>
           </Box>
           <Paper sx={{ flexDirection: "column", justifyContent: "top",

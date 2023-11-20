@@ -868,3 +868,12 @@ def delete_user():
         log_exception(e)
         return jsonify({'success': False, 'message': str(e)})
 
+@app.route('/web_ui_log', methods=['POST'])
+@jwt_required()
+def log():
+    increment_server_stat(category="requests", stat_name="web_ui_log")
+    data = request.get_json()
+    app.logger.info(
+        f"/web_ui_log user_id:{data['user_id']} [POST] request from"
+        f":{request.remote_addr} message:{data['message']}")
+    return jsonify({'success': True})

@@ -39,7 +39,7 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
     );
 
     useEffect(() => {
-        const element = document.getElementById("chat-panel");
+        const element = document.getElementById("personas-panel");
         const observer = new ResizeObserver((entries) => {
             if (entries && entries.length > 0 && entries[0].target === element) {
               handleResize();
@@ -190,8 +190,9 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
         return acc;
       }, {});
 
-    const loadingRender = <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
-    flex:1, minWidth: "380px", maxWidth: "450px"}}>
+    const loadingRender = <Card id="personas-panel"
+        sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
+        flex:1, minWidth: "380px", maxWidth: "450px"}}>
         <Typography>{loadingPersonasMessage}</Typography>
     </Card>
 
