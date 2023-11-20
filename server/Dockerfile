@@ -2,6 +2,7 @@ FROM python:3.10-alpine
 RUN apk add gcc musl-dev libffi-dev
 WORKDIR /sidekick_server
 COPY Pipfile.lock ./
+RUN pip install --upgrade pip
 RUN pip install pipenv
 RUN pipenv requirements > requirements.txt
 RUN pip install --no-cache-dir --upgrade -r requirements.txt

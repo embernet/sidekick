@@ -153,6 +153,7 @@ def feedback():
         return jsonify({'success': False, 'message': str(e)})
 
 
+
 @app.route('/feedback', methods=['GET'])
 @jwt_required()
 def get_feedback():
@@ -169,6 +170,26 @@ def get_feedback():
     else:
         return app.response_class(
             response=json.dumps({"success": False, "message": "Only admins can view feedback."}),
+            status=403,
+            mimetype='application/json'
+        )
+    
+
+@app.route('/users', methods=['GET'])
+@jwt_required()
+def get_users():
+    increment_server_stat(category="requests", stat_name="getUsers")
+    app.logger.info(f"/users [GET] request from:{request.remote_addr}")
+    acting_user_id = get_jwt_identity()
+    if DBUtils.user_isadmin(acting_user_id):
+        try:
+            users = DBUtils.list_users()
+            return jsonify(users)
+        except Exception as e:
+            return jsonify({'success': False, 'message': str(e)})
+    else:
+        return app.response_class(
+            response=json.dumps({"success": False, "message": "Only admins can view users."}),
             status=403,
             mimetype='application/json'
         )
@@ -770,6 +791,7 @@ def oidc_login():
         # If the user exists and their name in the OIDC provider has changed, update their name
         if user["name"] != name:
             DBUtils.update_user(user_id, name=name)
+
     except NoResultFound:
         user = DBUtils.create_user(user_id=user_id, name=name, is_oidc=True,
                                    password=get_random_string(), properties={})

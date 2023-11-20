@@ -15,6 +15,29 @@ import AccountResetPassword from "./AccountResetPassword";
 import AccountDelete from "./AccountDelete";
 import Explorer from "./Explorer";
 
+import { DataGrid } from '@mui/x-data-grid';
+
+const userTableColumns = [
+    { field: 'name', headerName: 'Name', sortable: true, width: 100,
+        flex: 1,
+        renderCell: (params) => (
+        <div style={{ whiteSpace: 'normal', wordWrap: 'break-word' }}>
+            {params.value}
+        </div>
+        ),
+    },
+    { field: 'is_oidc', headerName: 'OIDC User', sortable: true, width: 100,
+        description: 'Whether this user is an OIDC single-sign-on user' },
+    { field: 'id', headerName: 'ID', width: 100,
+        flex: 1,
+        renderCell: (params) => (
+        <div style={{ whiteSpace: 'normal', wordWrap: 'break-word' }}>
+            {params.value}
+        </div>
+        ),
+    },
+];
+
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     backgroundColor: red[500],
     gap: 2,
@@ -67,6 +90,9 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
     const [feedbackItemCreatedDate, setFeedbackItemCreatedDate] = useState('');
     const [feedbackItemTags, setFeedbackItemTags] = useState('');
 
+    // Users
+    const [users, setUsers] = useState([]);
+
     const resetFeedbackItem = () => {
         setFeedbackItemContent('');
         setFeedbackItemName('');
@@ -117,6 +143,20 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
         });
     }
 
+    const loadUsers = () => {
+        const getUsersUrl = `${serverUrl}/users`;
+        axios.get(getUsersUrl, {
+            headers: {
+                Authorization: 'Bearer ' + token
+            }
+        }).then(response => {
+            setUsers(response.data);
+            console.log("Users", response, `${getUsersUrl} GET response`);
+        }).catch(error => {
+            system.error("Error getting Users.", error, getUsersUrl);
+        });
+    };
+
     const [width, setWidth] = useState(0);
     const handleResize = useCallback( 
         // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
@@ -146,6 +186,7 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
 
     useEffect(() => {
         loadSystemSettings();
+        loadUsers();
     }, []);
 
     useEffect(() => {
@@ -355,10 +396,11 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
     const TAB_RESET_PASSWORD = 4;
     const TAB_DELETE_ACCOUNT = 5;
     const TAB_FEEDBACK = 6;
+    const TAB_USERS = 7;
 
   const render = <Card id="admin-panel" sx={{display:"flex", flexDirection:"column", 
     padding:"6px", margin:"6px", flex:1, 
-    minWidth: "600px", maxWidth: "800px"}}>
+    minWidth: "800px", maxWidth: "1400px"}}>
     
   <StyledToolbar className={ClassNames.toolbar}>
       <AdminPanelSettingsIcon/>
@@ -383,6 +425,7 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
                 <Tab label="Reset Password" />
                 <Tab label="Delete Account" />
                 <Tab label="Feedback" />
+                <Tab label="Users" />
             </Tabs>
         </Box>
         <Paper sx={{ display: "flex", flexDirection: "column", justifyContent: "top",
@@ -677,6 +720,21 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
                         </Box>
                     </Box>
                 )}
+                {tabIndex === TAB_USERS && (
+                    <Box sx={{ display: "flex", flexDirection: "column", flex: 1 }} style={inputContainerStyle} gap={2}>
+                        <Box sx={{ display: "flex", flexDirection: "column", textAlign: "center" }}>
+                            <Typography variant="h6">Users</Typography>
+                            <Typography sx={{mt:1}}>Sidekick users are listed below.</Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', flexDirection: "column", flex: 1, overflow: "auto", overflowX: "auto", width: "100%" }}>
+                        <DataGrid
+                            rows={users}
+                            columns={userTableColumns}
+                        />
+                        </Box>
+                    </Box>
+                )}
+
             </Box>
         </Paper>
     </Box>

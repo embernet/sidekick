@@ -155,6 +155,11 @@ class DBUtils:
         return user.as_dict()
     
     @staticmethod
+    def list_users():
+        users = [user.as_dict() for user in User.query.all()]
+        return users
+    
+    @staticmethod
     def update_user(user_id, name=None, properties=None):
         if not name and not properties:
             return
