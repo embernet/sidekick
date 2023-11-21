@@ -18,7 +18,6 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = False
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["SQLALCHEMY_DATABASE_URI"]
 app.config["OPENAI_API_KEY"] = os.environ["OPENAI_API_KEY"]
 
-
 app.config["OIDC_CLIENT_SECRETS"] = {
     "web": {
         "client_id": os.environ.get("OIDC_CLIENT_ID", None),
