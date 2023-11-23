@@ -393,6 +393,26 @@ class DBUtils:
                                     properties={}, content=chat)
 
         return document.as_dict()
+    
+    @staticmethod
+    def export_user_data(user_id):
+        documents = [doc.as_dict() for doc in
+                     Document.query.filter_by(user_id=user_id).all()]
+        return {"doc_count": len(documents),
+                "date_exported": datetime.now().isoformat(),
+                "documents": documents}
+    
+    @staticmethod
+    def import_user_data(user_id, import_data):
+        for document in import_data["documents"]:
+            DBUtils.create_document(user_id=user_id,
+                                    name=document["metadata"]["name"],
+                                    type=document["metadata"]["type"],
+                                    tags=document["metadata"]["tags"],
+                                    properties=document["metadata"]["properties"],
+                                    content=document["content"])
+        return {"success": True}
+
 
     @staticmethod
     def health():

@@ -695,6 +695,34 @@ def docdb_delete_document(document_type, document_id):
     document = DBUtils.delete_document(document_id)
     return jsonify(document)
 
+export_user_data_url = '/export_user_data'
+@app.route(export_user_data_url, method=['GET'])
+@jwt_required
+def export_user_data():
+    increment_server_stat(category="requests", stat_name="export")
+    app.logger.info(f"{export_user_data_url} [GET] from:{request.remote_addr}")
+    try:
+        export = DBUtils.export_user_data()
+        return jsonify(export)
+    except Exception as e:
+        app.logger.error(f"{export_user_data_url} error:{str(e)}")
+        log_exception(e)
+        return jsonify({'success': False, 'message': str(e)})
+
+import_user_data_url = '/import_user_data'
+@app.route(import_user_data_url, method=['POST'])
+@jwt_required
+def import_user_data():
+    increment_server_stat(category="requests", stat_name="import")
+    app.logger.info(f"{import_user_data_url} [POST] from:{request.remote_addr}")
+    try:
+        data = request.get_json()
+        DBUtils.import_user_data(data)
+        return jsonify({'success': True})
+    except Exception as e:
+        app.logger.error(f"{import_user_data_url} error:{str(e)}")
+        log_exception(e)
+        return jsonify({'success': False, 'message': str(e)})
 
 @app.route('/create_account', methods=['POST'])
 def create_account():
