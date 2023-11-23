@@ -341,8 +341,7 @@ def name_topic():
 
     app.logger.info(
         f"/nametopic/v1 POST request from:{request.remote_addr}")
-    app.logger.debug("/nametopic/v1 request:\n",
-                     json.dumps(request.json, indent=4))
+    app.logger.debug("/nametopic/v1 request:\n" + json.dumps(request.json, indent=4))
     ai_request = construct_name_topic_request(request)
     try:
         completion = openai.chat.completions.create(**ai_request)
@@ -373,7 +372,7 @@ def name_topic():
             "success": False,
             "error": str(e)
         }
-    app.logger.debug("/nametopic/v1 response:\n",
+    app.logger.debug("/nametopic/v1 response:\n" +
                      json.dumps(ai_response_json, indent=4))
     return ai_response_json
 
@@ -402,7 +401,7 @@ You always do your best to generate text in the same style as the context text p
 
     app.logger.info(
         f"/generatetext/v1 POST request from:{request.remote_addr}")
-    app.logger.debug(f"/generatetext/v1 request:\n",
+    app.logger.debug(f"/generatetext/v1 request:\n" +
                      json.dumps(request.json, indent=4))
     ai_request = construct_query_ai_request(request)
     try:
@@ -440,7 +439,7 @@ You always do your best to generate text in the same style as the context text p
 @jwt_required()
 def chat_v1():
     app.logger.info(f"/chat/v1 POST request from:{request.remote_addr}")
-    app.logger.debug("/chat/v1 request:\n", json.dumps(request.json, indent=4))
+    app.logger.debug("/chat/v1 request:\n" + json.dumps(request.json, indent=4))
     increment_server_stat(category="requests", stat_name="chatV1")
     document = DBUtils.save_chat(user_id=get_jwt_identity(),
                                  type="chats",
@@ -496,14 +495,14 @@ def chat_v1():
 
     system_response = { **document }
     system_response["chat_response"] = chat_response
-    app.logger.debug("document[content]", document["content"])
+    app.logger.debug("document[content]" + document["content"])
     DBUtils.update_document(id=document["metadata"]["id"],
                             name=document["metadata"]["name"],
                             tags=document["metadata"]["tags"],
                             properties={},
                             content=document["content"])
     system_response_json = jsonify(system_response)
-    app.logger.debug("/chat/v1 response:\n",
+    app.logger.debug("/chat/v1 response:\n" +
                      json.dumps(system_response, indent=4))
     return system_response_json
 
@@ -520,7 +519,7 @@ def chat_v2():
     tid = str(uuid.uuid4())
     app.logger.info(
         f"{CHATV2_ROUTE} [POST] request from:{request.remote_addr} tid:{tid}")
-    app.logger.debug("{CHATV2_ROUTE} request:\n", json.dumps(request.json, indent=4))
+    app.logger.debug("{CHATV2_ROUTE} request:\n" + json.dumps(request.json, indent=4))
 
     def generate():
         url = 'https://api.openai.com/v1/chat/completions'
