@@ -19,4 +19,5 @@ RUN npm run build
 
 # expose port and run app
 EXPOSE 8081
-CMD [ "npx", "serve", "-s", "build"]
+#CMD [ "npx", "serve", "-s", "build"]
+CMD [ "npm", "run", "start-container" ]
