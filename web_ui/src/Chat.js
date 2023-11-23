@@ -452,6 +452,19 @@ const Chat = ({
         })
     }
 
+    const closeChatStream = (message) => {
+        let chatResponse = streamingChatResponseRef.current;
+        if (message) {
+            chatResponse += "\n\n" + message;
+        }
+        streamingChatResponseRef.current = "";
+        setStreamingChatResponse("");
+        if (chatResponse !== "") {
+            appendMessage({"role": "assistant", "content": chatResponse});
+        }
+        showReady();
+    }
+
     const getChatStream = useCallback(async (requestData) => {
             try {
                 const url = `${serverUrl}/chat/v2`;
@@ -481,12 +494,11 @@ const Chat = ({
                             setStreamingChatResponse(streamingChatResponseRef.current);
                         }
                         if (done || stopStreamingRef.current) {
-                            let chatResponse = streamingChatResponseRef.current;
-                            if (stopStreamingRef.current) { chatResponse += "\n\n(Chat stopped by user)" }
-                            streamingChatResponseRef.current = "";
-                            setStreamingChatResponse("");
-                            appendMessage({"role": "assistant", "content": chatResponse});
-                            showReady();
+                            if (stopStreamingRef.current) { 
+                                closeChatStream("\n\n(Chat stopped by user)")
+                            } else {
+                                closeChatStream();
+                            }
                             reader.releaseLock();
                             break;
                         }
@@ -494,12 +506,16 @@ const Chat = ({
                     stopStreamingRef.current = false;
                 } catch(error) {
                     system.error(`System Error reading chat stream.`, error, "/chat/v2 POST");
+                    closeChatStream("\n\n(Response truncated due to error in chat stream)");
+                    reader.releaseLock();
                 } finally {
+                    showReady();
                     reader.releaseLock();
                 }
             } catch (error) {
                 system.error(`System Error reading chat stream.`, error, "/chat/v2 POST");
-            }
+                showReady();
+        }
 
     }, [stopStreamingRef.current]);
 
@@ -604,6 +620,10 @@ const Chat = ({
     const handleStopStreaming = (event) => {
         console.log("handleStopStreaming");
         stopStreamingRef.current = true;
+        // wait a second and then close the chat stream
+        setTimeout(() => {
+            closeChatStream(); console.log("closeChatStream");
+        }, 1000);
     }
 
     const handleAskAgain = () => {

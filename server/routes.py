@@ -21,7 +21,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app import app, oidc
 
-VERSION = "0.1.1"
+VERSION = "0.1.2"
 
 class OrderedEncoder(json.JSONEncoder):
     def default(self, obj):
