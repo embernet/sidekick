@@ -552,9 +552,9 @@ def chat_v2():
         }
         ai_request = construct_ai_request(request)
         ai_request["stream"] = True
+        increment_server_stat(category="usage", stat_name="promptCharacters", increment=num_characters_from_messages(ai_request["messages"]))
         if app.config["SIDEKICK_COUNT_TOKENS"]:
             try:
-                increment_server_stat(category="usage", stat_name="promptCharacters", increment=num_characters_from_messages(ai_request["messages"]))
                 prompt_tokens = openai_num_tokens_from_messages(ai_request["messages"], ai_request["model"])
                 increment_server_stat(category="usage", stat_name="promptTokens", increment=prompt_tokens)
             except Exception as e:
