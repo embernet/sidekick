@@ -18,6 +18,12 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = False
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["SQLALCHEMY_DATABASE_URI"]
 app.config["OPENAI_API_KEY"] = os.environ["OPENAI_API_KEY"]
 
+# Optionallay count chat tokens if specified in the env var
+# (token count is not returned by the streaming interface)
+# Set to True to count prompt and completion tokens, or leave blank
+# Counting tokens uses the tiktoken library, which calls an additional cloud endpoint
+app.config["SIDEKICK_COUNT_TOKENS"] = os.environ.get("SIDEKICK_COUNT_TOKENS", False)
+
 app.config["OIDC_CLIENT_SECRETS"] = {
     "web": {
         "client_id": os.environ.get("OIDC_CLIENT_ID", None),

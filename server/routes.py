@@ -10,7 +10,7 @@ from collections import OrderedDict
 from datetime import datetime
 from utils import DBUtils, log_exception, construct_ai_request, \
     server_stats, increment_server_stat, openai_num_tokens_from_messages, \
-    get_random_string
+    get_random_string, num_characters_from_messages
 
 from flask import request, jsonify, Response, stream_with_context, redirect, session, url_for
 from flask_jwt_extended import get_jwt_identity, jwt_required, \
@@ -323,6 +323,7 @@ def save_settings(name):
 @app.route("/nametopic/v1", methods=['POST'])
 @jwt_required()
 def name_topic():
+    message_usage = {}
     def construct_name_topic_request(request):
         increment_server_stat(category="requests", stat_name="nameTopic")
         ai_request = {
@@ -345,7 +346,13 @@ def name_topic():
     ai_request = construct_name_topic_request(request)
     try:
         completion = openai.chat.completions.create(**ai_request)
+        message_usage["prompt_characters"] = num_characters_from_messages(ai_request["messages"])
+        increment_server_stat(category="usage", stat_name="promptCharacters", increment=num_characters_from_messages(ai_request["messages"]))
         topic_name = completion.choices[0].message.content
+        message_usage["completion_characters"] = len(topic_name)
+        increment_server_stat(category="usage", stat_name="completionCharacters", increment=len(topic_name))
+        message_usage["total_characters"] = message_usage["prompt_characters"] + message_usage["completion_characters"]
+        increment_server_stat(category="usage", stat_name="totalCharacters", increment=message_usage["prompt_characters"] + message_usage["completion_characters"])
         if "\n" in topic_name:
             topic_name = topic_name.split("\n", 1)[0]  # if there are multiple lines, just use the first one
         topic_name = topic_name.strip('"\'')  # remove surrounding quotes
@@ -355,15 +362,14 @@ def name_topic():
             "success": True,
             "topic_name": topic_name
         }
-        increment_server_stat(category="usage", stat_name="promptTokens", increment=completion.usage.prompt_tokens)
-        increment_server_stat(category="usage", stat_name="completionTokens", increment=completion.usage.completion_tokens)
-        increment_server_stat(category="usage", stat_name="totalTokens", increment=completion.usage.total_tokens)
-        # Usage is metadata about the chat rather than the document that contains the chat, so it goes in the content
-        message_usage = {
-            "prompt_tokens": completion.usage.prompt_tokens,
-            "completion_tokens": completion.usage.completion_tokens,
-            "total_tokens": completion.usage.total_tokens,
-        }
+        if app.config["SIDEKICK_COUNT_TOKENS"]:
+            increment_server_stat(category="usage", stat_name="promptTokens", increment=completion.usage.prompt_tokens)
+            increment_server_stat(category="usage", stat_name="completionTokens", increment=completion.usage.completion_tokens)
+            increment_server_stat(category="usage", stat_name="totalTokens", increment=completion.usage.total_tokens)
+            # Usage is metadata about the chat rather than the document that contains the chat, so it goes in the content
+            message_usage["prompt_tokens"] = completion.usage.prompt_tokens
+            message_usage["completion_tokens"] = completion.usage.completion_tokens
+            message_usage["total_tokens"] = completion.usage.total_tokens
         ai_response["usage"] = message_usage
         ai_response_json = ai_response
     except Exception as e:
@@ -380,6 +386,7 @@ def name_topic():
 @app.route("/generatetext/v1", methods=['POST'])
 @jwt_required()
 def query_ai():
+    message_usage = {}
     def construct_query_ai_request(request):
         increment_server_stat(category="requests", stat_name=f"generatetext")
         ai_request = {
@@ -405,22 +412,25 @@ You always do your best to generate text in the same style as the context text p
                      json.dumps(request.json, indent=4))
     ai_request = construct_query_ai_request(request)
     try:
+        increment_server_stat(category="usage", stat_name="promptCharacters", increment=num_characters_from_messages(ai_request["messages"]))
         completion = openai.chat.completions.create(**ai_request)
         generated_text = completion.choices[0]["message"]["content"]
+        increment_server_stat(category="usage", stat_name="completionCharacters", increment=len(generated_text))
         ai_response = {
             "success": True,
             "generated_text": generated_text
         }
         app.logger.debug(f"openai response: {completion}")
-        increment_server_stat(category="usage", stat_name="promptTokens", increment=completion.usage.prompt_tokens)
-        increment_server_stat(category="usage", stat_name="completionTokens", increment=completion.usage.completion_tokens)
-        increment_server_stat(category="usage", stat_name="totalTokens", increment=completion.usage.total_tokens)
-        # Usage is metadata about the chat rather than the document that contains the chat, so it goes in the content
-        message_usage = {
-            "prompt_tokens": completion.usage.prompt_tokens,
-            "completion_tokens": completion.usage.completion_tokens,
-            "total_tokens": completion.usage.total_tokens,
-        }
+        if app.config["SIDEKICK_COUNT_TOKENS"]:
+            increment_server_stat(category="usage", stat_name="promptTokens", increment=completion.usage.prompt_tokens)
+            increment_server_stat(category="usage", stat_name="completionTokens", increment=completion.usage.completion_tokens)
+            increment_server_stat(category="usage", stat_name="totalTokens", increment=completion.usage.total_tokens)
+            # Usage is metadata about the chat rather than the document that contains the chat, so it goes in the content
+            message_usage = {
+                "prompt_tokens": completion.usage.prompt_tokens,
+                "completion_tokens": completion.usage.completion_tokens,
+                "total_tokens": completion.usage.total_tokens,
+            }
         ai_response["usage"] = message_usage
     except Exception as e:
         log_exception(e)
@@ -438,6 +448,7 @@ You always do your best to generate text in the same style as the context text p
 @app.route('/chat/v1', methods=['POST'])
 @jwt_required()
 def chat_v1():
+    message_usage = {}
     app.logger.info(f"/chat/v1 POST request from:{request.remote_addr}")
     app.logger.debug("/chat/v1 request:\n" + json.dumps(request.json, indent=4))
     increment_server_stat(category="requests", stat_name="chatV1")
@@ -447,6 +458,7 @@ def chat_v1():
 
     ai_request = construct_ai_request(request)
     try:
+        increment_server_stat(category="usage", stat_name="promptCharacters", increment=num_characters_from_messages(ai_request["messages"]))
         completion = openai.chat.completions.create(**ai_request)
         ai_response = completion.choices[0]["message"]["content"]
         chat_response = [
@@ -461,18 +473,20 @@ def chat_v1():
                 "metadata": { "usage": completion.usage.completion_tokens }
             }
         ]
+        increment_server_stat(category="usage", stat_name="completionCharacters", increment=len(chat_response))
         document["content"]["chat"].append(chat_response)
         increment_server_stat(category="responses", stat_name="chatV1")
         app.logger.debug(f"openai response: {completion}")
-        increment_server_stat(category="usage", stat_name="promptTokens", increment=completion.usage.prompt_tokens)
-        increment_server_stat(category="usage", stat_name="completionTokens", increment=completion.usage.completion_tokens)
-        increment_server_stat(category="usage", stat_name="totalTokens", increment=completion.usage.total_tokens)
-        # Usage is metadata about the chat rather than the document that contains the chat, so it goes in the content
-        message_usage = {
-            "prompt_tokens": completion.usage.prompt_tokens,
-            "completion_tokens": completion.usage.completion_tokens,
-            "total_tokens": completion.usage.total_tokens,
-        }
+        if app.config["SIDEKICK_COUNT_TOKENS"]:
+            increment_server_stat(category="usage", stat_name="promptTokens", increment=completion.usage.prompt_tokens)
+            increment_server_stat(category="usage", stat_name="completionTokens", increment=completion.usage.completion_tokens)
+            increment_server_stat(category="usage", stat_name="totalTokens", increment=completion.usage.total_tokens)
+            # Usage is metadata about the chat rather than the document that contains the chat, so it goes in the content
+            message_usage = {
+                "prompt_tokens": completion.usage.prompt_tokens,
+                "completion_tokens": completion.usage.completion_tokens,
+                "total_tokens": completion.usage.total_tokens,
+            }
         if "usage" not in document["content"]:
             document["content"]["usage"] = message_usage
         else:
@@ -529,12 +543,14 @@ def chat_v2():
         }
         ai_request = construct_ai_request(request)
         ai_request["stream"] = True
-        try:
-            prompt_tokens = openai_num_tokens_from_messages(ai_request["messages"], ai_request["model"])
-            increment_server_stat(category="usage", stat_name="promptTokens", increment=prompt_tokens)
-        except Exception as e:
-            log_exception(e)
-            app.logger.error(f"{CHATV2_ROUTE} tid:{tid} error calculating prompt tokens: {str(e)}")
+        increment_server_stat(category="usage", stat_name="promptCharacters", increment=num_characters_from_messages(ai_request["messages"]))
+        if app.config["SIDEKICK_COUNT_TOKENS"]:
+            try:
+                prompt_tokens = openai_num_tokens_from_messages(ai_request["messages"], ai_request["model"])
+                increment_server_stat(category="usage", stat_name="promptTokens", increment=prompt_tokens)
+            except Exception as e:
+                log_exception(e)
+                app.logger.error(f"{CHATV2_ROUTE} tid:{tid} error calculating prompt tokens: {str(e)}")
         response = requests.post(url, headers=headers,
                                  data=json.dumps(ai_request), stream=True)
         increment_server_stat(category="responses", stat_name="chatV2")
@@ -542,10 +558,11 @@ def chat_v2():
         client = sseclient.SSEClient(response)
         app.logger.debug(f"{CHATV2_ROUTE} Begin processing received SSE stream")
         for event in client.events():
-            # The streaming interface does not provide the number of tokens used
-            # but as it returns one token at a time, we can count them
-            increment_server_stat(category="usage", stat_name="completionTokens", increment=1)
-            increment_server_stat(category="usage", stat_name="totalTokens", increment=1)
+            if app.config["SIDEKICK_COUNT_TOKENS"]:
+                # The streaming interface does not provide the number of tokens used
+                # but as it returns one token at a time, we can count them
+                increment_server_stat(category="usage", stat_name="completionTokens", increment=1)
+                increment_server_stat(category="usage", stat_name="totalTokens", increment=1)
             if event.data != '[DONE]':
                 try:
                     data = json.loads(event.data)
@@ -553,6 +570,7 @@ def chat_v2():
                     chat_streams[tid] = data['id']
                     if 'content' in delta:
                         text = delta['content']
+                        increment_server_stat(category="usage", stat_name="completionCharacters", increment=len(text))
                         yield (text)
                     elif 'role' in delta:
                         # discard
