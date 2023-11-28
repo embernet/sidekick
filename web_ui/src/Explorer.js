@@ -193,10 +193,10 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
        }
        <Box sx={{ width: "100%", paddingLeft: 0, paddingRight: 0, display: "flex", flexDirection: "row" }}>
            <FormControl sx={{ mt: 2, minWidth: 120 }} size="small">
-               <InputLabel id="{name}-explorer-sort-order-label">Sort order</InputLabel>
+               <InputLabel id={name + "-explorer-sort-order-label"}>Sort order</InputLabel>
                <Select
-                   id="{name}-explorer-sort-order}"
-                   labelId="{name}-explorer-sort-order-label"
+                   id={name + "-explorer-sort-order"}
+                   labelId={name + "-explorer-sort-order-label"}
                    value={sortOrder}
                    label="Sort order"
                    onChange={(event) => { handleSortOrderChange(event.target.value); }}
@@ -213,7 +213,7 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
            </Tooltip>
            <Box sx={{ flexGrow: 1 }}>
                <TextField
-                   id="{name}-explorer-filter"
+                   id={name + "-explorer-filter"}
                    autoComplete='off'
                    label="Filter"
                    value={filterText}
