@@ -399,8 +399,6 @@ const Chat = ({
             response.data.access_token && setToken(response.data.access_token);
             setId(response.data.metadata.id);
             onChange(id, name, "created", "");
-            document.getElementById("chat-name")?.focus();
-            document.getElementById("chat-name")?.select();
             system.info(`Chat "${response.data.metadata.name}" created.`);
             system.debug("Chat created", response, url + " POST");
         }).catch(error => {
@@ -561,40 +559,12 @@ const Chat = ({
                 // Use AI to name the chat
                 const ai = new AI(serverUrl, token, setToken, system);
                 let generatedName = await ai.nameTopic(requestData.prompt);
-                if (generatedName && generatedName !== "") { setName(generatedName); }
+                if (generatedName && generatedName !== "" && name === newChatName) { setName(generatedName); }
             } catch (err) {
                 system.error("System Error auto-naming chat", err, "ai.nameTopic");
             }
         }
-
-        // Send the chat history and prompt using the streaming/non-streaming API
-        // based on what the user selected in ModelSettings
-        switch (chatStreamingOn) {
-            case false:
-                setStreamingChatResponse("Waiting for response...");
-                axios.post(`${serverUrl}/chat/v1`, requestData, {
-                    headers: {
-                        Authorization: 'Bearer ' + token
-                      }
-                })
-                .then((response) => {
-                    console.log("/chat response", response);
-                    setStreamingChatResponse("");
-                    response.data.access_token && setToken(response.data.access_token);
-                    appendMessage(response.data.chat_response[1]); // 1 is the assistant message, 0 is the user message
-                    showReady();
-                })
-                .catch((error) => {
-                    console.log(error);
-                    appendMessage({"role": "assistant", "content": error, "metadata": {"error": true}});
-                    showReady();
-                });
-                break;
-            default:
-            case true:
-                getChatStream(requestData);
-                break;
-        }
+        getChatStream(requestData);
     }
 
     const handleSend = (event) => {
