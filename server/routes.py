@@ -343,33 +343,42 @@ def name_topic():
     app.logger.info(
         f"/nametopic/v1 POST request from:{request.remote_addr}")
     app.logger.debug("/nametopic/v1 request:\n" + json.dumps(request.json, indent=4))
-    ai_request = construct_name_topic_request(request)
+
     try:
-        completion = openai.chat.completions.create(**ai_request)
+        url = 'https://api.openai.com/v1/chat/completions'
+        headers = {
+            'content-type': 'application/json; charset=utf-8',
+            'Authorization': f"Bearer {app.config['OPENAI_API_KEY']}"
+        }
+        ai_request = construct_name_topic_request(request)
         message_usage["prompt_characters"] = num_characters_from_messages(ai_request["messages"])
         increment_server_stat(category="usage", stat_name="promptCharacters", increment=num_characters_from_messages(ai_request["messages"]))
-        topic_name = completion.choices[0].message.content
+        proxy_url = app.config["OPENAI_PROXY"]
+        proxies = {"http": proxy_url,
+                   "https": proxy_url} if proxy_url else None
+        response = requests.post(url, headers=headers, proxies=proxies,
+                                 data=json.dumps(ai_request))
+        topic_name = response.json()["choices"][0]["message"]["content"]
         message_usage["completion_characters"] = len(topic_name)
         increment_server_stat(category="usage", stat_name="completionCharacters", increment=len(topic_name))
-        message_usage["total_characters"] = message_usage["prompt_characters"] + message_usage["completion_characters"]
-        increment_server_stat(category="usage", stat_name="totalCharacters", increment=message_usage["prompt_characters"] + message_usage["completion_characters"])
         if "\n" in topic_name:
             topic_name = topic_name.split("\n", 1)[0]  # if there are multiple lines, just use the first one
-        topic_name = topic_name.strip('"\'')  # remove surrounding quotes
-        topic_name = topic_name.lstrip('- ')  # remove leading dash or space
-        topic_name = topic_name.rstrip(':')  # remove trailing colon
+        topic_name = topic_name.strip('"\'').lstrip('- ').rstrip(':')
         ai_response = {
             "success": True,
             "topic_name": topic_name
         }
         if app.config["SIDEKICK_COUNT_TOKENS"]:
-            increment_server_stat(category="usage", stat_name="promptTokens", increment=completion.usage.prompt_tokens)
-            increment_server_stat(category="usage", stat_name="completionTokens", increment=completion.usage.completion_tokens)
-            increment_server_stat(category="usage", stat_name="totalTokens", increment=completion.usage.total_tokens)
+            increment_server_stat(category="usage", stat_name="promptTokens",
+                              increment=response.json()["usage"]["prompt_tokens"])
+            increment_server_stat(category="usage", stat_name="completionTokens",
+                              increment=response.json()["usage"]["completion_tokens"])
+            increment_server_stat(category="usage", stat_name="totalTokens",
+                              increment=response.json()["usage"]["total_tokens"])
             # Usage is metadata about the chat rather than the document that contains the chat, so it goes in the content
-            message_usage["prompt_tokens"] = completion.usage.prompt_tokens
-            message_usage["completion_tokens"] = completion.usage.completion_tokens
-            message_usage["total_tokens"] = completion.usage.total_tokens
+            message_usage["prompt_tokens"] = response.json()["usage"]["prompt_tokens"]
+            message_usage["completion_tokens"] = response.json()["usage"]["completion_tokens"]
+            message_usage["total_tokens"] = response.json()["usage"]["total_tokens"]
         ai_response["usage"] = message_usage
         ai_response_json = ai_response
     except Exception as e:
@@ -543,15 +552,18 @@ def chat_v2():
         }
         ai_request = construct_ai_request(request)
         ai_request["stream"] = True
-        increment_server_stat(category="usage", stat_name="promptCharacters", increment=num_characters_from_messages(ai_request["messages"]))
         if app.config["SIDEKICK_COUNT_TOKENS"]:
             try:
+                increment_server_stat(category="usage", stat_name="promptCharacters", increment=num_characters_from_messages(ai_request["messages"]))
                 prompt_tokens = openai_num_tokens_from_messages(ai_request["messages"], ai_request["model"])
                 increment_server_stat(category="usage", stat_name="promptTokens", increment=prompt_tokens)
             except Exception as e:
                 log_exception(e)
                 app.logger.error(f"{CHATV2_ROUTE} tid:{tid} error calculating prompt tokens: {str(e)}")
-        response = requests.post(url, headers=headers,
+        proxy_url = app.config["OPENAI_PROXY"]
+        proxies = {"http": proxy_url,
+                   "https": proxy_url} if proxy_url else None
+        response = requests.post(url, headers=headers, proxies=proxies,
                                  data=json.dumps(ai_request), stream=True)
         increment_server_stat(category="responses", stat_name="chatV2")
 
@@ -791,30 +803,34 @@ def oidc_login_get_user():
 
 
 @app.route('/oidc_login')
-@oidc.require_login
 def oidc_login():
     """
     Login via OIDC,
     Create the user if they don't exist,
     and redirect to the web_ui with the user's JWT access_token
     """
-    user_id = oidc.user_getfield("sub")
-    name = oidc.user_getfield("name")
-    redirect_uri = request.args.get("redirect_uri")
-    app.logger.info(
-        f"/oidc_login user_id:{user_id} name:{name} logged in")
-    try:
-        user = DBUtils.get_user(user_id)
-        # If the user exists and their name in the OIDC provider has changed, update their name
-        if user["name"] != name:
-            DBUtils.update_user(user_id, name=name)
+    if oidc:
+        @oidc.require_login
+        def protected_route():
+            user_id = oidc.user_getfield("sub")
+            name = oidc.user_getfield("name")
+            name = user_id if name is None else name
+            redirect_uri = request.args.get("redirect_uri")
+            app.logger.info(
+                f"/oidc_login user_id:{user_id} name:{name} logged in")
+            try:
+                user = DBUtils.get_user(user_id)
+                # If the user exists and their name in the OIDC provider has changed, update their name
+                if user["name"] != name:
+                    DBUtils.update_user(user_id, name=name)
 
-    except NoResultFound:
-        user = DBUtils.create_user(user_id=user_id, name=name, is_oidc=True,
-                                   password=get_random_string(), properties={})
+            except NoResultFound:
+                user = DBUtils.create_user(user_id=user_id, name=name, is_oidc=True,
+                                           password=get_random_string(), properties={})
 
-    access_token = create_access_token(user_id, additional_claims=user)
-    return redirect(f"{redirect_uri}?access_token={access_token}")
+            access_token = create_access_token(user_id, additional_claims=user)
+            return redirect(f"{redirect_uri}?access_token={access_token}")
+    return protected_route()
 
 
 @app.route('/logout', methods=['POST'])
@@ -833,11 +849,14 @@ def logout():
 
 
 @app.route('/oidc_logout')
-@oidc.require_login
 def oidc_logout():
-    redirect_uri = request.args.get("redirect_uri")
-    oidc.logout()
-    return redirect(redirect_uri)
+    if oidc:
+        @oidc.require_login
+        def protected_route():
+            redirect_uri = request.args.get("redirect_uri")
+            oidc.logout()
+            return redirect(redirect_uri)
+    return protected_route()
 
 
 @app.route('/change_password', methods=['POST'])

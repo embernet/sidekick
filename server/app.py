@@ -17,6 +17,7 @@ app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = False
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["SQLALCHEMY_DATABASE_URI"]
 app.config["OPENAI_API_KEY"] = os.environ["OPENAI_API_KEY"]
+app.config["OPENAI_PROXY"] = os.environ.get("OPENAI_PROXY")
 
 # Optionallay count chat tokens if specified in the env var
 # (token count is not returned by the streaming interface)
@@ -26,12 +27,13 @@ app.config["SIDEKICK_COUNT_TOKENS"] = os.environ.get("SIDEKICK_COUNT_TOKENS", Fa
 
 app.config["OIDC_CLIENT_SECRETS"] = {
     "web": {
-        "client_id": os.environ.get("OIDC_CLIENT_ID", None),
-        "client_secret": os.environ.get("OIDC_CLIENT_SECRET", None),
-        "redirect_uris": [os.environ.get("OIDC_REDIRECT_URI", None)],
-        "issuer": os.environ.get("OIDC_ISSUER", None)
+        "client_id": os.environ.get("OIDC_CLIENT_ID"),
+        "client_secret": os.environ.get("OIDC_CLIENT_SECRET"),
+        "redirect_uris": [os.environ.get("OIDC_REDIRECT_URI")],
+        "issuer": os.environ.get("OIDC_ISSUER")
     }
 }
+app.config["OVERWRITE_REDIRECT_URI"] = os.environ.get("OIDC_REDIRECT_URI")
 app.config["SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
 
 db = SQLAlchemy()
@@ -39,7 +41,11 @@ db.init_app(app)
 jwt = JWTManager(app)
 CORS(app)
 migrate = Migrate(app, db)
-oidc = OpenIDConnect(app)
+
+if app.config["OIDC_CLIENT_SECRETS"]["web"]["client_id"]:
+    oidc = OpenIDConnect(app)
+else:
+    oidc = None
 
 from utils import DBUtils, get_random_string, merge_settings
 
