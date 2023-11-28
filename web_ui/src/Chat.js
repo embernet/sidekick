@@ -399,8 +399,6 @@ const Chat = ({
             response.data.access_token && setToken(response.data.access_token);
             setId(response.data.metadata.id);
             onChange(id, name, "created", "");
-            document.getElementById("chat-name")?.focus();
-            document.getElementById("chat-name")?.select();
             system.info(`Chat "${response.data.metadata.name}" created.`);
             system.debug("Chat created", response, url + " POST");
         }).catch(error => {
