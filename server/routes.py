@@ -2,7 +2,6 @@ import os
 import json
 import requests
 import socket
-import openai
 import uuid
 import sseclient
 
@@ -10,7 +9,7 @@ from collections import OrderedDict
 from datetime import datetime
 from utils import DBUtils, log_exception, construct_ai_request, \
     server_stats, increment_server_stat, openai_num_tokens_from_messages, \
-    get_random_string
+    get_random_string, num_characters_from_messages
 
 from flask import request, jsonify, Response, stream_with_context, redirect, session, url_for
 from flask_jwt_extended import get_jwt_identity, jwt_required, \
@@ -21,7 +20,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app import app, oidc
 
-VERSION = "0.1.1"
+VERSION = "0.1.2"
 
 class OrderedEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -99,29 +98,36 @@ def test_server_up():
 @app.route('/health/ai', methods=['GET'])
 def test_ai():
     increment_server_stat(category="requests", stat_name="healthAi")
-    openai.verify_ssl_certs = False
-    openai_health = {}
     try:
-        completion = openai.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are an AI that has just run a self-test."},
-                {
-                    "role": "user",
-                    "content": "Give me an update on your status. Do not ask any "
-                                "questions or offer any help."}],
-            temperature=0.9
-        )
-        app.logger.debug(completion.choices[0].message.content)
-        openai_health["success"] = True
-        openai_health["status"] = "UP"
-        openai_health["ai_response"] = completion.choices[0].message.content
-        openai_health["timestamp"] = datetime.now().isoformat()
+        url = 'https://api.openai.com/v1/chat/completions'
+        headers = {
+            'content-type': 'application/json; charset=utf-8',
+            'Authorization': f"Bearer {app.config['OPENAI_API_KEY']}"
+        }
+        ai_request = {
+            "model": "gpt-3.5-turbo",
+            "temperature": 0.9,
+            "messages": [
+                {"role": "system", "content": "You are an AI that has "
+                                              "just run a self-test."},
+                {"role": "user",
+                 "content": "Give me an update on your status. "
+                            "Do not ask any questions or offer any help."}]
+            }
+        proxy_url = app.config["OPENAI_PROXY"]
+        proxies = {"http": proxy_url,
+                   "https": proxy_url} if proxy_url else None
+        response = requests.post(url, headers=headers, proxies=proxies,
+                                 data=json.dumps(ai_request))
+        app.logger.debug(response.json()["choices"][0]["message"]["content"])
+        openai_health = {
+            "success": True,
+            "status": "UP",
+            "timestamp": datetime.now().isoformat(),
+            "ai_response": response.json()["choices"][0]["message"]["content"]
+        }
     except:
-        openai_health["success"] = False
-        openai_health["status"] = "DOWN"
+        openai_health = {"success": False, "status": "DOWN"}
         return app.response_class(
             response=json.dumps(openai_health),
             status=500,
@@ -132,7 +138,6 @@ def test_ai():
         status=200,
         mimetype='application/json'
     )
-
 
 @app.route('/feedback', methods=['POST'])
 @jwt_required()
@@ -323,6 +328,7 @@ def save_settings(name):
 @app.route("/nametopic/v1", methods=['POST'])
 @jwt_required()
 def name_topic():
+    message_usage = {}
     def construct_name_topic_request(request):
         increment_server_stat(category="requests", stat_name="nameTopic")
         ai_request = {
@@ -342,28 +348,42 @@ def name_topic():
     app.logger.info(
         f"/nametopic/v1 POST request from:{request.remote_addr}")
     app.logger.debug("/nametopic/v1 request:\n" + json.dumps(request.json, indent=4))
-    ai_request = construct_name_topic_request(request)
+
     try:
-        completion = openai.chat.completions.create(**ai_request)
-        topic_name = completion.choices[0].message.content
+        url = 'https://api.openai.com/v1/chat/completions'
+        headers = {
+            'content-type': 'application/json; charset=utf-8',
+            'Authorization': f"Bearer {app.config['OPENAI_API_KEY']}"
+        }
+        ai_request = construct_name_topic_request(request)
+        message_usage["prompt_characters"] = num_characters_from_messages(ai_request["messages"])
+        increment_server_stat(category="usage", stat_name="promptCharacters", increment=num_characters_from_messages(ai_request["messages"]))
+        proxy_url = app.config["OPENAI_PROXY"]
+        proxies = {"http": proxy_url,
+                   "https": proxy_url} if proxy_url else None
+        response = requests.post(url, headers=headers, proxies=proxies,
+                                 data=json.dumps(ai_request))
+        topic_name = response.json()["choices"][0]["message"]["content"]
+        message_usage["completion_characters"] = len(topic_name)
+        increment_server_stat(category="usage", stat_name="completionCharacters", increment=len(topic_name))
         if "\n" in topic_name:
             topic_name = topic_name.split("\n", 1)[0]  # if there are multiple lines, just use the first one
-        topic_name = topic_name.strip('"\'')  # remove surrounding quotes
-        topic_name = topic_name.lstrip('- ')  # remove leading dash or space
-        topic_name = topic_name.rstrip(':')  # remove trailing colon
+        topic_name = topic_name.strip('"\'').lstrip('- ').rstrip(':')
         ai_response = {
             "success": True,
             "topic_name": topic_name
         }
-        increment_server_stat(category="usage", stat_name="promptTokens", increment=completion.usage.prompt_tokens)
-        increment_server_stat(category="usage", stat_name="completionTokens", increment=completion.usage.completion_tokens)
-        increment_server_stat(category="usage", stat_name="totalTokens", increment=completion.usage.total_tokens)
-        # Usage is metadata about the chat rather than the document that contains the chat, so it goes in the content
-        message_usage = {
-            "prompt_tokens": completion.usage.prompt_tokens,
-            "completion_tokens": completion.usage.completion_tokens,
-            "total_tokens": completion.usage.total_tokens,
-        }
+        if app.config["SIDEKICK_COUNT_TOKENS"]:
+            increment_server_stat(category="usage", stat_name="promptTokens",
+                              increment=response.json()["usage"]["prompt_tokens"])
+            increment_server_stat(category="usage", stat_name="completionTokens",
+                              increment=response.json()["usage"]["completion_tokens"])
+            increment_server_stat(category="usage", stat_name="totalTokens",
+                              increment=response.json()["usage"]["total_tokens"])
+            # Usage is metadata about the chat rather than the document that contains the chat, so it goes in the content
+            message_usage["prompt_tokens"] = response.json()["usage"]["prompt_tokens"]
+            message_usage["completion_tokens"] = response.json()["usage"]["completion_tokens"]
+            message_usage["total_tokens"] = response.json()["usage"]["total_tokens"]
         ai_response["usage"] = message_usage
         ai_response_json = ai_response
     except Exception as e:
@@ -380,6 +400,7 @@ def name_topic():
 @app.route("/generatetext/v1", methods=['POST'])
 @jwt_required()
 def query_ai():
+    message_usage = {}
     def construct_query_ai_request(request):
         increment_server_stat(category="requests", stat_name=f"generatetext")
         ai_request = {
@@ -405,22 +426,42 @@ You always do your best to generate text in the same style as the context text p
                      json.dumps(request.json, indent=4))
     ai_request = construct_query_ai_request(request)
     try:
-        completion = openai.chat.completions.create(**ai_request)
-        generated_text = completion.choices[0]["message"]["content"]
+        increment_server_stat(category="usage", stat_name="promptCharacters", increment=num_characters_from_messages(ai_request["messages"]))
+        url = 'https://api.openai.com/v1/chat/completions'
+        headers = {
+            'content-type': 'application/json; charset=utf-8',
+            'Authorization': f"Bearer {app.config['OPENAI_API_KEY']}"
+        }
+        message_usage["prompt_characters"] = num_characters_from_messages(
+            ai_request["messages"])
+        proxy_url = app.config["OPENAI_PROXY"]
+        proxies = {"http": proxy_url,
+                   "https": proxy_url} if proxy_url else None
+        response = requests.post(url, headers=headers, proxies=proxies,
+                                 data=json.dumps(ai_request))
+        generated_text = response.json()["choices"][0]["message"]["content"]
+        increment_server_stat(category="usage", stat_name="completionCharacters", increment=len(generated_text))
         ai_response = {
             "success": True,
             "generated_text": generated_text
         }
-        app.logger.debug(f"openai response: {completion}")
-        increment_server_stat(category="usage", stat_name="promptTokens", increment=completion.usage.prompt_tokens)
-        increment_server_stat(category="usage", stat_name="completionTokens", increment=completion.usage.completion_tokens)
-        increment_server_stat(category="usage", stat_name="totalTokens", increment=completion.usage.total_tokens)
-        # Usage is metadata about the chat rather than the document that contains the chat, so it goes in the content
-        message_usage = {
-            "prompt_tokens": completion.usage.prompt_tokens,
-            "completion_tokens": completion.usage.completion_tokens,
-            "total_tokens": completion.usage.total_tokens,
-        }
+        app.logger.debug(f"openai response: {generated_text}")
+        response_usage = response.json()["usage"]
+        if app.config["SIDEKICK_COUNT_TOKENS"]:
+            increment_server_stat(category="usage",
+                                  stat_name="promptTokens",
+                                  increment=response_usage["prompt_tokens"])
+            increment_server_stat(category="usage",
+                                  stat_name="completionTokens",
+                                  increment=response_usage["completion_tokens"])
+            increment_server_stat(category="usage", stat_name="totalTokens",
+                                  increment=response_usage["total_tokens"])
+            # Usage is metadata about the chat rather than the document that contains the chat, so it goes in the content
+            message_usage = {
+                "prompt_tokens": response_usage["prompt_tokens"],
+                "completion_tokens": response_usage["completion_tokens"],
+                "total_tokens": response_usage["total_tokens"],
+            }
         ai_response["usage"] = message_usage
     except Exception as e:
         log_exception(e)
@@ -434,81 +475,7 @@ You always do your best to generate text in the same style as the context text p
     return ai_response_json
 
 
-# Route to chat with the AI
-@app.route('/chat/v1', methods=['POST'])
-@jwt_required()
-def chat_v1():
-    app.logger.info(f"/chat/v1 POST request from:{request.remote_addr}")
-    app.logger.debug("/chat/v1 request:\n" + json.dumps(request.json, indent=4))
-    increment_server_stat(category="requests", stat_name="chatV1")
-    document = DBUtils.save_chat(user_id=get_jwt_identity(),
-                                 type="chats",
-                                 chat=request)
-
-    ai_request = construct_ai_request(request)
-    try:
-        completion = openai.chat.completions.create(**ai_request)
-        ai_response = completion.choices[0]["message"]["content"]
-        chat_response = [
-            {
-                "role": "user",
-                "content": request.json["prompt"],
-                "metadata": { "usage": completion.usage.prompt_tokens }
-            },
-            {
-                "role": "assistant",
-                "content": ai_response,
-                "metadata": { "usage": completion.usage.completion_tokens }
-            }
-        ]
-        document["content"]["chat"].append(chat_response)
-        increment_server_stat(category="responses", stat_name="chatV1")
-        app.logger.debug(f"openai response: {completion}")
-        increment_server_stat(category="usage", stat_name="promptTokens", increment=completion.usage.prompt_tokens)
-        increment_server_stat(category="usage", stat_name="completionTokens", increment=completion.usage.completion_tokens)
-        increment_server_stat(category="usage", stat_name="totalTokens", increment=completion.usage.total_tokens)
-        # Usage is metadata about the chat rather than the document that contains the chat, so it goes in the content
-        message_usage = {
-            "prompt_tokens": completion.usage.prompt_tokens,
-            "completion_tokens": completion.usage.completion_tokens,
-            "total_tokens": completion.usage.total_tokens,
-        }
-        if "usage" not in document["content"]:
-            document["content"]["usage"] = message_usage
-        else:
-            document["content"]["usage"].append(message_usage)
-    except Exception as e:
-        log_exception(e)
-        ai_response = str(e)
-        chat_response = [
-            {
-                "role": "user",
-                "content": request.json["prompt"],
-                "metadata": { "usage": 0 }
-            },
-            {
-                "role": "assistant",
-                "content": ai_response,
-                "metadata": { "usage": 0 }
-            }
-        ]
-
-    system_response = { **document }
-    system_response["chat_response"] = chat_response
-    app.logger.debug("document[content]" + document["content"])
-    DBUtils.update_document(id=document["metadata"]["id"],
-                            name=document["metadata"]["name"],
-                            tags=document["metadata"]["tags"],
-                            properties={},
-                            content=document["content"])
-    system_response_json = jsonify(system_response)
-    app.logger.debug("/chat/v1 response:\n" +
-                     json.dumps(system_response, indent=4))
-    return system_response_json
-
-
 chat_streams = {}  # to hold the mapping from our stream id to the OpenAI stream id
-
 
 # Route to chat with the AI using the OpenAI streaming interface
 CHATV2_ROUTE = '/chat/v2'
@@ -525,27 +492,32 @@ def chat_v2():
         url = 'https://api.openai.com/v1/chat/completions'
         headers = {
             'content-type': 'application/json; charset=utf-8',
-            'Authorization': f"Bearer {openai.api_key}"
+            'Authorization': f"Bearer {app.config['OPENAI_API_KEY']}"
         }
         ai_request = construct_ai_request(request)
         ai_request["stream"] = True
-        try:
-            prompt_tokens = openai_num_tokens_from_messages(ai_request["messages"], ai_request["model"])
-            increment_server_stat(category="usage", stat_name="promptTokens", increment=prompt_tokens)
-        except Exception as e:
-            log_exception(e)
-            app.logger.error(f"{CHATV2_ROUTE} tid:{tid} error calculating prompt tokens: {str(e)}")
-        response = requests.post(url, headers=headers,
+        increment_server_stat(category="usage", stat_name="promptCharacters", increment=num_characters_from_messages(ai_request["messages"]))
+        if app.config["SIDEKICK_COUNT_TOKENS"]:
+            try:
+                prompt_tokens = openai_num_tokens_from_messages(ai_request["messages"], ai_request["model"])
+                increment_server_stat(category="usage", stat_name="promptTokens", increment=prompt_tokens)
+            except Exception as e:
+                log_exception(e)
+                app.logger.error(f"{CHATV2_ROUTE} tid:{tid} error calculating prompt tokens: {str(e)}")
+        proxy_url = app.config["OPENAI_PROXY"]
+        proxies = {"http": proxy_url,
+                   "https": proxy_url} if proxy_url else None
+        response = requests.post(url, headers=headers, proxies=proxies,
                                  data=json.dumps(ai_request), stream=True)
         increment_server_stat(category="responses", stat_name="chatV2")
 
         client = sseclient.SSEClient(response)
-        app.logger.debug(f"{CHATV2_ROUTE} Begin processing received SSE stream")
         for event in client.events():
-            # The streaming interface does not provide the number of tokens used
-            # but as it returns one token at a time, we can count them
-            increment_server_stat(category="usage", stat_name="completionTokens", increment=1)
-            increment_server_stat(category="usage", stat_name="totalTokens", increment=1)
+            if app.config["SIDEKICK_COUNT_TOKENS"]:
+                # The streaming interface does not provide the number of tokens used
+                # but as it returns one token at a time, we can count them
+                increment_server_stat(category="usage", stat_name="completionTokens", increment=1)
+                increment_server_stat(category="usage", stat_name="totalTokens", increment=1)
             if event.data != '[DONE]':
                 try:
                     data = json.loads(event.data)
@@ -553,6 +525,7 @@ def chat_v2():
                     chat_streams[tid] = data['id']
                     if 'content' in delta:
                         text = delta['content']
+                        increment_server_stat(category="usage", stat_name="completionCharacters", increment=len(text))
                         yield (text)
                     elif 'role' in delta:
                         # discard
@@ -583,7 +556,7 @@ def chat_v2_cancel(id):
     url = 'https://api.openai.com/v1/chat/completions' + '/' + id
     headers = {
         'content-type': 'application/json; charset=utf-8',
-        'Authorization': f"Bearer {openai.api_key}"
+        'Authorization': f"Bearer {app.config['OPENAI_API_KEY']}"
     }
     response = requests.delete(url, headers=headers, data=json.dumps({}))
     app.logger.debug(f"/chat/v2/cancel/{id} response: {response}")
@@ -801,30 +774,34 @@ def oidc_login_get_user():
 
 
 @app.route('/oidc_login')
-@oidc.require_login
 def oidc_login():
     """
     Login via OIDC,
     Create the user if they don't exist,
     and redirect to the web_ui with the user's JWT access_token
     """
-    user_id = oidc.user_getfield("sub")
-    name = oidc.user_getfield("name")
-    redirect_uri = request.args.get("redirect_uri")
-    app.logger.info(
-        f"/oidc_login user_id:{user_id} name:{name} logged in")
-    try:
-        user = DBUtils.get_user(user_id)
-        # If the user exists and their name in the OIDC provider has changed, update their name
-        if user["name"] != name:
-            DBUtils.update_user(user_id, name=name)
+    if oidc:
+        @oidc.require_login
+        def protected_route():
+            user_id = oidc.user_getfield("sub")
+            name = oidc.user_getfield("name")
+            name = user_id if name is None else name
+            redirect_uri = request.args.get("redirect_uri")
+            app.logger.info(
+                f"/oidc_login user_id:{user_id} name:{name} logged in")
+            try:
+                user = DBUtils.get_user(user_id)
+                # If the user exists and their name in the OIDC provider has changed, update their name
+                if user["name"] != name:
+                    DBUtils.update_user(user_id, name=name)
 
-    except NoResultFound:
-        user = DBUtils.create_user(user_id=user_id, name=name, is_oidc=True,
-                                   password=get_random_string(), properties={})
+            except NoResultFound:
+                user = DBUtils.create_user(user_id=user_id, name=name, is_oidc=True,
+                                           password=get_random_string(), properties={})
 
-    access_token = create_access_token(user_id, additional_claims=user)
-    return redirect(f"{redirect_uri}?access_token={access_token}")
+            access_token = create_access_token(user_id, additional_claims=user)
+            return redirect(f"{redirect_uri}?access_token={access_token}")
+    return protected_route()
 
 
 @app.route('/logout', methods=['POST'])
@@ -843,11 +820,14 @@ def logout():
 
 
 @app.route('/oidc_logout')
-@oidc.require_login
 def oidc_logout():
-    redirect_uri = request.args.get("redirect_uri")
-    oidc.logout()
-    return redirect(redirect_uri)
+    if oidc:
+        @oidc.require_login
+        def protected_route():
+            redirect_uri = request.args.get("redirect_uri")
+            oidc.logout()
+            return redirect(redirect_uri)
+    return protected_route()
 
 
 @app.route('/change_password', methods=['POST'])

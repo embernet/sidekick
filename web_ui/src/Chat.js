@@ -121,7 +121,7 @@ const Chat = ({
     const applyCustomSettings = () => {
         axios.get(`${serverUrl}/system_settings/chat`).then(response => {
             if ("userPromptReady" in response.data) {
-                userPromptReady.current = defaultUserPromptReady + " (" + response.data.userPromptReady + ")";
+                userPromptReady.current = defaultUserPromptReady + (response.data?.userPromptReady ? " (" + response.data.userPromptReady + ")" : "");
                 setPromptPlaceholder(userPromptReady.current);
             }
             console.log("Chat custom settings:", response);
@@ -399,8 +399,6 @@ const Chat = ({
             response.data.access_token && setToken(response.data.access_token);
             setId(response.data.metadata.id);
             onChange(id, name, "created", "");
-            document.getElementById("chat-name")?.focus();
-            document.getElementById("chat-name")?.select();
             system.info(`Chat "${response.data.metadata.name}" created.`);
             system.debug("Chat created", response, url + " POST");
         }).catch(error => {
@@ -452,6 +450,19 @@ const Chat = ({
         })
     }
 
+    const closeChatStream = (message) => {
+        let chatResponse = streamingChatResponseRef.current;
+        if (message) {
+            chatResponse += "\n\n" + message;
+        }
+        streamingChatResponseRef.current = "";
+        setStreamingChatResponse("");
+        if (chatResponse !== "") {
+            appendMessage({"role": "assistant", "content": chatResponse});
+        }
+        showReady();
+    }
+
     const getChatStream = useCallback(async (requestData) => {
             try {
                 const url = `${serverUrl}/chat/v2`;
@@ -481,12 +492,11 @@ const Chat = ({
                             setStreamingChatResponse(streamingChatResponseRef.current);
                         }
                         if (done || stopStreamingRef.current) {
-                            let chatResponse = streamingChatResponseRef.current;
-                            if (stopStreamingRef.current) { chatResponse += "\n\n(Chat stopped by user)" }
-                            streamingChatResponseRef.current = "";
-                            setStreamingChatResponse("");
-                            appendMessage({"role": "assistant", "content": chatResponse});
-                            showReady();
+                            if (stopStreamingRef.current) { 
+                                closeChatStream("\n\n(Chat stopped by user)")
+                            } else {
+                                closeChatStream();
+                            }
                             reader.releaseLock();
                             break;
                         }
@@ -494,12 +504,16 @@ const Chat = ({
                     stopStreamingRef.current = false;
                 } catch(error) {
                     system.error(`System Error reading chat stream.`, error, "/chat/v2 POST");
+                    closeChatStream("\n\n(Response truncated due to error in chat stream)");
+                    reader.releaseLock();
                 } finally {
+                    showReady();
                     reader.releaseLock();
                 }
             } catch (error) {
                 system.error(`System Error reading chat stream.`, error, "/chat/v2 POST");
-            }
+                showReady();
+        }
 
     }, [stopStreamingRef.current]);
 
@@ -545,40 +559,12 @@ const Chat = ({
                 // Use AI to name the chat
                 const ai = new AI(serverUrl, token, setToken, system);
                 let generatedName = await ai.nameTopic(requestData.prompt);
-                if (generatedName && generatedName !== "") { setName(generatedName); }
+                if (generatedName && generatedName !== "" && name === newChatName) { setName(generatedName); }
             } catch (err) {
                 system.error("System Error auto-naming chat", err, "ai.nameTopic");
             }
         }
-
-        // Send the chat history and prompt using the streaming/non-streaming API
-        // based on what the user selected in ModelSettings
-        switch (chatStreamingOn) {
-            case false:
-                setStreamingChatResponse("Waiting for response...");
-                axios.post(`${serverUrl}/chat/v1`, requestData, {
-                    headers: {
-                        Authorization: 'Bearer ' + token
-                      }
-                })
-                .then((response) => {
-                    console.log("/chat response", response);
-                    setStreamingChatResponse("");
-                    response.data.access_token && setToken(response.data.access_token);
-                    appendMessage(response.data.chat_response[1]); // 1 is the assistant message, 0 is the user message
-                    showReady();
-                })
-                .catch((error) => {
-                    console.log(error);
-                    appendMessage({"role": "assistant", "content": error, "metadata": {"error": true}});
-                    showReady();
-                });
-                break;
-            default:
-            case true:
-                getChatStream(requestData);
-                break;
-        }
+        getChatStream(requestData);
     }
 
     const handleSend = (event) => {
@@ -604,6 +590,10 @@ const Chat = ({
     const handleStopStreaming = (event) => {
         console.log("handleStopStreaming");
         stopStreamingRef.current = true;
+        // wait a second and then close the chat stream
+        setTimeout(() => {
+            closeChatStream(); console.log("closeChatStream");
+        }, 1000);
     }
 
     const handleAskAgain = () => {

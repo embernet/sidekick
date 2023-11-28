@@ -59,7 +59,7 @@ You always do your best to generate text in the same style as the context text p
     const applySystemSettings = () => {
         axios.get(`${serverUrl}/system_settings/note`).then(response => {
                 if ("userPromptReady" in response.data) {
-                    userPromptReady.current = defaultUserPromptReady + " (" + response.data.userPromptReady + ")";
+                    userPromptReady.current = defaultUserPromptReady + (response.data?.userPromptReady ? " (" + response.data.userPromptReady + ")" : "");
                     setPromptPlaceholder(userPromptReady.current);
                 }
                 console.log("Note system settings", response.data);

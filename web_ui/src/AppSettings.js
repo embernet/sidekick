@@ -93,10 +93,14 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
     setReEnteredNewPassword(event.target.value);
   };
 
-  const handleCancelPasswordChange = () => {
+  const resetChangePasswordFields = () => {
     setCurrentPassword('');
     setNewPassword('');
     setReEnteredNewPassword('');
+  };
+
+  const handleCancelPasswordChange = () => {
+    resetChangePasswordFields();
     setTabIndex(0);
   };
 
@@ -107,6 +111,7 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
   const handleChangePassword = async () => {
     if (newPassword !== reEnteredNewPassword) {
         system.error('Failed to change passwords: New passwords do not match.');
+        resetChangePasswordFields();
         return;
     }
     axios.post(`${serverUrl}/change_password`,
@@ -120,8 +125,7 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
                 Authorization: 'Bearer ' + token
             }
         }).then(response => {
-            setCurrentPassword('');
-            setNewPassword('');
+            resetChangePasswordFields();
             console.log("handleChangePassword response: ", response);
             response.data.access_token && setToken(response.data.access_token);
             if (response.data.success) {
@@ -130,9 +134,7 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
                 system.error(`Error changing password.`, response.data.message);
             }
         }).catch(error => {
-            setCurrentPassword('');
-            setNewPassword('');
-            setReEnteredNewPassword('');
+            resetChangePasswordFields();
             system.error("System Error changing password.", error);
         }
     );
