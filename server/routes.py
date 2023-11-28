@@ -2,7 +2,6 @@ import os
 import json
 import requests
 import socket
-import openai
 import uuid
 import sseclient
 
@@ -99,7 +98,6 @@ def test_server_up():
 @app.route('/health/ai', methods=['GET'])
 def test_ai():
     increment_server_stat(category="requests", stat_name="healthAi")
-    openai.verify_ssl_certs = False
     try:
         url = 'https://api.openai.com/v1/chat/completions'
         headers = {
@@ -477,85 +475,7 @@ You always do your best to generate text in the same style as the context text p
     return ai_response_json
 
 
-# Route to chat with the AI
-@app.route('/chat/v1', methods=['POST'])
-@jwt_required()
-def chat_v1():
-    message_usage = {}
-    app.logger.info(f"/chat/v1 POST request from:{request.remote_addr}")
-    app.logger.debug("/chat/v1 request:\n" + json.dumps(request.json, indent=4))
-    increment_server_stat(category="requests", stat_name="chatV1")
-    document = DBUtils.save_chat(user_id=get_jwt_identity(),
-                                 type="chats",
-                                 chat=request)
-
-    ai_request = construct_ai_request(request)
-    try:
-        increment_server_stat(category="usage", stat_name="promptCharacters", increment=num_characters_from_messages(ai_request["messages"]))
-        completion = openai.chat.completions.create(**ai_request)
-        ai_response = completion.choices[0]["message"]["content"]
-        chat_response = [
-            {
-                "role": "user",
-                "content": request.json["prompt"],
-                "metadata": { "usage": completion.usage.prompt_tokens }
-            },
-            {
-                "role": "assistant",
-                "content": ai_response,
-                "metadata": { "usage": completion.usage.completion_tokens }
-            }
-        ]
-        increment_server_stat(category="usage", stat_name="completionCharacters", increment=len(chat_response))
-        document["content"]["chat"].append(chat_response)
-        increment_server_stat(category="responses", stat_name="chatV1")
-        app.logger.debug(f"openai response: {completion}")
-        if app.config["SIDEKICK_COUNT_TOKENS"]:
-            increment_server_stat(category="usage", stat_name="promptTokens", increment=completion.usage.prompt_tokens)
-            increment_server_stat(category="usage", stat_name="completionTokens", increment=completion.usage.completion_tokens)
-            increment_server_stat(category="usage", stat_name="totalTokens", increment=completion.usage.total_tokens)
-            # Usage is metadata about the chat rather than the document that contains the chat, so it goes in the content
-            message_usage = {
-                "prompt_tokens": completion.usage.prompt_tokens,
-                "completion_tokens": completion.usage.completion_tokens,
-                "total_tokens": completion.usage.total_tokens,
-            }
-        if "usage" not in document["content"]:
-            document["content"]["usage"] = message_usage
-        else:
-            document["content"]["usage"].append(message_usage)
-    except Exception as e:
-        log_exception(e)
-        ai_response = str(e)
-        chat_response = [
-            {
-                "role": "user",
-                "content": request.json["prompt"],
-                "metadata": { "usage": 0 }
-            },
-            {
-                "role": "assistant",
-                "content": ai_response,
-                "metadata": { "usage": 0 }
-            }
-        ]
-
-    system_response = { **document }
-    system_response["chat_response"] = chat_response
-    app.logger.debug("document[content]" + document["content"])
-    DBUtils.update_document(id=document["metadata"]["id"],
-                            name=document["metadata"]["name"],
-                            tags=document["metadata"]["tags"],
-                            properties={},
-                            content=document["content"])
-    system_response_json = jsonify(system_response)
-    app.logger.debug("/chat/v1 response:\n" +
-                     json.dumps(system_response, indent=4))
-    return system_response_json
-
-
 chat_streams = {}  # to hold the mapping from our stream id to the OpenAI stream id
-
 
 # Route to chat with the AI using the OpenAI streaming interface
 CHATV2_ROUTE = '/chat/v2'
