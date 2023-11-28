@@ -548,7 +548,7 @@ def chat_v2():
         url = 'https://api.openai.com/v1/chat/completions'
         headers = {
             'content-type': 'application/json; charset=utf-8',
-            'Authorization': f"Bearer {openai.api_key}"
+            'Authorization': f"Bearer {app.config['OPENAI_API_KEY']}"
         }
         ai_request = construct_ai_request(request)
         ai_request["stream"] = True
@@ -568,7 +568,6 @@ def chat_v2():
         increment_server_stat(category="responses", stat_name="chatV2")
 
         client = sseclient.SSEClient(response)
-        app.logger.debug(f"{CHATV2_ROUTE} Begin processing received SSE stream")
         for event in client.events():
             if app.config["SIDEKICK_COUNT_TOKENS"]:
                 # The streaming interface does not provide the number of tokens used
