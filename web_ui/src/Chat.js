@@ -559,7 +559,7 @@ const Chat = ({
                 // Use AI to name the chat
                 const ai = new AI(serverUrl, token, setToken, system);
                 let generatedName = await ai.nameTopic(requestData.prompt);
-                if (generatedName && generatedName !== "") { setName(generatedName); }
+                if (generatedName && generatedName !== "" && name === newChatName) { setName(generatedName); }
             } catch (err) {
                 system.error("System Error auto-naming chat", err, "ai.nameTopic");
             }
