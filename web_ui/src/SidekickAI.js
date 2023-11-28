@@ -2,7 +2,7 @@ import { debounce } from "lodash";
 import axios from 'axios'
 import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Tabs, Tab, Box, Toolbar, IconButton, Typography, TextField,
-    List, ListItem, Menu, MenuItem, Tooltip } from '@mui/material';
+    List, ListItem, Menu, MenuItem, Tooltip, FormControl } from '@mui/material';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
 import ReactMarkdown from 'react-markdown';
@@ -170,7 +170,28 @@ const SidekickAI = ({
 
     const showReady = () => {
         setPromptPlaceholder(userPromptReady);
-        document.getElementById("chat-prompt")?.focus();
+    
+        const inputField = document.getElementById("sidekick-ai-prompt");
+        if (inputField) {
+            if (inputField.disabled) {
+                // Create a MutationObserver to watch for changes to the 'disabled' attribute
+                const observer = new MutationObserver((mutationsList, observer) => {
+                    for(let mutation of mutationsList) {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'disabled') {
+                            if (!inputField.disabled) {
+                                inputField.focus();
+                                observer.disconnect();
+                            }
+                        }
+                    }
+                });
+    
+                // Start observing the input field with the configured parameters
+                observer.observe(inputField, { attributes: true });
+            } else {
+                inputField.focus();
+            }
+        }
     }
 
     const showWaiting = () => {
@@ -550,9 +571,11 @@ const SidekickAI = ({
                 </Tooltip>
             </Box>
         </SecondaryToolbar>
-        <TextField 
-            sx={{ width: "100%", mt: "auto"}}
+        <FormControl>
+            <TextField 
+                sx={{ width: "100%", mt: "auto"}}
                 id="sidekick-ai-prompt"
+                name="sidekick-ai-prompt"
                 multiline 
                 variant="outlined" 
                 value={sidekickAIPrompt} 
@@ -560,7 +583,8 @@ const SidekickAI = ({
                 onKeyDown={handleSendToSidekickAI}
                 placeholder={promptPlaceholder}
                 disabled={streamingChatResponse !== ""}
-        />
+            />
+        </FormControl>
     </Box>
 </Card>;
     return ( sidekickAIOpen ? render : null )
