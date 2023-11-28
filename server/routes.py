@@ -100,28 +100,36 @@ def test_server_up():
 def test_ai():
     increment_server_stat(category="requests", stat_name="healthAi")
     openai.verify_ssl_certs = False
-    openai_health = {}
     try:
-        completion = openai.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are an AI that has just run a self-test."},
-                {
-                    "role": "user",
-                    "content": "Give me an update on your status. Do not ask any "
-                                "questions or offer any help."}],
-            temperature=0.9
-        )
-        app.logger.debug(completion.choices[0].message.content)
-        openai_health["success"] = True
-        openai_health["status"] = "UP"
-        openai_health["ai_response"] = completion.choices[0].message.content
-        openai_health["timestamp"] = datetime.now().isoformat()
+        url = 'https://api.openai.com/v1/chat/completions'
+        headers = {
+            'content-type': 'application/json; charset=utf-8',
+            'Authorization': f"Bearer {app.config['OPENAI_API_KEY']}"
+        }
+        ai_request = {
+            "model": "gpt-3.5-turbo",
+            "temperature": 0.9,
+            "messages": [
+                {"role": "system", "content": "You are an AI that has "
+                                              "just run a self-test."},
+                {"role": "user",
+                 "content": "Give me an update on your status. "
+                            "Do not ask any questions or offer any help."}]
+            }
+        proxy_url = app.config["OPENAI_PROXY"]
+        proxies = {"http": proxy_url,
+                   "https": proxy_url} if proxy_url else None
+        response = requests.post(url, headers=headers, proxies=proxies,
+                                 data=json.dumps(ai_request))
+        app.logger.debug(response.json()["choices"][0]["message"]["content"])
+        openai_health = {
+            "success": True,
+            "status": "UP",
+            "timestamp": datetime.now().isoformat(),
+            "ai_response": response.json()["choices"][0]["message"]["content"]
+        }
     except:
-        openai_health["success"] = False
-        openai_health["status"] = "DOWN"
+        openai_health = {"success": False, "status": "DOWN"}
         return app.response_class(
             response=json.dumps(openai_health),
             status=500,
@@ -132,7 +140,6 @@ def test_ai():
         status=200,
         mimetype='application/json'
     )
-
 
 @app.route('/feedback', methods=['POST'])
 @jwt_required()
@@ -422,23 +429,40 @@ You always do your best to generate text in the same style as the context text p
     ai_request = construct_query_ai_request(request)
     try:
         increment_server_stat(category="usage", stat_name="promptCharacters", increment=num_characters_from_messages(ai_request["messages"]))
-        completion = openai.chat.completions.create(**ai_request)
-        generated_text = completion.choices[0]["message"]["content"]
+        url = 'https://api.openai.com/v1/chat/completions'
+        headers = {
+            'content-type': 'application/json; charset=utf-8',
+            'Authorization': f"Bearer {app.config['OPENAI_API_KEY']}"
+        }
+        message_usage["prompt_characters"] = num_characters_from_messages(
+            ai_request["messages"])
+        proxy_url = app.config["OPENAI_PROXY"]
+        proxies = {"http": proxy_url,
+                   "https": proxy_url} if proxy_url else None
+        response = requests.post(url, headers=headers, proxies=proxies,
+                                 data=json.dumps(ai_request))
+        generated_text = response.json()["choices"][0]["message"]["content"]
         increment_server_stat(category="usage", stat_name="completionCharacters", increment=len(generated_text))
         ai_response = {
             "success": True,
             "generated_text": generated_text
         }
-        app.logger.debug(f"openai response: {completion}")
+        app.logger.debug(f"openai response: {generated_text}")
+        response_usage = response.json()["usage"]
         if app.config["SIDEKICK_COUNT_TOKENS"]:
-            increment_server_stat(category="usage", stat_name="promptTokens", increment=completion.usage.prompt_tokens)
-            increment_server_stat(category="usage", stat_name="completionTokens", increment=completion.usage.completion_tokens)
-            increment_server_stat(category="usage", stat_name="totalTokens", increment=completion.usage.total_tokens)
+            increment_server_stat(category="usage",
+                                  stat_name="promptTokens",
+                                  increment=response_usage["prompt_tokens"])
+            increment_server_stat(category="usage",
+                                  stat_name="completionTokens",
+                                  increment=response_usage["completion_tokens"])
+            increment_server_stat(category="usage", stat_name="totalTokens",
+                                  increment=response_usage["total_tokens"])
             # Usage is metadata about the chat rather than the document that contains the chat, so it goes in the content
             message_usage = {
-                "prompt_tokens": completion.usage.prompt_tokens,
-                "completion_tokens": completion.usage.completion_tokens,
-                "total_tokens": completion.usage.total_tokens,
+                "prompt_tokens": response_usage["prompt_tokens"],
+                "completion_tokens": response_usage["completion_tokens"],
+                "total_tokens": response_usage["total_tokens"],
             }
         ai_response["usage"] = message_usage
     except Exception as e:
@@ -612,7 +636,7 @@ def chat_v2_cancel(id):
     url = 'https://api.openai.com/v1/chat/completions' + '/' + id
     headers = {
         'content-type': 'application/json; charset=utf-8',
-        'Authorization': f"Bearer {openai.api_key}"
+        'Authorization': f"Bearer {app.config['OPENAI_API_KEY']}"
     }
     response = requests.delete(url, headers=headers, data=json.dumps({}))
     app.logger.debug(f"/chat/v2/cancel/{id} response: {response}")
