@@ -22,6 +22,15 @@ def increment_server_stat(category, stat_name, increment=1):
         server_stats[category] = {}
     server_stats[category][stat_name] = server_stats[category].get(stat_name, 0) + increment
 
+def num_characters_from_messages(messages):
+    """Return the number of characters used by a list of messages."""
+    num_characters = 0
+    for message in messages:
+        for key, value in message.items():
+            num_characters += len(value)
+    return num_characters
+    
+    
 
 def openai_num_tokens_from_messages(messages, model="gpt-3.5-turbo-0613"):
     """Return the number of tokens used by a list of messages.
