@@ -564,35 +564,7 @@ const Chat = ({
                 system.error("System Error auto-naming chat", err, "ai.nameTopic");
             }
         }
-
-        // Send the chat history and prompt using the streaming/non-streaming API
-        // based on what the user selected in ModelSettings
-        switch (chatStreamingOn) {
-            case false:
-                setStreamingChatResponse("Waiting for response...");
-                axios.post(`${serverUrl}/chat/v1`, requestData, {
-                    headers: {
-                        Authorization: 'Bearer ' + token
-                      }
-                })
-                .then((response) => {
-                    console.log("/chat response", response);
-                    setStreamingChatResponse("");
-                    response.data.access_token && setToken(response.data.access_token);
-                    appendMessage(response.data.chat_response[1]); // 1 is the assistant message, 0 is the user message
-                    showReady();
-                })
-                .catch((error) => {
-                    console.log(error);
-                    appendMessage({"role": "assistant", "content": error, "metadata": {"error": true}});
-                    showReady();
-                });
-                break;
-            default:
-            case true:
-                getChatStream(requestData);
-                break;
-        }
+        getChatStream(requestData);
     }
 
     const handleSend = (event) => {
