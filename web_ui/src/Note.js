@@ -664,6 +664,12 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 label="Note name"
                 variant="outlined"
                 value={name}
+                onClick={(event) => {
+                        if (name === newNoteName) {
+                        event.target.select();
+                        }
+                    }
+                }
                 onKeyDown={
                     (event) => {
                         if(event.key === 'Enter') {
