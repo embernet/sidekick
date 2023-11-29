@@ -219,7 +219,7 @@ function Login({setUser, serverUrl, setToken}) {
       filenameExtension=".png" altText="Sidekick logo"
       transitions="8" cycleTime="250" />
       <Box sx={{ flex: 1 }}>
-      {system.serverUp ? ui : <Typography variant="h5" color="error">Server not available. Please try later.</Typography>}
+      {system.serverUp ? ui : system.serverPinged ? <Typography variant="h5" color="error">Server not available. Please try later.</Typography> : null}
       </Box>
     </Box>
   );

@@ -30,6 +30,7 @@ export const SystemProvider = ({ serverUrl, setStatusUpdates, children }) => {
 
   const [system, setSystem] = useState({
     serverUp: false,
+    serverPinged: false,
     checkServerUp: () => {
       const pingUrl = `${serverUrl}/ping`;
       axios.get(pingUrl).then(response => {
@@ -37,12 +38,14 @@ export const SystemProvider = ({ serverUrl, setStatusUpdates, children }) => {
         setSystem((prevSystem) => ({
           ...prevSystem,
           serverUp: true,
+          serverPinged: true,
         }));
       }).catch(error => {
           system.error("System Error contacting server.", error, pingUrl);
           setSystem((prevSystem) => ({
             ...prevSystem,
             serverUp: false,
+            serverPinged: true,
           }));
         });
     },
@@ -50,6 +53,7 @@ export const SystemProvider = ({ serverUrl, setStatusUpdates, children }) => {
       setSystem((prevSystem) => ({
         ...prevSystem,
         serverUp: state,
+        serverPinged: true,
       }));
     },
     error: (message, error=undefined, context="") => {
