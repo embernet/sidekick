@@ -289,7 +289,10 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     const save = () => {
         console.log("save", id, name, content);
         if (id === "") {
-            create({name: name, content: content});
+            // only save if there is content or the name has been changed
+            if (name !== newNoteName || content !== "") {
+                create({name: name, content: content});
+            }
         } else {
             if (noteInstantiated.current && saveStatus.current === "changed") {
                 const request = {
