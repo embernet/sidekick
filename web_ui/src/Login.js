@@ -13,7 +13,7 @@ function Login({setUser, serverUrl, setToken}) {
   const [tabIndex, setTabIndex] = useState(0);
   const [pageLoaded, setPageLoaded] = useState(false);
   const loginPasswordRef = useRef(null);
-  const [systemSettings, setSystemSettings] = useState({});
+  const [systemSettings, setSystemSettings] = useState(null);
   const [loginMode, setLoginMode] = useState('none'); // set to oidc, token, or local in [pageLoaded] useEffect
 
   const containerStyle = {
@@ -51,7 +51,9 @@ function Login({setUser, serverUrl, setToken}) {
       console.log("Login custom settings:", response);
       return response.data;
     }).catch(error => {
+      system.setServerUp(false);
       console.error("Error getting login custom settings:", error);
+      system.error("System Error: Server not available. Please try later.", error);
     });
     return response;
   }
@@ -132,6 +134,7 @@ function Login({setUser, serverUrl, setToken}) {
       }
     })
     .catch((error) => {
+        system.setServerUp(false);
         system.error(`System Error: Server not available. Please try later.`, error);
     });
   }, [pageLoaded]);
@@ -153,6 +156,7 @@ function Login({setUser, serverUrl, setToken}) {
       }
     })
     .catch((error) => {
+      system.setServerUp(false);
       system.error(`System Error: Server not available. Please try later.`, error, url + " POST");
     });
   }
@@ -199,7 +203,7 @@ function Login({setUser, serverUrl, setToken}) {
       <Button onClick={loginWithOidc} default>Login with Single Sign-On</Button>
       <Box variant="body3" color="text.secondary" 
         sx={{ textAlign: "center", width: "700px", height: "200px", overflow: "auto", whiteSpace: 'pre-line' }}>
-        { (systemSettings?.preLogin?.message) ? systemSettings.preLogin.oidcMessage : null}
+        { (systemSettings?.preLogin?.oidcMessage) ? systemSettings.preLogin.oidcMessage : null}
       </Box>
     </Box>
   </>
@@ -219,7 +223,7 @@ function Login({setUser, serverUrl, setToken}) {
       filenameExtension=".png" altText="Sidekick logo"
       transitions="8" cycleTime="250" />
       <Box sx={{ flex: 1 }}>
-      {system.serverUp ? ui : system.serverPinged ? <Typography variant="h5" color="error">Server not available. Please try later.</Typography> : null}
+      {system.serverUp && systemSettings ? ui : system.serverPinged ? <Typography variant="h5" color="error">Server not available. Please try later.</Typography> : null}
       </Box>
     </Box>
   );
