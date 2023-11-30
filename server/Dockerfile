@@ -11,4 +11,4 @@ COPY default_documents ./default_documents
 COPY default_settings ./default_settings
 COPY system_settings ./system_settings
 COPY migrations ./migrations
-CMD ["gunicorn", "--bind", "0.0.0.0:80", "app:app"]
+CMD ["gunicorn", "--worker-class", "gevent", "--bind", "0.0.0.0:80", "app:app", "--timeout", "120", "--workers", "4", "--threads", "4"]
