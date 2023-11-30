@@ -12,9 +12,6 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
-      
-      - name: List env
-        run: env
 
       - name: Log in to Docker Hub
         run: |
@@ -22,11 +19,11 @@ jobs:
       
       - name: Build Server Image
         run: |
-          docker build -tag ${{ vars.DOCKER_ORG }}/sidekick-server:latest server/
+          docker build --tag ${{ vars.DOCKER_ORG }}/sidekick-server:latest server/
 
       - name: Build Web UI Image
         run: |
-          docker build -tag ${{ vars.DOCKER_ORG }}/sidekick-web-ui:latest web_ui/
+          docker build --tag ${{ vars.DOCKER_ORG }}/sidekick-web-ui:latest web_ui/
       
       - name: Push Server Image
         run: |
