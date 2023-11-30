@@ -1,0 +1,33 @@
+name: Publish Docker images
+
+on:
+  push:
+    branches: [actions]
+
+jobs:
+  push_to_dockerhub:
+    name: Push Docker images to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+      
+      - name: Log in to Docker Hub
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+      
+      - name: Build Server Image
+        run: |
+          docker build -tag ${{ env.DOCKER_ORG }}/sidekick-server:latest server/
+
+      - name: Build Web UI Image
+        run: |
+          docker build -tag ${{ env.DOCKER_ORG }}/sidekick-web-ui:latest web_ui/
+      
+      - name: Push Server Image
+        run: |
+          docker push ${{ env.DOCKER_ORG }}/sidekick-server:latest
+
+      - name: Push Web UI Image
+        run: |
+          docker push ${{ env.DOCKER_ORG }}/sidekick-web-ui:latest
