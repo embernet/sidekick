@@ -12,12 +12,12 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v4
       
+      - name: List env
+        run: env
+        
       - name: Log in to Docker Hub
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
-          docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
       
       - name: Build Server Image
         run: |
