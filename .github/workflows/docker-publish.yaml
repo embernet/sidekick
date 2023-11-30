@@ -7,6 +7,7 @@ on:
 jobs:
   push_to_dockerhub:
     name: Push Docker images to Docker Hub
+    environment: release
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
@@ -14,23 +15,23 @@ jobs:
       
       - name: List env
         run: env
-        
+
       - name: Log in to Docker Hub
         run: |
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
       
       - name: Build Server Image
         run: |
-          docker build -tag ${{ env.DOCKER_ORG }}/sidekick-server:latest server/
+          docker build -tag ${{ vars.DOCKER_ORG }}/sidekick-server:latest server/
 
       - name: Build Web UI Image
         run: |
-          docker build -tag ${{ env.DOCKER_ORG }}/sidekick-web-ui:latest web_ui/
+          docker build -tag ${{ vars.DOCKER_ORG }}/sidekick-web-ui:latest web_ui/
       
       - name: Push Server Image
         run: |
-          docker push ${{ env.DOCKER_ORG }}/sidekick-server:latest
+          docker push ${{ vars.DOCKER_ORG }}/sidekick-server:latest
 
       - name: Push Web UI Image
         run: |
-          docker push ${{ env.DOCKER_ORG }}/sidekick-web-ui:latest
+          docker push ${{ vars.DOCKER_ORG }}/sidekick-web-ui:latest
