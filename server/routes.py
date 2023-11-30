@@ -66,7 +66,7 @@ def health():
             except TypeError:
                 pass
         return app.response_class(
-            response=json.dumps(health_response, indent=4, cls=OrderedEncoder),
+            response=json.dumps(health_response, indent=4, sort_keys=True, cls=OrderedEncoder),
             status=200,
             mimetype='application/json'
         )
@@ -356,8 +356,10 @@ def name_topic():
             'Authorization': f"Bearer {app.config['OPENAI_API_KEY']}"
         }
         ai_request = construct_name_topic_request(request)
-        message_usage["prompt_characters"] = num_characters_from_messages(ai_request["messages"])
-        increment_server_stat(category="usage", stat_name="promptCharacters", increment=num_characters_from_messages(ai_request["messages"]))
+        promptCharacters = num_characters_from_messages(ai_request["messages"])
+        message_usage["prompt_characters"] = promptCharacters
+        increment_server_stat(category="usage", stat_name="promptCharacters", increment=promptCharacters)
+        increment_server_stat(category="usage", stat_name="totalCharacters", increment=promptCharacters)
         proxy_url = app.config["OPENAI_PROXY"]
         proxies = {"http": proxy_url,
                    "https": proxy_url} if proxy_url else None
@@ -366,6 +368,7 @@ def name_topic():
         topic_name = response.json()["choices"][0]["message"]["content"]
         message_usage["completion_characters"] = len(topic_name)
         increment_server_stat(category="usage", stat_name="completionCharacters", increment=len(topic_name))
+        increment_server_stat(category="usage", stat_name="totalCharacters", increment=len(topic_name))
         if "\n" in topic_name:
             topic_name = topic_name.split("\n", 1)[0]  # if there are multiple lines, just use the first one
         topic_name = topic_name.strip('"\'').lstrip('- ').rstrip(':')
@@ -426,7 +429,9 @@ You always do your best to generate text in the same style as the context text p
                      json.dumps(request.json, indent=4))
     ai_request = construct_query_ai_request(request)
     try:
-        increment_server_stat(category="usage", stat_name="promptCharacters", increment=num_characters_from_messages(ai_request["messages"]))
+        promptCharacters = num_characters_from_messages(ai_request["messages"])
+        increment_server_stat(category="usage", stat_name="promptCharacters", increment=promptCharacters)
+        increment_server_stat(category="usage", stat_name="totalCharacters", increment=promptCharacters)
         url = 'https://api.openai.com/v1/chat/completions'
         headers = {
             'content-type': 'application/json; charset=utf-8',
@@ -441,6 +446,7 @@ You always do your best to generate text in the same style as the context text p
                                  data=json.dumps(ai_request))
         generated_text = response.json()["choices"][0]["message"]["content"]
         increment_server_stat(category="usage", stat_name="completionCharacters", increment=len(generated_text))
+        increment_server_stat(category="usage", stat_name="totalCharacters", increment=len(generated_text))
         ai_response = {
             "success": True,
             "generated_text": generated_text
@@ -496,7 +502,9 @@ def chat_v2():
         }
         ai_request = construct_ai_request(request)
         ai_request["stream"] = True
-        increment_server_stat(category="usage", stat_name="promptCharacters", increment=num_characters_from_messages(ai_request["messages"]))
+        promptCharacters = num_characters_from_messages(ai_request["messages"])
+        increment_server_stat(category="usage", stat_name="promptCharacters", increment=promptCharacters)
+        increment_server_stat(category="usage", stat_name="totalCharacters", increment=promptCharacters)
         if app.config["SIDEKICK_COUNT_TOKENS"]:
             try:
                 prompt_tokens = openai_num_tokens_from_messages(ai_request["messages"], ai_request["model"])
@@ -526,6 +534,7 @@ def chat_v2():
                     if 'content' in delta:
                         text = delta['content']
                         increment_server_stat(category="usage", stat_name="completionCharacters", increment=len(text))
+                        increment_server_stat(category="usage", stat_name="totalCharacters", increment=len(text))
                         yield (text)
                     elif 'role' in delta:
                         # discard

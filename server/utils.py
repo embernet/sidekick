@@ -27,7 +27,7 @@ def num_characters_from_messages(messages):
     num_characters = 0
     for message in messages:
         for key, value in message.items():
-            num_characters += len(value)
+            num_characters += len(key) + len(value)
     return num_characters
     
     
