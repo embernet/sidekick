@@ -926,6 +926,12 @@ const Chat = ({
                 label="Chat name"
                 variant="outlined"
                 value={name}
+                onClick={(event) => {
+                        if (name === newChatName) {
+                        event.target.select();
+                        }
+                    }
+                }
                 onKeyDown={
                     (event) => {
                         if(event.key === 'Enter') {

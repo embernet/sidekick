@@ -18,7 +18,8 @@ pyyaml = "==6.0.1"
 gunicorn = "==21.2.0"
 psycopg2-binary = "*"
 pytest = "7.4.2"
-tiktoken = "*"
+tiktoken = "0.5.1"
+gevent = "23.9.1"
 
 [dev-packages]
 
