@@ -12,6 +12,7 @@ import FavouriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 import { SystemContext } from './SystemContext';
 import { StyledToolbar } from './theme';
@@ -135,6 +136,16 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
             return acc;
         }, {});
         setPersona(defaultPersona);
+        setFocusOnPrompt(true);
+    }
+
+    const handleSelectNoPersona = () => {
+        setPersona({
+            name: "No Persona",
+            tags: [],
+            description: "Uses a blank system prompt so the model responds purely based on its pre-trained knowledge and the user prompt.",
+            system_prompt: ""
+        });
         setFocusOnPrompt(true);
     }
 
@@ -295,6 +306,16 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
         <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
             <PersonIcon/>
             <Typography sx={{mr:2}}>Personas</Typography>
+            <Tooltip title={ persona.system_prompt === "" ? "No persona selected" : "Select no persona" }>
+                <span>
+                    <IconButton edge="start" color="inherit" aria-label="Set persona to 'None'"
+                        disabled={//disable if persona already set to 'None'
+                            persona.system_prompt === ""}
+                        onClick={handleSelectNoPersona}>
+                        <CancelIcon/>
+                    </IconButton>
+                </span>
+            </Tooltip>
             <Tooltip title={ persona?.default ? "Default persona selected" : "Select default persona" }>
                 <span>
                     <IconButton edge="start" color="inherit" aria-label="Set default persona"
