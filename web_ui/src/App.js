@@ -53,7 +53,7 @@ import { theme } from './theme';
 
 import StatusBar from './StatusBar';
 
-const VERSION = "0.1.3";
+const VERSION = "0.1.4";
 
 function App() {
   const system = useContext(SystemContext);

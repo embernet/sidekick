@@ -962,7 +962,7 @@ const Chat = ({
             <List id="message-list">
                 {messages && messages.map((message, index) => (
                     <ListItem key={index}>
-                        <div onContextMenu={(event) => { handleMessageContextMenu(event, message, index); }}>
+                        <div style={{width:'100%'}} onContextMenu={(event) => { handleMessageContextMenu(event, message, index); }}>
                             <Card sx={{ 
                                 padding: 2, 
                                 width: "100%", 
@@ -974,7 +974,7 @@ const Chat = ({
                                 {
                                     markdownRenderingOn
                                     ?
-                                        <SidekickMarkdown markdown={message.content}/>
+                                        <SidekickMarkdown  markdown={message.content}/>
                                     :
                                         <Typography sx={{ whiteSpace: 'pre-wrap' }}>
                                             {message.content}

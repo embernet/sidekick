@@ -25,35 +25,35 @@ const SidekickMarkdown = ({ markdown }) => {
                 const endIndex = codeRegex.lastIndex;
                 const before = markdown.slice(lastIndex, startIndex);
                 const after = markdown.slice(endIndex);
-                renderedMarkdown.push(<ReactMarkdown key={lastIndex} sx={{ whiteSpace: 'pre-wrap' }}>{before}</ReactMarkdown>);
+                renderedMarkdown.push(<ReactMarkdown key={lastIndex} sx={{ width: "100%", whiteSpace: 'pre-wrap' }}>{before}</ReactMarkdown>);
                 renderedMarkdown.push(
-                <Card key={startIndex} sx={{ height: "fit-content" }}>
+                <Card key={startIndex} sx={{ width: "100%", height: "fit-content" }}>
                     <Toolbar className={ClassNames.toolbar}>
                         <Typography sx={{ mr: 2 }}>{language}</Typography>
-                        <Box sx={{ display: "flex", flexDirection: "row", ml: "auto" }}>
+                        <Box sx={{ display: "flex", width: "100%", flexDirection: "row", ml: "auto" }}>
                             <IconButton edge="start" color="inherit" aria-label="menu"
                             onClick={() => { navigator.clipboard.writeText(code); }}>
                             <ContentCopyIcon/>
                             </IconButton>
                         </Box>
                     </Toolbar>
-                    <SyntaxHighlighter language={language} style={docco}>
+                    <SyntaxHighlighter customStyle={{ width: "100%", whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }} language={language} wrapLines={true} style={docco}>
                     {code}
                     </SyntaxHighlighter>
                 </Card>
                 );
                 lastIndex = codeRegex.lastIndex;
                 if (lastIndex === markdown.length) {
-                renderedMarkdown.push(<ReactMarkdown key={lastIndex} sx={{ whiteSpace: 'pre-wrap' }}>{after}</ReactMarkdown>);
+                renderedMarkdown.push(<ReactMarkdown key={lastIndex} sx={{ width: "100%", whiteSpace: 'pre-wrap' }}>{after}</ReactMarkdown>);
                 }
             }
             if (lastIndex < markdown.length) {
-                renderedMarkdown.push(<ReactMarkdown key={lastIndex} sx={{ whiteSpace: 'pre-wrap' }}>{markdown.slice(lastIndex)}</ReactMarkdown>);
+                renderedMarkdown.push(<ReactMarkdown key={lastIndex} sx={{ width: "100%", whiteSpace: 'pre-wrap' }}>{markdown.slice(lastIndex)}</ReactMarkdown>);
             }
-            return <>{renderedMarkdown}</>;
+            return <Box sx={{ width: "100%" }}>{renderedMarkdown}</Box>;
         } catch (err) {
             system.error(`System Error rendering markdown.`, err, "Rendering markdown");
-            return <Typography sx={{ whiteSpace: 'pre-wrap' }}>{markdown}</Typography>;
+            return <Typography sx={{ width: "100%", whiteSpace: 'pre-wrap' }}>{markdown}</Typography>;
         }
     };
     if (!markdown) {
