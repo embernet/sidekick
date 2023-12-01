@@ -11,6 +11,7 @@ import FavouriteIcon from '@mui/icons-material/Favorite';
 import FavouriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
+import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
 
 import { SystemContext } from './SystemContext';
 import { StyledToolbar } from './theme';
@@ -125,6 +126,17 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
         setPersona(persona);
         setFocusOnPrompt(true);
     };
+
+    const handleSelectDefaultPersona = () => {
+        const defaultPersona = Object.entries(myPersonas).reduce((acc, [key, value]) => {
+            if (value.default) {
+                acc = { name: key, ...value };
+            }
+            return acc;
+        }, {});
+        setPersona(defaultPersona);
+        setFocusOnPrompt(true);
+    }
 
     const handleSetAsDefault = (event) => {
         event.stopPropagation();
@@ -283,6 +295,17 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
         <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
             <PersonIcon/>
             <Typography sx={{mr:2}}>Personas</Typography>
+            <Tooltip title={ persona?.default ? "Default persona selected" : "Select default persona" }>
+                <span>
+                    <IconButton edge="start" color="inherit" aria-label="Set default persona"
+                        disabled={//disable if there is no default persona or if the current persona is the default
+                            !Object.entries(myPersonas).some(([key, value]) => value.default) ||
+                            persona.default}
+                        onClick={handleSelectDefaultPersona}>
+                        <SettingsBackupRestoreIcon/>
+                    </IconButton>
+                </span>
+            </Tooltip>
             <Box ml="auto">
                 <Tooltip title={ expanded ? "Hide details" : "Show details" }>
                     <IconButton onClick={handleExpandCollapse} color="inherit" aria-label="expand">
