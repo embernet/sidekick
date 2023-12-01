@@ -37,7 +37,7 @@ const SidekickMarkdown = ({ markdown }) => {
                             </IconButton>
                         </Box>
                     </Toolbar>
-                    <SyntaxHighlighter customStyle={{ width: "100%", whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }} language={language} wrapLines={true} style={docco}>
+                    <SyntaxHighlighter sx={{ width: "100%" }} lineProps={{style: {wordBreak: 'break-all', whiteSpace: 'pre-wrap'}}} language={language} wrapLines={true} style={docco}>
                     {code}
                     </SyntaxHighlighter>
                 </Card>
