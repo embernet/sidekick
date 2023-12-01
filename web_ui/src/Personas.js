@@ -23,7 +23,6 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
     const [filterText, setFilterText] = useState('');
     const [expanded, setExpanded] = useState(false);
     const [expandedPersona, setExpandedPersona] = useState(null);
-    const [timeoutId, setTimeoutId] = useState(null);
     const [personaContextMenu, setPersonaContextMenu] = useState(null);
     const [personasLoaded, setPersonasLoaded] = useState(false);
     const [loadingPersonasMessage, setLoadingPersonasMessage] = useState("Loading personas...");
@@ -92,17 +91,6 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
 
     const handleToggleFavouriteFilter = () => {
         setFilterByFavourite(!filterByFavourite);
-    };
-    const handlePersonaMouseEnter = (persona) => {
-        const id = setTimeout(() => {
-            setExpandedPersona(persona);
-        }, 1000);
-        setTimeoutId(id);
-    };
-
-    const handlePersonaMouseLeave = () => {
-        clearTimeout(timeoutId);
-        setExpandedPersona(null);
     };
 
     const handleExpandCollapse = () => {
@@ -204,8 +192,6 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
                 sx={{ padding: 1, cursor: "pointer" }}
                 key={persona.name}
                 onClick={() => { handleSelectPersona(persona); }}
-                onMouseEnter={() => { handlePersonaMouseEnter(persona.name); }}
-                onMouseLeave={handlePersonaMouseLeave}
                 >
                         <Card
                             sx={{ padding:2, paddingTop: 1, paddingBottom:1, 
@@ -214,26 +200,48 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
                             <ListItemText
                                 primary={
                                     <Typography sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                        <span>
+                                        <Typography>
                                             {persona.name.charAt(0).toUpperCase() + persona.name.slice(1)}
                                             {persona.default && <Typography sx={{ ml:2 }} variant="caption">(default)</Typography>}
-                                        </span>
-                                            {persona.favourite ? (
-                                                <FavouriteIcon
-                                                    onClick={(event) => {
-                                                        event.stopPropagation();
-                                                        handleToggleFavourite(persona);
-                                                    }}
-                                                />
-                                                ) : (
-                                                    <FavouriteBorderIcon
-                                                    onClick={(event) => {
-                                                        event.stopPropagation();
-                                                        handleToggleFavourite(persona);
-                                                    }}
-                                                    />
-                                                )
+                                        </Typography>
+                                        <Box ml="auto">
+                                            {!expanded && 
+                                                <Tooltip sx={{mr:1}} title={expandedPersona === persona.name ? "Hide details" : "Show details"}>
+                                                    {expandedPersona === persona.name
+                                                        ? <CompressIcon
+                                                            onClick={(event) => {
+                                                                event.stopPropagation();
+                                                                setExpandedPersona(null);
+                                                            }}
+                                                        />
+                                                        : <ExpandIcon
+                                                            onClick={(event) => {
+                                                                event.stopPropagation();
+                                                                setExpandedPersona(persona.name);
+                                                            }}
+                                                        />
+                                                    }
+                                                </Tooltip>
                                             }
+                                            <Tooltip title={persona.favourite ? "Remove from favourites" : "Add to favourites"}>
+                                                {persona.favourite ? (
+                                                    <FavouriteIcon
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            handleToggleFavourite(persona);
+                                                        }}
+                                                    />
+                                                    ) : (
+                                                        <FavouriteBorderIcon
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            handleToggleFavourite(persona);
+                                                        }}
+                                                        />
+                                                    )
+                                                }
+                                            </Tooltip>
+                                        </Box>
                                     </Typography>
                                 }
                                 secondary={
