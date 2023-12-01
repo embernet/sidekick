@@ -6,6 +6,7 @@ import { ClassNames } from "@emotion/react";
 import PersonIcon from '@mui/icons-material/Person';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandIcon from '@mui/icons-material/Expand';
+import CompressIcon from '@mui/icons-material/Compress';
 import FavouriteIcon from '@mui/icons-material/Favorite';
 import FavouriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import PushPinIcon from '@mui/icons-material/PushPin';
@@ -277,7 +278,7 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
             <Box ml="auto">
                 <Tooltip title={ expanded ? "Hide details" : "Show details" }>
                     <IconButton onClick={handleExpandCollapse} color="inherit" aria-label="expand">
-                        <ExpandIcon/>
+                        { expanded ? <CompressIcon/> : <ExpandIcon/> }
                     </IconButton>
                 </Tooltip>
                 <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
