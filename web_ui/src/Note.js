@@ -12,6 +12,8 @@ import ReplayIcon from '@mui/icons-material/Replay';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import CodeIcon from '@mui/icons-material/Code';
 import CodeOffIcon from '@mui/icons-material/CodeOff';
+import OpenInFullIcon from '@mui/icons-material/OpenInFull';
+import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
@@ -33,9 +35,11 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     marginRight: theme.spacing(2),
   }));
 
-const Note = ({noteOpen, setNoteOpen, appendNoteContent, loadNote, createNote,
+const Note = ({noteOpen, setNoteOpen, appendNoteContent, loadNote, createNote, 
+    closeOtherPanels, restoreOtherPanels, windowMaximized, setWindowMaximized,
     setNewPromptPart, setNewPrompt, setChatRequest, onChange, setOpenNoteId, serverUrl, token, setToken, maxWidth}) => {
 
+    const noteRef = useRef(null);
     const newNoteName = "New Note";
     const systemPrompt = `You are DocumentGPT.
 You take CONTEXT_TEXT from a document along with a REQUEST to generate more text to include in the document.
@@ -274,6 +278,10 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
             });
         }
     }, [promptToSend]);
+
+    useEffect(() => {
+        noteRef?.current?.scrollIntoView({ behavior: 'instant' });
+    }, [windowMaximized]);
 
     const showReady = () => {
         setPromptDisabled(false);
@@ -605,6 +613,25 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         setInAILibrary(x => !x);
     };
 
+    const handleToggleWindowMaximise = () => {
+        let x = !windowMaximized;
+        if (x) {
+            // pass this function so if another window is opened, this one can be unmaximised
+            closeOtherPanels();
+        } else {
+            restoreOtherPanels();
+        }
+        setWindowMaximized(x);
+    }
+
+    const handleClose = () => {
+        if (windowMaximized) {
+            handleToggleWindowMaximise();
+        }
+        save();
+        setNoteOpen(false);
+    }
+
     const aiToolbarButtons = (<>
         <Tooltip title={ "Download note" }>
             <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleDownload}>
@@ -618,7 +645,9 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         </Tooltip>
     </>);
 
-    const render = <Card id="note-panel" sx={{display: "flex", flexDirection: "column", padding: "6px", margin: "6px", height: "calc(100%-64px)", minWidth: "400px", maxWidth: maxWidth ? maxWidth : "600px", flex: 1 }}>
+    const render = <Card id="note-panel" ref={noteRef}
+                    sx={{display: "flex", flexDirection: "column", padding: "6px", margin: "6px", height: "calc(100%-64px)", 
+                        width: windowMaximized ? "calc(100vw - 12px)" : null, minWidth: "500px", maxWidth: windowMaximized ? null : maxWidth ? maxWidth : "600px", flex: 1 }}>
     <StyledToolbar className={ClassNames.toolbar} sx={{ width: "100%", gap: 1 }} >
         <EditNoteIcon/>
         <Typography sx={{mr:2}}>Note</Typography>
@@ -643,13 +672,18 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         </Tooltip>
         <Box ml="auto">
             <Tooltip title={ "Delete note" }>
-                <IconButton edge="start" color="inherit" aria-label="delete note"
+                <IconButton edge="end" color="inherit" aria-label="delete note"
                     onClick={handleDeleteNote}
                 >
                     <DeleteIcon/>
                 </IconButton>
             </Tooltip>
-            <IconButton onClick={() => { setNoteOpen(false) }}>
+            <Tooltip title={ windowMaximized ? "Shrink window" : "Expand window" }>
+                <IconButton edge="end" color="inherit" aria-label={ windowMaximized ? "Shrink window" : "Expand window" } onClick={handleToggleWindowMaximise}>
+                    { windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }
+                </IconButton>
+            </Tooltip>
+            <IconButton onClick={handleClose}>
                 <CloseIcon />
             </IconButton>
         </Box>

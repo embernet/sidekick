@@ -109,6 +109,9 @@ function App() {
   const [appSettings, setAppSettings] = useState({});
   const [appMenuAnchorEl, setAppMenuAnchorEl] = useState(null);
   const [statusUpdates, setStatusUpdates] = useState([]);
+  const [noteWindowMaximized, setNoteWindowMaximized] = useState(false);
+  const [chatWindowMaximized, setChatWindowMaximized] = useState(false);
+
   const mySettingsManager = useRef(null);
 
   const applyCustomSettings = () => {
@@ -208,14 +211,21 @@ function App() {
     }
   }, [appendNoteContent]);
 
+  const unmaximiseWindows = () => {
+    setNoteWindowMaximized(false);
+    setChatWindowMaximized(false);
+  }
+
   const handleToggleAppSettingsOpen = (event) => {
+    unmaximiseWindows();
     if (!appSettingsOpen) {
-      closeUnpinnedLeftSideWindows(event);
-    }
+        closeUnpinnedLeftSideWindows(event);
+      }
     setAppSettingsOpen(state => !state);
   }
 
   const handleToggleAdminOpen = (event) => {
+    unmaximiseWindows();
     if (!adminOpen) {
       closeUnpinnedLeftSideWindows(event);
     }
@@ -288,6 +298,7 @@ function App() {
   }
 
   const handleToggleChatsOpen = (event) => {
+    unmaximiseWindows();
     if (chatsOpen) {
       setChatsPinned(false);
       setChatsOpen(false);
@@ -298,6 +309,7 @@ function App() {
   }
 
   const handleToggleSidekickAIOpen = (event) => {  
+    unmaximiseWindows();
     if (sidekickAIOpen) {
       setSidekickAIPinned(false);
       setSidekickAIOpen(false);
@@ -308,6 +320,7 @@ function App() {
   }
 
   const handleTogglePromptEngineerOpen = (event) => {
+    unmaximiseWindows();
     if (promptEngineerOpen) {
       setPromptEngineerPinned(false);
       setPromptEngineerOpen(false);
@@ -318,6 +331,7 @@ function App() {
   }
 
   const handleTogglePersonasOpen = (event) => {
+    unmaximiseWindows();
     if (personasOpen) {
       setPersonasPinned(false);
       setPersonasOpen(false);
@@ -328,6 +342,7 @@ function App() {
   }
 
   const handleToggleModelSettingsOpen = (event) => {
+    unmaximiseWindows();
     if (modelSettingsOpen) {
       setModelSettingsPinned(false);
       setModelSettingsOpen(false);
@@ -338,14 +353,17 @@ function App() {
   }
 
   const handleToggleChatOpen = () => {
+    unmaximiseWindows();
     setChatOpen(state => !state);
   }
 
   const handleToggleNoteOpen = () => {
+    unmaximiseWindows();
     setNoteOpen(state => !state);
   }
 
   const handleToggleNotesOpen = (event) => {
+    unmaximiseWindows();
     if (notesOpen) {
       setNotesPinned(false);
       setNotesOpen(false);
@@ -413,6 +431,75 @@ function App() {
   const handleAppMenuClose = () => {
     setAppMenuAnchorEl(null);
   };
+
+  const [savedWindowStates, setSavedWindowStates] = useState({});
+
+  const saveWindowStates = () => {
+    setSavedWindowStates({
+      sidekickAIOpen: sidekickAIOpen,
+      sidekickAIPinned: sidekickAIPinned,
+      chatsOpen: chatsOpen,
+      chatsPinned: chatsPinned,
+      modelSettingsOpen: modelSettingsOpen,
+      modelSettingsPinned: modelSettingsPinned,
+      personasOpen: personasOpen,
+      personasPinned: personasPinned,
+      promptEngineerOpen: promptEngineerOpen,
+      promptEngineerPinned: promptEngineerPinned,
+      chatOpen: chatOpen,
+      noteOpen: noteOpen,
+      notesOpen: notesOpen,
+      notesPinned: notesPinned,
+      appSettingsOpen: appSettingsOpen,
+      adminOpen: adminOpen
+    });  
+  }
+
+  const restoreWindowStates = () => {
+    setSidekickAIOpen(savedWindowStates.sidekickAIOpen);
+    setSidekickAIPinned(savedWindowStates.sidekickAIPinned);
+    setChatsOpen(savedWindowStates.chatsOpen);
+    setChatsPinned(savedWindowStates.chatsPinned);
+    setModelSettingsOpen(savedWindowStates.modelSettingsOpen);
+    setModelSettingsPinned(savedWindowStates.modelSettingsPinned);
+    setPersonasOpen(savedWindowStates.personasOpen);
+    setPersonasPinned(savedWindowStates.personasPinned);
+    setPromptEngineerOpen(savedWindowStates.promptEngineerOpen);
+    setPromptEngineerPinned(savedWindowStates.promptEngineerPinned);
+    setChatOpen(savedWindowStates.chatOpen);
+    setNoteOpen(savedWindowStates.noteOpen);
+    setNotesOpen(savedWindowStates.notesOpen);
+    setNotesPinned(savedWindowStates.notesPinned);
+    setAppSettingsOpen(savedWindowStates.appSettingsOpen);
+    setAdminOpen(savedWindowStates.adminOpen);
+  }
+
+  const closePanelsOtherThanNote = () => {
+    saveWindowStates();
+    setSidekickAIOpen(false);
+    setChatsOpen(false);
+    setModelSettingsOpen(false);
+    setPersonasOpen(false);
+    setPromptEngineerOpen(false);
+    setChatOpen(false);
+    setNotesOpen(false);
+    setAppSettingsOpen(false);
+    setAdminOpen(false);
+  }
+
+  const closePanelsOtherThanChat = () => {
+    saveWindowStates();
+    setSidekickAIOpen(false);
+    setChatsOpen(false);
+    setModelSettingsOpen(false);
+    setPersonasOpen(false);
+    setPromptEngineerOpen(false);
+    setNoteOpen(false);
+    setNotesOpen(false);
+    setAppSettingsOpen(false);
+    setAdminOpen(false);
+  }
+
 
   const appInfo =
     <Box display="flex">
@@ -636,6 +723,8 @@ function App() {
                   provider = {provider}
                   modelSettings={modelSettings} 
                   persona={persona} 
+                  closeOtherPanels={closePanelsOtherThanChat}
+                  restoreOtherPanels={restoreWindowStates}
                   newPromptPart={newPromptPart}
                   newPrompt={newPrompt} 
                   newPromptTemplate={newPromptTemplate}
@@ -645,6 +734,8 @@ function App() {
                   setFocusOnPrompt={setFocusOnPrompt}
                   chatRequest={chatRequest}
                   chatOpen={chatOpen}
+                  windowMaximized={chatWindowMaximized}
+                  setWindowMaximized={setChatWindowMaximized}
                   setChatOpen={setChatOpen}
                   temperatureText={temperatureText}
                   setTemperatureText={setTemperatureText}
@@ -665,10 +756,14 @@ function App() {
                   />
               <Note 
                 noteOpen={noteOpen}
+                windowMaximized={noteWindowMaximized}
+                setWindowMaximized={setNoteWindowMaximized}
                 setNoteOpen={setNoteOpen} 
                 appendNoteContent={appendNoteContent} 
                 loadNote={loadNote} 
                 createNote={createNote}
+                closeOtherPanels={closePanelsOtherThanNote}
+                restoreOtherPanels={restoreWindowStates}
                 setNewPromptPart={setNewPromptPart}
                 setNewPrompt={setNewPrompt}
                 setChatRequest={setChatRequest}

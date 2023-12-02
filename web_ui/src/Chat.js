@@ -10,6 +10,8 @@ import { ClassNames } from "@emotion/react";
 import { InputLabel, FormHelperText, FormControl, Select } from '@mui/material';
 
 // Icons
+import OpenInFullIcon from '@mui/icons-material/OpenInFull';
+import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 import CloseIcon from '@mui/icons-material/Close';
 import CommentIcon from '@mui/icons-material/Comment';
 import AddCommentIcon from '@mui/icons-material/AddComment';
@@ -43,12 +45,14 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
 
 const Chat = ({
     provider, modelSettings, persona, 
+    closeOtherPanels, restoreOtherPanels, windowMaximized, setWindowMaximized,
     newPromptPart, newPrompt, newPromptTemplate, loadChat, setAppendNoteContent,
     focusOnPrompt, setFocusOnPrompt, chatRequest, chatOpen, setChatOpen,
     temperatureText, setTemperatureText, modelSettingsOpen, toggleModelSettingsOpen, togglePersonasOpen,
     onChange, personasOpen, promptEngineerOpen, togglePromptEngineerOpen, setOpenChatId, shouldAskAgainWithPersona, serverUrl, token, setToken,
     streamingChatResponse, setStreamingChatResponse, chatStreamingOn, maxWidth }) => {
 
+    const chatRef = useRef(null);
     const newChatName = "New Chat"
 
     const [width, setWidth] = useState(0);
@@ -288,6 +292,10 @@ const Chat = ({
             sendPrompt(promptToSend.prompt);
         }
     }, [promptToSend]);
+
+    useEffect(() => {
+        chatRef?.current?.scrollIntoView({ behavior: 'instant' });
+    }, [windowMaximized]);
 
     useEffect(()=>{
         if (myShouldAskAgainWithPersona) {
@@ -722,6 +730,11 @@ const Chat = ({
         setMessageContextMenu(null);
     };
 
+    const handleClose = () => {
+        setChatOpen(false);
+        setWindowMaximized(false);
+    }
+
     const messagesAs = (format="markdown") => {
         let text = "";
         messages.forEach((message) => {
@@ -849,6 +862,17 @@ const Chat = ({
         }
     }
 
+    const handleToggleWindowMaximise = () => {
+        let x = !windowMaximized;
+        if (x) {
+            // pass this function so if another window is opened, this one can be unmaximised
+            closeOtherPanels();
+        } else {
+            restoreOtherPanels();
+        }
+        setWindowMaximized(x);
+    }
+
     const handleloadKnowledgeToAi = (event) => {
         const noteStub = event.target.value;
         if (noteStub && noteStub.id) {
@@ -886,7 +910,9 @@ const Chat = ({
         }
     }
 
-    const render = <Card id="chat-panel" sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "400px", maxWidth: maxWidth ? maxWidth : "600px" }}>
+    const render = <Card id="chat-panel" ref={chatRef}
+                    sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, 
+                    width: windowMaximized ? "calc(100vw - 12px)" : null, minWidth: "500px", maxWidth: windowMaximized ? null : maxWidth ? maxWidth : "600px" }}>
     <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
         <CommentIcon/>
         <Typography sx={{mr:2}}>Chat</Typography>
@@ -910,8 +936,13 @@ const Chat = ({
                     <DeleteIcon/>
                 </IconButton>
             </Tooltip>
+            <Tooltip title={ windowMaximized ? "Shrink window" : "Expand window" }>
+                <IconButton edge="end" color="inherit" aria-label={ windowMaximized ? "Shrink window" : "Expand window" } onClick={handleToggleWindowMaximise}>
+                    { windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }
+                </IconButton>
+            </Tooltip>
             <Tooltip title="Close window">
-                <IconButton onClick={() => { setChatOpen(false); }}>
+                <IconButton onClick={handleClose}>
                     <CloseIcon />
                 </IconButton>
             </Tooltip>
