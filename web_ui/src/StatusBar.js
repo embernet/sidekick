@@ -68,17 +68,17 @@ const StatusBar = ({ statusUpdates }) => {
 
     return (
         <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: grey[100] }}>
-        <Typography variant="caption" component="span"
-            sx={{ cursor: statusUpdates.length > 0 ? 'pointer' : 'default', margin: '2px', padding: '2px', borderRadius: '4px', width: '100%' }}
-            ref={statusRef}
-            onClick={handleStatusClick}
-            style={{ color: displayMessage !== ''
-                    ? statusColor(statusUpdates.length && statusUpdates[statusUpdates.length - 1].type)
-                    : statusColor('default')
-            }}
-        >
-            {displayMessage !== '' ? displayMessage : dateTimeString}
-        </Typography>
+            <Typography variant="caption" component="span"
+                sx={{ cursor: statusUpdates.length > 0 ? 'pointer' : 'default', margin: '2px', padding: '2px', borderRadius: '4px', width: '100%' }}
+                ref={statusRef}
+                onClick={handleStatusClick}
+                style={{ color: displayMessage !== ''
+                        ? statusColor(statusUpdates.length && statusUpdates[statusUpdates.length - 1].type)
+                        : statusColor('default')
+                }}
+            >
+                {displayMessage !== '' ? displayMessage : dateTimeString}
+            </Typography>
         <Popover
             open={popoverOpen}
             anchorEl={statusRef.current}

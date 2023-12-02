@@ -29,6 +29,7 @@ import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
 
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
+import TextStatsDisplay from './TextStatsDisplay';
 import AI from './AI';
 
 
@@ -86,6 +87,9 @@ const Chat = ({
     const [lastPrompt, setLastPrompt] = useState("");
     const [promptToSend, setPromptToSend] = useState(false);
     const [messages, setMessages] = useState([]);
+    const [promptCount, setPromptCount] = useState(0);
+    const [responseCount, setResponseCount] = useState(0);
+    const [messagesSize, setMessagesSize] = useState(0);
     const [myModelSettings, setMyModelSettings] = useState({});
     const [myPersona, setMyPersona] = useState({});
     const [previousPersona, setPreviousPersona] = useState({});
@@ -104,9 +108,12 @@ const Chat = ({
     const [folder, setFolder] = useState("chats");
     const [tags, setTags] = useState([]);
     const [myServerUrl, setMyServerUrl] = useState(serverUrl);
+    const [promptLength, setPromptLength] = useState(0);
 
     // AI Library state
     const [aiLibrary, setAiLibrary] = useState([]);
+    const [selectedAiLibraryFullText, setSelectedAiLibraryFullText] = useState("");
+    const [selectedAiLibraryFullTextSize, setSelectedAiLibraryFullTextSize] = useState(0);
     const [selectedAiLibraryNotes, setSelectedAiLibraryNotes] = useState({});
     const [selectedAiLibraryNoteId, setSelectedAiLibraryNoteId] = useState("");
     const [aiLibraryOpen, setAiLibraryOpen] = useState(false);
@@ -179,6 +186,21 @@ const Chat = ({
                 create();
             }
         }
+        // recalculate prompt and response counts
+        let promptCount = 0;
+        let responseCount = 0;
+        let messagesSize = 0;
+        messages.forEach((message) => {
+            messagesSize += (message?.role?.length || 0) + (message?.content?.length || 0);
+            if (message.role === "user") {
+                promptCount++;
+            } else if (message.role === "assistant") {
+                responseCount++;
+            }
+        });
+        setPromptCount(promptCount);
+        setResponseCount(responseCount);
+        setMessagesSize(messagesSize);
     }, [messages]);
 
     useEffect(()=>{
@@ -209,6 +231,10 @@ const Chat = ({
         setPromptFocus();
         setFocusOnPrompt(false);
     }, [focusOnPrompt]);
+
+    useEffect(()=>{
+        updateAiLibraryFullText();
+    }, [selectedAiLibraryNotes]);
 
     useEffect(()=>{
         if (chatRequest) {
@@ -311,6 +337,7 @@ const Chat = ({
     }, [shouldAskAgainWithPersona]);
 
     useEffect(()=>{
+        setPromptLength(prompt.length);
         setPromptFocus();
     }, [prompt]);
 
@@ -497,6 +524,8 @@ const Chat = ({
                         var {value, done} = await reader.read();
                         if (value) { 
                             streamingChatResponseRef.current += value;
+                            let numChars = value.length;
+                            setMessagesSize(x => x + numChars);
                             setStreamingChatResponse(streamingChatResponseRef.current);
                         }
                         if (done || stopStreamingRef.current) {
@@ -525,20 +554,30 @@ const Chat = ({
 
     }, [stopStreamingRef.current]);
 
+    const updateAiLibraryFullText = () => {
+        let fullText = "";
+        let notesSize = 0;
+        Object.values(selectedAiLibraryNotes).forEach((note) => {
+            fullText += "KNOWLEDGE_ARTICLE_TITLE:" + note.metadata.name + "\nKNOWLEDGE_ARTICLE_CONTENT:\n" + note.content.note + "\n\n";
+            notesSize += note.content.note.length;
+        });
+        setSelectedAiLibraryFullText(fullText);
+        setSelectedAiLibraryFullTextSize(notesSize);
+    }
+
     const sendPrompt = async (prompt) => {
         // setup as much of the request as we can before calling appendMessage
         // as that will wait for any re-rendering and the id could change in that time
-        let knowledge = "";
-        for (const [id, note] of Object.entries(selectedAiLibraryNotes)) {
-            knowledge += "KNOWLEDGE_NAME:" + note.metadata.name + "\nKNOWLEDGE_CONTENT:\n" + note.content.note + "\n\n";
-        }
-        if (knowledge !== "") {
-            knowledge = "Given the following knowledge:\n\n" + knowledge + "\n\nRespond to this prompt:\n\n";
+        let knowledgePrompt = "";
+        if (selectedAiLibraryFullText !== "") {
+            knowledgePrompt = "Given the following knowledge articles:\n\n" + selectedAiLibraryFullText + 
+            `\n\nRespond to the following prompt (if there is not enough information in the knowledge articles to
+            respond then say so and give your best response):\n\n`;
         }
         let requestData = {
             model_settings: myModelSettings,
             system_prompt: systemPrompt,
-            prompt: knowledge + prompt,
+            prompt: knowledgePrompt + prompt,
             id: id,
             name: name,
             persona: myPersona,
@@ -1142,18 +1181,22 @@ const Chat = ({
                         Prompt Engineer
                     </Button>
                 </Tooltip>
+                <Tooltip title="Number of characters in prompt">
+                    <TextStatsDisplay name="Prompt" sizeInCharacters={promptLength} />
+                </Tooltip>
             </Paper>
             { aiLibraryOpen ? 
                 <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: grey[100] }}>
                     <Box sx={{ mt: 2, display: "flex", flexDirection: "column", width: "100%" }}>
-                        <FormLabel>Loaded knowledge: { Object.keys(selectedAiLibraryNotes).length === 0 ? "None" : ""}</FormLabel>
+                        <FormLabel>Loaded knowledge: { Object.keys(selectedAiLibraryNotes).length === 0 ? "None" : ""} <TextStatsDisplay name="AI Library" sizeInCharacters={selectedAiLibraryFullTextSize} /></FormLabel>
                         <List dense sx={{ width: "100%", overflow: "auto", maxHeight: "100px" }}>
                             {Object.values(selectedAiLibraryNotes).map(note =>(
                                 <ListItem 
                                     key={"loaded-ai-knowledge-" + note.metadata.id}
                                     secondaryAction={
                                         <Tooltip title={ "Unload knowledge from AI" }>
-                                            <IconButton edge="end" aria-label="Unload knowledge from AI" onClick={() => {handleUnloadKnowledgeFromAi(note.metadata.id)}}>
+                                            <IconButton edge="end" aria-label="Unload knowledge from AI"
+                                                onClick={() => {handleUnloadKnowledgeFromAi(note.metadata.id)}}>
                                                 <CloseIcon />
                                             </IconButton>
                                         </Tooltip>
@@ -1210,6 +1253,15 @@ const Chat = ({
                     </Box>
                 </Paper> : null
             }
+            <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 2, backgroundColor: grey[100] }}>
+                <Typography color="textSecondary">Prompts: {promptCount}</Typography>
+                <Typography color="textSecondary">Responses: {responseCount}</Typography>
+                <Typography color="textSecondary">K-Notes: { Object.keys(selectedAiLibraryNotes).length }</Typography>
+                <Typography color="textSecondary">Total size: <Tooltip title="Number of characters in prompt">
+                        <TextStatsDisplay name="prompt + context" sizeInCharacters={messagesSize + promptLength + selectedAiLibraryFullTextSize} />
+                    </Tooltip>
+                </Typography>
+            </Paper>
         </Box>
     </Box>
 </Card>;
