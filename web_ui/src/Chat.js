@@ -53,7 +53,11 @@ const Chat = ({
     onChange, personasOpen, promptEngineerOpen, togglePromptEngineerOpen, setOpenChatId, shouldAskAgainWithPersona, serverUrl, token, setToken,
     streamingChatResponse, setStreamingChatResponse, chatStreamingOn, maxWidth }) => {
 
-    const chatRef = useRef(null);
+    const chatWindowRef = useRef(null);
+    const chatMessagesContainerRef = useRef(null);
+    const chatMessagesRef = useRef(null);
+    const streamingChatResponseCardRef = useRef(null);
+
     const newChatName = "New Chat"
 
     const [width, setWidth] = useState(0);
@@ -320,7 +324,7 @@ const Chat = ({
     }, [promptToSend]);
 
     useEffect(() => {
-        chatRef?.current?.scrollIntoView({ behavior: 'instant' });
+        chatWindowRef?.current?.scrollIntoView({ behavior: 'instant' });
     }, [windowMaximized]);
 
     useEffect(()=>{
@@ -399,12 +403,22 @@ const Chat = ({
             }
         }
     }, [loadChat]);
+
+    useEffect(()=>{
+        // Auto-scroll during chat streaming unless the user scrolls
+        const chatMessagesBottom = chatMessagesContainerRef.current.scrollTop + chatMessagesContainerRef.current.clientHeight;
+        const streamingChatResponseCardBottom = chatMessagesRef.current.offsetTop + chatMessagesRef.current.clientHeight;        
+        const isScrolledOffBottom = streamingChatResponseCardBottom - chatMessagesBottom > 300;
+        if (!isScrolledOffBottom) {
+            streamingChatResponseCardRef.current?.scrollIntoView({ behavior: 'instant', block: 'end' });
+        }
+    }, [streamingChatResponse]);
     
     const appendMessage = (message) => {
         setMessages(prevMessages => [...prevMessages, message]);
         setChatOpen(true);
         setTimeout(() => {
-            document.getElementById("message-list")?.lastChild?.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
+            chatMessagesRef.current?.scrollIntoView({ behavior: "instant", block: "end" });
         }, 0);
     }
 
@@ -949,7 +963,7 @@ const Chat = ({
         }
     }
 
-    const render = <Card id="chat-panel" ref={chatRef}
+    const render = <Card id="chat-panel" ref={chatWindowRef}
                     sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, 
                     width: windowMaximized ? "calc(100vw - 12px)" : null, minWidth: "500px", maxWidth: windowMaximized ? null : maxWidth ? maxWidth : "600px" }}>
     <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
@@ -1028,11 +1042,11 @@ const Chat = ({
                 </Tooltip>
             </Toolbar>
         </Box>
-        <Box sx={{ overflow: 'auto', flex: 1, minHeight: "300px" }}>
-            <List id="message-list">
+        <Box sx={{ overflow: 'auto', flex: 1, minHeight: "300px" }} ref={chatMessagesContainerRef}>
+            <List id="message-list" ref={chatMessagesRef}>
                 {messages && messages.map((message, index) => (
                     <ListItem key={index}>
-                        <div style={{width:'100%'}} onContextMenu={(event) => { handleMessageContextMenu(event, message, index); }}>
+                        <Box style={{width:'100%'}} onContextMenu={(event) => { handleMessageContextMenu(event, message, index); }}>
                             <Card sx={{ 
                                 padding: 2, 
                                 width: "100%", 
@@ -1082,18 +1096,19 @@ const Chat = ({
                                 <MenuItem onClick={handleDeleteThisAndPreviousMessage}>Delete this and previous message</MenuItem>
                                 <MenuItem onClick={handleDeleteAllMessages}>Delete all messages</MenuItem>
                             </Menu>
-                        </div>
+                        </Box>
                     </ListItem>
                 ))}
-                {streamingChatResponse && streamingChatResponse !== "" && <ListItem id="streamingChatResponse">
-                    <Card sx={{ 
+                {streamingChatResponse && streamingChatResponse !== "" && 
+                <ListItem id="streamingChatResponse">
+                    <Card id="streaming-response-message" sx={{ 
                         padding: 2, 
                         width: "100%", 
                         backgroundColor: "lightyellow",
                         cursor: "default",
                     }}
                     >
-                        <Typography sx={{ whiteSpace: 'pre-wrap' }}>
+                        <Typography sx={{ whiteSpace: 'pre-wrap' }} ref={streamingChatResponseCardRef}>
                             {streamingChatResponse}
                         </Typography>
                     </Card>
