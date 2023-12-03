@@ -13,7 +13,9 @@ import { BrowserRouter } from 'react-router-dom';
 import useToken from './useToken';
 import { useEffect, useState } from 'react';
 import { CssBaseline, Box, AppBar, Toolbar, IconButton, Typography, Tooltip } from '@mui/material';
-import { ThemeProvider } from '@mui/material/styles';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { styled } from '@mui/system';
+
 import { Menu, MenuItem } from '@mui/material';
 
 // Import icons
@@ -24,6 +26,8 @@ import AddCommentIcon from '@mui/icons-material/AddComment';
 import PersonIcon from '@mui/icons-material/Person';
 import TuneIcon from '@mui/icons-material/Tune';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
 import SettingsIcon from '@mui/icons-material/Settings';
 import BuildIcon from '@mui/icons-material/Build';
 import NotesIcon from '@mui/icons-material/Notes';
@@ -34,6 +38,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import HelpIcon from '@mui/icons-material/Help';
+import { red, pink, purple, deepPurple, indigo, blue, lightBlue, cyan, teal, green, lightGreen, lime, yellow, amber, orange, deepOrange, brown, grey, blueGrey } from '@mui/material/colors';
 
 
 import Chat from './Chat';
@@ -48,14 +53,11 @@ import FeedbackButton from './FeedbackButton';
 import AppSettings from './AppSettings';
 import Admin from './Admin';
 import SidekickAI from './SidekickAI';
-
-import { theme } from './theme';
-
 import StatusBar from './StatusBar';
 
 const VERSION = "0.1.4";
 
-function App() {
+const App = () => {
   const system = useContext(SystemContext);
   const { token, removeToken, setToken } = useToken();
   const [sidekickAIOpen, setSidekickAIOpen] = useState(false);
@@ -111,6 +113,59 @@ function App() {
   const [statusUpdates, setStatusUpdates] = useState([]);
   const [noteWindowMaximized, setNoteWindowMaximized] = useState(false);
   const [chatWindowMaximized, setChatWindowMaximized] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+
+  const theme = createTheme({
+    palette: {
+      mode: darkMode ? 'dark' : 'light',
+      primary: {
+        main: darkMode ? '#1A94E3' : '#2AA4F3',
+      },
+      secondary: {
+        main: darkMode ? '#76CAE7' : '#86DAF7',
+      },
+      error: {
+        main: '#f44336',
+      },
+      warning: {
+        main: darkMode ? '#ff9800' : '#ffa726',
+      },
+      info: {
+        main: darkMode ? '#2196f3' : '#64b5f6',
+      },
+      success: {
+        main: darkMode ? '#4caf50' : '#81c784',
+      },
+      background: {
+        default: darkMode ? '#333333' : '#ffffff',
+        paper: darkMode ? '#111111' : '#ffffff',
+      },
+      text: {
+        primary: darkMode ? '#ffffff' : '#000000',
+        secondary: darkMode ? '#cccccc' : '#000000',
+      },
+      link: {
+        main: darkMode ? '#8886fc' : '#6200ee',
+      },
+    },
+    typography: {
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontSize: 14,
+      fontWeightLight: 300,
+      fontWeightRegular: 400,
+      fontWeightMedium: 500,
+      fontWeightBold: 700,
+    },
+  });
+
+  const StyledToolbar = styled(Toolbar)(({ theme }) => ({
+    backgroundColor: theme.palette.secondary.main,
+    gap: 2,
+  }));
+  
+  const handleToggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
 
   const mySettingsManager = useRef(null);
 
@@ -555,6 +610,9 @@ function App() {
                   <MenuItem key="menuOpenCloseNotes" onClick={() => { handleAppMenuClose(); handleToggleNotesOpen(); }}>
                     <FolderIcon/><Typography  sx={{ ml: 1 }}>{notesOpen ? "Notes - Close Notes" : "Notes - Open Notes"}</Typography>
                   </MenuItem>
+                  <MenuItem key="menuDarkMode" onClick={() => { handleAppMenuClose(); handleToggleDarkMode(); }}>
+                    { darkMode ? <LightModeIcon/> : <DarkModeIcon/> }<Typography  sx={{ ml: 1 }}>{ darkMode ? "Switch to Light Mode" : "Switch to Dark Mode" }</Typography>
+                  </MenuItem>
                   { user?.is_oidc ? null : <MenuItem key="menuAppSettings" onClick={() => { handleAppMenuClose(); handleToggleAppSettingsOpen(); }}>
                     <SettingsIcon/><Typography  sx={{ ml: 1 }}>{ appSettingsOpen ? "Settings - Close App Settings" : "Settings - Open App Setings" }</Typography>
                   </MenuItem> }
@@ -619,11 +677,19 @@ function App() {
                 <FeedbackButton icon={<RateReviewIcon/>} serverUrl={serverUrl} token={token} setToken={setToken}>
                     <RateReviewIcon/>
                 </FeedbackButton>
-                { user?.is_oidc ? null : <Tooltip title={ appSettingsOpen ? "Close App Settings" : "Open App Setings" }>
-                  <IconButton edge="end" color="inherit" aria-label="Settings" onClick={handleToggleAppSettingsOpen}>
-                    <SettingsIcon/>
-                  </IconButton>
-                </Tooltip> }
+                <Tooltip title={ darkMode ? "Switch to Light Mode" : "Switch to Dark Mode" }>
+                    <IconButton edge="end" color="inherit" aria-label={ darkMode ? "Light mode" : "Dark mode" } onClick={handleToggleDarkMode}>
+                      { darkMode ? <LightModeIcon/> : <DarkModeIcon/> }
+                    </IconButton>
+                  </Tooltip>
+                { user?.is_oidc
+                  ? null
+                  : <Tooltip title={ appSettingsOpen ? "Close App Settings" : "Open App Setings" }>
+                      <IconButton edge="end" color="inherit" aria-label="Settings" onClick={handleToggleAppSettingsOpen}>
+                        <SettingsIcon/>
+                      </IconButton>
+                    </Tooltip>
+                }
                 <Tooltip title="Logout">
                   <IconButton edge="end" color="inherit" aria-label="Logout" onClick={handleLogout}>
                     <LogoutIcon/>
@@ -641,6 +707,7 @@ function App() {
               setWindowPinnedOpen = {setSidekickAIPinned}
               chatStreamingOn={chatStreamingOn} 
               serverUrl={serverUrl} token={token} setToken={setToken}
+              darkMode={darkMode}
             />
             { user?.properties?.roles?.admin && adminOpen ? <Admin 
               adminOpen={adminOpen}
@@ -648,6 +715,7 @@ function App() {
               user={user}
               setUser={setUser}
               serverUrl={serverUrl} token={token} setToken={setToken}
+              darkMode={darkMode}
             /> : null }
             <AppSettings 
               appSettingsOpen={appSettingsOpen}
@@ -655,6 +723,7 @@ function App() {
               user={user}
               setUser={setUser}
               serverUrl={serverUrl} token={token} setToken={setToken}
+              darkMode={darkMode}
             />
             { chatsOpen ? <Explorer
             handleToggleExplorer={handleToggleChatsOpen}
@@ -671,6 +740,7 @@ function App() {
             windowPinnedOpen = {chatsPinned}
             setWindowPinnedOpen = {setChatsPinned}
             deleteEnabled={true}
+            darkMode={darkMode}
             serverUrl={serverUrl} token={token} setToken={setToken}
             /> : null }
             <ModelSettings 
@@ -686,6 +756,7 @@ function App() {
             serverUrl={serverUrl} token={token} setToken={setToken}
             chatStreamingOn={chatStreamingOn}
             setChatStreamingOn={setChatStreamingOn}
+            darkMode={darkMode}
             />
             <Personas 
             handleTogglePersonas={handleTogglePersonasOpen} 
@@ -699,6 +770,7 @@ function App() {
             setShouldAskAgainWithPersona={setShouldAskAgainWithPersona}
             serverUrl={serverUrl} token={token} setToken={setToken}
             streamingChatResponse={streamingChatResponse}
+            darkMode={darkMode}
             />
             { promptEngineerOpen ? 
               <PromptEngineer
@@ -716,6 +788,7 @@ function App() {
                 promptTemplateOpen={promptTemplateOpen}
                 settingsManager={new SettingsManager(serverUrl, token, setToken)}
                 serverUrl={serverUrl} token={token} setToken={setToken}
+                darkMode={darkMode}
                 />
               : null }
               <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "center", flex: 1 }}>
@@ -737,6 +810,7 @@ function App() {
                   windowMaximized={chatWindowMaximized}
                   setWindowMaximized={setChatWindowMaximized}
                   setChatOpen={setChatOpen}
+                  darkMode={darkMode}
                   temperatureText={temperatureText}
                   setTemperatureText={setTemperatureText}
                   modelSettingsOpen={modelSettingsOpen}
@@ -762,6 +836,7 @@ function App() {
                 appendNoteContent={appendNoteContent} 
                 loadNote={loadNote} 
                 createNote={createNote}
+                darkMode={darkMode}
                 closeOtherPanels={closePanelsOtherThanNote}
                 restoreOtherPanels={restoreWindowStates}
                 setNewPromptPart={setNewPromptPart}
@@ -788,6 +863,7 @@ function App() {
               itemOpen={openNoteId} // tell the explorer which note is open
               setItemOpen={setNoteOpen}
               deleteEnabled={true}
+              darkMode={darkMode}
               serverUrl={serverUrl} token={token} setToken={setToken}
               /> : null}
         </Box>
@@ -811,7 +887,7 @@ const loginRender =
           <Box sx={{display:"flex", flexDirection:"row", flex:"1",
           overflowY:"hidden", overflow:"auto", width:"100%",
           justifyContent:"center", alignItems:"center"}}>
-            <Login setUser={setUser} serverUrl={serverUrl} setToken={setToken}/>
+            <Login setUser={setUser} serverUrl={serverUrl} setToken={setToken} darkMode={darkMode}/>
           </Box>
           <StatusBar statusUpdates={statusUpdates}/>
         </Box>

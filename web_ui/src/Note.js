@@ -5,6 +5,8 @@ import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Box, Toolbar, IconButton, Typography, TextField, Menu, MenuItem, Tooltip } from '@mui/material';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
+import { green, lightBlue } from '@mui/material/colors';
+import { StyledBox } from './theme';
 
 // Icons
 import CloseIcon from '@mui/icons-material/Close';
@@ -20,7 +22,6 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
 import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
-import { green } from '@mui/material/colors';
 import { MuiFileInput } from 'mui-file-input';
 import SidekickMarkdown from './SidekickMarkdown';
 
@@ -30,15 +31,15 @@ import ContentFormatter from './ContentFormatter';
 import AI from './AI';
 import AIPromptResponse from './AIPromptResponse';
 
-const StyledToolbar = styled(Toolbar)(({ theme }) => ({
-    backgroundColor: green[300],
-    marginRight: theme.spacing(2),
-  }));
-
-const Note = ({noteOpen, setNoteOpen, appendNoteContent, loadNote, createNote, 
+const Note = ({noteOpen, setNoteOpen, appendNoteContent, loadNote, createNote, darkMode,
     closeOtherPanels, restoreOtherPanels, windowMaximized, setWindowMaximized,
     setNewPromptPart, setNewPrompt, setChatRequest, onChange, setOpenNoteId, serverUrl, token, setToken, maxWidth}) => {
 
+    const StyledToolbar = styled(Toolbar)(({ theme }) => ({
+        backgroundColor: darkMode ? green[900] : green[300],
+        marginRight: theme.spacing(2),
+    }));
+    
     const noteRef = useRef(null);
     const newNoteName = "New Note";
     const systemPrompt = `You are DocumentGPT.
@@ -688,7 +689,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
             </IconButton>
         </Box>
     </StyledToolbar>
-    <Box sx={{ display: "flex", flexDirection: "column", flex: 1, 
+    <StyledBox sx={{ display: "flex", flexDirection: "column", flex: 1, 
         overflow: "auto", width: "100%", minHeight: "300px" }}>
         <Box sx={{ display: "flex", flexDirection: "row"}}>
             <TextField
@@ -730,7 +731,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 </Tooltip>
             </Toolbar>
         </Box>
-        <Box id="content-box"
+        <StyledBox id="content-box"
             sx={{ overflow: "auto", flex: 1, width: "100%" }}
             onContextMenu={(event) => { handleNoteContextMenu(event, content, name); }}
         >
@@ -780,7 +781,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     sx={{ 
                         padding: 2, 
                         width: "100%", 
-                        backgroundColor: "lightyellow",
+                        backgroundColor: (darkMode ? lightBlue[900] : "lightyellow"),
                         cursor: "default",
                     }}
                     >
@@ -790,8 +791,8 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     </Card>
                 }
             </Box>
-        </Box>
-    </Box>
+        </StyledBox>
+    </StyledBox>
     <Box>
         <AIPromptResponse 
             serverUrl={serverUrl}
@@ -812,6 +813,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
             toolbarButtons={aiToolbarButtons}
             sendButtonTooltip="Send note and prompt to AI"
             onBlur={save}
+            darkMode={darkMode}
         />
         { uploadingFile
             ?

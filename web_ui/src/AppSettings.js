@@ -7,16 +7,17 @@ import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
 import CloseIcon from '@mui/icons-material/Close';
 import SettingsIcon from '@mui/icons-material/Settings';
-import { grey } from '@mui/material/colors';
+import { grey, lightBlue } from '@mui/material/colors';
 import AccountDelete from "./AccountDelete";
 
-const StyledToolbar = styled(Toolbar)(({ theme }) => ({
-    backgroundColor: grey[300],
-    gap: 2,
-}));
-
 const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
-     onClose, serverUrl, token, setToken }) => {
+     onClose, serverUrl, token, setToken, darkMode }) => {
+
+    const StyledToolbar = styled(Toolbar)(({ theme }) => ({
+        backgroundColor: darkMode ? lightBlue[800] : lightBlue[200],
+        marginRight: theme.spacing(2),
+    }));
+    
     const system = useContext(SystemContext);
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');

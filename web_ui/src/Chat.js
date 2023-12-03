@@ -8,6 +8,7 @@ import { Card, Box, Paper, Toolbar, IconButton, Typography, TextField,
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
 import { InputLabel, FormHelperText, FormControl, Select } from '@mui/material';
+import { red, pink, purple, deepPurple, indigo, blue, lightBlue, cyan, teal, green, lightGreen, lime, yellow, amber, orange, deepOrange, brown, grey, blueGrey } from '@mui/material/colors';
 
 // Icons
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
@@ -31,28 +32,19 @@ import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
 import TextStatsDisplay from './TextStatsDisplay';
 import AI from './AI';
+import { StyledBox, StyledToolbar, SecondaryToolbar } from './theme';
 
-
-import { grey, blue } from '@mui/material/colors';
 import SidekickMarkdown from './SidekickMarkdown';
-
-const StyledToolbar = styled(Toolbar)(({ theme }) => ({
-    backgroundColor: theme.palette.primary.main,
-  }));
-
-const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
-    backgroundColor: grey[300],
-}));
 
 const Chat = ({
     provider, modelSettings, persona, 
     closeOtherPanels, restoreOtherPanels, windowMaximized, setWindowMaximized,
     newPromptPart, newPrompt, newPromptTemplate, loadChat, setAppendNoteContent,
-    focusOnPrompt, setFocusOnPrompt, chatRequest, chatOpen, setChatOpen,
+    focusOnPrompt, setFocusOnPrompt, chatRequest, chatOpen, setChatOpen, darkMode,
     temperatureText, setTemperatureText, modelSettingsOpen, toggleModelSettingsOpen, togglePersonasOpen,
     onChange, personasOpen, promptEngineerOpen, togglePromptEngineerOpen, setOpenChatId, shouldAskAgainWithPersona, serverUrl, token, setToken,
     streamingChatResponse, setStreamingChatResponse, chatStreamingOn, maxWidth }) => {
-
+    
     const chatWindowRef = useRef(null);
     const chatMessagesContainerRef = useRef(null);
     const chatMessagesRef = useRef(null);
@@ -1042,7 +1034,7 @@ const Chat = ({
                 </Tooltip>
             </Toolbar>
         </Box>
-        <Box sx={{ overflow: 'auto', flex: 1, minHeight: "300px" }} ref={chatMessagesContainerRef}>
+        <StyledBox sx={{ overflow: 'auto', flex: 1, minHeight: "300px" }} ref={chatMessagesContainerRef}>
             <List id="message-list" ref={chatMessagesRef}>
                 {messages && messages.map((message, index) => (
                     <ListItem key={index}>
@@ -1050,7 +1042,7 @@ const Chat = ({
                             <Card sx={{ 
                                 padding: 2, 
                                 width: "100%", 
-                                backgroundColor: message.role === "user" ? "lightblue" : "lightyellow",
+                                backgroundColor: message.role === "user" ? (darkMode ? blueGrey[800] : "lightblue") : (darkMode ? lightBlue[900] : "lightyellow"),
                                 cursor: message.role === "user" ? "pointer" : "default",
                             }}
                             onClick={() => message.role === "user" && setPrompt(message.content)}
@@ -1104,7 +1096,7 @@ const Chat = ({
                     <Card id="streaming-response-message" sx={{ 
                         padding: 2, 
                         width: "100%", 
-                        backgroundColor: "lightyellow",
+                        backgroundColor: darkMode ? lightBlue[900] : "lightyellow",
                         cursor: "default",
                     }}
                     >
@@ -1114,7 +1106,7 @@ const Chat = ({
                     </Card>
                 </ListItem>}
             </List>
-        </Box>
+        </StyledBox>
         <Box sx={{ display: "flex", flexDirection: "column", minHeight: "128px" }}>
             <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
                 <Typography sx={{mr:2}}>Prompt Editor</Typography>
@@ -1180,7 +1172,7 @@ const Chat = ({
                     placeholder={promptPlaceholder}
                     disabled={streamingChatResponse !== ""}
             />
-            <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: grey[100] }}>
+            <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: darkMode ? grey[900] : grey[100] }}>
                 <Tooltip title={ personasOpen ? "Hide AI Personas" : "Show AI Personas"}>
                     <Button id="button-personas" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={togglePersonasOpen}>
                         {myPersona.name}
@@ -1201,7 +1193,7 @@ const Chat = ({
                 </Tooltip>
             </Paper>
             { aiLibraryOpen ? 
-                <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: grey[100] }}>
+                <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: darkMode ? grey[900] : grey[100] }}>
                     <Box sx={{ mt: 2, display: "flex", flexDirection: "column", width: "100%" }}>
                         <FormLabel>Loaded knowledge: { Object.keys(selectedAiLibraryNotes).length === 0 ? "None" : ""} <TextStatsDisplay name="AI Library" sizeInCharacters={selectedAiLibraryFullTextSize} /></FormLabel>
                         <List dense sx={{ width: "100%", overflow: "auto", maxHeight: "100px" }}>
@@ -1268,7 +1260,7 @@ const Chat = ({
                     </Box>
                 </Paper> : null
             }
-            <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 2, backgroundColor: grey[100] }}>
+            <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 2, backgroundColor: darkMode ? grey[900] : grey[100] }}>
                 <Typography color="textSecondary">Prompts: {promptCount}</Typography>
                 <Typography color="textSecondary">Responses: {responseCount}</Typography>
                 <Typography color="textSecondary">K-Notes: { Object.keys(selectedAiLibraryNotes).length }</Typography>

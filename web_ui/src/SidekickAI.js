@@ -4,6 +4,8 @@ import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Tabs, Tab, Box, Toolbar, IconButton, Typography, TextField,
     List, ListItem, Menu, MenuItem, Tooltip, FormControl } from '@mui/material';
 import { styled } from '@mui/system';
+import { useTheme } from '@mui/material/styles';
+import { StyledBox } from './theme';
 import { ClassNames } from "@emotion/react";
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
@@ -20,22 +22,30 @@ import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
 
-import { grey } from '@mui/material/colors';
-
-const StyledToolbar = styled(Toolbar)(({ theme }) => ({
-    backgroundColor: grey[500],
-    gap: 2,
-  }));
-
-const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
-    backgroundColor: grey[300],
-}));
-
+import { lightBlue, grey, blueGrey } from '@mui/material/colors';
 
 const SidekickAI = ({
     sidekickAIOpen, setSidekickAIOpen, serverUrl, token, setToken, 
-    chatStreamingOn, windowPinnedOpen, setWindowPinnedOpen}) => {
+    chatStreamingOn, windowPinnedOpen, setWindowPinnedOpen, darkMode}) => {
 
+    const theme = useTheme();
+    const StyledToolbar = styled(Toolbar)(({ theme }) => ({
+        backgroundColor: darkMode ? grey[900] : grey[500],
+        gap: 2,
+    }));
+    
+    const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
+        backgroundColor: darkMode ? grey[800] : grey[300],
+    }));
+
+    const StyledLink = styled(Link)(({ theme }) => ({
+        color: darkMode ? theme.palette.grey[800] : theme.palette.grey[300],
+        textDecoration: 'none',
+        '&:hover': {
+          textDecoration: 'underline',
+        },
+    }));
+        
     const system = useContext(SystemContext);
     const [streamingChatResponse, setStreamingChatResponse] = useState("");
     const userPromptReady = "Ask a question about sidekick...";
@@ -443,53 +453,53 @@ const SidekickAI = ({
         </Box>
     </StyledToolbar>
     <Box sx={{ display: "flex", flexDirection: "column", height:"calc(100% - 64px)"}}>
-        <Tabs sx={{ position: 'sticky', top: 0, background: "white", padding: "6px" }} value={tabIndex} onChange={handleTabChange}>
+        <Tabs sx={{ position: 'sticky', top: 0, background: darkMode ? grey[800] : grey[300], padding: "6px" }} value={tabIndex} onChange={handleTabChange}>
             <Tab label="Manual" />
             <Tab label="Prompts" />
             <Tab label="Sidekick AI" />
         </Tabs>
-        <Box sx={{ overflow: 'auto', flex: 1 }}>
+        <StyledBox sx={{ overflow: 'auto', flex: 1 }}>
 
             {tabIndex === TABS.MANUAL && (
-                <Box id="sidekick-manual-top" sx={{ overflow: 'auto', flex: 1 }}>
+                <StyledBox id="sidekick-manual-top" sx={{ overflow: 'auto', flex: 1 }}>
                     <img alt="Sidekick AI" src="./logo512.png" style={{ maxWidth: "100%" }} />
                     <Typography>You could read the manual, which is below, or you could just ask the AI about Sidekick at the bottom of this window.</Typography>
                     <br/>
                     <ReactMarkdown
                         components={{...helpComponents,
                             link: ({ href, children }) => (
-                                <Link to={href}
+                                <StyledLink to={href}
                                     onClick={handleLinkClick}>
                                         {children}
-                                </Link>
+                                </StyledLink>
                             ),
                         }}
                         children={sidekickManual}
                     ></ReactMarkdown>
-                </Box>
+                </StyledBox>
             )}
             {tabIndex === TABS.PROMPTS && (
-                <Box id="sidekick-prompt-engineering-guide-top" sx={{ overflow: 'auto', flex: 1 }}>
+                <StyledBox id="sidekick-prompt-engineering-guide-top" sx={{ overflow: 'auto', flex: 1 }}>
                     <img alt="Sidekick AI" src="./logo512.png" style={{ maxWidth: "100%" }} />
                     <Typography>The better the quality of your prompt, the better the quality of the response from the AI.</Typography>
                     <br/>
                     <ReactMarkdown
                         components={{...helpComponents,
                             link: ({ href, children }) => (
-                                <Link to={href}
+                                <StyledLink to={href}
                                     onClick={handleLinkClick}>
                                         {children}
-                                </Link>
+                                </StyledLink>
                             ),
                         }}
                         children={sidekickPromptEngineeringGuide}
                     ></ReactMarkdown>
-                </Box>
+                </StyledBox>
             )}
             {tabIndex === TABS.SIDEKICK_AI && (
                 <Box>
                     <img alt="Sidekick AI" src="./logo512.png" style={{ maxWidth: "100%" }} />
-                    <Box sx={{ overflow: 'auto', flex: 1 }}>
+                    <StyledBox sx={{ overflow: 'auto', flex: 1 }}>
                         <List id="sidekick-ai-message-list">
                             {messages && messages.length === 0 && <Typography>{aiWelcomeMessage}</Typography>}
                             {messages && messages.map((message, index) => (
@@ -498,7 +508,7 @@ const SidekickAI = ({
                                         <Card sx={{ 
                                             padding: 2, 
                                             width: "100%", 
-                                            backgroundColor: message.role === "user" ? "lightblue" : "lightyellow",
+                                            backgroundColor: message.role === "user" ? (darkMode ? blueGrey[500] : "lightblue") : (darkMode ? lightBlue[900] : "lightyellow"),
                                             cursor: message.role === "user" ? "pointer" : "default",
                                         }}
                                         onClick={() => message.role === "user" && setSidekickAIPrompt(message.content)}
@@ -538,7 +548,7 @@ const SidekickAI = ({
                                 <Card sx={{ 
                                     padding: 2, 
                                     width: "100%", 
-                                    backgroundColor: "lightyellow",
+                                    backgroundColor: darkMode ? lightBlue[900] : "lightyellow",
                                     cursor: "default",
                                 }}
                                 >
@@ -548,10 +558,10 @@ const SidekickAI = ({
                                 </Card>
                             </ListItem>}
                         </List>
-                    </Box>
+                    </StyledBox>
                 </Box>
             )}
-        </Box>
+        </StyledBox>
         <SecondaryToolbar className={ClassNames.toolbar}>
             <Tooltip title={ "Reload last prompt for editing" }>
                 <span>

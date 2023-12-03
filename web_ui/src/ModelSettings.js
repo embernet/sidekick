@@ -1,6 +1,6 @@
 import { debounce } from "lodash";
 import { useEffect, useState, useCallback } from 'react';
-import { Card, Paper, Box, IconButton, Tooltip,
+import { Toolbar, Card, Paper, Box, IconButton, Tooltip,
     Typography, TextField, Autocomplete, Slider, Switch, Stack } from '@mui/material';
 import { ClassNames } from "@emotion/react";
 import TuneIcon from '@mui/icons-material/Tune';
@@ -11,13 +11,18 @@ import HelpIcon from '@mui/icons-material/Help';
 import SaveIcon from '@mui/icons-material/Save';
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
 
-import { StyledToolbar } from './theme';
-
+import { styled } from '@mui/system';
+import { lightBlue } from '@mui/material/colors';
 
 const ModelSettings = ({setModelSettings, setFocusOnPrompt, 
     modelSettingsOpen, setModelSettingsOpen, windowPinnedOpen, setWindowPinnedOpen,
     temperatureText, setTemperatureText, settingsManager,
-    chatStreamingOn, setChatStreamingOn}) => {
+    chatStreamingOn, setChatStreamingOn, darkMode}) => {
+
+    const StyledToolbar = styled(Toolbar)(({ theme }) => ({
+        backgroundColor: darkMode ? lightBlue[800] : lightBlue[200],
+        marginRight: theme.spacing(2),
+    }));
 
     const [mySettingsManager, setMySettingsManager] = useState(settingsManager);
     const [modelSettingsOptions, setModelSettingsOptions] = useState({});
@@ -224,7 +229,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     const loadingRender =
         <Card
             sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", 
-            flex:1, minWidth: "380px", maxWidth: "450px" }}>
+            flex:1, minWidth: "400px", maxWidth: "450px" }}>
             <Typography>{loadingModelSettingsOptionsMessage}</Typography>
         </Card>;
 
@@ -366,7 +371,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
         </Box>
 
     const render =
-        <Card id="model-settings-panel" sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth:"380px", maxWidth: "450px" }}>
+        <Card id="model-settings-panel" sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth:"400px", maxWidth: "450px" }}>
             <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
                 <TuneIcon/>
                 <Typography sx={{mr:2}}>Settings</Typography>

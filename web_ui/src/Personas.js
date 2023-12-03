@@ -1,7 +1,11 @@
 import { debounce } from "lodash";
 import { useEffect, useState, useContext, Fragment, useCallback } from 'react';
 import { Card, Box, IconButton, Tooltip, Typography, TextField,
-    List, ListItem, ListItemText, Menu, MenuItem } from '@mui/material';
+    ListItem, ListItemText, Menu, MenuItem, Toolbar } from '@mui/material';
+import { styled } from '@mui/system';
+import { lightBlue, grey } from '@mui/material/colors';
+import { StyledList } from "./theme";
+
 import { ClassNames } from "@emotion/react";
 import PersonIcon from '@mui/icons-material/Person';
 import CloseIcon from '@mui/icons-material/Close';
@@ -15,11 +19,16 @@ import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore
 import CancelIcon from '@mui/icons-material/Cancel';
 
 import { SystemContext } from './SystemContext';
-import { StyledToolbar } from './theme';
 
 const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, personasOpen, 
     settingsManager, setShouldAskAgainWithPersona, serverUrl, StreamingChatResponse,
-    windowPinnedOpen, setWindowPinnedOpen}) => {
+    windowPinnedOpen, setWindowPinnedOpen, darkMode}) => {
+
+    const StyledToolbar = styled(Toolbar)(({ theme }) => ({
+        backgroundColor: darkMode ? lightBlue[800] : lightBlue[200],
+        marginRight: theme.spacing(2),
+    }));
+    
     const system = useContext(SystemContext);
     const [myPersonas, setMyPersonas] = useState([]);
     const [filterText, setFilterText] = useState('');
@@ -204,12 +213,12 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
 
     const loadingRender = <Card id="personas-panel"
         sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
-        flex:1, minWidth: "380px", maxWidth: "450px"}}>
+        flex:1, minWidth: "400px", maxWidth: "450px"}}>
         <Typography>{loadingPersonasMessage}</Typography>
     </Card>
 
     const loadedRender =
-        <List sx={{ overflowY: "auto" }}>
+        <StyledList sx={{ overflowY: "auto" }}>
         {Object.values(filteredPersonas).map(persona => (
             <ListItem onContextMenu={(event) => handlePersonaContextMenu(event, persona)}
                 sx={{ padding: 1, cursor: "pointer" }}
@@ -218,7 +227,7 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
                 >
                         <Card
                             sx={{ padding:2, paddingTop: 1, paddingBottom:1, 
-                                backgroundColor: persona.selected ? "lightgrey" : "inherit", width: "100%" }}
+                                backgroundColor: persona.selected ? (darkMode ? grey[600] : grey[200]) : "inherit", width: "100%" }}
                         >
                             <ListItemText
                                 primary={
@@ -299,10 +308,10 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
                     </Menu>
             </ListItem>
         ))}
-        </List>
+        </StyledList>
 
     const render = <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
-    flex:1, minWidth: "380px", maxWidth: "450px"}}>
+    flex:1, minWidth: "400px", maxWidth: "450px"}}>
         <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
             <PersonIcon/>
             <Typography sx={{mr:2}}>Personas</Typography>
