@@ -11,22 +11,23 @@ import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ListAltIcon from '@mui/icons-material/ListAlt';
+import { indigo, grey } from '@mui/material/colors';
+import { StyledBox } from "./theme";
 
 import axios from 'axios';
-import { indigo } from '@mui/material/colors';
 
 import { SystemContext } from './SystemContext';
 
-const StyledToolbar = styled(Toolbar)(({ theme }) => ({
-    backgroundColor: indigo[300],
-    gap: 2,
-  }));
-
 const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, name, icon, folder, openItemId, setLoadDoc,
-     docNameChanged, refresh, setRefresh, itemOpen, hidePrimaryToolbar, deleteEnabled,
+     docNameChanged, refresh, setRefresh, itemOpen, hidePrimaryToolbar, deleteEnabled, darkMode,
     setItemOpen, // to be able to close the item editor if the item is deleted
     serverUrl, token, setToken
     }) => {
+
+    const StyledToolbar = styled(Toolbar)(({ theme }) => ({
+        backgroundColor: darkMode ? indigo[800] : indigo[300],
+        gap: 2,
+    }));
     const system = useContext(SystemContext);
     const [docs, setDocs] = useState([]);
     const [filterText, setFilterText] = useState('');
@@ -238,10 +239,10 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
                </Box>
            </Tooltip> : null}
        </Box>
-       <Box  sx={{ overflow: 'auto', flex: 1 }}>
+       <StyledBox  sx={{ overflow: 'auto', flex: 1 }}>
            <List>
                {Object.values(filteredDocs).map(doc => (
-                   <ListItem sx={{ padding: 0, pl: 1, cursor: "pointer", backgroundColor: doc.id === openItemId && itemOpen ? "#e0e0e0" : "transparent" }} key={doc.id}>
+                   <ListItem sx={{ padding: 0, pl: 1, cursor: "pointer", backgroundColor: doc.id === openItemId && itemOpen ? (darkMode ? grey[600] : grey[300]) : "transparent" }} key={doc.id}>
                        <ListItemText primary={doc.name}
                          secondary={
                            showItemDetails ? (
@@ -265,7 +266,7 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
                    </ListItem>
                ))}
            </List>
-       </Box>
+       </StyledBox>
    </Card>;
     return (render);
   }

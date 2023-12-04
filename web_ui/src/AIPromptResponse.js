@@ -15,10 +15,6 @@ import { SystemContext } from './SystemContext';
 
 import { grey } from '@mui/material/colors';
 
-const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
-    backgroundColor: grey[300],
-}));
-
 // Component: AIPromptResponse
 // This component is used to enable the user to enter a prompt,
 // which is returned to the containing component for optional modification,
@@ -50,9 +46,13 @@ const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
 const AIPromptResponse = ({serverUrl, token, setToken, customUserPromptReady, systemPrompt,
     streamingOn, streamingChatResponseRef, streamingChatResponse,
     setStreamingChatResponse, setAIResponse, onChange, focusOnPrompt,
-    setUserPromptEntered, userPromptToSend, setUserPromptToSend,
+    setUserPromptEntered, userPromptToSend, setUserPromptToSend, darkMode,
     controlName, toolbarButtons, sendButtonTooltip}) => {
 
+    const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
+        backgroundColor: darkMode ? grey[900] : grey[300],
+    }));
+                
     const system = useContext(SystemContext);
     const defaultUserPromptReady = "Enter prompt...";
     const userPromptReady = useRef(customUserPromptReady && customUserPromptReady !== "" ? customUserPromptReady : defaultUserPromptReady);

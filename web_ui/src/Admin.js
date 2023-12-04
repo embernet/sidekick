@@ -38,13 +38,14 @@ const userTableColumns = [
     },
 ];
 
-const StyledToolbar = styled(Toolbar)(({ theme }) => ({
-    backgroundColor: red[500],
-    gap: 2,
-}));
-
 const Admin = ({ adminOpen, setAdminOpen, user, setUser,
-     onClose, serverUrl, token, setToken }) => {
+     onClose, serverUrl, token, setToken, darkMode }) => {
+
+    const StyledToolbar = styled(Toolbar)(({ theme }) => ({
+        backgroundColor: darkMode ? red[900] : red[500],
+        gap: 2,
+    }));
+        
     const system = useContext(SystemContext);
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');

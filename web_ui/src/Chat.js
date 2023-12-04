@@ -8,8 +8,11 @@ import { Card, Box, Paper, Toolbar, IconButton, Typography, TextField,
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
 import { InputLabel, FormHelperText, FormControl, Select } from '@mui/material';
+import { red, pink, purple, deepPurple, indigo, blue, lightBlue, cyan, teal, green, lightGreen, lime, yellow, amber, orange, deepOrange, brown, grey, blueGrey } from '@mui/material/colors';
 
 // Icons
+import OpenInFullIcon from '@mui/icons-material/OpenInFull';
+import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 import CloseIcon from '@mui/icons-material/Close';
 import CommentIcon from '@mui/icons-material/Comment';
 import AddCommentIcon from '@mui/icons-material/AddComment';
@@ -27,27 +30,25 @@ import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
 
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
+import TextStatsDisplay from './TextStatsDisplay';
 import AI from './AI';
+import { StyledBox, StyledToolbar, SecondaryToolbar } from './theme';
 
-
-import { grey, blue } from '@mui/material/colors';
 import SidekickMarkdown from './SidekickMarkdown';
-
-const StyledToolbar = styled(Toolbar)(({ theme }) => ({
-    backgroundColor: theme.palette.primary.main,
-  }));
-
-const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
-    backgroundColor: grey[300],
-}));
 
 const Chat = ({
     provider, modelSettings, persona, 
+    closeOtherPanels, restoreOtherPanels, windowMaximized, setWindowMaximized,
     newPromptPart, newPrompt, newPromptTemplate, loadChat, setAppendNoteContent,
-    focusOnPrompt, setFocusOnPrompt, chatRequest, chatOpen, setChatOpen,
+    focusOnPrompt, setFocusOnPrompt, chatRequest, chatOpen, setChatOpen, darkMode,
     temperatureText, setTemperatureText, modelSettingsOpen, toggleModelSettingsOpen, togglePersonasOpen,
     onChange, personasOpen, promptEngineerOpen, togglePromptEngineerOpen, setOpenChatId, shouldAskAgainWithPersona, serverUrl, token, setToken,
     streamingChatResponse, setStreamingChatResponse, chatStreamingOn, maxWidth }) => {
+    
+    const chatWindowRef = useRef(null);
+    const chatMessagesContainerRef = useRef(null);
+    const chatMessagesRef = useRef(null);
+    const streamingChatResponseCardRef = useRef(null);
 
     const newChatName = "New Chat"
 
@@ -82,6 +83,9 @@ const Chat = ({
     const [lastPrompt, setLastPrompt] = useState("");
     const [promptToSend, setPromptToSend] = useState(false);
     const [messages, setMessages] = useState([]);
+    const [promptCount, setPromptCount] = useState(0);
+    const [responseCount, setResponseCount] = useState(0);
+    const [messagesSize, setMessagesSize] = useState(0);
     const [myModelSettings, setMyModelSettings] = useState({});
     const [myPersona, setMyPersona] = useState({});
     const [previousPersona, setPreviousPersona] = useState({});
@@ -100,9 +104,12 @@ const Chat = ({
     const [folder, setFolder] = useState("chats");
     const [tags, setTags] = useState([]);
     const [myServerUrl, setMyServerUrl] = useState(serverUrl);
+    const [promptLength, setPromptLength] = useState(0);
 
     // AI Library state
     const [aiLibrary, setAiLibrary] = useState([]);
+    const [selectedAiLibraryFullText, setSelectedAiLibraryFullText] = useState("");
+    const [selectedAiLibraryFullTextSize, setSelectedAiLibraryFullTextSize] = useState(0);
     const [selectedAiLibraryNotes, setSelectedAiLibraryNotes] = useState({});
     const [selectedAiLibraryNoteId, setSelectedAiLibraryNoteId] = useState("");
     const [aiLibraryOpen, setAiLibraryOpen] = useState(false);
@@ -175,6 +182,21 @@ const Chat = ({
                 create();
             }
         }
+        // recalculate prompt and response counts
+        let promptCount = 0;
+        let responseCount = 0;
+        let messagesSize = 0;
+        messages.forEach((message) => {
+            messagesSize += (message?.role?.length || 0) + (message?.content?.length || 0);
+            if (message.role === "user") {
+                promptCount++;
+            } else if (message.role === "assistant") {
+                responseCount++;
+            }
+        });
+        setPromptCount(promptCount);
+        setResponseCount(responseCount);
+        setMessagesSize(messagesSize);
     }, [messages]);
 
     useEffect(()=>{
@@ -205,6 +227,10 @@ const Chat = ({
         setPromptFocus();
         setFocusOnPrompt(false);
     }, [focusOnPrompt]);
+
+    useEffect(()=>{
+        updateAiLibraryFullText();
+    }, [selectedAiLibraryNotes]);
 
     useEffect(()=>{
         if (chatRequest) {
@@ -289,6 +315,10 @@ const Chat = ({
         }
     }, [promptToSend]);
 
+    useEffect(() => {
+        chatWindowRef?.current?.scrollIntoView({ behavior: 'instant' });
+    }, [windowMaximized]);
+
     useEffect(()=>{
         if (myShouldAskAgainWithPersona) {
             console.log("shouldAskAgainWithPersona", myShouldAskAgainWithPersona);
@@ -303,6 +333,7 @@ const Chat = ({
     }, [shouldAskAgainWithPersona]);
 
     useEffect(()=>{
+        setPromptLength(prompt.length);
         setPromptFocus();
     }, [prompt]);
 
@@ -364,12 +395,22 @@ const Chat = ({
             }
         }
     }, [loadChat]);
+
+    useEffect(()=>{
+        // Auto-scroll during chat streaming unless the user scrolls
+        const chatMessagesBottom = chatMessagesContainerRef.current.scrollTop + chatMessagesContainerRef.current.clientHeight;
+        const streamingChatResponseCardBottom = chatMessagesRef.current.offsetTop + chatMessagesRef.current.clientHeight;        
+        const isScrolledOffBottom = streamingChatResponseCardBottom - chatMessagesBottom > 300;
+        if (!isScrolledOffBottom) {
+            streamingChatResponseCardRef.current?.scrollIntoView({ behavior: 'instant', block: 'end' });
+        }
+    }, [streamingChatResponse]);
     
     const appendMessage = (message) => {
         setMessages(prevMessages => [...prevMessages, message]);
         setChatOpen(true);
         setTimeout(() => {
-            document.getElementById("message-list")?.lastChild?.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
+            chatMessagesRef.current?.scrollIntoView({ behavior: "instant", block: "end" });
         }, 0);
     }
 
@@ -489,6 +530,8 @@ const Chat = ({
                         var {value, done} = await reader.read();
                         if (value) { 
                             streamingChatResponseRef.current += value;
+                            let numChars = value.length;
+                            setMessagesSize(x => x + numChars);
                             setStreamingChatResponse(streamingChatResponseRef.current);
                         }
                         if (done || stopStreamingRef.current) {
@@ -517,20 +560,30 @@ const Chat = ({
 
     }, [stopStreamingRef.current]);
 
+    const updateAiLibraryFullText = () => {
+        let fullText = "";
+        let notesSize = 0;
+        Object.values(selectedAiLibraryNotes).forEach((note) => {
+            fullText += "KNOWLEDGE_ARTICLE_TITLE:" + note.metadata.name + "\nKNOWLEDGE_ARTICLE_CONTENT:\n" + note.content.note + "\n\n";
+            notesSize += note.content.note.length;
+        });
+        setSelectedAiLibraryFullText(fullText);
+        setSelectedAiLibraryFullTextSize(notesSize);
+    }
+
     const sendPrompt = async (prompt) => {
         // setup as much of the request as we can before calling appendMessage
         // as that will wait for any re-rendering and the id could change in that time
-        let knowledge = "";
-        for (const [id, note] of Object.entries(selectedAiLibraryNotes)) {
-            knowledge += "KNOWLEDGE_NAME:" + note.metadata.name + "\nKNOWLEDGE_CONTENT:\n" + note.content.note + "\n\n";
-        }
-        if (knowledge !== "") {
-            knowledge = "Given the following knowledge:\n\n" + knowledge + "\n\nRespond to this prompt:\n\n";
+        let knowledgePrompt = "";
+        if (selectedAiLibraryFullText !== "") {
+            knowledgePrompt = "Given the following knowledge articles:\n\n" + selectedAiLibraryFullText + 
+            `\n\nRespond to the following prompt (if there is not enough information in the knowledge articles to
+            respond then say so and give your best response):\n\n`;
         }
         let requestData = {
             model_settings: myModelSettings,
             system_prompt: systemPrompt,
-            prompt: knowledge + prompt,
+            prompt: knowledgePrompt + prompt,
             id: id,
             name: name,
             persona: myPersona,
@@ -722,6 +775,11 @@ const Chat = ({
         setMessageContextMenu(null);
     };
 
+    const handleClose = () => {
+        setChatOpen(false);
+        setWindowMaximized(false);
+    }
+
     const messagesAs = (format="markdown") => {
         let text = "";
         messages.forEach((message) => {
@@ -849,6 +907,17 @@ const Chat = ({
         }
     }
 
+    const handleToggleWindowMaximise = () => {
+        let x = !windowMaximized;
+        if (x) {
+            // pass this function so if another window is opened, this one can be unmaximised
+            closeOtherPanels();
+        } else {
+            restoreOtherPanels();
+        }
+        setWindowMaximized(x);
+    }
+
     const handleloadKnowledgeToAi = (event) => {
         const noteStub = event.target.value;
         if (noteStub && noteStub.id) {
@@ -886,7 +955,9 @@ const Chat = ({
         }
     }
 
-    const render = <Card id="chat-panel" sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth: "400px", maxWidth: maxWidth ? maxWidth : "600px" }}>
+    const render = <Card id="chat-panel" ref={chatWindowRef}
+                    sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, 
+                    width: windowMaximized ? "calc(100vw - 12px)" : null, minWidth: "500px", maxWidth: windowMaximized ? null : maxWidth ? maxWidth : "600px" }}>
     <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
         <CommentIcon/>
         <Typography sx={{mr:2}}>Chat</Typography>
@@ -910,8 +981,13 @@ const Chat = ({
                     <DeleteIcon/>
                 </IconButton>
             </Tooltip>
+            <Tooltip title={ windowMaximized ? "Shrink window" : "Expand window" }>
+                <IconButton edge="end" color="inherit" aria-label={ windowMaximized ? "Shrink window" : "Expand window" } onClick={handleToggleWindowMaximise}>
+                    { windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }
+                </IconButton>
+            </Tooltip>
             <Tooltip title="Close window">
-                <IconButton onClick={() => { setChatOpen(false); }}>
+                <IconButton onClick={handleClose}>
                     <CloseIcon />
                 </IconButton>
             </Tooltip>
@@ -958,15 +1034,15 @@ const Chat = ({
                 </Tooltip>
             </Toolbar>
         </Box>
-        <Box sx={{ overflow: 'auto', flex: 1, minHeight: "300px" }}>
-            <List id="message-list">
+        <StyledBox sx={{ overflow: 'auto', flex: 1, minHeight: "300px" }} ref={chatMessagesContainerRef}>
+            <List id="message-list" ref={chatMessagesRef}>
                 {messages && messages.map((message, index) => (
                     <ListItem key={index}>
-                        <div onContextMenu={(event) => { handleMessageContextMenu(event, message, index); }}>
+                        <Box style={{width:'100%'}} onContextMenu={(event) => { handleMessageContextMenu(event, message, index); }}>
                             <Card sx={{ 
                                 padding: 2, 
                                 width: "100%", 
-                                backgroundColor: message.role === "user" ? "lightblue" : "lightyellow",
+                                backgroundColor: message.role === "user" ? (darkMode ? blueGrey[800] : "lightblue") : (darkMode ? lightBlue[900] : "lightyellow"),
                                 cursor: message.role === "user" ? "pointer" : "default",
                             }}
                             onClick={() => message.role === "user" && setPrompt(message.content)}
@@ -974,7 +1050,7 @@ const Chat = ({
                                 {
                                     markdownRenderingOn
                                     ?
-                                        <SidekickMarkdown markdown={message.content}/>
+                                        <SidekickMarkdown  markdown={message.content}/>
                                     :
                                         <Typography sx={{ whiteSpace: 'pre-wrap' }}>
                                             {message.content}
@@ -1012,24 +1088,25 @@ const Chat = ({
                                 <MenuItem onClick={handleDeleteThisAndPreviousMessage}>Delete this and previous message</MenuItem>
                                 <MenuItem onClick={handleDeleteAllMessages}>Delete all messages</MenuItem>
                             </Menu>
-                        </div>
+                        </Box>
                     </ListItem>
                 ))}
-                {streamingChatResponse && streamingChatResponse !== "" && <ListItem id="streamingChatResponse">
-                    <Card sx={{ 
+                {streamingChatResponse && streamingChatResponse !== "" && 
+                <ListItem id="streamingChatResponse">
+                    <Card id="streaming-response-message" sx={{ 
                         padding: 2, 
                         width: "100%", 
-                        backgroundColor: "lightyellow",
+                        backgroundColor: darkMode ? lightBlue[900] : "lightyellow",
                         cursor: "default",
                     }}
                     >
-                        <Typography sx={{ whiteSpace: 'pre-wrap' }}>
+                        <Typography sx={{ whiteSpace: 'pre-wrap' }} ref={streamingChatResponseCardRef}>
                             {streamingChatResponse}
                         </Typography>
                     </Card>
                 </ListItem>}
             </List>
-        </Box>
+        </StyledBox>
         <Box sx={{ display: "flex", flexDirection: "column", minHeight: "128px" }}>
             <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
                 <Typography sx={{mr:2}}>Prompt Editor</Typography>
@@ -1095,7 +1172,7 @@ const Chat = ({
                     placeholder={promptPlaceholder}
                     disabled={streamingChatResponse !== ""}
             />
-            <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: grey[100] }}>
+            <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: darkMode ? grey[900] : grey[100] }}>
                 <Tooltip title={ personasOpen ? "Hide AI Personas" : "Show AI Personas"}>
                     <Button id="button-personas" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={togglePersonasOpen}>
                         {myPersona.name}
@@ -1111,18 +1188,22 @@ const Chat = ({
                         Prompt Engineer
                     </Button>
                 </Tooltip>
+                <Tooltip title="Number of characters in prompt">
+                    <TextStatsDisplay name="Prompt" sizeInCharacters={promptLength} />
+                </Tooltip>
             </Paper>
             { aiLibraryOpen ? 
-                <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: grey[100] }}>
+                <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: darkMode ? grey[900] : grey[100] }}>
                     <Box sx={{ mt: 2, display: "flex", flexDirection: "column", width: "100%" }}>
-                        <FormLabel>Loaded knowledge: { Object.keys(selectedAiLibraryNotes).length === 0 ? "None" : ""}</FormLabel>
+                        <FormLabel>Loaded knowledge: { Object.keys(selectedAiLibraryNotes).length === 0 ? "None" : ""} <TextStatsDisplay name="AI Library" sizeInCharacters={selectedAiLibraryFullTextSize} /></FormLabel>
                         <List dense sx={{ width: "100%", overflow: "auto", maxHeight: "100px" }}>
                             {Object.values(selectedAiLibraryNotes).map(note =>(
                                 <ListItem 
                                     key={"loaded-ai-knowledge-" + note.metadata.id}
                                     secondaryAction={
                                         <Tooltip title={ "Unload knowledge from AI" }>
-                                            <IconButton edge="end" aria-label="Unload knowledge from AI" onClick={() => {handleUnloadKnowledgeFromAi(note.metadata.id)}}>
+                                            <IconButton edge="end" aria-label="Unload knowledge from AI"
+                                                onClick={() => {handleUnloadKnowledgeFromAi(note.metadata.id)}}>
                                                 <CloseIcon />
                                             </IconButton>
                                         </Tooltip>
@@ -1179,6 +1260,15 @@ const Chat = ({
                     </Box>
                 </Paper> : null
             }
+            <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 2, backgroundColor: darkMode ? grey[900] : grey[100] }}>
+                <Typography color="textSecondary">Prompts: {promptCount}</Typography>
+                <Typography color="textSecondary">Responses: {responseCount}</Typography>
+                <Typography color="textSecondary">K-Notes: { Object.keys(selectedAiLibraryNotes).length }</Typography>
+                <Typography color="textSecondary">Total size: <Tooltip title="Number of characters in prompt">
+                        <TextStatsDisplay name="prompt + context" sizeInCharacters={messagesSize + promptLength + selectedAiLibraryFullTextSize} />
+                    </Tooltip>
+                </Typography>
+            </Paper>
         </Box>
     </Box>
 </Card>;

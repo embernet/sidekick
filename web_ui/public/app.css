@@ -1,0 +1,7 @@
+
+.markdown-component {
+    width: 100%;
+    white-space: pre-wrap; /* CSS 2.1 */
+    word-wrap: break-word; /* Internet Explorer 5.5+ */
+  }
+  

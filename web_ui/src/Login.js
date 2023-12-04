@@ -6,7 +6,7 @@ import { Box, Tabs, Tab, Button, TextField, Typography } from '@mui/material';
 import Carousel from './Carousel';
 import AccountCreate from './AccountCreate';
 
-function Login({setUser, serverUrl, setToken}) {
+function Login({setUser, serverUrl, setToken, darkMode, setDarkMode}) {
   const system = useContext(SystemContext);
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
@@ -48,6 +48,11 @@ function Login({setUser, serverUrl, setToken}) {
   const applySystemSettings = async () => {
     const response = await axios.get(`${serverUrl}/system_settings/login`).then(response => {
       setSystemSettings(response.data);
+      // also get darkMode setting from browser local storage as we don't know who the user is yet
+      let darkMode = localStorage.getItem('darkMode');
+      if (darkMode) {
+        setDarkMode(darkMode === 'true');
+      }
       console.log("Login custom settings:", response);
       return response.data;
     }).catch(error => {

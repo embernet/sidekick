@@ -2,15 +2,17 @@ import { debounce } from "lodash";
 import { useEffect, useState, useContext, useCallback } from 'react';
 import { Card, Box, IconButton, Typography, Collapse, Tooltip,
      List, ListItem, ListItemText, 
-     Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+     Accordion, AccordionSummary, AccordionDetails, Toolbar } from '@mui/material';
 import { ClassNames } from "@emotion/react";
 import CloseIcon from '@mui/icons-material/Close';
-import { StyledToolbar } from './theme';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import BuildIcon from '@mui/icons-material/Build';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
+import { styled } from '@mui/system';
+import { lightBlue } from '@mui/material/colors';
+import { StyledBox } from "./theme";
 
 import { SystemContext } from './SystemContext';
 import Explorer from './Explorer';
@@ -18,7 +20,13 @@ import Explorer from './Explorer';
 const PromptEngineer = ({handleTogglePromptEngineer, setNewPromptPart, setNewPromptTemplate, openPromptTemplateId,
     promptTemplateNameChanged, refreshPromptTemplateExplorer, setRefreshPromptTemplateExplorer,
     setPromptTemplateOpen, promptTemplateOpen, settingsManager, serverUrl, token, setToken,
-    windowPinnedOpen, setWindowPinnedOpen}) => {
+    windowPinnedOpen, setWindowPinnedOpen, darkMode}) => {
+
+    const StyledToolbar = styled(Toolbar)(({ theme }) => ({
+        backgroundColor: darkMode ? lightBlue[800] : lightBlue[200],
+        marginRight: theme.spacing(2),
+    }));
+    
     const system = useContext(SystemContext);
     const [promptParts, setPromptParts] = useState({});
     const [promptPartsLoaded, setPromptPartsLoaded] = useState(false);
@@ -84,7 +92,7 @@ const PromptEngineer = ({handleTogglePromptEngineer, setNewPromptPart, setNewPro
         </Card>
 
     const promptFragmentsRender = 
-        <Box sx={{ flexGrow: 1, overflow: 'auto', padding: '6px', }}>
+        <StyledBox sx={{ flexGrow: 1, overflow: 'auto', padding: '6px', }}>
             <List dense>
                 {Object.entries(promptParts).map(([section, items]) => (
                     <div key={section}>
@@ -104,10 +112,10 @@ const PromptEngineer = ({handleTogglePromptEngineer, setNewPromptPart, setNewPro
                     </div>
                 ))}
             </List>
-        </Box>
+        </StyledBox>
 
     const loadedRender = 
-        <Box sx={{display:"flex", flexDirection:"column", height: "100%", overflow: "auto" }}>
+        <StyledBox sx={{display:"flex", flexDirection:"column", height: "100%", overflow: "auto" }}>
             <Accordion defaultExpanded>
                 <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
@@ -149,7 +157,7 @@ const PromptEngineer = ({handleTogglePromptEngineer, setNewPromptPart, setNewPro
                         />
                 </AccordionDetails>
             </Accordion>
-        </Box>
+        </StyledBox>
 
     const render = <Card id="prompt-engineer-panel" sx={{display:"flex", flexDirection:"column", padding:"6px", margin: "6px",
         flex:1, minWidth: "380px", maxWidth: "450px"}}>
@@ -169,9 +177,9 @@ const PromptEngineer = ({handleTogglePromptEngineer, setNewPromptPart, setNewPro
                 </Tooltip>
             </Box>
         </StyledToolbar>
-            <Box sx={{ height: "100%", overflow: 'hidden' }}>
+            <StyledBox sx={{ height: "100%", overflow: 'hidden' }}>
                 {promptPartsLoaded ? loadedRender : loadingRender}
-            </Box>
+            </StyledBox>
     </Card>
 
     return (render);

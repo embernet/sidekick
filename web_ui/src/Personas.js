@@ -1,28 +1,39 @@
 import { debounce } from "lodash";
 import { useEffect, useState, useContext, Fragment, useCallback } from 'react';
 import { Card, Box, IconButton, Tooltip, Typography, TextField,
-    List, ListItem, ListItemText, Menu, MenuItem } from '@mui/material';
+    ListItem, ListItemText, Menu, MenuItem, Toolbar } from '@mui/material';
+import { styled } from '@mui/system';
+import { lightBlue, grey } from '@mui/material/colors';
+import { StyledList } from "./theme";
+
 import { ClassNames } from "@emotion/react";
 import PersonIcon from '@mui/icons-material/Person';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandIcon from '@mui/icons-material/Expand';
+import CompressIcon from '@mui/icons-material/Compress';
 import FavouriteIcon from '@mui/icons-material/Favorite';
 import FavouriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
+import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 import { SystemContext } from './SystemContext';
-import { StyledToolbar } from './theme';
 
 const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, personasOpen, 
     settingsManager, setShouldAskAgainWithPersona, serverUrl, StreamingChatResponse,
-    windowPinnedOpen, setWindowPinnedOpen}) => {
+    windowPinnedOpen, setWindowPinnedOpen, darkMode}) => {
+
+    const StyledToolbar = styled(Toolbar)(({ theme }) => ({
+        backgroundColor: darkMode ? lightBlue[800] : lightBlue[200],
+        marginRight: theme.spacing(2),
+    }));
+    
     const system = useContext(SystemContext);
     const [myPersonas, setMyPersonas] = useState([]);
     const [filterText, setFilterText] = useState('');
     const [expanded, setExpanded] = useState(false);
     const [expandedPersona, setExpandedPersona] = useState(null);
-    const [timeoutId, setTimeoutId] = useState(null);
     const [personaContextMenu, setPersonaContextMenu] = useState(null);
     const [personasLoaded, setPersonasLoaded] = useState(false);
     const [loadingPersonasMessage, setLoadingPersonasMessage] = useState("Loading personas...");
@@ -92,17 +103,6 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
     const handleToggleFavouriteFilter = () => {
         setFilterByFavourite(!filterByFavourite);
     };
-    const handlePersonaMouseEnter = (persona) => {
-        const id = setTimeout(() => {
-            setExpandedPersona(persona);
-        }, 1000);
-        setTimeoutId(id);
-    };
-
-    const handlePersonaMouseLeave = () => {
-        clearTimeout(timeoutId);
-        setExpandedPersona(null);
-    };
 
     const handleExpandCollapse = () => {
         let newState = !expanded;
@@ -136,6 +136,27 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
         setPersona(persona);
         setFocusOnPrompt(true);
     };
+
+    const handleSelectDefaultPersona = () => {
+        const defaultPersona = Object.entries(myPersonas).reduce((acc, [key, value]) => {
+            if (value.default) {
+                acc = { name: key, ...value };
+            }
+            return acc;
+        }, {});
+        setPersona(defaultPersona);
+        setFocusOnPrompt(true);
+    }
+
+    const handleSelectNoPersona = () => {
+        setPersona({
+            name: "No Persona",
+            tags: [],
+            description: "Uses a blank system prompt so the model responds purely based on its pre-trained knowledge and the user prompt.",
+            system_prompt: ""
+        });
+        setFocusOnPrompt(true);
+    }
 
     const handleSetAsDefault = (event) => {
         event.stopPropagation();
@@ -192,47 +213,67 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
 
     const loadingRender = <Card id="personas-panel"
         sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
-        flex:1, minWidth: "380px", maxWidth: "450px"}}>
+        flex:1, minWidth: "400px", maxWidth: "450px"}}>
         <Typography>{loadingPersonasMessage}</Typography>
     </Card>
 
     const loadedRender =
-        <List sx={{ overflowY: "auto" }}>
+        <StyledList sx={{ overflowY: "auto" }}>
         {Object.values(filteredPersonas).map(persona => (
             <ListItem onContextMenu={(event) => handlePersonaContextMenu(event, persona)}
                 sx={{ padding: 1, cursor: "pointer" }}
                 key={persona.name}
                 onClick={() => { handleSelectPersona(persona); }}
-                onMouseEnter={() => { handlePersonaMouseEnter(persona.name); }}
-                onMouseLeave={handlePersonaMouseLeave}
                 >
                         <Card
                             sx={{ padding:2, paddingTop: 1, paddingBottom:1, 
-                                backgroundColor: persona.selected ? "lightgrey" : "inherit", width: "100%" }}
+                                backgroundColor: persona.selected ? (darkMode ? grey[600] : grey[200]) : "inherit", width: "100%" }}
                         >
                             <ListItemText
                                 primary={
                                     <Typography sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                        <span>
+                                        <Typography>
                                             {persona.name.charAt(0).toUpperCase() + persona.name.slice(1)}
                                             {persona.default && <Typography sx={{ ml:2 }} variant="caption">(default)</Typography>}
-                                        </span>
-                                            {persona.favourite ? (
-                                                <FavouriteIcon
-                                                    onClick={(event) => {
-                                                        event.stopPropagation();
-                                                        handleToggleFavourite(persona);
-                                                    }}
-                                                />
-                                                ) : (
-                                                    <FavouriteBorderIcon
-                                                    onClick={(event) => {
-                                                        event.stopPropagation();
-                                                        handleToggleFavourite(persona);
-                                                    }}
-                                                    />
-                                                )
+                                        </Typography>
+                                        <Box ml="auto">
+                                            {!expanded && 
+                                                <Tooltip sx={{mr:1}} title={expandedPersona === persona.name ? "Hide details" : "Show details"}>
+                                                    {expandedPersona === persona.name
+                                                        ? <CompressIcon
+                                                            onClick={(event) => {
+                                                                event.stopPropagation();
+                                                                setExpandedPersona(null);
+                                                            }}
+                                                        />
+                                                        : <ExpandIcon
+                                                            onClick={(event) => {
+                                                                event.stopPropagation();
+                                                                setExpandedPersona(persona.name);
+                                                            }}
+                                                        />
+                                                    }
+                                                </Tooltip>
                                             }
+                                            <Tooltip title={persona.favourite ? "Remove from favourites" : "Add to favourites"}>
+                                                {persona.favourite ? (
+                                                    <FavouriteIcon
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            handleToggleFavourite(persona);
+                                                        }}
+                                                    />
+                                                    ) : (
+                                                        <FavouriteBorderIcon
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            handleToggleFavourite(persona);
+                                                        }}
+                                                        />
+                                                    )
+                                                }
+                                            </Tooltip>
+                                        </Box>
                                     </Typography>
                                 }
                                 secondary={
@@ -267,17 +308,38 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
                     </Menu>
             </ListItem>
         ))}
-        </List>
+        </StyledList>
 
     const render = <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
-    flex:1, minWidth: "380px", maxWidth: "450px"}}>
+    flex:1, minWidth: "400px", maxWidth: "450px"}}>
         <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
             <PersonIcon/>
             <Typography sx={{mr:2}}>Personas</Typography>
+            <Tooltip title={ persona.system_prompt === "" ? "No persona selected" : "Select no persona" }>
+                <span>
+                    <IconButton edge="start" color="inherit" aria-label="Set persona to 'None'"
+                        disabled={//disable if persona already set to 'None'
+                            persona.system_prompt === ""}
+                        onClick={handleSelectNoPersona}>
+                        <CancelIcon/>
+                    </IconButton>
+                </span>
+            </Tooltip>
+            <Tooltip title={ persona?.default ? "Default persona selected" : "Select default persona" }>
+                <span>
+                    <IconButton edge="start" color="inherit" aria-label="Set default persona"
+                        disabled={//disable if there is no default persona or if the current persona is the default
+                            !Object.entries(myPersonas).some(([key, value]) => value.default) ||
+                            persona.default}
+                        onClick={handleSelectDefaultPersona}>
+                        <SettingsBackupRestoreIcon/>
+                    </IconButton>
+                </span>
+            </Tooltip>
             <Box ml="auto">
                 <Tooltip title={ expanded ? "Hide details" : "Show details" }>
                     <IconButton onClick={handleExpandCollapse} color="inherit" aria-label="expand">
-                        <ExpandIcon/>
+                        { expanded ? <CompressIcon/> : <ExpandIcon/> }
                     </IconButton>
                 </Tooltip>
                 <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
