@@ -211,6 +211,7 @@ const App = () => {
         setNoteOpen(data.noteOpenDefault);
         setNotesOpen(data.notesOpenDefault);
         setNotesPinned(data.notesPinned);
+        setDarkMode(data?.darkMode ? data.darkMode : false);
         setAppSettingsOpen(false);
         setAdminOpen(false);
       },
@@ -239,7 +240,8 @@ const App = () => {
         chatOpenDefault: chatOpen,
         noteOpenDefault: noteOpen,
         notesOpenDefault: notesOpen,
-        notesPinned: notesPinned
+        notesPinned: notesPinned,
+        darkMode: darkMode
       };
       setAppSettings(newAppSettings);
       mySettingsManager.current.setAll(newAppSettings,
@@ -250,10 +252,13 @@ const App = () => {
           system.error("System Error saving app settings.", error);
       }
       );
+      // Also save darkMode in the browser local storage so the login page can use it
+      localStorage.setItem('darkMode', darkMode);
     }
   }, [sidekickAIOpen, sidekickAIPinned, chatsOpen, chatsPinned, modelSettingsOpen,
       modelSettingsPinned, personasOpen, personasPinned,
-      promptEngineerOpen, promptEngineerPinned, chatOpen, noteOpen, notesOpen, notesPinned]);
+      promptEngineerOpen, promptEngineerPinned, chatOpen, noteOpen, notesOpen, notesPinned,
+      darkMode]);
 
   useEffect(()=>{
   }, [loadChat]);
@@ -887,7 +892,7 @@ const loginRender =
           <Box sx={{display:"flex", flexDirection:"row", flex:"1",
           overflowY:"hidden", overflow:"auto", width:"100%",
           justifyContent:"center", alignItems:"center"}}>
-            <Login setUser={setUser} serverUrl={serverUrl} setToken={setToken} darkMode={darkMode}/>
+            <Login setUser={setUser} serverUrl={serverUrl} setToken={setToken} darkMode={darkMode} setDarkMode={setDarkMode}/>
           </Box>
           <StatusBar statusUpdates={statusUpdates}/>
         </Box>
