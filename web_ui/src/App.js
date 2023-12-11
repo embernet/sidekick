@@ -55,7 +55,7 @@ import Admin from './Admin';
 import SidekickAI from './SidekickAI';
 import StatusBar from './StatusBar';
 
-const VERSION = "0.1.4";
+const VERSION = "0.1.5";
 
 const App = () => {
   const system = useContext(SystemContext);
