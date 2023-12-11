@@ -481,8 +481,6 @@ You always do your best to generate text in the same style as the context text p
     return ai_response_json
 
 
-chat_streams = {}  # to hold the mapping from our stream id to the OpenAI stream id
-
 # Route to chat with the AI using the OpenAI streaming interface
 CHATV2_ROUTE = '/chat/v2'
 @app.route(CHATV2_ROUTE, methods=['POST'])
@@ -530,7 +528,6 @@ def chat_v2():
                 try:
                     data = json.loads(event.data)
                     delta = data['choices'][0]['delta']
-                    chat_streams[tid] = data['id']
                     if 'content' in delta:
                         text = delta['content']
                         increment_server_stat(category="usage", stat_name="completionCharacters", increment=len(text))
