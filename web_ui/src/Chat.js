@@ -310,6 +310,7 @@ const Chat = ({
 
     useEffect(()=>{
         if(promptToSend) {
+            showWaiting();
             setLastPrompt(promptToSend.prompt);
             sendPrompt(promptToSend.prompt);
         }
@@ -577,6 +578,7 @@ const Chat = ({
     }
 
     const sendPrompt = async (prompt) => {
+        showWaiting();
         // setup as much of the request as we can before calling appendMessage
         // as that will wait for any re-rendering and the id could change in that time
         let knowledgePrompt = "";
@@ -608,8 +610,6 @@ const Chat = ({
             setMyShouldAskAgainWithPersona(null);
             setMyPersona(persona);
         }
-
-        showWaiting();
 
         // Get GPT to name the chat based on the content of the first message
         if (name === newChatName) {
@@ -1118,7 +1118,7 @@ const Chat = ({
                 <Tooltip title={ "Save prompt as template" }>
                     <span>
                         <IconButton edge="start" color="inherit" aria-label="save prompt as template"
-                            disabled={streamingChatResponse !== ""} onClick={handleSavePromptAsTemplate}>
+                            disabled={promptPlaceholder === userPromptWaiting} onClick={handleSavePromptAsTemplate}>
                             <SaveIcon/>
                         </IconButton>
                     </span>
@@ -1132,7 +1132,7 @@ const Chat = ({
                 <Tooltip title={ "Ask again" }>
                     <span>
                         <IconButton edge="start" color="inherit" aria-label="Ask again" 
-                            disabled={streamingChatResponse !== ""} onClick={handleAskAgain}>
+                            disabled={promptPlaceholder === userPromptWaiting} onClick={handleAskAgain}>
                             <ReplayIcon/>
                         </IconButton>
                     </span>
@@ -1140,7 +1140,7 @@ const Chat = ({
                 <Tooltip title={ "Reload last prompt for editing" }>
                     <span>
                         <IconButton edge="start" color="inherit" aria-label="Reload last prompt for editing"
-                            disabled={streamingChatResponse !== ""} onClick={handleReload}>
+                            disabled={promptPlaceholder === userPromptWaiting} onClick={handleReload}>
                             <RedoIcon/>
                         </IconButton>
                     </span>
@@ -1157,7 +1157,7 @@ const Chat = ({
                     </Tooltip>}
                     <Tooltip title={ "Send prompt to AI" }>
                         <span>
-                            <IconButton edge="end" color="inherit" aria-label="send" disabled={streamingChatResponse !== ""}
+                            <IconButton edge="end" color="inherit" aria-label="send" disabled={promptPlaceholder === userPromptWaiting}
                                 onClick={() => { setPromptToSend({prompt: prompt, timestamp: Date.now()}); }}
                             >
                                 <SendIcon/>
@@ -1175,7 +1175,7 @@ const Chat = ({
                     onChange={e => setPrompt(e.target.value)} 
                     onKeyDown={handleSend}
                     placeholder={promptPlaceholder}
-                    disabled={streamingChatResponse !== ""}
+                    disabled={promptPlaceholder === userPromptWaiting}
             />
             <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: darkMode ? grey[900] : grey[100] }}>
                 <Tooltip title={ personasOpen ? "Hide AI Personas" : "Show AI Personas"}>
