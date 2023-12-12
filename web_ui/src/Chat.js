@@ -518,6 +518,11 @@ const Chat = ({
 
                 system.debug("getChatStream Request", request, url + " POST");
                 const response = await fetch(url , request);
+                if (response.status !== 200) {
+                    system.error(`System Error reading chat stream: ${response.status} ${response?.reason}`, response, "/chat/v2 POST");
+                    showReady();
+                    return;
+                }
                 system.debug("getChatStream Response", response, url + " POST");
             
                 let decoder = new TextDecoderStream();
