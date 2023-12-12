@@ -565,20 +565,6 @@ def chat_v2():
         return result
 
 
-@app.route('/chat/v2/cancel/<id>', methods=['DELETE'])
-@jwt_required()
-def chat_v2_cancel(id):
-    # Use the OpenAI API to cancel a chat
-    url = 'https://api.openai.com/v1/chat/completions' + '/' + id
-    headers = {
-        'content-type': 'application/json; charset=utf-8',
-        'Authorization': f"Bearer {app.config['OPENAI_API_KEY']}"
-    }
-    response = requests.delete(url, headers=headers, data=json.dumps({}))
-    app.logger.debug(f"/chat/v2/cancel/{id} response: {response}")
-    return response
-
-
 @app.route('/docdb//documents', methods=['GET'])
 @app.route('/docdb/<document_type>/documents', methods=['GET'])
 @jwt_required()
