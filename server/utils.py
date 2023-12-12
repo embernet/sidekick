@@ -107,7 +107,7 @@ class RequestLogger:
         duration = self._get_duration()
         client = self.request.remote_addr
         sep = '::'
-        log_message = f'{type} time{sep}{timestamp}, duration{sep}{duration}, route{sep}{self.route}, method{sep}{self.method}, user{sep}{self.user}, client{sep}{client}, state{sep}{message}'
+        log_message = f'{type} time{sep}{timestamp}, duration{sep}{duration}, route{sep}{self.route}, method{sep}{self.method}, user{sep}{self.user}, client{sep}{client}, message{sep}{message}'
         for key, value in kwargs.items():
             # for dicts, convert to json string and pretty print
             if isinstance(value, dict):
