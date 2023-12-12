@@ -10,6 +10,8 @@ from sqlalchemy.exc import NoResultFound
 from sqlalchemy.engine.url import make_url
 from flask_oidc import OpenIDConnect
 
+VERSION = "0.1.5"
+
 app = Flask(__name__)
 app.logger.setLevel(logging.getLevelName(
     os.environ.get("LOG_LEVEL", "ERROR")))
@@ -41,6 +43,16 @@ db.init_app(app)
 jwt = JWTManager(app)
 CORS(app)
 migrate = Migrate(app, db)
+
+# Remove all logger handlers and add a new one
+while app.logger.hasHandlers():
+    app.logger.removeHandler(app.logger.handlers[0])
+handler = logging.StreamHandler()
+formatter = logging.Formatter('[%(asctime)s][%(levelname)s][%(filename)s]'
+                              '[%(name)s.%(funcName)s:%(lineno)s] %(message)s')
+handler.setFormatter(formatter)
+app.logger.addHandler(handler)
+app.logger.info(f"message::Sidekick server started, version::{VERSION}")
 
 if app.config["OIDC_CLIENT_SECRETS"]["web"]["client_id"]:
     oidc = OpenIDConnect(app)

@@ -10,6 +10,8 @@ import time
 from datetime import datetime
 from sqlalchemy.exc import NoResultFound, OperationalError
 import tiktoken
+from flask import g
+from flask_jwt_extended import get_jwt_identity
 
 from app import app, db
 from models import User, Document, Tag, DocumentTag, UserTag
@@ -24,45 +26,78 @@ def increment_server_stat(category, stat_name, increment=1):
         server_stats[category] = {}
     server_stats[category][stat_name] = server_stats[category].get(stat_name, 0) + increment
 
-class TimedLogger:
+class RequestLogger:
     """
-    A class for logging events during processing of a route request
-    with a timestamp, duration, standard format,
-    and transaction id (tid) to link events from the same route request.
+    A class for logging events during processing of a request
+    with a timestamp, duration, route, userid, in a standard format,
+    and transaction id (tid) to link events from the same request.
+    Any logging parameters can be passed as keyword arguments and
+    will be included in the log message. If logging parameters are ditcts,
+    they will be converted to json strings and pretty printed.
 
-    Usage:
-        with TimedLogger(route=MY_ROUTE, method='POST', request=request, user=get_jwt_identity()) as tl:
-            tl.log(app.logger.info, 'request')
-        try:
-            # process the request
-        except Exception as e:
-            tl.log(app.logger.error, 'error', message=str(e))
-        tl.log(app.logger.info, 'response', size=response_size, status=response_status)
+    Simple usage is to just wrap the request in a with block
+
+    More comprehensive usage example:
+        with RequestLogger(request) as rl:
+            # Automatically logs 'started' at the beginning of the with block
+            try:
+                # process the request
+                rl.info('info to log during processing', data=additional_data_to_log)
+                rl.debug('debug to log during processing', data=additional_data_to_log)
+            except Exception as e:
+                rl.exception(e, "optional message to log", data=additional_data_to_log)
+            rl.info('response', size=response_size, status=response_status)
+        # Automatically logs 'finished' at the end of the with block
+        # Automatically logs any uncaught exceptions
 
     """
-    def __init__(self, route, method, request, user=None):
-        self.route = route
-        self.method = method
-        self.request = request
-        self.user = user
-        self.tid = str(uuid.uuid4())
+    def __init__(self, request, skip_start_log=False, skip_finish_log=False):
         self.start_time = time.time()
-        self.log(app.logger.info, 'request')
+        # create a unique transaction id for all logs for this request
+        self.tid = str(uuid.uuid4())
+        self.request = request
+        self.route = request.url_rule.rule if self.request.url_rule else None
+        self.method = request.method
+        self.skip_start_log = skip_start_log
+        self.skip_finish_log = skip_finish_log
+        self.pushed_items = []
+        try:
+            self.user = get_jwt_identity()
+        except:
+            self.user = 'None'
+        if not skip_start_log:
+            self.info('started')
+        if request.is_json:
+            self.debug('request', data=json.dumps(request.json, indent=4))
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type:
+            # If the with block exited due to an exception, log the exception
+            self.error('error', message=str(exc_val),  traceback=''.join(traceback.format_tb(exc_tb)))
+        if not self.skip_finish_log:
+            collected_pushed_items = {k: v for d in self.pushed_items for k, v in d.items()}
+            self.info('finished', **collected_pushed_items)
+        # return True to suppress any uncaught exceptions
+        # to avoid end-points causing the server to exit
+        return True
 
     def _get_timestamp(self):
-        return datetime.now().strftime('%y%m%d-%H%M%S%f')[:-3]
+        return datetime.now().strftime('%y%m%d-%H%M%S.%f')[:-3]
 
     def _get_duration(self):
         return '{:.3f}'.format(time.time() - self.start_time)
-
-    def log(self, logger_method, state, **kwargs):
+    
+    def _construct_log_message(self, type, message, **kwargs):
         """
-        Logs an event with the given logger method, state, and additional key, value pairs.
+        Construct a standard format log message with the given logger method, state, and additional key, value pairs.
 
         Parameters
         ----------
-            logger_method : function
-                The logger method to use (e.g., app.logger.info, app.logger.error).
+            type : str
+                The type of message (e.g., INFO, ERROR).
             state : str
                 The state of the request (e.g., 'request', 'response', 'error').
             **kwargs : dict
@@ -71,10 +106,39 @@ class TimedLogger:
         timestamp = self._get_timestamp()
         duration = self._get_duration()
         client = self.request.remote_addr
-        log_message = f'time::{timestamp}, duration::{duration}, tid::{self.tid}, route::{self.route}, method::{self.method}, user::{self.user}, client::{client}, state::{state}'
+        sep = '::'
+        log_message = f'{type} time{sep}{timestamp}, duration{sep}{duration}, route{sep}{self.route}, method{sep}{self.method}, user{sep}{self.user}, client{sep}{client}, state{sep}{message}'
         for key, value in kwargs.items():
-            log_message += f', {key}::{value}'
-        logger_method(log_message)
+            # for dicts, convert to json string and pretty print
+            if isinstance(value, dict):
+                value = json.dumps(value, indent=4)
+            log_message += f', {key}{sep}{value}'
+        log_message += f', tid{sep}{self.tid}'
+        return log_message
+    
+    def push(self, **kwargs):
+        """
+        Push a set of key value pairs
+        to be included in the finished log message on with block exit.
+        """
+        self.pushed_items.append(kwargs)
+        self.skip_finish_log = False
+
+    def info(self, message, **kwargs):
+        app.logger.info(self._construct_log_message("INFO", message, **kwargs))
+
+    def error(self, message, **kwargs):
+        app.logger.info(self._construct_log_message("ERROR", message, **kwargs))
+
+    def exception(self, e, message="", **kwargs):
+        app.logger.exception(self._construct_log_message("EXCEPTION", message, **kwargs), e)
+
+    def warning(self, message, **kwargs):
+        app.logger.info(self._construct_log_message("WARNING", message, **kwargs))
+
+    def debug(self, message, **kwargs):
+        app.logger.info(self._construct_log_message("DEBUG", message, **kwargs))
+
 
 def num_characters_from_messages(messages):
     """Return the number of characters used by a list of messages."""
@@ -82,8 +146,7 @@ def num_characters_from_messages(messages):
     for message in messages:
         for key, value in message.items():
             num_characters += len(key) + len(value)
-    return num_characters
-    
+    return num_characters    
     
 
 def openai_num_tokens_from_messages(messages, model="gpt-3.5-turbo-0613"):
@@ -141,12 +204,6 @@ def construct_ai_request(request):
                                  {"role": "user", "content": prompt}]
     app.logger.debug(f"ai_request: {ai_request}")
     return ai_request
-
-
-def log_exception(e):
-    tb = traceback.format_exc()
-    error = f"An error occurred: {str(e)}\n{tb}"
-    app.logger.error(error)
 
 
 def get_random_string(len=32):
