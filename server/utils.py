@@ -1,10 +1,12 @@
 import os
+from typing import Any
 import uuid
 import json
 import random
 import string
 import bcrypt
 import traceback
+import time
 from datetime import datetime
 from sqlalchemy.exc import NoResultFound, OperationalError
 import tiktoken
@@ -21,6 +23,58 @@ def increment_server_stat(category, stat_name, increment=1):
     if category not in server_stats:
         server_stats[category] = {}
     server_stats[category][stat_name] = server_stats[category].get(stat_name, 0) + increment
+
+class TimedLogger:
+    """
+    A class for logging events during processing of a route request
+    with a timestamp, duration, standard format,
+    and transaction id (tid) to link events from the same route request.
+
+    Usage:
+        with TimedLogger(route=MY_ROUTE, method='POST', request=request, user=get_jwt_identity()) as tl:
+            tl.log(app.logger.info, 'request')
+        try:
+            # process the request
+        except Exception as e:
+            tl.log(app.logger.error, 'error', message=str(e))
+        tl.log(app.logger.info, 'response', size=response_size, status=response_status)
+
+    """
+    def __init__(self, route, method, request, user=None):
+        self.route = route
+        self.method = method
+        self.request = request
+        self.user = user
+        self.tid = str(uuid.uuid4())
+        self.start_time = time.time()
+        self.log(app.logger.info, 'request')
+
+    def _get_timestamp(self):
+        return datetime.now().strftime('%y%m%d-%H%M%S%f')[:-3]
+
+    def _get_duration(self):
+        return '{:.3f}'.format(time.time() - self.start_time)
+
+    def log(self, logger_method, state, **kwargs):
+        """
+        Logs an event with the given logger method, state, and additional key, value pairs.
+
+        Parameters
+        ----------
+            logger_method : function
+                The logger method to use (e.g., app.logger.info, app.logger.error).
+            state : str
+                The state of the request (e.g., 'request', 'response', 'error').
+            **kwargs : dict
+                Additional keyword arguments to include in the log message.
+        """
+        timestamp = self._get_timestamp()
+        duration = self._get_duration()
+        client = self.request.remote_addr
+        log_message = f'time::{timestamp}, duration::{duration}, tid::{self.tid}, route::{self.route}, method::{self.method}, user::{self.user}, client::{client}, state::{state}'
+        for key, value in kwargs.items():
+            log_message += f', {key}::{value}'
+        logger_method(log_message)
 
 def num_characters_from_messages(messages):
     """Return the number of characters used by a list of messages."""

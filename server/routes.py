@@ -7,7 +7,7 @@ import sseclient
 
 from collections import OrderedDict
 from datetime import datetime
-from utils import DBUtils, log_exception, construct_ai_request, \
+from utils import DBUtils, log_exception, construct_ai_request, TimedLogger,\
     server_stats, increment_server_stat, openai_num_tokens_from_messages, \
     get_random_string, num_characters_from_messages
 
@@ -20,6 +20,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app import app, oidc
 
+VERSION = "0.1.5"
 VERSION = "0.1.5"
 
 class OrderedEncoder(json.JSONEncoder):
@@ -36,7 +37,7 @@ def index():
 
 @app.route('/health', methods=['GET'])
 def health():
-    app.logger.debug(f"/health GET request from:{request.remote_addr}")
+    app.logger.debug(f"/health GET request client:{request.remote_addr}")
     try:
         # calculate uptime
         uptime = datetime.now() - server_stats["serverStartTime"]
@@ -91,7 +92,7 @@ def test_server_up():
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "hostname": socket.gethostname()
     }
-    app.logger.debug(f"/ping GET request from:{request.remote_addr}")
+    app.logger.debug(f"/ping GET request client:{request.remote_addr}")
     return response
 
 
@@ -143,10 +144,11 @@ def test_ai():
 @jwt_required()
 def feedback():
     increment_server_stat(category="requests", stat_name="feedback")
-    app.logger.info(f"/feedback [POST] request from:{request.remote_addr}")
+    acting_user_id = get_jwt_identity()
+    app.logger.info(f"/feedback [POST] request client:{request.remote_addr} user:{acting_user_id}")
     try:
         DBUtils.create_document(
-            user_id=get_jwt_identity(), type="feedback",
+            user_id=acting_user_id, type="feedback",
             name=f"Feedback {datetime.now().strftime('%Y%m%d%H%M%S')}",
             tags=[request.json.get('type')],
             properties={"status": "new"},
@@ -163,8 +165,8 @@ def feedback():
 @jwt_required()
 def get_feedback():
     increment_server_stat(category="requests", stat_name="getFeedback")
-    app.logger.info(f"/feedback [GET] request from:{request.remote_addr}")
     acting_user_id = get_jwt_identity()
+    app.logger.info(f"/feedback [GET] request client:{request.remote_addr} user:{acting_user_id}")
     if DBUtils.user_isadmin(acting_user_id):
         try:
             feedback = DBUtils.list_documents(document_type="feedback",
@@ -184,8 +186,8 @@ def get_feedback():
 @jwt_required()
 def get_users():
     increment_server_stat(category="requests", stat_name="getUsers")
-    app.logger.info(f"/users [GET] request from:{request.remote_addr}")
     acting_user_id = get_jwt_identity()
+    app.logger.info(f"/users [GET] request client:{request.remote_addr} user:{acting_user_id}")
     if DBUtils.user_isadmin(acting_user_id):
         try:
             users = DBUtils.list_users()
@@ -203,9 +205,7 @@ def get_users():
 @app.route('/system_settings/<name>', methods=['GET'])
 def get_system_settings(name):
     increment_server_stat(category="requests", stat_name=f"getSystemSettings({name})")
-    app.logger.info(
-        f"/system_settings/{name} GET request from:{request.remote_addr}")
-
+    app.logger.info(f"/system_settings/{name} GET request client:{request.remote_addr}")
     settings = DBUtils.get_document(
         user_id="sidekick",
         name=name,
@@ -216,6 +216,7 @@ def get_system_settings(name):
         status=200,
         mimetype='application/json'
     )
+    app.logger.info(f"/system_settings/{name} GET response client:{request.remote_addr}")
     app.logger.debug(f"/system_settings/{name} response: {settings}")
     return response
 
@@ -224,8 +225,9 @@ DOCTYPE_SYSTEM_SETTINGS = "system_settings"
 @jwt_required()
 def save_system_settings(name):
     increment_server_stat(category="requests", stat_name=f"updateSystemSettings({name})")
-    app.logger.info(f"/{DOCTYPE_SYSTEM_SETTINGS}/{name} PUT request from"
-                    f":{request.remote_addr}")
+    acting_user_id = get_jwt_identity()
+    app.logger.info(f"/{DOCTYPE_SYSTEM_SETTINGS}/{name} PUT request "
+                    f"client:{request.remote_addr} user:{acting_user_id}")
     try:
         user = DBUtils.get_user(get_jwt_identity())
         if DBUtils.user_isadmin(user["id"]):
@@ -239,12 +241,16 @@ def save_system_settings(name):
                 DBUtils.create_document(user_id="sidekick", name=name,
                                         type=DOCTYPE_SYSTEM_SETTINGS, tags=[],
                                         properties={}, content=request.json)
+                app.logger.info(f"/{DOCTYPE_SYSTEM_SETTINGS}/{name} PUT response "
+                                f"client:{request.remote_addr} user:{acting_user_id}")
             return app.response_class(
                 response=json.dumps({"success": True}),
                 status=200,
                 mimetype='application/json'
             )
         else:
+            app.logger.info(f"/{DOCTYPE_SYSTEM_SETTINGS}/{name} PUT unauthorized "
+                            f"client:{request.remote_addr} user:{acting_user_id}")
             return app.response_class(
                 response=json.dumps({"success": False}),
                 status=403,
@@ -257,7 +263,9 @@ def save_system_settings(name):
 @app.route('/settings/<name>', methods=['GET'])
 @jwt_required()
 def get_settings(name):
-    app.logger.info(f"/settings/{name} GET request from:{request.remote_addr}")
+    acting_user_id = get_jwt_identity()
+    app.logger.info(f"/settings/{name} GET request "
+                    f"client:{request.remote_addr} user:{acting_user_id}")
     try:
         settings = DBUtils.get_document(
             user_id=get_jwt_identity(),
@@ -270,7 +278,6 @@ def get_settings(name):
             mimetype='application/json'
         )
         app.logger.debug(f"/settings/{name} response: {settings}")
-        return response
     except NoResultFound:
         # No settings found, so init with default settings and return those
         with open(os.path.join("default_settings", f"{name}.json"), "r") as f:
@@ -283,16 +290,20 @@ def get_settings(name):
                 status=200,
                 mimetype='application/json'
             )
-            return response
     except Exception as e:
         log_exception(e)
+        app.logger.info(f"/settings/{name} GET error "
+                    f"client:{request.remote_addr} user:{acting_user_id} message:{str(e)}")
         return str(e), 500
+    app.logger.info(f"/settings/{name} GET response "
+                    f"client:{request.remote_addr} user:{acting_user_id}")
+    return response
 
 
 @app.route('/settings/<name>', methods=['PUT'])
 @jwt_required()
 def save_settings(name):
-    app.logger.info(f"/settings/{name} PUT request from:{request.remote_addr}")
+    app.logger.info(f"/settings/{name} PUT request client:{request.remote_addr}")
     try:
         document_id = DBUtils.get_document(
             user_id=get_jwt_identity(),
@@ -328,6 +339,10 @@ def save_settings(name):
 @app.route("/nametopic/v1", methods=['POST'])
 @jwt_required()
 def name_topic():
+    acting_user_id = get_jwt_identity()
+    app.logger.info(
+        f"/nametopic/v1 POST request client:{request.remote_addr} user:{acting_user_id}")
+    app.logger.debug("/nametopic/v1 request:\n" + json.dumps(request.json, indent=4))
     message_usage = {}
     def construct_name_topic_request(request):
         increment_server_stat(category="requests", stat_name="nameTopic")
@@ -344,10 +359,6 @@ def name_topic():
         }
         app.logger.debug(f"ai_request: {ai_request}")
         return ai_request
-
-    app.logger.info(
-        f"/nametopic/v1 POST request from:{request.remote_addr}")
-    app.logger.debug("/nametopic/v1 request:\n" + json.dumps(request.json, indent=4))
 
     try:
         url = 'https://api.openai.com/v1/chat/completions'
@@ -388,21 +399,30 @@ def name_topic():
             message_usage["completion_tokens"] = response.json()["usage"]["completion_tokens"]
             message_usage["total_tokens"] = response.json()["usage"]["total_tokens"]
         ai_response["usage"] = message_usage
-        ai_response_json = ai_response
     except Exception as e:
         log_exception(e)
-        ai_response_json = {
+        ai_response = {
             "success": False,
             "error": str(e)
         }
+    
+    ai_response_json = jsonify(ai_response)
+    response_size = len(ai_response_json.get_data(as_text=True))
+    app.logger.info(
+        f"/nametopic/v1 POST response client:{request.remote_addr} user:{acting_user_id} size:{response_size} success:{ai_response['success']}")
     app.logger.debug("/nametopic/v1 response:\n" +
-                     json.dumps(ai_response_json, indent=4))
+                     json.dumps(ai_response, indent=4))
     return ai_response_json
 
 
 @app.route("/generatetext/v1", methods=['POST'])
 @jwt_required()
 def query_ai():
+    acting_user_id = get_jwt_identity()
+    app.logger.info(
+        f"/generatetext/v1 POST request client:{request.remote_addr} user:{acting_user_id}")
+    app.logger.debug(f"/generatetext/v1 request:\n" +
+                     json.dumps(request.json, indent=4))
     message_usage = {}
     def construct_query_ai_request(request):
         increment_server_stat(category="requests", stat_name=f"generatetext")
@@ -423,10 +443,6 @@ You always do your best to generate text in the same style as the context text p
         app.logger.debug(f"/generatetext/v1 ai_request: {ai_request}")
         return ai_request
 
-    app.logger.info(
-        f"/generatetext/v1 POST request from:{request.remote_addr}")
-    app.logger.debug(f"/generatetext/v1 request:\n" +
-                     json.dumps(request.json, indent=4))
     ai_request = construct_query_ai_request(request)
     try:
         promptCharacters = num_characters_from_messages(ai_request["messages"])
@@ -476,6 +492,9 @@ You always do your best to generate text in the same style as the context text p
             "error": str(e)
         }
     ai_response_json = jsonify(ai_response)
+    response_size = len(ai_response_json.get_data(as_text=True))
+    app.logger.info(
+        f"/generatetext/v1 POST response client:{request.remote_addr} user:{acting_user_id} size:{response_size} success:{ai_response['success']}")
     app.logger.debug("/generatetext/v1 response:\n",
                         json.dumps(ai_response, indent=4))
     return ai_response_json
@@ -486,73 +505,70 @@ CHATV2_ROUTE = '/chat/v2'
 @app.route(CHATV2_ROUTE, methods=['POST'])
 @jwt_required()
 def chat_v2():
-    increment_server_stat(category="requests", stat_name="chatV2")
-    tid = str(uuid.uuid4())
-    app.logger.info(
-        f"{CHATV2_ROUTE} [POST] request from:{request.remote_addr} tid:{tid}")
-    app.logger.debug("{CHATV2_ROUTE} request:\n" + json.dumps(request.json, indent=4))
+    acting_user_id = get_jwt_identity()
+    with TimedLogger(route=CHATV2_ROUTE, method="POST", request=request, user=acting_user_id) as tl:
+        tl.log(app.logger.info, "stream-started")
+        tl.log(app.logger.debug, request=json.dumps(request.json, indent=4))
+        increment_server_stat(category="requests", stat_name="chatV2")
 
-    def generate():
-        url = 'https://api.openai.com/v1/chat/completions'
-        headers = {
-            'content-type': 'application/json; charset=utf-8',
-            'Authorization': f"Bearer {app.config['OPENAI_API_KEY']}"
-        }
-        ai_request = construct_ai_request(request)
-        ai_request["stream"] = True
-        promptCharacters = num_characters_from_messages(ai_request["messages"])
-        increment_server_stat(category="usage", stat_name="promptCharacters", increment=promptCharacters)
-        increment_server_stat(category="usage", stat_name="totalCharacters", increment=promptCharacters)
-        if app.config["SIDEKICK_COUNT_TOKENS"]:
-            try:
-                prompt_tokens = openai_num_tokens_from_messages(ai_request["messages"], ai_request["model"])
-                increment_server_stat(category="usage", stat_name="promptTokens", increment=prompt_tokens)
-            except Exception as e:
-                log_exception(e)
-                app.logger.error(f"{CHATV2_ROUTE} tid:{tid} error calculating prompt tokens: {str(e)}")
-        proxy_url = app.config["OPENAI_PROXY"]
-        proxies = {"http": proxy_url,
-                   "https": proxy_url} if proxy_url else None
-        response = requests.post(url, headers=headers, proxies=proxies,
-                                 data=json.dumps(ai_request), stream=True)
-        increment_server_stat(category="responses", stat_name="chatV2")
-
-        client = sseclient.SSEClient(response)
-        for event in client.events():
+        def generate():
+            url = 'https://api.openai.com/v1/chat/completions'
+            headers = {
+                'content-type': 'application/json; charset=utf-8',
+                'Authorization': f"Bearer {app.config['OPENAI_API_KEY']}"
+            }
+            ai_request = construct_ai_request(request)
+            ai_request["stream"] = True
+            promptCharacters = num_characters_from_messages(ai_request["messages"])
+            increment_server_stat(category="usage", stat_name="promptCharacters", increment=promptCharacters)
+            increment_server_stat(category="usage", stat_name="totalCharacters", increment=promptCharacters)
             if app.config["SIDEKICK_COUNT_TOKENS"]:
-                # The streaming interface does not provide the number of tokens used
-                # but as it returns one token at a time, we can count them
-                increment_server_stat(category="usage", stat_name="completionTokens", increment=1)
-                increment_server_stat(category="usage", stat_name="totalTokens", increment=1)
-            if event.data != '[DONE]':
                 try:
-                    data = json.loads(event.data)
-                    delta = data['choices'][0]['delta']
-                    if 'content' in delta:
-                        text = delta['content']
-                        increment_server_stat(category="usage", stat_name="completionCharacters", increment=len(text))
-                        increment_server_stat(category="usage", stat_name="totalCharacters", increment=len(text))
-                        yield (text)
-                    elif 'role' in delta:
-                        # discard
-                        pass
-                    elif delta == {}:
-                        yield ('')  # end of stream
-                    else:
-                        # Unexpected delta content
-                        app.logger.error(
-                            f"{CHATV2_ROUTE} tid:{tid} unexpected delta "
-                            f"content: {delta}")
+                    prompt_tokens = openai_num_tokens_from_messages(ai_request["messages"], ai_request["model"])
+                    increment_server_stat(category="usage", stat_name="promptTokens", increment=prompt_tokens)
                 except Exception as e:
                     log_exception(e)
-                    yield ('')
-        app.logger.info(
-            f"{CHATV2_ROUTE} tid:{tid} response stream-completed "
-            f"from:{request.remote_addr}")
+                    tl.log(app.logger.warning, "warning", message=f"Error calculating prompt tokens - {str(e)}")
+            proxy_url = app.config["OPENAI_PROXY"]
+            proxies = {"http": proxy_url,
+                    "https": proxy_url} if proxy_url else None
+            response = requests.post(url, headers=headers, proxies=proxies,
+                                    data=json.dumps(ai_request), stream=True)
+            increment_server_stat(category="responses", stat_name="chatV2")
 
-    app.logger.info(
-        f"{CHATV2_ROUTE} tid:{tid} response stream-started from:{request.remote_addr}")
-    return Response(stream_with_context(generate()))
+            client = sseclient.SSEClient(response)
+            response_size = 0
+            for event in client.events():
+                if app.config["SIDEKICK_COUNT_TOKENS"]:
+                    # The streaming interface does not provide the number of tokens used
+                    # but as it returns one token at a time, we can count them
+                    increment_server_stat(category="usage", stat_name="completionTokens", increment=1)
+                    increment_server_stat(category="usage", stat_name="totalTokens", increment=1)
+                if event.data != '[DONE]':
+                    try:
+                        data = json.loads(event.data)
+                        delta = data['choices'][0]['delta']
+                        if 'content' in delta:
+                            text = delta['content']
+                            response_size += len(text)
+                            increment_server_stat(category="usage", stat_name="completionCharacters", increment=len(text))
+                            increment_server_stat(category="usage", stat_name="totalCharacters", increment=len(text))
+                            yield (text)
+                        elif 'role' in delta:
+                            # discard
+                            pass
+                        elif delta == {}:
+                            yield ('')  # end of stream
+                        else:
+                            # Unexpected delta content
+                            tl.log(app.logger.error, "error",
+                                message=f"Error - Unexpected delta in chat stream; content - {delta}")
+                    except Exception as e:
+                        log_exception(e)
+                        yield ('')
+            tl.log(app.logger.info, "stream-completed", size=response_size)
+        result = Response(stream_with_context(generate()))
+        return result
 
 
 @app.route('/chat/v2/cancel/<id>', methods=['DELETE'])
@@ -573,11 +589,17 @@ def chat_v2_cancel(id):
 @app.route('/docdb/<document_type>/documents', methods=['GET'])
 @jwt_required()
 def docdb_list_documents(document_type=""):
+    acting_user_id = get_jwt_identity()    
     app.logger.info(
         f"/docdb/{document_type}/documents "
-        f"[GET] request from:{request.remote_addr}")
+        f"[GET] request client:{request.remote_addr} user:{acting_user_id}")
+    increment_server_stat(category="requests", stat_name=f"docdbList({document_type})")
     documents = DBUtils.list_documents(document_type=document_type,
-                                       user_id=get_jwt_identity())
+                                       user_id=acting_user_id)
+    document_count = len(documents["documents"])
+    app.logger.info(
+        f"/docdb/{document_type}/documents "
+        f"[GET] response client:{request.remote_addr} user:{acting_user_id} type:{document_type} count:{document_count}")
     return jsonify(documents)
 
 
@@ -585,11 +607,13 @@ def docdb_list_documents(document_type=""):
 @app.route('/docdb/<document_type>/documents', methods=['POST'])
 @jwt_required()
 def docdb_create_document(document_type=""):
+    acting_user_id = get_jwt_identity()
     increment_server_stat(category="requests", stat_name=f"docdbCreate({document_type})")
+    data = request.get_json()
+    data_size = len(json.dumps(data))
     app.logger.info(
         f"/docdb/{document_type}/documents "
-        f"[POST] request from:{request.remote_addr}")
-    data = request.get_json()
+        f"[POST] request client:{request.remote_addr} user:{acting_user_id} size:{data_size}")
     document = DBUtils.create_document(
         user_id=get_jwt_identity(), type=document_type,
         name=data['name'] if 'name' in data else "",
@@ -597,6 +621,9 @@ def docdb_create_document(document_type=""):
         properties=data['properties'] if 'properties' in data else {},
         content=data['content'] if 'content' in data else {}
     )
+    app.logger.info(
+        f"/docdb/{document_type}/documents "
+        f"[POST] response client:{request.remote_addr} user:{acting_user_id}")
     return jsonify(document)
 
 
@@ -604,16 +631,22 @@ def docdb_create_document(document_type=""):
 @app.route('/docdb/<document_type>/documents/<document_id>', methods=['GET'])
 @jwt_required()
 def docdb_load_document(document_id, document_type=""):
-    increment_server_stat(category="requests", stat_name=f"docdbGet({document_type})")
+    acting_user_id = get_jwt_identity()
     tid = str(uuid.uuid4())
+    increment_server_stat(category="requests", stat_name=f"docdbGet({document_type})")
     app.logger.info(
         f"/docdb/{document_type}/documents/{document_id} "
-        f"[GET] from:{request.remote_addr} tid:{tid}")
+        f"[GET] request client:{request.remote_addr} user:{acting_user_id} tid:{tid}")
     try:
         document = DBUtils.get_document(document_id=document_id)
+        document_size = len(json.dumps(document))
+        app.logger.info(
+            f"/docdb/{document_type}/documents/{document_id} "
+            f"[GET] response client:{request.remote_addr} user:{acting_user_id} tid:{tid} size:{document_size} success:True")
         return jsonify(document)
     except Exception as e:
-        app.logger.error(f"tid:{tid} docdb_load_document({document_id}) "
+        app.logger.error(f"/docdb/{document_type}/documents/{document_id} "
+                         f"[GET] error client:{request.remote_addr} user:{acting_user_id} tid:{tid} context:docdb_load_document({document_id}) "
                          f"error:{str(e)}")
         log_exception(e)
         return "Document not found", 404
@@ -623,10 +656,11 @@ def docdb_load_document(document_id, document_type=""):
 @app.route('/docdb/<document_type>/documents/<document_id>', methods=['PUT'])
 @jwt_required()
 def docdb_save_document(document_id, document_type=""):
+    acting_user_id = get_jwt_identity()
     increment_server_stat(category="requests", stat_name=f"docdbSave({document_type})")
     app.logger.info(
         f"/docdb/{document_type}/documents/{document_id} "
-        f"[PUT] request from:{request.remote_addr}")
+        f"[PUT] request client:{request.remote_addr} user:{acting_user_id}")
     data = request.get_json()
     document = DBUtils.update_document(
         id=document_id,
@@ -636,18 +670,26 @@ def docdb_save_document(document_id, document_type=""):
         'metadata'] else {},
         content=data['content']
     )
+    document_size = len(json.dumps(document))
+    app.logger.info(
+        f"/docdb/{document_type}/documents/{document_id} "
+        f"[PUT] response client:{request.remote_addr} user:{acting_user_id} size:{document_size}")
     return jsonify(document)
 
 
 @app.route('/docdb/<document_type>/documents/<document_id>/rename', methods=['PUT'])
 @jwt_required()
 def docdb_rename_document(document_type, document_id):
-    increment_server_stat(category="requests", stat_name=f"docdbRename({document_type})")
+    acting_user_id = get_jwt_identity()
     app.logger.info(
         f"/docdb/{document_type}/documents/{document_id}/rename "
-        f"[PUT] request from:{request.remote_addr}")
+        f"[PUT] request client:{request.remote_addr} user:{acting_user_id}")
+    increment_server_stat(category="requests", stat_name=f"docdbRename({document_type})")
     document = DBUtils.update_document_name(document_id,
                                             request.get_json()["name"])
+    app.logger.info(
+        f"/docdb/{document_type}/documents/{document_id}/rename "
+        f"[PUT] response client:{request.remote_addr} user:{acting_user_id}")
     return jsonify(document)
 
 
@@ -655,11 +697,16 @@ def docdb_rename_document(document_type, document_id):
            methods=['PUT'])
 @jwt_required()
 def docdb_move_document(document_type, document_id):
+    acting_user_id = get_jwt_identity()
+    increment_server_stat(category="requests", stat_name=f"docdbMove({document_type})")
     app.logger.info(
         f"/docdb/{document_type}/documents/{document_id}/move "
-        f"[PUT] from:{request.remote_addr}")
+        f"[PUT] request client:{request.remote_addr} user:{acting_user_id}")
     document = DBUtils.update_document_type(id, request.get_json()[
         "type"])
+    app.logger.info(
+        f"/docdb/{document_type}/documents/{document_id}/move "
+        f"[PUT] response client:{request.remote_addr} user:{acting_user_id}")
     return jsonify(document)
 
 
@@ -667,11 +714,15 @@ def docdb_move_document(document_type, document_id):
            methods=['DELETE'])
 @jwt_required()
 def docdb_delete_document(document_type, document_id):
+    acting_user_id = get_jwt_identity()
     increment_server_stat(category="requests", stat_name=f"docdbDelete({document_type})")
     app.logger.info(
         f"/docdb/{document_type}/documents/{document_id} "
-        f"[DELETE] from:{request.remote_addr}")
+        f"[DELETE] request client:{request.remote_addr} user:{acting_user_id}")
     document = DBUtils.delete_document(document_id)
+    app.logger.info(
+        f"/docdb/{document_type}/documents/{document_id} "
+        f"[DELETE] response client:{request.remote_addr} user:{acting_user_id}")
     return jsonify(document)
 
 
@@ -680,17 +731,20 @@ def create_account():
     increment_server_stat(category="requests", stat_name="createAccount")
     try:
         data = request.get_json()
+        app.logger.info(
+            f"/create_account user_id:{data['user_id']} [POST] request "
+            f"client:{request.remote_addr}")
         # if 'sidekick' appears in the user_id, throw an exception
         if 'sidekick' in data['user_id']:
             raise Exception("Invalid user_id: cannot contain 'sidekick'")
-        app.logger.info(
-            f"/create_account user_id:{data['user_id']} [POST] request "
-            f"from:{request.remote_addr}")
         DBUtils.create_user(
             user_id=data["user_id"],
             name=data["name"],
             password=data["password"],
             properties=data['properties'] if 'properties' in data else {})
+        app.logger.info(
+            f"/create_account user_id:{data['user_id']} [POST] response "
+            f"client:{request.remote_addr}")
         return jsonify({'success': True})
     except IntegrityError as e:
         app.logger.error(f"/create_account user_id:{data['user_id']} error: User already exists")
@@ -707,22 +761,25 @@ def login():
     increment_server_stat(category="requests", stat_name="loginAttempt")
     data = request.get_json()
     app.logger.info(
-        f"/login user_id:{data['user_id']} [POST] request from"
-        f":{request.remote_addr}")
+        f"/login user_id:{data['user_id']} [POST] request "
+        f"client:{request.remote_addr}")
     try:
         result = DBUtils.login(data['user_id'], data['password'])
         if result['success']:
             access_token = create_access_token(identity=data['user_id'])
             result['access_token'] = access_token
             increment_server_stat(category="requests", stat_name="loginSuccess")
+            app.logger.info(
+                f"/login user_id:{data['user_id']} "
+                f"[POST] response client:{request.remote_addr} success:True")
         else:
             app.logger.info(
                 f"/login user_id:{data['user_id']} "
-                f"[POST] invalid login attempt from:{request.remote_addr}")
+                f"[POST] response client:{request.remote_addr} success:False message:Invalid login attempt")
             increment_server_stat(category="requests", stat_name="loginFailure")
         return jsonify(result)
     except Exception as e:
-        app.logger.error(f"/login user_id:{data['user_id']} error:{str(e)}")
+        app.logger.error(f"/login user_id:{data['user_id']} [POST] error:{str(e)}")
         log_exception(e)
         return jsonify({'success': False, 'message': str(e)})
 
@@ -741,8 +798,8 @@ def oidc_login_get_user():
         access_token = create_access_token(identity=user_id)
         result['access_token'] = access_token
         app.logger.info(
-            f"/oidc_login_get_user user_id:{user_id} [POST] request from"
-            f":{request.remote_addr}")
+            f"/oidc_login_get_user user_id:{user_id} [POST] request "
+            f"client:{request.remote_addr}")
     except Exception as e:
         app.logger.error(f"/oidc_login_get_user user_id:{user_id} "
                          f"error:{str(e)}")
@@ -785,14 +842,17 @@ def oidc_login():
 @app.route('/logout', methods=['POST'])
 @jwt_required()
 def logout():
+    acting_user_id = get_jwt_identity()
     increment_server_stat(category="requests", stat_name="logout")
-    app.logger.info(f"/logout [POST] request from:{request.remote_addr}")
+    app.logger.info(f"/logout [POST] request client:{request.remote_addr} user:{acting_user_id}")
     try:
         response = jsonify({'success': True})
         unset_jwt_cookies(response)
+        app.logger.info(f"/logout [POST] response client:{request.remote_addr} user:{acting_user_id} success:True")
         return response
     except Exception as e:
-        app.logger.error(f"/logout error:{str(e)}")
+        app.logger.error(f"/logout [POST] response "
+                         f"client:{request.remote_addr} user:{acting_user_id} success:False error:{str(e)}")
         log_exception(e)
         return jsonify({'success': False, 'message': str(e)})
 
@@ -811,19 +871,23 @@ def oidc_logout():
 @app.route('/change_password', methods=['POST'])
 @jwt_required()
 def change_password():
+    acting_user_id = get_jwt_identity()
     increment_server_stat(category="requests", stat_name="changePassword")
     data = request.get_json()
     user_id = data['user_id']
     app.logger.info(
-        f"/change_password user_id:{user_id} "
-        f"[POST] request from:{request.remote_addr}")
+        f"/change_password [POST] request "
+        f"client:{request.remote_addr} user:{acting_user_id}")
     try:
         result = DBUtils.change_password(data['user_id'],
                                          data['current_password'],
                                          data['new_password'])
+        app.logger.info(
+            f"/change_password [POST] response "
+            f"client:{request.remote_addr} user:{acting_user_id} success:True")
         return jsonify(result)
     except Exception as e:
-        app.logger.error(f"/change_password user_id:{data['user_id']} "
+        app.logger.error(f"/change_password [POST] error user_id:{data['user_id']} "
                          f"error:{str(e)}")
         log_exception(e)
         return jsonify({'success': False, 'message': str(e)})
@@ -838,8 +902,8 @@ def reset_password():
     new_password=data['new_password']
     acting_user_id = get_jwt_identity()
     app.logger.info(
-        f"/reset_password by user_id: {acting_user_id} for user_id: {user_id} "
-        f"[POST] request from: {request.remote_addr}")
+        f"/reset_password user_id:{user_id} [POST] request "
+        f"client:{request.remote_addr} user:{acting_user_id}")
     if DBUtils.user_isadmin(acting_user_id):
         try:
             result = DBUtils.reset_password(acting_user_id=acting_user_id,
@@ -848,15 +912,22 @@ def reset_password():
             if result['success']:
                 access_token = create_access_token(identity=data['user_id'])
                 result['access_token'] = access_token
+                app.logger.info(
+                    f"/reset_password user_id:{user_id} [POST] response "
+                    f"client:{request.remote_addr} user:{acting_user_id} success:True")
                 return jsonify(result)
             else:
-                return app.response_class(
+                result = app.response_class(
                     response=json.dumps({"success": False, "message": result['message']}),
                     status=403,
                     mimetype='application/json'
                 )
+                app.logger.info(
+                    f"/reset_password user_id:{user_id} [POST] response "
+                    f"client:{request.remote_addr} user:{acting_user_id} success:False message:{result['message']}")
+                return result
         except Exception as e:
-            app.logger.error(f"/reset_password user_id:{data['user_id']} "
+            app.logger.error(f"/reset_password user_id:{data['user_id']} [POST] error"
                             f"error:{str(e)}")
             log_exception(e)
             return jsonify({'success': False, 'message': str(e)})
@@ -876,8 +947,8 @@ def delete_user():
     password=data['password']
     acting_user_id = get_jwt_identity()
     app.logger.info(
-        f"/delete_user by acting_user_id: {acting_user_id} of user_id: {user_id_to_delete} [POST] request from"
-        f":{request.remote_addr}")
+        f"/delete_user user_id:{user_id_to_delete} [POST] request "
+        f"client:{request.remote_addr} user:{acting_user_id}")
     if acting_user_id != user_id_to_delete and not DBUtils.user_isadmin(acting_user_id):
         return app.response_class(
             response=json.dumps({"success": False, "message": "Only admins can delete other users"}),
@@ -887,8 +958,14 @@ def delete_user():
     try:
         if DBUtils.login(acting_user_id, password)['success']:
             result = DBUtils.delete_user(user_id_to_delete)
+            app.logger.info(
+                f"/delete_user user_id:{user_id_to_delete} [POST] response "
+                f"client:{request.remote_addr} user:{acting_user_id} success:True")
             return jsonify(result)
         else:
+            app.logger.info(
+                f"/delete_user user_id:{user_id_to_delete} [POST] response "
+                f"client:{request.remote_addr} user:{acting_user_id} success:False message:Invalid password")
             return jsonify({'success': False, 'message': 'Invalid password'})
     except Exception as e:
         app.logger.error(f"/delete_user by acting_user_id: {acting_user_id} of user_id: {user_id_to_delete} error"
@@ -902,6 +979,6 @@ def log():
     increment_server_stat(category="requests", stat_name="web_ui_log")
     data = request.get_json()
     app.logger.info(
-        f"/web_ui_log user_id:{data['user_id']} [POST] request from"
-        f":{request.remote_addr} message:{data['message']}")
+        f"/web_ui_log [POST] request "
+        f"client:{request.remote_addr} user:{get_jwt_identity()} message:{data['message']}")
     return jsonify({'success': True})

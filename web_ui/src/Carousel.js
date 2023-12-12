@@ -35,6 +35,8 @@ const Carousel = ({imageFolderName, filenamePrefix, filenameExtension, altText,
         height: imageHeight,
         cursor: 'pointer',
         position: 'relative',
+        borderRadius: '50%',
+        backgroundColor: 'transparent',
     };
 
     for (let i = 0; i <= 24; i++) {
