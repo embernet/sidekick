@@ -8,7 +8,7 @@ const TextStatsDisplay = ({ name, sizeInCharacters }) => {
     setDisplayTokens(!displayTokens);
   };
 
-  const displaySize = displayTokens ? Math.round(sizeInCharacters / 5) : sizeInCharacters;
+  const displaySize = displayTokens ? Math.round(sizeInCharacters / 4) : sizeInCharacters;
   const unit = displayTokens ? 'tokens' : 'characters';
 
   return (
