@@ -33,6 +33,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     const [modelOptions, setModelOptions] = useState(null);
     const [temperature, setTemperature] = useState(null);
     const [selectedModel, setSelectedModel] = useState(null);
+    const [selectedModelContextTokenSize, setSelectedModelContextTokenSize] = useState(null);
     const [top_p, setTop_p] = useState(null);
     const [presence_penalty, setpresence_penalty] = useState(null);
     const [frequency_penalty, setfrequency_penalty] = useState(null);
@@ -85,6 +86,12 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
             }
         )
     }, []);
+
+    useEffect(()=>{
+        if (selectedModel) {
+            setSelectedModelContextTokenSize(modelSettingsOptions.providers[selectedProvider].models[selectedModel].contextTokenSize);
+        }
+    }, [selectedModel]);
 
     useEffect(() => {
         setSettingsChanged(true);
@@ -194,6 +201,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     const shareModelSettings = () => {
         let newModelSettings = {
             "provider": selectedProvider,
+            "contextTokenSize": selectedModelContextTokenSize,
             "request": {
                 "model": selectedModel,
                 "temperature": temperature,
@@ -224,7 +232,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
             setTemperatureText(getTemperatureText(temperature));
             setFocusOnPrompt(true);
         }
-    }, [selectedProvider, selectedModel, temperature, top_p, presence_penalty, frequency_penalty]);
+    }, [selectedProvider, selectedModel, temperature, top_p, presence_penalty, frequency_penalty, selectedModelContextTokenSize]);
 
     const loadingRender =
         <Card
@@ -242,7 +250,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
                     label="Provider"
                     autoComplete='off'
                     value={Object.keys(modelSettingsOptions.providers)[0]}
-                    InputProps={{ readOnly: true }}
+                    InputProps={{ readOnly: true, disabled: true }}
                     sx={{ mt: 2, mb: 3 }}
                 />
                 ) : (
@@ -268,6 +276,14 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
                 sx={{ mt: 2, mb: 3 }}
                 renderInput={(params) => <TextField {...params} label="Model" />}
             />
+                <TextField
+                    id="context-token-size"
+                    label="Context size in tokens"
+                    autoComplete='off'
+                    value={selectedModelContextTokenSize}
+                    InputProps={{ readOnly: true, disabled: true }}
+                    sx={{ mt: 2, mb: 3 }}
+                />
 
             {/* This option to turn off streaming was only added for testing
                 in some environments where streaming was blocked. It is not

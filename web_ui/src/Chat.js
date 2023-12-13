@@ -1185,7 +1185,7 @@ const Chat = ({
                 </Tooltip>
                 <Tooltip title={ modelSettingsOpen ? "Hide Model Settings" : "Show Model Settings" }>
                     <Button id="button-model-settings" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={toggleModelSettingsOpen}>
-                        {myModelSettings.request && myModelSettings.request.model} ({temperatureText})
+                        {myModelSettings.request && myModelSettings.request.model} (context: {myModelSettings.contextTokenSize}T) ({temperatureText})
                     </Button>
                 </Tooltip>
                 <Tooltip title={ promptEngineerOpen ? "Hide Prompt Engineer" : "Show Prompt Engineer"}>
@@ -1194,13 +1194,17 @@ const Chat = ({
                     </Button>
                 </Tooltip>
                 <Tooltip title="Number of characters in prompt">
-                    <TextStatsDisplay name="Prompt" sizeInCharacters={promptLength} />
+                    <TextStatsDisplay name="Prompt" sizeInCharacters={promptLength} maxTokenSize={myModelSettings.contextTokenSize}/>
                 </Tooltip>
             </Paper>
             { aiLibraryOpen ? 
                 <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: darkMode ? grey[900] : grey[100] }}>
                     <Box sx={{ mt: 2, display: "flex", flexDirection: "column", width: "100%" }}>
-                        <FormLabel>Loaded knowledge: { Object.keys(selectedAiLibraryNotes).length === 0 ? "None" : ""} <TextStatsDisplay name="AI Library" sizeInCharacters={selectedAiLibraryFullTextSize} /></FormLabel>
+                        <FormLabel>
+                            Loaded knowledge: { Object.keys(selectedAiLibraryNotes).length === 0 ? "None" : ""} 
+                            <TextStatsDisplay name="AI Library" sizeInCharacters={selectedAiLibraryFullTextSize} 
+                                maxTokenSize={myModelSettings.contextTokenSize}/>
+                        </FormLabel>
                         <List dense sx={{ width: "100%", overflow: "auto", maxHeight: "100px" }}>
                             {Object.values(selectedAiLibraryNotes).map(note =>(
                                 <ListItem 
@@ -1270,7 +1274,8 @@ const Chat = ({
                 <Typography color="textSecondary">Responses: {responseCount}</Typography>
                 <Typography color="textSecondary">K-Notes: { Object.keys(selectedAiLibraryNotes).length }</Typography>
                 <Typography color="textSecondary">Total size: <Tooltip title="Number of characters in prompt">
-                        <TextStatsDisplay name="prompt + context" sizeInCharacters={messagesSize + promptLength + selectedAiLibraryFullTextSize} />
+                        <TextStatsDisplay name="prompt + context" sizeInCharacters={messagesSize + promptLength + selectedAiLibraryFullTextSize}
+                            maxTokenSize={myModelSettings.contextTokenSize} />
                     </Tooltip>
                 </Typography>
             </Paper>

@@ -518,14 +518,18 @@ def chat_v2():
                     "https": proxy_url} if proxy_url else None
             response = requests.post(url, headers=headers, proxies=proxies,
                                     data=json.dumps(ai_request), stream=True)
+            rl.debug("ai_response", data=response.json())
             if response.status_code != 200:
                 error_message = f"Error - OpenAI API returned status code {response.status_code}"
                 if response.reason:
                     reason = response.reason
                     error_message += f" ({response.reason})"
+                if response.json() and "error" in response.json():
+                    for k, v in response.json()["error"].items():
+                        error_message += f", {k}: {v}"
                 else:
                     reason = None
-                rl.error("Error returned by OpenAI", status_code=response.status_code, reason=reason)
+                rl.error("Error returned by OpenAI", status_code=response.status_code, reason=reason, error_message=error_message)
                 yield (error_message)
             increment_server_stat(category="responses", stat_name="chatV2")
 

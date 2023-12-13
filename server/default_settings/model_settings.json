@@ -9,6 +9,7 @@
                         "topP": 1,
                         "frequencyPenalty": 0,
                         "presencePenalty": 0,
+                        "contextTokenSize": 128000,
                         "systemMessage": "You are a helpful advisor."
                     },
                     "gpt-4": {
@@ -16,6 +17,7 @@
                         "topP": 1,
                         "frequencyPenalty": 0,
                         "presencePenalty": 0,
+                        "contextTokenSize": 8192,
                         "systemMessage": "You are a helpful advisor."
                     },
                     "gpt-3.5-turbo": {
@@ -23,6 +25,7 @@
                         "topP": 1,
                         "frequencyPenalty": 0,
                         "presencePenalty": 0,
+                        "contextTokenSize": 4097,
                         "systemMessage": "You are a helpful advisor."
                     }
                 },
