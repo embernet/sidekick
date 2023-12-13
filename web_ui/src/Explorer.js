@@ -17,6 +17,8 @@ import { StyledBox } from "./theme";
 import axios from 'axios';
 
 import { SystemContext } from './SystemContext';
+import SettingsManager from './SettingsManager';
+import { use } from "marked";
 
 const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, name, icon, folder, openItemId, setLoadDoc,
      docNameChanged, refresh, setRefresh, itemOpen, hidePrimaryToolbar, deleteEnabled, darkMode,
@@ -24,6 +26,7 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
     serverUrl, token, setToken
     }) => {
 
+    const [mySettingsManager, setMySettingsManager] = useState(new SettingsManager(serverUrl, token, setToken));
     const StyledToolbar = styled(Toolbar)(({ theme }) => ({
         backgroundColor: darkMode ? indigo[800] : indigo[300],
         gap: 2,
@@ -32,9 +35,10 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
     const [docs, setDocs] = useState([]);
     const [filterText, setFilterText] = useState('');
     const [myFolder, setMyFolder] = useState(folder);
-    const [sortOrder, setSortOrder] = useState("name");
-    const [sortOrderDirection, setSortOrderDirection] = useState(1);
+    const [sortOrder, setSortOrder] = useState("updated");
+    const [sortOrderDirection, setSortOrderDirection] = useState(-1);
     const [showItemDetails, setShowItemDetails] = useState(false);
+    const [userDefaultsLoaded, setUserDefaultsLoaded] = useState(false);
 
     const [width, setWidth] = useState(0);
     const handleResize = useCallback(
@@ -55,6 +59,23 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
         element && observer.observe(element);
         return () => observer.disconnect();
     }, [handleResize]);
+
+    useEffect(()=>{
+        mySettingsManager.loadSettings(`${folder}_explorer_settings`,
+            (data) => {
+                setSortOrder(data.sortOrder);
+                setSortOrderDirection(data.sortOrderDirection);
+                setUserDefaultsLoaded(true);
+            },
+            (error) => {
+                console.log(`load ${folder}_explorer_settings:`, error);
+            }
+        )
+    }, []);
+
+    useEffect(()=>{
+        saveUserDefaults();
+    }, [sortOrder, sortOrderDirection]);
 
     useEffect(()=>{
         setMyFolder(folder);
@@ -116,6 +137,17 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
     const sortDocs = (sortBy, sortDirection) => {
         let sortedDocs = sortedList(docs, sortBy, sortDirection);
         setDocs(sortedDocs);
+    }
+
+    const saveUserDefaults = () => {
+        if (mySettingsManager && userDefaultsLoaded) {
+            mySettingsManager.setAll({
+                sortOrder: sortOrder,
+                sortOrderDirection: sortOrderDirection
+            }, (error) => {
+                console.log(`save ${name}_explorer_settings:`, error);
+            });
+        }
     }
 
     const handleSortOrderChange = (value) => {
