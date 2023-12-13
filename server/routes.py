@@ -9,7 +9,7 @@ from collections import OrderedDict
 from datetime import datetime
 from utils import DBUtils, construct_ai_request, RequestLogger,\
     server_stats, increment_server_stat, openai_num_tokens_from_messages, \
-    get_random_string, num_characters_from_messages
+    get_random_string, num_characters_from_messages, update_default_settings
 
 from flask import request, jsonify, Response, stream_with_context, redirect, session, url_for
 from flask_jwt_extended import get_jwt_identity, jwt_required, \
@@ -267,7 +267,6 @@ def save_system_settings(name):
 @jwt_required()
 def get_settings(name):
     with RequestLogger(request) as rl:
-        acting_user_id = get_jwt_identity()
         try:
             settings = DBUtils.get_document(
                 user_id=get_jwt_identity(),
@@ -705,6 +704,7 @@ def login():
                 result['access_token'] = access_token
                 increment_server_stat(category="requests", stat_name="loginSuccess")
                 rl.info("login success", user_id=data['user_id'])
+                update_default_settings(data['user_id'])
             else:
                 rl.info("Invalid login attempt", user_id=data['user_id'])
                 increment_server_stat(category="requests", stat_name="loginFailure")

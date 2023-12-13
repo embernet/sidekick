@@ -59,7 +59,8 @@ if app.config["OIDC_CLIENT_SECRETS"]["web"]["client_id"]:
 else:
     oidc = None
 
-from utils import DBUtils, get_random_string, merge_settings
+from utils import DBUtils, get_random_string, merge_settings,\
+    update_system_settings, update_default_settings
 
 db_url = make_url(app.config["SQLALCHEMY_DATABASE_URI"])
 db_dialect_name = db_url.get_dialect().name
@@ -70,13 +71,14 @@ try:
 except:
     pass
 
+
 with app.app_context():
     if db_dialect_name == "sqlite":
         db.create_all()
     if db_dialect_name == "postgresql":
         upgrade(directory="migrations")
 
-    # Create sidekick user they don't exist
+    # Create sidekick user if they don't exist
     try:
         DBUtils.get_user("sidekick")
     except NoResultFound:
@@ -91,27 +93,7 @@ with app.app_context():
                             password="changemenow",
                             properties={"roles": {"admin": True}})
         
-    # Create system settings documents if they don't exist
-    for settings_file in os.listdir("system_settings"):
-        settings_name = settings_file.split(".")[0]
-        filesystem_settings = json.loads(open("system_settings/"
-                                    f"{settings_file}").read())
-        try:
-            system_settings = DBUtils.get_document(user_id="sidekick",
-                                 name=settings_name,
-                                 type="system_settings")
-            # If there are new settings that aren't present in the database, add them
-            updated_system_settings, settings_updated = merge_settings(system_settings, { 'content': filesystem_settings })
-            if settings_updated:
-                DBUtils.update_document(id=updated_system_settings["metadata"]["id"],
-                                        name=updated_system_settings["metadata"]["name"],
-                                        tags=updated_system_settings["metadata"]["tags"],
-                                        properties=updated_system_settings["metadata"]["properties"],
-                                        content=updated_system_settings["content"])
-        except NoResultFound:
-            DBUtils.create_document(user_id="sidekick",
-                                    name=settings_name,
-                                    type="system_settings",
-                                    content=filesystem_settings)
+    update_system_settings()
+    update_default_settings("sidekick")
 
 import routes

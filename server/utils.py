@@ -230,6 +230,63 @@ def merge_settings(settings, new_settings):
     return settings, settings_updated
 
 
+def update_system_settings():
+    """
+    Create new system settings documents if they don't exist
+    Merge new settings within those documents if they do exist
+    """
+    for settings_file in os.listdir("system_settings"):
+        settings_name = settings_file.split(".")[0]
+        filesystem_settings = json.loads(open("system_settings/"
+                                    f"{settings_file}").read())
+        try:
+            system_settings = DBUtils.get_document(user_id="sidekick",
+                                 name=settings_name,
+                                 type="system_settings")
+            # If there are new settings that aren't present in the database, add them
+            updated_system_settings, settings_updated = merge_settings(system_settings, { 'content': filesystem_settings })
+            if settings_updated:
+                DBUtils.update_document(id=updated_system_settings["metadata"]["id"],
+                                        name=updated_system_settings["metadata"]["name"],
+                                        tags=updated_system_settings["metadata"]["tags"],
+                                        properties=updated_system_settings["metadata"]["properties"],
+                                        content=updated_system_settings["content"])
+        except NoResultFound:
+            DBUtils.create_document(user_id="sidekick",
+                                    name=settings_name,
+                                    type="system_settings",
+                                    content=filesystem_settings)
+
+
+def update_default_settings(user_id):
+    """
+    Update default settings for the sidekick user in the database
+    if they have changed in this app release (i.e. on the filesystem)
+    """
+    for filename in os.listdir("default_settings"):
+        if filename.endswith(".json"):
+            settings_name = os.path.splitext(filename)[0]
+            with open(os.path.join("default_settings", filename), "r") as f:
+                filesystem_settings = json.load(f)
+                try:
+                    default_settings = DBUtils.get_document(user_id=user_id,
+                                        name=settings_name,
+                                        type="settings")
+                    # If there are new settings that aren't present in the database, add them
+                    updated_default_settings, settings_updated = merge_settings(default_settings, { 'content': filesystem_settings })
+                    if settings_updated:
+                        DBUtils.update_document(id=updated_default_settings["metadata"]["id"],
+                                                name=updated_default_settings["metadata"]["name"],
+                                                tags=updated_default_settings["metadata"]["tags"],
+                                                properties=updated_default_settings["metadata"]["properties"],
+                                                content=updated_default_settings["content"])
+                except NoResultFound:
+                    DBUtils.create_document(user_id=user_id,
+                                            name=settings_name,
+                                            type="settings",
+                                            content=filesystem_settings)
+                    
+            
 class DBUtils:
 
     @staticmethod
