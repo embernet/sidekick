@@ -161,29 +161,6 @@ def feedback():
         except Exception as e:
             result = jsonify({'success': False, 'message': str(e)})
         return result
-
-
-
-@app.route('/feedback', methods=['GET'])
-@jwt_required()
-def get_feedback():
-    with RequestLogger(request) as rl:
-        increment_server_stat(category="requests", stat_name="getFeedback")
-        acting_user_id = get_jwt_identity()
-        if DBUtils.user_isadmin(acting_user_id):
-            try:
-                feedback = DBUtils.list_documents(document_type="feedback",
-                                                user_id=get_jwt_identity())
-                return jsonify(feedback)
-            except Exception as e:
-                rl.exception(e)
-                return jsonify({'success': False, 'message': str(e)})
-        else:
-            return app.response_class(
-                response=json.dumps({"success": False, "message": "Only admins can view feedback."}),
-                status=403,
-                mimetype='application/json'
-            )
     
 
 @app.route('/users', methods=['GET'])
@@ -575,7 +552,10 @@ def docdb_list_documents(document_type=""):
     with RequestLogger(request) as rl:
         acting_user_id = get_jwt_identity()    
         increment_server_stat(category="requests", stat_name=f"docdbList({document_type})")
-        documents = DBUtils.list_documents(document_type=document_type,
+        if DBUtils.user_isadmin(acting_user_id) and document_type == "feedback":
+            documents = DBUtils.list_feedback()
+        else:
+            documents = DBUtils.list_documents(document_type=document_type,
                                         user_id=acting_user_id)
         document_count = len(documents["documents"])
         rl.push(action="listed documents", document_type=document_type, count=document_count)

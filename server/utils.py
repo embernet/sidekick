@@ -535,6 +535,14 @@ class DBUtils:
         return {"file_count": len(documents), "error_count": 0, "status": "OK",
                 "message": "All files read successfully",
                 "documents": documents}
+    
+    @staticmethod
+    def list_feedback():
+        documents = [doc.as_dict()["metadata"] for doc in
+                     Document.query.filter_by(type="feedback").all()]
+        return {"file_count": len(documents), "error_count": 0, "status": "OK",
+                "message": "All files read successfully",
+                "documents": documents}
 
     @staticmethod
     def delete_document(document_id):
