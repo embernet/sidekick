@@ -495,7 +495,6 @@ def chat_v2():
                     "https": proxy_url} if proxy_url else None
             response = requests.post(url, headers=headers, proxies=proxies,
                                     data=json.dumps(ai_request), stream=True)
-            rl.debug("ai_response", data=response.json())
             if response.status_code != 200:
                 error_message = f"Error - OpenAI API returned status code {response.status_code}"
                 if response.reason:

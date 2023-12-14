@@ -432,7 +432,10 @@ class DBUtils:
         user_dict = user.as_dict()
         properties = user_dict.get("properties", {})
         if isinstance(properties, str):
-            properties = json.loads(properties)
+            try:
+                properties = json.loads(properties)
+            except:
+                properties = {}
         roles = properties.get("roles", {})
         is_admin = roles.get("admin", False)
         return is_admin is True
