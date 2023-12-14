@@ -429,8 +429,13 @@ class DBUtils:
     @staticmethod
     def user_isadmin(user_id):
         user = User.query.filter_by(id=user_id).one()
-        return user.as_dict().get("properties", {}).get("roles", {}).get(
-            "admin", False) is True
+        user_dict = user.as_dict()
+        properties = user_dict.get("properties", {})
+        if isinstance(properties, str):
+            properties = json.loads(properties)
+        roles = properties.get("roles", {})
+        is_admin = roles.get("admin", False)
+        return is_admin is True
 
 
     @staticmethod
