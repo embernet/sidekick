@@ -61,17 +61,8 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
     }, [handleResize]);
 
     useEffect(()=>{
-        mySettingsManager.loadSettings(`${folder}_explorer_settings`,
-            (data) => {
-                setSortOrder(data.sortOrder);
-                setSortOrderDirection(data.sortOrderDirection);
-                setUserDefaultsLoaded(true);
-            },
-            (error) => {
-                console.log(`load ${folder}_explorer_settings:`, error);
-            }
-        )
-    }, []);
+        sortDocs(sortOrder, sortOrderDirection);
+    }, [docs]);
 
     useEffect(()=>{
         saveUserDefaults();
@@ -82,20 +73,31 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
     }, [folder]);
 
     useEffect(()=>{
-        loadItems();
+        loadItems(sortOrder, sortOrderDirection);
     }, [refresh]);
 
     useEffect(()=>{
-        setRefresh(true);
+        mySettingsManager.loadSettings(`${folder}_explorer_settings`,
+            (data) => {
+                setSortOrder(data.sortOrder);
+                setSortOrderDirection(data.sortOrderDirection);
+                setUserDefaultsLoaded(true);
+                loadItems(data.sortOrder, data.sortOrderDirection);
+            },
+            (error) => {
+                console.log(`load ${folder}_explorer_settings:`, error);
+                loadItems(sortOrder, sortOrderDirection);
+            }
+        )
     }, [myFolder]);
 
     useEffect(()=>{
         if (docNameChanged !== "") {
-            loadItems();
+            loadItems(sortOrder, sortOrderDirection);
         }
     }, [docNameChanged]);
 
-    const loadItems = () => {
+    const loadItems = (sortOrder, sortOrderDirection) => {
         let url = `${serverUrl}/docdb/${myFolder}/documents`;
         axios.get(url, {
             headers: {
@@ -104,7 +106,6 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
         }).then(response => {
             system.debug(`Response loading items in ${name} Explorer`, response, url + " GET");
             response.data.access_token && setToken(response.data.access_token);
-            response.data.documents.sort((a, b) => (a.name > b.name) ? 1 : -1);
             setDocs(sortedList(response.data.documents, sortOrder, sortOrderDirection));
         }).catch(error => {
             system.error(`System Error loading items in ${name} Explorer`, error, url + " GET");
@@ -190,7 +191,7 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
         });
         Promise.all(deletePromises).then(() => {
             setFilterText("");
-            loadItems();
+            loadItems(sortOrder, sortOrderDirection);
             system.info(`${name} Explorer deleted ${count} items`);
         }).catch(error => {
             system.error(`System Error deleting filtered items in ${name} Explorer`, error, url + " DELETE");
