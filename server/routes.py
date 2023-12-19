@@ -733,7 +733,6 @@ def oidc_login():
                 name = user_id if name is None else name
                 redirect_uri = request.args.get("redirect_uri")
                 rl.info("successful login", user_id=user_id, name=name)
-                update_default_settings(user_id)
                 try:
                     user = DBUtils.get_user(user_id)
                     # If the user exists and their name in the OIDC provider has changed, update their name
@@ -744,6 +743,7 @@ def oidc_login():
                     user = DBUtils.create_user(user_id=user_id, name=name, is_oidc=True,
                                             password=get_random_string(), properties={})
 
+                update_default_settings(user_id)
                 access_token = create_access_token(user_id, additional_claims=user)
                 return redirect(f"{redirect_uri}?access_token={access_token}")
         return protected_route()
