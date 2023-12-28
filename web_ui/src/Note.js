@@ -115,7 +115,6 @@ You always do your best to generate text in the same style as the context text p
     const [content, setContent] = useState("");
     const [noteContextMenu, setNoteContextMenu] = useState(null);
     const [prompt, setPrompt] = useState("");
-    const [promptToSend, setPromptToSend] = useState("");
     const [folder, setFolder] = useState("notes");
     const [tags, setTags] = useState([]);
     const [uploadingFile, setUploadingFile] = useState(false);
@@ -262,23 +261,6 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         setContentDisabled(false);
         showReady();
     },[AIResponse]);
-
-    useEffect(()=>{
-        if (promptToSend && promptToSend !== "") {
-            console.log("Note promptToSend", promptToSend);
-            const ai = new AI(serverUrl, token, setToken, system);
-            setContentDisabled(true);
-            showWaiting();
-            ai.generateText(content, promptToSend).then((generatedText) => {
-                setContent( text => text + "\n" + generatedText + "\n");
-                setContentDisabled(false);
-                showReady();
-            }).catch((error) => {
-                console.log(error);
-                system.error(`System Error generating text.`, error, "ai.generateText");
-            });
-        }
-    }, [promptToSend]);
 
     useEffect(() => {
         noteRef?.current?.scrollIntoView({ behavior: 'instant' });
