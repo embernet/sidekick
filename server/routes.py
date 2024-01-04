@@ -461,7 +461,7 @@ def query_ai():
             }
         ai_response_json = jsonify(ai_response)
         response_size = len(ai_response_json.get_data(as_text=True))
-        rl.info(size=response_size, success=ai_response['success'])
+        rl.info("response", size=response_size, success=ai_response['success'])
         return ai_response_json
 
 
