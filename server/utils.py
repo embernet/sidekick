@@ -126,16 +126,16 @@ class RequestLogger:
         app.logger.info(self._construct_log_message("INFO", message, **kwargs))
 
     def error(self, message, **kwargs):
-        app.logger.info(self._construct_log_message("ERROR", message, **kwargs))
+        app.logger.error(self._construct_log_message("ERROR", message, **kwargs))
 
     def exception(self, e, message="", **kwargs):
         app.logger.exception(self._construct_log_message("EXCEPTION", message, **kwargs), e)
 
     def warning(self, message, **kwargs):
-        app.logger.info(self._construct_log_message("WARNING", message, **kwargs))
+        app.logger.warning(self._construct_log_message("WARNING", message, **kwargs))
 
     def debug(self, message, **kwargs):
-        app.logger.info(self._construct_log_message("DEBUG", message, **kwargs))
+        app.logger.debug(self._construct_log_message("DEBUG", message, **kwargs))
 
 
 def num_characters_from_messages(messages):
