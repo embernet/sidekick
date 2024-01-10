@@ -13,7 +13,7 @@ import tiktoken
 from flask import g
 from flask_jwt_extended import get_jwt_identity
 
-from app import app, db
+from app import app, db, VERSION
 from models import User, Document, Tag, DocumentTag, UserTag
 
 
@@ -105,7 +105,7 @@ class RequestLogger:
         duration = self._get_duration()
         client = self.request.remote_addr
         sep = '::'
-        log_message = f'{type} time{sep}{timestamp}, duration{sep}{duration}, route{sep}{self.route}, method{sep}{self.method}, user{sep}{self.user}, client{sep}{client}, message{sep}{message}'
+        log_message = f'{type} version{sep}{VERSION} time{sep}{timestamp}, duration{sep}{duration}, route{sep}{self.route}, method{sep}{self.method}, user{sep}{self.user}, client{sep}{client}, message{sep}{message}'
         for key, value in kwargs.items():
             # for dicts, convert to json string and pretty print
             if isinstance(value, dict):
