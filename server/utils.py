@@ -67,8 +67,6 @@ class RequestLogger:
             self.user = 'None'
         if not skip_start_log:
             self.info('started')
-        if request.is_json:
-            self.debug('request', data=json.dumps(request.json, indent=4))
 
     def __enter__(self):
         return self
@@ -202,7 +200,6 @@ def construct_ai_request(request):
     ai_request["messages"] = [{"role": "system", "content": system_prompt}] + \
                              chatHistory + [
                                  {"role": "user", "content": prompt}]
-    app.logger.debug(f"ai_request: {ai_request}")
     return ai_request
 
 

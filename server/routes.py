@@ -120,7 +120,6 @@ def test_ai():
                     "https": proxy_url} if proxy_url else None
             response = requests.post(url, headers=headers, proxies=proxies,
                                     data=json.dumps(ai_request))
-            rl.debug("AI responded", response=response.json()["choices"][0]["message"]["content"])
             openai_health = {
                 "success": True,
                 "status": "UP",
@@ -316,7 +315,6 @@ def save_settings(name):
 def name_topic():
     with RequestLogger(request) as rl:
         acting_user_id = get_jwt_identity()
-        rl.debug("request", data=request.json)
         message_usage = {}
         def construct_name_topic_request(request):
             increment_server_stat(category="requests", stat_name="nameTopic")
@@ -331,7 +329,6 @@ def name_topic():
                     "content": "Provide a short single phrase to use as a title for this text: " +
                                 request.json['text'][:8000]}]
             }
-            rl.debug("ai_request", data=ai_request)
             return ai_request
 
         try:
@@ -383,7 +380,6 @@ def name_topic():
         ai_response_json = jsonify(ai_response)
         response_size = len(ai_response_json.get_data(as_text=True))
         rl.info("response", size=response_size, success=ai_response['success'])
-        rl.debug("ai_response", data=ai_response)
         return ai_response_json
 
 
@@ -408,7 +404,6 @@ def query_ai():
                                 + "\nREQUEST:\n" + request.json['request'] + "\n"
                                 + "\nCONTEXT TEXT:\n" + request.json['context']}]
             }
-            rl.debug("ai_request", data=ai_request)
             return ai_request
 
         ai_request = construct_query_ai_request(request)
@@ -435,7 +430,6 @@ def query_ai():
                 "success": True,
                 "generated_text": generated_text
             }
-            rl.debug("ai_response", data=ai_response)
             response_usage = response.json()["usage"]
             if app.config["SIDEKICK_COUNT_TOKENS"]:
                 increment_server_stat(category="usage",
