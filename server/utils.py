@@ -13,7 +13,7 @@ import tiktoken
 from flask import g
 from flask_jwt_extended import get_jwt_identity
 
-from app import app, db
+from app import app, db, VERSION
 from models import User, Document, Tag, DocumentTag, UserTag
 
 
@@ -67,8 +67,6 @@ class RequestLogger:
             self.user = 'None'
         if not skip_start_log:
             self.info('started')
-        if request.is_json:
-            self.debug('request', data=json.dumps(request.json, indent=4))
 
     def __enter__(self):
         return self
@@ -107,7 +105,7 @@ class RequestLogger:
         duration = self._get_duration()
         client = self.request.remote_addr
         sep = '::'
-        log_message = f'{type} time{sep}{timestamp}, duration{sep}{duration}, route{sep}{self.route}, method{sep}{self.method}, user{sep}{self.user}, client{sep}{client}, message{sep}{message}'
+        log_message = f'{type} version{sep}{VERSION} time{sep}{timestamp}, duration{sep}{duration}, route{sep}{self.route}, method{sep}{self.method}, user{sep}{self.user}, client{sep}{client}, message{sep}{message}'
         for key, value in kwargs.items():
             # for dicts, convert to json string and pretty print
             if isinstance(value, dict):
@@ -128,16 +126,16 @@ class RequestLogger:
         app.logger.info(self._construct_log_message("INFO", message, **kwargs))
 
     def error(self, message, **kwargs):
-        app.logger.info(self._construct_log_message("ERROR", message, **kwargs))
+        app.logger.error(self._construct_log_message("ERROR", message, **kwargs))
 
     def exception(self, e, message="", **kwargs):
         app.logger.exception(self._construct_log_message("EXCEPTION", message, **kwargs), e)
 
     def warning(self, message, **kwargs):
-        app.logger.info(self._construct_log_message("WARNING", message, **kwargs))
+        app.logger.warning(self._construct_log_message("WARNING", message, **kwargs))
 
     def debug(self, message, **kwargs):
-        app.logger.info(self._construct_log_message("DEBUG", message, **kwargs))
+        app.logger.debug(self._construct_log_message("DEBUG", message, **kwargs))
 
 
 def num_characters_from_messages(messages):
@@ -202,7 +200,6 @@ def construct_ai_request(request):
     ai_request["messages"] = [{"role": "system", "content": system_prompt}] + \
                              chatHistory + [
                                  {"role": "user", "content": prompt}]
-    app.logger.debug(f"ai_request: {ai_request}")
     return ai_request
 
 
