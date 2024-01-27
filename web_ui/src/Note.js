@@ -33,7 +33,8 @@ import AIPromptResponse from './AIPromptResponse';
 
 const Note = ({noteOpen, setNoteOpen, appendNoteContent, loadNote, createNote, darkMode,
     closeOtherPanels, restoreOtherPanels, windowMaximized, setWindowMaximized,
-    setNewPromptPart, setNewPrompt, setChatRequest, onChange, setOpenNoteId, serverUrl, token, setToken, maxWidth}) => {
+    setNewPromptPart, setNewPrompt, setChatRequest, onChange, setOpenNoteId, 
+    modelSettings, serverUrl, token, setToken, maxWidth}) => {
 
     const StyledToolbar = styled(Toolbar)(({ theme }) => ({
         backgroundColor: darkMode ? green[900] : green[300],
@@ -777,6 +778,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     </StyledBox>
     <Box>
         <AIPromptResponse 
+            modelSettings={modelSettings}
             serverUrl={serverUrl}
             token={token}
             setToken={setToken}

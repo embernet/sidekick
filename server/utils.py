@@ -74,7 +74,7 @@ class RequestLogger:
     def __exit__(self, exc_type, exc_val, exc_tb):
         if exc_type:
             # If the with block exited due to an exception, log the exception
-            self.error('error', message=str(exc_val),  traceback=''.join(traceback.format_tb(exc_tb)))
+            self.error('error', exception_message=str(exc_val),  traceback=''.join(traceback.format_tb(exc_tb)))
         if not self.skip_finish_log:
             collected_pushed_items = {k: v for d in self.pushed_items for k, v in d.items()}
             self.info('finished', **collected_pushed_items)
