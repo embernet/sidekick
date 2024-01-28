@@ -43,6 +43,7 @@ class Document(db.Model):
     tags = db.relationship("DocumentTag")
     properties = db.Column(db.String, default="{}", nullable=False)
     content = db.Column(db.String, default="{}", nullable=False)
+    visibility = db.Column(db.String, default="private", nullable=False)
 
     user = db.relationship("User", back_populates="documents")
 
