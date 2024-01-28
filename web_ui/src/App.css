@@ -36,3 +36,14 @@
     transform: rotate(360deg);
   }
 }
+
+#chat-prompt.empty::before {
+  content: attr(data-placeholder);
+  color: #aaa;
+}
+
+#chat-prompt:focus {
+  outline: auto;
+  border-color: #4d90fe;
+  box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+}

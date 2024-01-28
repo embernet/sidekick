@@ -79,7 +79,8 @@ const Chat = ({
     const defaultUserPromptReady = "Enter prompt...";
     const userPromptReady = useRef(defaultUserPromptReady);
     const userPromptWaiting = "Waiting for response...";
-    const [prompt, setPrompt] = useState("");
+    const chatPromptRef = useRef(null);
+    const [chatPromptIsEmpty, setChatPromptIsEmpty] = useState(true);
     const [lastPrompt, setLastPrompt] = useState("");
     const [promptToSend, setPromptToSend] = useState(false);
     const [messages, setMessages] = useState([]);
@@ -138,7 +139,24 @@ const Chat = ({
       }
         
     const setPromptFocus = () => {
-        document.getElementById("chat-prompt")?.focus();
+        try {
+            const chatPrompt = document.getElementById("chat-prompt");
+            chatPrompt?.focus();
+        
+            // Position the cursor at the end of the text and scroll it into view
+            const range = document.createRange();
+            range.selectNodeContents(chatPrompt);
+            range.collapse(false); // collapse to end
+        
+            const selection = window.getSelection();
+            if (selection) {
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+            chatPrompt?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        } catch (error) {
+            // Ignore scenarios where the cursor can't be set
+        }
     }
 
     useEffect(()=>{
@@ -175,7 +193,6 @@ const Chat = ({
 
     useEffect(()=>{
         if (messages.length > 0) {
-            console.log("save chat", messages.length, messages);
             if (id !== "" && id !== null) {
                 save();
             } else {
@@ -271,8 +288,8 @@ const Chat = ({
             if (streamingChatResponse !== "") {
                 system.warning("Please wait for the current chat to finish loading before adding a prompt part.");
             } else {
-                let newPrompt = prompt.trim() + " " + newPromptPart?.text?.trim() + " ";
-                setPrompt(newPrompt);
+                let newPrompt = chatPromptRef.current.innerText.trim() + " " + newPromptPart?.text?.trim() + " ";
+                setChatPrompt(newPrompt);
                 setPromptFocus();
             }
         }
@@ -292,8 +309,8 @@ const Chat = ({
                 }).then(response => {
                     console.log("/docdb/prompt_templates GET Response:", response);
                     response.data.access_token && setToken(response.data.access_token);
-                    setLastPrompt(prompt);
-                    setPrompt("# " + response.data.metadata.name + "\n" + response.data.content.prompt_template);
+                    setLastPrompt(chatPromptRef.current.innerText);
+                    setChatPrompt("# " + response.data.metadata.name + "\n" + response.data.content.prompt_template);
                 }).catch(error => {
                     system.error(`System Error loading prompt_template`, error, "/docdb/prompt_templates GET");
                 });
@@ -303,7 +320,7 @@ const Chat = ({
 
     useEffect(()=>{
         if (newPrompt?.text) {
-            setPrompt(newPrompt.text);
+            setChatPrompt(newPrompt.text);
             setPromptFocus();
         }
     }, [newPrompt]);
@@ -332,11 +349,6 @@ const Chat = ({
             setMyShouldAskAgainWithPersona(shouldAskAgainWithPersona);
         }
     }, [shouldAskAgainWithPersona]);
-
-    useEffect(()=>{
-        setPromptLength(prompt.length);
-        setPromptFocus();
-    }, [prompt]);
 
     useEffect(()=>{
         if (promptPlaceholder === userPromptReady.current) {
@@ -375,7 +387,8 @@ const Chat = ({
                     setName(response.data.metadata.name);
                     setPreviousName(response.data.metadata.name);
                     setMessages(response.data.content.chat);
-                    setPrompt("");
+
+                    setChatPrompt("");
                     setLastPrompt("");
                     // set lastPrompt to the last user message
                     try {
@@ -421,7 +434,7 @@ const Chat = ({
 
     const showWaiting = () => {
         setPromptPlaceholder(userPromptWaiting);
-        setPrompt('');
+        setChatPrompt("");
     }
 
     const create = () => {
@@ -625,14 +638,27 @@ const Chat = ({
         getChatStream(requestData);
     }
 
-    const handleSend = (event) => {
-        if(event.key === 'Enter'  && !event.shiftKey && prompt) {
-            setLastPrompt(prompt);
-            setPromptToSend({prompt: prompt, timestamp: Date.now()});
+    const handleChatPromptInput = (event) => {
+        setChatPromptIsEmpty(!event.target.textContent)
+    }
+
+    const handleChatPromptKeydown = (event) => {
+        setPromptLength(chatPromptRef.current.innerText.length);
+        if(event.key === 'Enter'  && !event.shiftKey && chatPromptRef.current.innerText !== "") {
+            setLastPrompt(chatPromptRef.current.innerText);
+            setPromptToSend({prompt: chatPromptRef.current.innerText, timestamp: Date.now()});
             event.preventDefault();
         } else if(event.key === 'Escape') {
-            setPrompt("");
+            setChatPrompt("");
             event.preventDefault();
+        }
+    }
+
+    const setChatPrompt = (text) => {
+        if (chatPromptRef.current) {
+            chatPromptRef.current.innerText = text;
+            setChatPromptIsEmpty(text === "");
+            setPromptLength(text.length);
         }
     }
 
@@ -661,7 +687,7 @@ const Chat = ({
     }
 
     const handleReload = () => {
-        setPrompt(lastPrompt);
+        setChatPrompt(lastPrompt);
     }
 
     const extractNameFromPrompt = (prompt) => {
@@ -675,14 +701,14 @@ const Chat = ({
     };
 
     const handleSavePromptAsTemplate = () => {
-        const promptTemplateName = extractNameFromPrompt(prompt);
+        const promptTemplateName = extractNameFromPrompt(chatPromptRef.current.innerText);
         if (promptTemplateName) {
             const url = `${serverUrl}/docdb/prompt_templates/documents`;
             axios.post(url, {
                 "name": promptTemplateName,
                 "tags": [],
                 "content": {
-                    "prompt_template": prompt.replace(/^.*?\n/, '')
+                    "prompt_template": chatPromptRef.current.innerText.replace(/^.*?\n/, '')
                 },
             }, {
                 headers: {
@@ -820,7 +846,7 @@ const Chat = ({
         setName(newChatName);
         setPreviousName(newChatName);
         setMessages([]);
-        setPrompt("");
+        setChatPrompt("");
         setLastPrompt("");
     }
 
@@ -873,13 +899,14 @@ const Chat = ({
     };
 
     const handleUseAsChatInput = () => {
-        setPrompt(messageContextMenu.message.content);
+        setChatPrompt(messageContextMenu.message.content);
         setMessageContextMenu(null);
     };
 
     const handleAppendToChatInput = () => {
-        let newPrompt = prompt.trim() + " " + messageContextMenu.message.content.trim();
-        setPrompt(newPrompt);
+        let newPrompt = chatPromptRef.current.innerText.trim() + " " + messageContextMenu.message.content.trim();
+        setChatPrompt(newPrompt);
+        setPromptFocus();
         setMessageContextMenu(null);
     };
 
@@ -1050,7 +1077,7 @@ const Chat = ({
                                 backgroundColor: message.role === "user" ? (darkMode ? blueGrey[800] : "lightblue") : (darkMode ? lightBlue[900] : "lightyellow"),
                                 cursor: message.role === "user" ? "pointer" : "default",
                             }}
-                            onClick={() => message.role === "user" && setPrompt(message.content)}
+                            onClick={() => message.role === "user" && setChatPrompt(message.content)}
                         >
                                 {
                                     markdownRenderingOn
@@ -1158,7 +1185,7 @@ const Chat = ({
                     <Tooltip title={ "Send prompt to AI" }>
                         <span>
                             <IconButton edge="end" color="inherit" aria-label="send" disabled={promptPlaceholder === userPromptWaiting}
-                                onClick={() => { setPromptToSend({prompt: prompt, timestamp: Date.now()}); }}
+                                onClick={() => { setPromptToSend({prompt: chatPromptRef.current.innerText, timestamp: Date.now()}); }}
                             >
                                 <SendIcon/>
                             </IconButton>
@@ -1166,17 +1193,33 @@ const Chat = ({
                     </Tooltip>
                 </Box>
             </SecondaryToolbar>
-            <TextField 
-                sx={{ width: "100%", mt: "auto", flex: 1, overflow: "auto", minHeight: "56px", maxHeight: "300px" }}
-                    id="chat-prompt"
-                    multiline 
-                    variant="outlined" 
-                    value={prompt} 
-                    onChange={e => setPrompt(e.target.value)} 
-                    onKeyDown={handleSend}
-                    placeholder={promptPlaceholder}
-                    disabled={promptPlaceholder === userPromptWaiting}
-            />
+            <div
+                // Using a div with a reference to the DOM element instead of TextField for performance reasons
+                // For large text content, TextField lag in rendering individual key strokes is unacceptable
+                id="chat-prompt"
+                ref={chatPromptRef}
+                contenteditable={promptPlaceholder === userPromptWaiting ? "false" : "true"}
+                maxheight="300px"
+                onInput={handleChatPromptInput}
+                onKeyDown={handleChatPromptKeydown}
+                data-placeholder={promptPlaceholder}
+                className={chatPromptIsEmpty ? 'empty' : ''}
+                style={{
+                    overflow: "auto",
+                    minHeight: "56px",
+                    maxHeight: "300px",
+                    flex: 1,
+                    marginTop: "auto",
+                    border: darkMode ? "1px solid rgba(200, 200, 200, 0.23)" : "1px solid rgba(0, 0, 0, 0.23)",
+                    backgroundColor: darkMode ? grey[900] : grey[100],
+                    borderRadius: "4px",
+                    padding: "18.5px 14px",
+                    fontSize: "1rem",
+                    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+                    color: darkMode ? "rgba(255, 255, 255, 0.87)" : "rgba(0, 0, 0, 0.87)",
+                }}
+            >
+            </div>
             <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: darkMode ? grey[900] : grey[100] }}>
                 <Tooltip title={ personasOpen ? "Hide AI Personas" : "Show AI Personas"}>
                     <Button id="button-personas" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={togglePersonasOpen}>

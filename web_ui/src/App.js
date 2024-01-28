@@ -38,10 +38,13 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import HelpIcon from '@mui/icons-material/Help';
+import SmartDisplayOutlinedIcon from '@mui/icons-material/SmartDisplayOutlined';
+import SubscriptionsOutlinedIcon from '@mui/icons-material/SubscriptionsOutlined';
 import { red, pink, purple, deepPurple, indigo, blue, lightBlue, cyan, teal, green, lightGreen, lime, yellow, amber, orange, deepOrange, brown, grey, blueGrey } from '@mui/material/colors';
 
 
 import Chat from './Chat';
+import Script from './Script';
 import Personas from './Personas';
 import ModelSettings from './ModelSettings';
 import PromptEngineer from './PromptEngineer';
@@ -55,7 +58,10 @@ import Admin from './Admin';
 import SidekickAI from './SidekickAI';
 import StatusBar from './StatusBar';
 
-const VERSION = "0.1.8";
+const VERSION = "0.2";
+
+const ScriptIcon = SmartDisplayOutlinedIcon;
+const ScriptsExplorerIcon = SubscriptionsOutlinedIcon;
 
 const App = () => {
   const system = useContext(SystemContext);
@@ -65,7 +71,9 @@ const App = () => {
   const [appSettingsOpen, setAppSettingsOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [chatsOpen, setChatsOpen] = useState(true);
+  const [scriptsOpen, setScriptsOpen] = useState(true);
   const [chatsPinned, setChatsPinned] = useState(false);
+  const [scriptsPinned, setScriptsPinned] = useState(false);
   const [promptTemplatesPinned, setPromptTemplatesPinned] = useState(false);
   const [personasOpen, setPersonasOpen] = useState(false);
   const [personasPinned, setPersonasPinned] = useState(false);
@@ -74,6 +82,7 @@ const App = () => {
   const [promptEngineerOpen, setPromptEngineerOpen] = useState(false);
   const [promptEngineerPinned, setPromptEngineerPinned] = useState(false);
   const [chatOpen, setChatOpen] = useState(true);
+  const [scriptOpen, setScriptOpen] = useState(true);
   const [promptTemplateOpen, setPromptTemplateOpen] = useState(false);
   const [createNote, setCreateNote] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
@@ -84,12 +93,15 @@ const App = () => {
   const [persona, setPersona] = useState({});
   const [newPromptPart, setNewPromptPart] = useState({});
   const [loadChat, setLoadChat] = useState("");
+  const [loadScript, setLoadScript] = useState("");
   const [newPrompt, setNewPrompt] = useState("");
   const [newPromptTemplate, setNewPromptTemplate] = useState("");
   const [refreshChatsExplorer, setRefreshChatsExplorer] = useState(false);
+  const [refreshScriptsExplorer, setRefreshScriptsExplorer] = useState(false);
   const [refreshPromptTemplateExplorer, setRefreshPromptTemplateExplorer] = useState(false);
   const [appendNoteContent, setAppendNoteContent] = useState({content: "", timestamp: Date.now()});
   const [chatNameChanged, setChatNameChanged] = useState("");
+  const [scriptNameChanged, setScriptNameChanged] = useState("");
   const [promptTemplateNameChanged, setPromptTemplateNameChanged] = useState("");
   const [noteNameChanged, setNoteNameChanged] = useState("");
   const [loadNote, setLoadNote] = useState("");
@@ -99,6 +111,7 @@ const App = () => {
   const [temperatureText, setTemperatureText] = useState('');
   const [user, setUser] = useState(null);
   const [openChatId, setOpenChatId] = useState(null);
+  const [openScriptId, setOpenScriptId] = useState(null);
   const [openPromptTemplateId, setOpenPromptTemplateId] = useState(null);
   const [openNoteId, setOpenNoteId] = useState(null);
   const [serverUrl, setServerUrl] = useState(process.env.REACT_APP_SERVER_URL || 'http://127.0.0.1:8000');
@@ -113,6 +126,7 @@ const App = () => {
   const [statusUpdates, setStatusUpdates] = useState([]);
   const [noteWindowMaximized, setNoteWindowMaximized] = useState(false);
   const [chatWindowMaximized, setChatWindowMaximized] = useState(false);
+  const [scriptWindowMaximized, setScriptWindowMaximized] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
   const theme = createTheme({
@@ -197,21 +211,24 @@ const App = () => {
       (data) => {
         setAppSettings(data);
         console.log("get app settings:", data);
-        setSidekickAIOpen(data.sidekickAIOpenDefault);
-        setSidekickAIPinned(data.sidekickAIPinnedOpenDefault);
-        setChatsOpen(data.chatsOpenDefault);
-        setChatsPinned(data.chatsPinned);
-        setModelSettingsOpen(data.modelSettingsOpenDefault);
-        setModelSettingsPinned(data.modelSettingsPinned);
-        setPersonasOpen(data.personasOpenDefault);
-        setPersonasPinned(data.personasPinned);
-        setPromptEngineerOpen(data.promptEngineerOpenDefault);
-        setPromptEngineerPinned(data.promptEngineerPinned);
-        setChatOpen(data.chatOpenDefault);
-        setNoteOpen(data.noteOpenDefault);
-        setNotesOpen(data.notesOpenDefault);
-        setNotesPinned(data.notesPinned);
-        setDarkMode(data?.darkMode ? data.darkMode : false);
+        setSidekickAIOpen(data?.sidekickAIOpenDefault || false);
+        setSidekickAIPinned(data?.sidekickAIPinnedOpenDefault || false);
+        setChatsOpen(data?.chatsOpenDefault || false);
+        setChatsPinned(data?.chatsPinned || false);
+        setScriptsOpen(data?.scriptsOpenDefault || false);
+        setScriptsPinned(data?.scriptsPinned || false);
+        setModelSettingsOpen(data?.modelSettingsOpenDefault || false);
+        setModelSettingsPinned(data?.modelSettingsPinned || false);
+        setPersonasOpen(data?.personasOpenDefault || false);
+        setPersonasPinned(data?.personasPinned || false);
+        setPromptEngineerOpen(data?.promptEngineerOpenDefault || false);
+        setPromptEngineerPinned(data?.promptEngineerPinned || false);
+        setChatOpen(data?.chatOpenDefault || false);
+        setScriptOpen(data?.scriptOpenDefault || false);
+        setNoteOpen(data?.noteOpenDefault || false);
+        setNotesOpen(data?.notesOpenDefault || false);
+        setNotesPinned(data?.notesPinned || false);
+        setDarkMode(data?.darkMode || false);
         setAppSettingsOpen(false);
         setAdminOpen(false);
       },
@@ -230,7 +247,9 @@ const App = () => {
         sidekickAIOpenDefault: sidekickAIOpen,
         sidekickAIPinnedOpenDefault: sidekickAIPinned,
         chatsOpenDefault: chatsOpen,
+        scriptsOpenDefault: scriptsOpen,
         chatsPinned: chatsPinned,
+        scriptsPinned: scriptsPinned,
         modelSettingsOpenDefault: modelSettingsOpen,
         modelSettingsPinned: modelSettingsPinned,
         personasOpenDefault: personasOpen,
@@ -238,6 +257,7 @@ const App = () => {
         promptEngineerOpenDefault: promptEngineerOpen,
         promptEngineerPinned: promptEngineerPinned,
         chatOpenDefault: chatOpen,
+        scriptOpenDefault: scriptOpen,
         noteOpenDefault: noteOpen,
         notesOpenDefault: notesOpen,
         notesPinned: notesPinned,
@@ -255,9 +275,10 @@ const App = () => {
       // Also save darkMode in the browser local storage so the login page can use it
       localStorage.setItem('darkMode', darkMode);
     }
-  }, [sidekickAIOpen, sidekickAIPinned, chatsOpen, chatsPinned, modelSettingsOpen,
-      modelSettingsPinned, personasOpen, personasPinned,
-      promptEngineerOpen, promptEngineerPinned, chatOpen, noteOpen, notesOpen, notesPinned,
+  }, [sidekickAIOpen, sidekickAIPinned, chatsOpen, chatsPinned, scriptsOpen, scriptsPinned,
+      modelSettingsOpen, modelSettingsPinned, personasOpen, personasPinned,
+      promptEngineerOpen, promptEngineerPinned, chatOpen, scriptOpen,
+      noteOpen, notesOpen, notesPinned,
       darkMode]);
 
   useEffect(()=>{
@@ -274,6 +295,7 @@ const App = () => {
   const unmaximiseWindows = () => {
     setNoteWindowMaximized(false);
     setChatWindowMaximized(false);
+    setScriptWindowMaximized(false);
   }
 
   const handleToggleAppSettingsOpen = (event) => {
@@ -340,6 +362,9 @@ const App = () => {
     if (!chatsPinned) {
       setChatsOpen(false);
     }
+    if (!scriptsPinned) {
+      setScriptsOpen(false);
+    }
     if (!personasPinned) {
       setPersonasOpen(false);
     }
@@ -365,6 +390,17 @@ const App = () => {
     } else {
       closeUnpinnedLeftSideWindows(event);
       setChatsOpen(true);
+    }
+  }
+
+  const handleToggleScriptsOpen = (event) => {
+    unmaximiseWindows();
+    if (scriptsOpen) {
+      setScriptsPinned(false);
+      setScriptsOpen(false);
+    } else {
+      closeUnpinnedLeftSideWindows(event);
+      setScriptsOpen(true);
     }
   }
 
@@ -417,6 +453,11 @@ const App = () => {
     setChatOpen(state => !state);
   }
 
+  const handleToggleScriptOpen = () => {
+    unmaximiseWindows();
+    setScriptOpen(state => !state);
+  }
+
   const handleToggleNoteOpen = () => {
     unmaximiseWindows();
     setNoteOpen(state => !state);
@@ -453,6 +494,17 @@ const App = () => {
     }
   }
 
+  const handleScriptChange = (change) => {
+    console.log("handleScriptChange", change);
+    if (change.reason === "renamed") {
+      setScriptNameChanged(change);
+    } else if (change.detail === "promptTemplate") {
+      handlePromptTemplateChange(change);
+    } else {
+      setRefreshScriptsExplorer(change);
+    }
+  }
+
   const handlePromptTemplateChange = (change) => {
     console.log("handlePromptTemplateChange", change);
     setRefreshPromptTemplateExplorer(change);
@@ -460,10 +512,13 @@ const App = () => {
 
   const minimiseWindows = () => {
     setChatOpen(false);
+    setScriptOpen(false);
     setAppSettingsOpen(false);
     setAdminOpen(false);
     setChatsOpen(false);
     setChatsPinned(false);
+    setScriptsOpen(false);
+    setScriptsPinned(false);
     setPromptEngineerOpen(false);
     setPromptEngineerPinned(false);
     setModelSettingsOpen(false);
@@ -478,7 +533,7 @@ const App = () => {
     setSidekickAIPinned(false);
   }
 
-  // Provide a generic onChange despatcher for the chat and note components
+  // Provide a generic onChange despatcher for the chat, script, and note components
   const onChange = (xOnChange) => { 
     return (id, name, reason, detail) => {
       xOnChange({"id": id, "name": name, "reason": reason, "detail": detail, timestamp: Date.now()});
@@ -500,6 +555,8 @@ const App = () => {
       sidekickAIPinned: sidekickAIPinned,
       chatsOpen: chatsOpen,
       chatsPinned: chatsPinned,
+      scriptsOpen: scriptsOpen,
+      scriptsPinned: scriptsPinned,
       modelSettingsOpen: modelSettingsOpen,
       modelSettingsPinned: modelSettingsPinned,
       personasOpen: personasOpen,
@@ -507,6 +564,7 @@ const App = () => {
       promptEngineerOpen: promptEngineerOpen,
       promptEngineerPinned: promptEngineerPinned,
       chatOpen: chatOpen,
+      scriptOpen: scriptOpen,
       noteOpen: noteOpen,
       notesOpen: notesOpen,
       notesPinned: notesPinned,
@@ -520,6 +578,8 @@ const App = () => {
     setSidekickAIPinned(savedWindowStates.sidekickAIPinned);
     setChatsOpen(savedWindowStates.chatsOpen);
     setChatsPinned(savedWindowStates.chatsPinned);
+    setScriptsOpen(savedWindowStates.scriptsOpen);
+    setScriptsPinned(savedWindowStates.scriptsPinned);
     setModelSettingsOpen(savedWindowStates.modelSettingsOpen);
     setModelSettingsPinned(savedWindowStates.modelSettingsPinned);
     setPersonasOpen(savedWindowStates.personasOpen);
@@ -527,6 +587,7 @@ const App = () => {
     setPromptEngineerOpen(savedWindowStates.promptEngineerOpen);
     setPromptEngineerPinned(savedWindowStates.promptEngineerPinned);
     setChatOpen(savedWindowStates.chatOpen);
+    setScriptOpen(savedWindowStates.scriptOpen);
     setNoteOpen(savedWindowStates.noteOpen);
     setNotesOpen(savedWindowStates.notesOpen);
     setNotesPinned(savedWindowStates.notesPinned);
@@ -538,10 +599,12 @@ const App = () => {
     saveWindowStates();
     setSidekickAIOpen(false);
     setChatsOpen(false);
+    setScriptsOpen(false);
     setModelSettingsOpen(false);
     setPersonasOpen(false);
     setPromptEngineerOpen(false);
     setChatOpen(false);
+    setScriptOpen(false);
     setNotesOpen(false);
     setAppSettingsOpen(false);
     setAdminOpen(false);
@@ -551,10 +614,27 @@ const App = () => {
     saveWindowStates();
     setSidekickAIOpen(false);
     setChatsOpen(false);
+    setScriptsOpen(false);
     setModelSettingsOpen(false);
     setPersonasOpen(false);
     setPromptEngineerOpen(false);
     setNoteOpen(false);
+    setScriptOpen(false);
+    setNotesOpen(false);
+    setAppSettingsOpen(false);
+    setAdminOpen(false);
+  }
+
+  const closePanelsOtherThanScript = () => {
+    saveWindowStates();
+    setSidekickAIOpen(false);
+    setChatsOpen(false);
+    setScriptsOpen(false);
+    setModelSettingsOpen(false);
+    setPersonasOpen(false);
+    setPromptEngineerOpen(false);
+    setNoteOpen(false);
+    setChatOpen(false);
     setNotesOpen(false);
     setAppSettingsOpen(false);
     setAdminOpen(false);
@@ -606,6 +686,12 @@ const App = () => {
                   <MenuItem key="menuOpenCloseChat" onClick={() => { handleAppMenuClose(); handleToggleChatOpen(); }}>
                     { chatOpen ? <ModeCommentIcon/> : <AddCommentIcon/> }<Typography  sx={{ ml: 1 }}>{ chatOpen ? "Chat - Close" : "Chat - Open" }</Typography>
                   </MenuItem>
+                  <MenuItem key="menuOpenCloseScripts" onClick={() => { handleAppMenuClose(); handleToggleScriptsOpen(); }}>
+                    <ScriptsExplorerIcon/><Typography  sx={{ ml: 1 }}>{ scriptsOpen ? "Scripts - Close Scripts Explorer" : "Scripts - Open Scripts Explorer" }</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuOpenCloseScript" onClick={() => { handleAppMenuClose(); handleToggleScriptOpen(); }}>
+                    <ScriptIcon/><Typography  sx={{ ml: 1 }}>{ scriptOpen ? "Script - Close" : "Script - Open" }</Typography>
+                  </MenuItem>
                   <MenuItem key="menuMinimiseWindows" onClick={() => { handleAppMenuClose(); minimiseWindows(); }}>
                     <MinimizeIcon/><Typography  sx={{ ml: 1 }}>Minimise Windows</Typography>
                   </MenuItem>
@@ -613,7 +699,7 @@ const App = () => {
                     { noteOpen ? <NotesIcon/> : <PlaylistAddIcon/> }<Typography  sx={{ ml: 1 }}>{noteOpen ? "Note - Close Note" : "Note - New Note"}</Typography>
                   </MenuItem>
                   <MenuItem key="menuOpenCloseNotes" onClick={() => { handleAppMenuClose(); handleToggleNotesOpen(); }}>
-                    <FolderIcon/><Typography  sx={{ ml: 1 }}>{notesOpen ? "Notes - Close Notes" : "Notes - Open Notes"}</Typography>
+                    <FolderIcon/><Typography  sx={{ ml: 1 }}>{notesOpen ? "Notes - Close Notes Explorer" : "Notes - Open Notes Explorer"}</Typography>
                   </MenuItem>
                   <MenuItem key="menuDarkMode" onClick={() => { handleAppMenuClose(); handleToggleDarkMode(); }}>
                     { darkMode ? <LightModeIcon/> : <DarkModeIcon/> }<Typography  sx={{ ml: 1 }}>{ darkMode ? "Switch to Light Mode" : "Switch to Dark Mode" }</Typography>
@@ -638,7 +724,7 @@ const App = () => {
                   </IconButton>                  
                 </Tooltip>
                 <Tooltip title={ chatsOpen ? "Close Chat History" : "Open Chat History" }>
-                  <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleToggleChatsOpen}>
+                  <IconButton edge="start" color="inherit" aria-label="Open/Close Chat History" onClick={handleToggleChatsOpen}>
                     <QuestionAnswerIcon/>
                   </IconButton>
                 </Tooltip>
@@ -660,6 +746,16 @@ const App = () => {
                 <Tooltip title={chatOpen ? "Close Chat" : "New Chat"}>
                   <IconButton edge="start" color="inherit" aria-label={ chatOpen ? "Close Chat" : "Open chat" } onClick={handleToggleChatOpen}>
                     { chatOpen ? <ModeCommentIcon/> : <AddCommentIcon/> }
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title={ scriptsOpen ? "Close Scripts Explorer" : "Open Scripts Explorer" }>
+                  <IconButton edge="start" color="inherit" aria-label="Open/Close Scripts Explorer" onClick={handleToggleScriptsOpen}>
+                    <ScriptsExplorerIcon/>
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title={scriptOpen ? "Close Script" : "New Script"}>
+                  <IconButton edge="start" color="inherit" aria-label={ scriptOpen ? "Close Script" : "Open Script" } onClick={handleToggleScriptOpen}>
+                    <ScriptIcon/>
                   </IconButton>
                 </Tooltip>
                 <Tooltip title="Minimise windows">
@@ -796,7 +892,46 @@ const App = () => {
                 darkMode={darkMode}
                 />
               : null }
+            { scriptsOpen ? <Explorer
+            handleToggleExplorer={handleToggleScriptsOpen}
+            name="Scripts"
+            icon={<ScriptsExplorerIcon />}
+            folder="scripts"
+            openItemId={openScriptId}
+            setLoadDoc={setLoadScript}
+            docNameChanged={scriptNameChanged}
+            refresh={refreshScriptsExplorer}
+            setRefresh={setRefreshScriptsExplorer}
+            itemOpen={scriptOpen}
+            setItemOpen={setScriptOpen}
+            windowPinnedOpen = {scriptsPinned}
+            setWindowPinnedOpen = {setScriptsPinned}
+            deleteEnabled={true}
+            darkMode={darkMode}
+            serverUrl={serverUrl} token={token} setToken={setToken}
+            /> : null }
               <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "center", flex: 1 }}>
+                <Script
+                  scriptOpen={scriptOpen}
+                  setScriptOpen={setScriptOpen} 
+                  ScriptIcon={ScriptIcon}
+                  darkMode={darkMode}
+                  maxWidth={appSettings.maxPanelWidth}
+                  windowMaximized={scriptWindowMaximized}
+                  setWindowMaximized={setScriptWindowMaximized}
+                  provider = {provider}
+                  modelSettings={modelSettings} 
+                  persona={persona} 
+                  loadScript={loadScript} 
+                  closeOtherPanels={closePanelsOtherThanScript}
+                  restoreOtherPanels={restoreWindowStates}
+                  setNewPromptPart={setNewPromptPart}
+                  setNewPrompt={setNewPrompt}
+                  setChatRequest={setChatRequest}
+                  onChange={onChange(handleScriptChange)}
+                  setOpenScriptId={setOpenScriptId}
+                  serverUrl={serverUrl} token={token} setToken={setToken}
+                />
                 <Chat 
                   provider = {provider}
                   modelSettings={modelSettings} 
@@ -849,6 +984,7 @@ const App = () => {
                 setChatRequest={setChatRequest}
                 onChange={onChange(handleNoteChange)}
                 setOpenNoteId={setOpenNoteId}
+                modelSettings={modelSettings}
                 serverUrl={serverUrl} token={token} setToken={setToken}
                 maxWidth={appSettings.maxPanelWidth}
                 />

@@ -43,11 +43,11 @@ import { grey } from '@mui/material/colors';
 //      or may contain additional text, e.g. to reaffirm system prompt directives
 // input: userPromptToSend: {prompt: prompt, timestamp: Date.now()}
 
-const AIPromptResponse = ({serverUrl, token, setToken, customUserPromptReady, systemPrompt,
+const AIPromptResponse = ({modelSettings, serverUrl, token, setToken, customUserPromptReady, systemPrompt,
     streamingOn, streamingChatResponseRef, streamingChatResponse,
     setStreamingChatResponse, setAIResponse, onChange, focusOnPrompt,
     setUserPromptEntered, userPromptToSend, setUserPromptToSend, darkMode,
-    controlName, toolbarButtons, sendButtonTooltip}) => {
+    controlName, toolbarButtons, sendButtonTooltip, interactiveMode=true}) => {
 
     const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
         backgroundColor: darkMode ? grey[900] : grey[300],
@@ -123,8 +123,8 @@ const AIPromptResponse = ({serverUrl, token, setToken, customUserPromptReady, sy
     useEffect(()=>{
         if(userPromptToSend) {
             sendPrompt(userPromptToSend.prompt);
-            setUserPromptEntered(null);
-            setUserPromptToSend(null);
+            setUserPromptEntered && setUserPromptEntered(null);
+            setUserPromptToSend && setUserPromptToSend(null);
         }
     }, [userPromptToSend]);
 
@@ -244,21 +244,11 @@ const AIPromptResponse = ({serverUrl, token, setToken, customUserPromptReady, sy
         // Send the chat history and prompt using the streaming/non-streaming API
         // based on what the user selected in ModelSettings
         let requestData = {
-            model_settings: {
-                provider: "OpenAI",
-                request: {
-                    frequency_penalty: 0,
-                    model: "gpt-3.5-turbo",
-                    presence_penalty: 0,
-                    temperature: 0.7,
-                    top_p: 1
-                }
-            },
+            model_settings: modelSettings,
             system_prompt: systemPrompt,
             prompt: prompt
         };
         console.log('sendPrompt request', requestData);
-        console.log("AIPR.sendPrompt", requestData);
         showWaiting();
         switch (streamingOn) {
             case false:
@@ -284,58 +274,59 @@ const AIPromptResponse = ({serverUrl, token, setToken, customUserPromptReady, sy
         }
 
     };
-    let render = <Box>
-        <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
-            <Typography sx={{mr:2}}>{controlName}</Typography>
-            <Tooltip title={ "Ask again" }>
-                <span>
-                <IconButton edge="start" color="inherit" aria-label="menu" 
-                    disabled={streamingChatResponse !== ""} onClick={handleAskAgain}>
-                    <ReplayIcon/>
-                </IconButton>
-                </span>
-            </Tooltip>
-            <Tooltip title={ "Reload last prompt for editing" }>
-                <span>
-                    <IconButton edge="start" color="inherit" aria-label="menu"
-                        disabled={streamingChatResponse !== ""} onClick={handleReload}>
-                        <RedoIcon/>
-                    </IconButton>
-                </span>
-            </Tooltip>
-            {toolbarButtons}
-            <Box ml="auto">
-                {streamingChatResponse !== "" && <Tooltip title={ "Stop" }>
-                    <IconButton id="chat-stop" edge="end" color="inherit" aria-label="stop"
-                        onClick={() => { handleStopStreaming(); }}
-                    >
-                        <StopCircleIcon/>
-                    </IconButton>
-                </Tooltip>}
-                <Tooltip title={ sendButtonTooltip ? sendButtonTooltip : "Send prompt to AI" }>
+    let render =
+        <Box>
+            <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
+                <Typography sx={{mr:2}}>{controlName}</Typography>
+                <Tooltip title={ "Ask again" }>
                     <span>
-                        <IconButton edge="end" color="inherit" aria-label="send" disabled={streamingChatResponse !== ""}
-                            onClick={handleUserPromptEntered}
-                        >
-                            <SendIcon/>
+                    <IconButton edge="start" color="inherit" aria-label="menu" 
+                        disabled={streamingChatResponse !== ""} onClick={handleAskAgain}>
+                        <ReplayIcon/>
+                    </IconButton>
+                    </span>
+                </Tooltip>
+                <Tooltip title={ "Reload last prompt for editing" }>
+                    <span>
+                        <IconButton edge="start" color="inherit" aria-label="menu"
+                            disabled={streamingChatResponse !== ""} onClick={handleReload}>
+                            <RedoIcon/>
                         </IconButton>
                     </span>
                 </Tooltip>
-            </Box>
-        </SecondaryToolbar>
-        <TextField 
-            sx={{ width: "100%", mt: "auto", overflow: "auto", maxHeight: "338px", minHeight: "54px" }}
-            id={promptId}
-            multiline 
-            variant="outlined" 
-            value={prompt} 
-            onChange={e => setPrompt(e.target.value)} 
-            onKeyDown={handleUserPromptKeyDown}
-            placeholder={promptPlaceholder}
-            disabled={streamingChatResponse !== ""}
-        />
-    </Box>
-    return render;
+                {toolbarButtons}
+                <Box ml="auto">
+                    {streamingChatResponse !== "" && <Tooltip title={ "Stop" }>
+                        <IconButton id="chat-stop" edge="end" color="inherit" aria-label="stop"
+                            onClick={() => { handleStopStreaming(); }}
+                        >
+                            <StopCircleIcon/>
+                        </IconButton>
+                    </Tooltip>}
+                    <Tooltip title={ sendButtonTooltip ? sendButtonTooltip : "Send prompt to AI" }>
+                        <span>
+                            <IconButton edge="end" color="inherit" aria-label="send" disabled={streamingChatResponse !== ""}
+                                onClick={handleUserPromptEntered}
+                            >
+                                <SendIcon/>
+                            </IconButton>
+                        </span>
+                    </Tooltip>
+                </Box>
+            </SecondaryToolbar>
+            <TextField 
+                sx={{ width: "100%", mt: "auto", overflow: "auto", maxHeight: "338px", minHeight: "54px" }}
+                id={promptId}
+                multiline 
+                variant="outlined" 
+                value={prompt} 
+                onChange={e => setPrompt(e.target.value)} 
+                onKeyDown={handleUserPromptKeyDown}
+                placeholder={promptPlaceholder}
+                disabled={streamingChatResponse !== ""}
+            />
+        </Box>
+    return interactiveMode ? render : null;
 }
 
 export default AIPromptResponse;
