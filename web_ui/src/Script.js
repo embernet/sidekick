@@ -19,6 +19,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CodeIcon from '@mui/icons-material/Code';
 import CodeOffIcon from '@mui/icons-material/CodeOff';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
+import FileCopyIcon from '@mui/icons-material/FileCopy';
 
 import { SystemContext } from './SystemContext';
 import AI from './AI';
@@ -185,9 +186,9 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
         return JSON.stringify(script, null, 4);
     }
 
-    const create = () => {
+    const create = (scriptName=name) => {
         let request = {
-            name: name,
+            name: scriptName,
             tags: tags,
             content: {
                 cells: cells,
@@ -204,6 +205,7 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
             onChange(id, name, "created", "");
             system.info(`Script "${response.data.metadata.name}" created.`);
             system.debug("Script created", response, url + " POST");
+            setName(scriptName); // in case of being cloned, update the name
         }).catch(error => {
             system.error(`System Error creating script`, error, url + " POST");
         });
@@ -225,7 +227,6 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
             system.error(`System Error saving script.`, error, `/docdb/${documentType}/documents/${id} PUT`);
         })
     }
-
     
     const handleScriptNameChange = (event) => {
         setName(event.target.value);
@@ -233,6 +234,10 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
 
     const handleNewScript = () => {
         reset();
+    }
+
+    const handleCloneScript = () => {
+        create(name + " clone");
     }
 
     const renameScript = (newName) => {
@@ -358,6 +363,15 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
                         disabled={ id === "" } onClick={handleNewScript}
                     >
                         <AddOutlinedIcon/>
+                    </IconButton>
+                </span>
+            </Tooltip>
+            <Tooltip title={ id === "" ? "You can clone this script once it has something in it" : "Clone this script" }>
+                <span>
+                    <IconButton edge="start" color="inherit" aria-label="menu"
+                        disabled={ id === "" } onClick={handleCloneScript}
+                    >
+                        <FileCopyIcon/>
                     </IconButton>
                 </span>
             </Tooltip>
