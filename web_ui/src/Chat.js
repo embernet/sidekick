@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { debounce } from "lodash";
+import { createTheme } from '@mui/material/styles';
 
 import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Box, Paper, Toolbar, IconButton, Typography, TextField,
@@ -1100,7 +1101,7 @@ const Chat = ({
                                         left: messageContextMenu.mouseX,
                                         message: message,
                                         index: index,
-                                     }
+                                    }
                                     : undefined
                                 }
                             > 
@@ -1198,8 +1199,7 @@ const Chat = ({
                 // For large text content, TextField lag in rendering individual key strokes is unacceptable
                 id="chat-prompt"
                 ref={chatPromptRef}
-                contenteditable={promptPlaceholder === userPromptWaiting ? "false" : "true"}
-                maxheight="300px"
+                contentEditable={promptPlaceholder === userPromptWaiting ? "false" : "true"}
                 onInput={handleChatPromptInput}
                 onKeyDown={handleChatPromptKeydown}
                 data-placeholder={promptPlaceholder}
@@ -1236,9 +1236,7 @@ const Chat = ({
                         Prompt Engineer
                     </Button>
                 </Tooltip>
-                <Tooltip title="Number of characters in prompt">
-                    <TextStatsDisplay name="Prompt" sizeInCharacters={promptLength} maxTokenSize={myModelSettings.contextTokenSize}/>
-                </Tooltip>
+                <TextStatsDisplay name="Prompt" sizeInCharacters={promptLength} maxTokenSize={myModelSettings.contextTokenSize}/>
             </Paper>
             { aiLibraryOpen ? 
                 <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: darkMode ? grey[900] : grey[100] }}>
@@ -1316,10 +1314,9 @@ const Chat = ({
                 <Typography color="textSecondary">Prompts: {promptCount}</Typography>
                 <Typography color="textSecondary">Responses: {responseCount}</Typography>
                 <Typography color="textSecondary">K-Notes: { Object.keys(selectedAiLibraryNotes).length }</Typography>
-                <Typography color="textSecondary">Total size: <Tooltip title="Number of characters in prompt">
-                        <TextStatsDisplay name="prompt + context" sizeInCharacters={messagesSize + promptLength + selectedAiLibraryFullTextSize}
-                            maxTokenSize={myModelSettings.contextTokenSize} />
-                    </Tooltip>
+                <Typography color="textSecondary">Total size: 
+                    <TextStatsDisplay name="prompt + context" sizeInCharacters={messagesSize + promptLength + selectedAiLibraryFullTextSize}
+                    maxTokenSize={myModelSettings.contextTokenSize} />
                 </Typography>
             </Paper>
         </Box>
