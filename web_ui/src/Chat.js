@@ -28,6 +28,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import HelpIcon from '@mui/icons-material/Help';
 import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
 import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
+import FileCopyIcon from '@mui/icons-material/FileCopy';
 
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
@@ -477,6 +478,31 @@ const Chat = ({
         });
     };
 
+    const clone = () => {
+        let request = {
+            name: name + " clone",
+            tags: tags,
+            content: {
+                chat: messages,
+            }
+        };
+        const url = `${serverUrl}/docdb/${folder}/documents`;
+        axios.post(url, request, {
+            headers: {
+                Authorization: 'Bearer ' + token
+            }
+        }).then(response => {
+            response.data.access_token && setToken(response.data.access_token);
+            setId(response.data.metadata.id);
+            setName(response.data.metadata.name);
+            onChange(id, name, "created", "");
+            system.info(`Cloned chat into "${response.data.metadata.name}".`);
+            system.debug("Chat cloned", response, url + " POST");
+        }).catch(error => {
+            system.error(`System Error cloning chat`, error, url + " POST");
+        });
+    }
+
     const save = () => {
         if (!chatLoaded) {
             setChatLoaded(true);
@@ -736,6 +762,10 @@ const Chat = ({
     const handleNewChat = () => {
         reset();
         setPromptFocus();
+    }
+
+    const handleCloneChat = () => {
+        clone(name + " clone");
     }
 
     const renameChat = (newName) => {
@@ -1000,6 +1030,15 @@ const Chat = ({
                     disabled={ id === "" } onClick={handleNewChat}
                 >
                     <AddCommentIcon/>
+                </IconButton>
+            </span>
+        </Tooltip>
+        <Tooltip title={ id === "" ? "You can clone this chat once it has something in it" : "Clone this chat" }>
+            <span>
+                <IconButton edge="start" color="inherit" aria-label="clone chat"
+                    disabled={ id === "" } onClick={handleCloneChat}
+                >
+                    <FileCopyIcon/>
                 </IconButton>
             </span>
         </Tooltip>
