@@ -13,6 +13,7 @@ Parameters:
 import React, { useState, useEffect } from 'react';
 import { TextField, Box, List, ListItem, Tooltip, IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import CloseIcon from '@mui/icons-material/Close';
 import { grey } from '@mui/material/colors';
 
 
@@ -60,6 +61,15 @@ const ScriptList = ({ id,
         setMyCellList(newCellList);
     };
 
+    const handleDeleteCell = (index) => {
+        let newCellList = [
+            ...myCellList.slice(0, index),
+            ...myCellList.slice(index + 1)
+        ];
+        setMyCellList(newCellList);
+    };
+
+
     const addListItemControl = (index) => 
         <Tooltip title="Add cell">
             <IconButton onClick={() => handleAddCell(index)}>
@@ -67,6 +77,14 @@ const ScriptList = ({ id,
             </IconButton>
         </Tooltip>
     ;
+
+    const deleteListItemControl = (index) =>
+        <Tooltip title="Delete cell">
+            <IconButton onClick={() => handleDeleteCell(index)}>
+                <CloseIcon />
+            </IconButton>
+        </Tooltip>
+
 
 
     return (
@@ -84,6 +102,7 @@ const ScriptList = ({ id,
                                     rowsMax={6} value={cell.value} onChange={(e) => { handleValueChange(e, index) } }
                                 />
                                 {addListItemControl(index)}
+                                {deleteListItemControl(index)}
                             </ListItem>
                         </Box>
                     ))
