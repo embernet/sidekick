@@ -671,6 +671,12 @@ const App = () => {
                   <MenuItem key="menuOpenCloseSidekickAI" onClick={() => { handleAppMenuClose(); handleToggleSidekickAIOpen(); }}>
                     <HelpIcon/><Typography  sx={{ ml: 1 }}>{ sidekickAIOpen ? "Help - Close Sidekick AI Help" : "Help - Open Sidekick AI Help" }</Typography>
                   </MenuItem>
+                  <MenuItem key="menuOpenCloseScripts" onClick={() => { handleAppMenuClose(); handleToggleScriptsOpen(); }}>
+                    <ScriptsExplorerIcon/><Typography  sx={{ ml: 1 }}>{ scriptsOpen ? "Scripts - Close Scripts Explorer" : "Scripts - Open Scripts Explorer" }</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuOpenCloseScript" onClick={() => { handleAppMenuClose(); handleToggleScriptOpen(); }}>
+                    <ScriptIcon/><Typography  sx={{ ml: 1 }}>{ scriptOpen ? "Script - Close" : "Script - Open" }</Typography>
+                  </MenuItem>
                   <MenuItem key="menuOpenCloseChats" onClick={() => { handleAppMenuClose(); handleToggleChatsOpen(); }}>
                     <QuestionAnswerIcon/><Typography  sx={{ ml: 1 }}>{ chatsOpen ? "History - Close Chat History" : "History - Open Chat History" }</Typography>
                   </MenuItem>
@@ -685,12 +691,6 @@ const App = () => {
                   </MenuItem>
                   <MenuItem key="menuOpenCloseChat" onClick={() => { handleAppMenuClose(); handleToggleChatOpen(); }}>
                     { chatOpen ? <ModeCommentIcon/> : <AddCommentIcon/> }<Typography  sx={{ ml: 1 }}>{ chatOpen ? "Chat - Close" : "Chat - Open" }</Typography>
-                  </MenuItem>
-                  <MenuItem key="menuOpenCloseScripts" onClick={() => { handleAppMenuClose(); handleToggleScriptsOpen(); }}>
-                    <ScriptsExplorerIcon/><Typography  sx={{ ml: 1 }}>{ scriptsOpen ? "Scripts - Close Scripts Explorer" : "Scripts - Open Scripts Explorer" }</Typography>
-                  </MenuItem>
-                  <MenuItem key="menuOpenCloseScript" onClick={() => { handleAppMenuClose(); handleToggleScriptOpen(); }}>
-                    <ScriptIcon/><Typography  sx={{ ml: 1 }}>{ scriptOpen ? "Script - Close" : "Script - Open" }</Typography>
                   </MenuItem>
                   <MenuItem key="menuMinimiseWindows" onClick={() => { handleAppMenuClose(); minimiseWindows(); }}>
                     <MinimizeIcon/><Typography  sx={{ ml: 1 }}>Minimise Windows</Typography>
@@ -723,6 +723,16 @@ const App = () => {
                     <HelpIcon/>
                   </IconButton>                  
                 </Tooltip>
+                <Tooltip title={ scriptsOpen ? "Close Scripts Explorer" : "Open Scripts Explorer" }>
+                  <IconButton edge="start" color="inherit" aria-label="Open/Close Scripts Explorer" onClick={handleToggleScriptsOpen}>
+                    <ScriptsExplorerIcon/>
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title={scriptOpen ? "Close Script" : "New Script"}>
+                  <IconButton edge="start" color="inherit" aria-label={ scriptOpen ? "Close Script" : "Open Script" } onClick={handleToggleScriptOpen}>
+                    <ScriptIcon/>
+                  </IconButton>
+                </Tooltip>
                 <Tooltip title={ chatsOpen ? "Close Chat History" : "Open Chat History" }>
                   <IconButton edge="start" color="inherit" aria-label="Open/Close Chat History" onClick={handleToggleChatsOpen}>
                     <QuestionAnswerIcon/>
@@ -746,16 +756,6 @@ const App = () => {
                 <Tooltip title={chatOpen ? "Close Chat" : "New Chat"}>
                   <IconButton edge="start" color="inherit" aria-label={ chatOpen ? "Close Chat" : "Open chat" } onClick={handleToggleChatOpen}>
                     { chatOpen ? <ModeCommentIcon/> : <AddCommentIcon/> }
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title={ scriptsOpen ? "Close Scripts Explorer" : "Open Scripts Explorer" }>
-                  <IconButton edge="start" color="inherit" aria-label="Open/Close Scripts Explorer" onClick={handleToggleScriptsOpen}>
-                    <ScriptsExplorerIcon/>
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title={scriptOpen ? "Close Script" : "New Script"}>
-                  <IconButton edge="start" color="inherit" aria-label={ scriptOpen ? "Close Script" : "Open Script" } onClick={handleToggleScriptOpen}>
-                    <ScriptIcon/>
                   </IconButton>
                 </Tooltip>
                 <Tooltip title="Minimise windows">
