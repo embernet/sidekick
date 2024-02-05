@@ -490,6 +490,7 @@ const scriptName =
                                                 key={index} darkMode={darkMode}
                                                 modelSettings={modelSettings}
                                                 serverUrl={serverUrl} token={token} setToken={setToken}
+                                                markdownRenderingOn={markdownRenderingOn}
                                                 system={system}
                                     />
                                 </Box>

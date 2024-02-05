@@ -23,7 +23,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 const ScriptCell = ({ id, cells, onDelete,
     cellType, setCellType,
     cellName, setCellName, cellValue, setCellValue, key, darkMode,
-    modelSettings, serverUrl, token, setToken, system}) => {
+    modelSettings, serverUrl, token, setToken, markdownRenderingOn, system}) => {
     const [myId, setMyId] = useState(id);
     const [myCellType, setMyCellType] = useState(cellType);
     const [myCellName, setMyCellName] = useState(cellName);
@@ -72,7 +72,7 @@ const ScriptCell = ({ id, cells, onDelete,
                     cellName={cellName} setCellName={setMyCellName}
                     cellValue={cellValue} setCellValue={setMyCellValue}
                     modelSettings={modelSettings} serverUrl={serverUrl} token={token} setToken={setToken}
-                    darkMode={darkMode} system={system}
+                    darkMode={darkMode} markdownRenderingOn={markdownRenderingOn} system={system}
                 />;
             // case "xyq":
             //     return <ScriptXYQ  id={myId} cells={cells}

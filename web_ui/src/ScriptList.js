@@ -23,7 +23,6 @@ const ScriptList = ({ id,
     const [myCellValue, setMyCellValue] = useState(cellValue);
     const defaultListItem = { id: Date.now(), value: "" };
     const [myCellList, setMyCellList] = useState(cellValue?.cellList || []);
-    console.log("myCellList", myCellList);
 
     useEffect(() => {
         setCellName(myCellName);

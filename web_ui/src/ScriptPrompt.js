@@ -6,15 +6,19 @@ import AIPromptResponse from './AIPromptResponse';
 import { use } from 'marked';
 import { create } from '@mui/material/styles/createTransitions';
 import AI from './AI';
+import SidekickMarkdown from './SidekickMarkdown';
+import StopCircleIcon from '@mui/icons-material/StopCircle';
+import SendIcon from '@mui/icons-material/Send';
 
 const ScriptPrompt = ({ id, cells,
     cellName, setCellName,
     cellValue, setCellValue,
-    modelSettings, serverUrl, token, setToken, darkMode, system }) => {
+    modelSettings, serverUrl, token, setToken, darkMode, markdownRenderingOn, system }) => {
     const [myCellName, setMyCellName] = useState(cellName);
     const [myCellValue, setMyCellValue] = useState(cellValue);
     const [template, setTemplate] = useState(cellValue?.template || "");
     const [prompt, setPrompt] = useState("");
+    const [userPromptToSend, setUserPromptToSend] = useState("");
     const [promptToSend, setPromptToSend] = useState(null);
     const [response, setResponse] = useState(cellValue?.response || "");
     const [AIResponse, setAIResponse] = useState("");
@@ -88,10 +92,6 @@ const ScriptPrompt = ({ id, cells,
         }
     },[AIResponse]);
 
-    const run = () => {
-        setPromptToSend({prompt:prompt});
-    }
-
     const handleNameChange = (event) => {
         setMyCellName(event.target.value);
     }
@@ -148,11 +148,30 @@ const ScriptPrompt = ({ id, cells,
             <TextField label="Prompt" variant="outlined" sx={{ mt: 2, width: "100%" }} multiline
                 rows={6} value={prompt} disabled
             />
-            <Tooltip title="Run cell" sx={{ ml: "auto" }}>
-                <IconButton onClick={run}>
-                    <PlayArrow/>
-                </IconButton>
-            </Tooltip>
+            <AIPromptResponse 
+                serverUrl={serverUrl}
+                token={token}
+                setToken={setToken}
+                modelSettings={modelSettings}
+                streamingOn={true}
+                customUserPromptReady={""}
+                systemPrompt={""}
+                streamingChatResponseRef={streamingChatResponseRef}
+                streamingChatResponse={streamingChatResponse}
+                setStreamingChatResponse={setStreamingChatResponse}
+                setAIResponse={setAIResponse}
+                setUserPromptEntered={null}
+                interactiveMode={true}
+                showPrompt={false}
+                userPromptToSend={userPromptToSend}
+                passiveUserPromptToSend={prompt}
+                setUserPromptToSend={setUserPromptToSend}
+                controlName="Ask the AI"
+                toolbarButtons={null}
+                sendButtonTooltip=""
+                onBlur={null}
+                darkMode={darkMode}
+            />
             { !streamingChatResponse &&
                 <Card id="response" label="Response" variant="outlined"
                         sx={{ 
@@ -162,9 +181,15 @@ const ScriptPrompt = ({ id, cells,
                             cursor: "default",
                         }}
                 >
-                    <Typography sx={{ whiteSpace: 'pre-wrap', width: "100%" }}>
-                        {response}
-                    </Typography>
+                    {
+                        markdownRenderingOn
+                        ?
+                            <SidekickMarkdown markdown={response} />
+                        :
+                            <Typography sx={{ whiteSpace: 'pre-wrap', width: "100%" }}>
+                                {response}
+                            </Typography>
+                    }
                 </Card>
             }
             <Box sx={{ width: "100%" }}>
@@ -186,28 +211,6 @@ const ScriptPrompt = ({ id, cells,
                     </Card>
                 }
             </Box>
-            <AIPromptResponse 
-                serverUrl={serverUrl}
-                token={token}
-                setToken={setToken}
-                modelSettings={modelSettings}
-                streamingOn={true}
-                customUserPromptReady={""}
-                systemPrompt={""}
-                streamingChatResponseRef={streamingChatResponseRef}
-                streamingChatResponse={streamingChatResponse}
-                setStreamingChatResponse={setStreamingChatResponse}
-                setAIResponse={setAIResponse}
-                setUserPromptEntered={null}
-                interactiveMode={false}
-                userPromptToSend={promptToSend}
-                setUserPromptToSend={null}
-                controlName="AI Prompt Response"
-                toolbarButtons={null}
-                sendButtonTooltip=""
-                onBlur={null}
-                darkMode={darkMode}
-            />
         </Box>
     );
 };

@@ -42,12 +42,15 @@ import { grey } from '@mui/material/colors';
 //      This should be based on the promptEntered and may just be a copy of it
 //      or may contain additional text, e.g. to reaffirm system prompt directives
 // input: userPromptToSend: {prompt: prompt, timestamp: Date.now()}
+// input: interactiveMode: boolean - whether to show a UI or not
+// input: showPrompt: boolean - whether, if in interactiveMode to show the prompt text area  and associated controls
+// input: passiveUserPromptToSend: a prompt to send to the AI when the Send button is pressed
 
 const AIPromptResponse = ({modelSettings, serverUrl, token, setToken, customUserPromptReady, systemPrompt,
     streamingOn, streamingChatResponseRef, streamingChatResponse,
     setStreamingChatResponse, setAIResponse, onChange, focusOnPrompt,
     setUserPromptEntered, userPromptToSend, setUserPromptToSend, darkMode,
-    controlName, toolbarButtons, sendButtonTooltip, interactiveMode=true}) => {
+    controlName, toolbarButtons, sendButtonTooltip, interactiveMode=true, showPrompt=true, passiveUserPromptToSend=null}) => {
 
     const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
         backgroundColor: darkMode ? grey[900] : grey[300],
@@ -164,7 +167,8 @@ const AIPromptResponse = ({modelSettings, serverUrl, token, setToken, customUser
     const handleUserPromptEntered = (event) => {
         event.preventDefault();
         setLastPrompt(prompt);
-        setUserPromptEntered({prompt: prompt, timestamp: Date.now()});
+        setUserPromptEntered && setUserPromptEntered({prompt: prompt, timestamp: Date.now()});
+        passiveUserPromptToSend && setUserPromptToSend && setUserPromptToSend({ prompt: passiveUserPromptToSend, timestamp: Date.now()});
     };
 
     const handleUserPromptKeyDown = (event) => {
@@ -278,22 +282,28 @@ const AIPromptResponse = ({modelSettings, serverUrl, token, setToken, customUser
         <Box>
             <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
                 <Typography sx={{mr:2}}>{controlName}</Typography>
-                <Tooltip title={ "Ask again" }>
-                    <span>
-                    <IconButton edge="start" color="inherit" aria-label="menu" 
-                        disabled={streamingChatResponse !== ""} onClick={handleAskAgain}>
-                        <ReplayIcon/>
-                    </IconButton>
-                    </span>
-                </Tooltip>
-                <Tooltip title={ "Reload last prompt for editing" }>
-                    <span>
-                        <IconButton edge="start" color="inherit" aria-label="menu"
-                            disabled={streamingChatResponse !== ""} onClick={handleReload}>
-                            <RedoIcon/>
+                {
+                    showPrompt && 
+                    <Tooltip title={ "Ask again" }>
+                        <span>
+                        <IconButton edge="start" color="inherit" aria-label="menu" 
+                            disabled={streamingChatResponse !== ""} onClick={handleAskAgain}>
+                            <ReplayIcon/>
                         </IconButton>
-                    </span>
-                </Tooltip>
+                        </span>
+                    </Tooltip>
+                }
+                {
+                    showPrompt && 
+                    <Tooltip title={ "Reload last prompt for editing" }>
+                        <span>
+                            <IconButton edge="start" color="inherit" aria-label="menu"
+                                disabled={streamingChatResponse !== ""} onClick={handleReload}>
+                                <RedoIcon/>
+                            </IconButton>
+                        </span>
+                    </Tooltip>
+                }
                 {toolbarButtons}
                 <Box ml="auto">
                     {streamingChatResponse !== "" && <Tooltip title={ "Stop" }>
@@ -314,7 +324,7 @@ const AIPromptResponse = ({modelSettings, serverUrl, token, setToken, customUser
                     </Tooltip>
                 </Box>
             </SecondaryToolbar>
-            <TextField 
+            { showPrompt && <TextField 
                 sx={{ width: "100%", mt: "auto", overflow: "auto", maxHeight: "338px", minHeight: "54px" }}
                 id={promptId}
                 multiline 
@@ -324,7 +334,7 @@ const AIPromptResponse = ({modelSettings, serverUrl, token, setToken, customUser
                 onKeyDown={handleUserPromptKeyDown}
                 placeholder={promptPlaceholder}
                 disabled={streamingChatResponse !== ""}
-            />
+            />}
         </Box>
     return interactiveMode ? render : null;
 }
