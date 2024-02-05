@@ -19,8 +19,10 @@ import ScriptList from './ScriptList';
 import ScriptPrompt from './ScriptPrompt';
 // import ScriptXYQ from './ScriptXYQ';
 import ClearIcon from '@mui/icons-material/Clear';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
-const ScriptCell = ({ id, cells, onDelete,
+const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
     cellType, setCellType,
     cellName, setCellName, cellValue, setCellValue, key, darkMode,
     modelSettings, serverUrl, token, setToken, markdownRenderingOn, system}) => {
@@ -86,6 +88,21 @@ const ScriptCell = ({ id, cells, onDelete,
         }
     };
 
+    const moveCellUpControl = (index) =>
+        <Tooltip title="Move cell up">
+            <IconButton onClick={() => onMoveCellUp(index)}>
+                <ArrowUpwardIcon />
+            </IconButton>
+        </Tooltip>
+
+    const moveCellDownControl = (index) =>
+        <Tooltip title="Move cell down">
+            <IconButton onClick={() => onMoveCellDown(index)}>
+                <ArrowDownwardIcon />
+            </IconButton>
+        </Tooltip>
+
+
     const toolbar =  
         <Box sx={{ width: "100%", paddingLeft: 0, paddingRight: 0, display: "flex",
          flexDirection: "row", alignItems: "center" }}>
@@ -105,11 +122,15 @@ const ScriptCell = ({ id, cells, onDelete,
                             {/* <MenuItem value="xyq">XYQ</MenuItem> */}
                 </Select>
             </FormControl>
-            <Tooltip title="Delete cell" sx={{ ml: "auto" }}>
-                <IconButton onClick={handleDeleteCell}>
-                    <ClearIcon/>
-                </IconButton>
-            </Tooltip>
+            <Box sx={{ display: "flex", flexDirection: "row", ml: "auto" }}>
+                {onMoveCellUp ? moveCellUpControl(key) : null}
+                {onMoveCellDown ? moveCellDownControl(key) : null}
+                <Tooltip title="Delete cell">
+                    <IconButton onClick={handleDeleteCell}>
+                        <ClearIcon/>
+                    </IconButton>
+                </Tooltip>
+            </Box>
         </Box>
 
 

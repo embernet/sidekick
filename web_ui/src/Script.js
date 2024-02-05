@@ -343,13 +343,31 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
     }
 
     const handleAddCell = (index) => {
-        console.log("handleAddCell", index, cells)
         let newCells = [
             ...cells.slice(0, index + 1),
             { ...JSON.parse(JSON.stringify(defaultNewCell)), id: Date.now() },
             ...cells.slice(index + 1)
         ];
-        console.log("newCells", newCells)
+        setCells(newCells);
+    };
+
+    const handleMoveCellUp = (index) => {
+        let newCells = [
+            ...cells.slice(0, index - 1),
+            cells[index],
+            cells[index - 1],
+            ...cells.slice(index + 1)
+        ];
+        setCells(newCells);
+    };
+
+    const handleMoveCellDown = (index) => {
+        let newCells = [
+            ...cells.slice(0, index),
+            cells[index + 1],
+            cells[index],
+            ...cells.slice(index + 2)
+        ];
         setCells(newCells);
     };
 
@@ -491,6 +509,8 @@ const scriptName =
                                                 modelSettings={modelSettings}
                                                 serverUrl={serverUrl} token={token} setToken={setToken}
                                                 markdownRenderingOn={markdownRenderingOn}
+                                                onMoveCellUp={ index > 0 ? () => { handleMoveCellUp(index) } : null }
+                                                onMoveCellDown={ index < cells.length - 1 ? () => { handleMoveCellDown(index) } : null }
                                                 system={system}
                                     />
                                 </Box>
