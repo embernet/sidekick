@@ -37,6 +37,7 @@ const ScriptPrompt = ({ id, cells,
 
     useEffect(() => {
         setCellsByName(listToDict(cells));
+        createPromptFromTemplate();
     }, [cells]);
 
     useEffect(() => {
