@@ -59,14 +59,18 @@ const ScriptList = ({ id,
             ...myCellList.slice(index + 1)
         ];
         setMyCellList(newCellList);
+        // Don't setMyCellValue here, as it will be set in the useEffect when the new cell changes
     };
 
     const handleDeleteCell = (index) => {
-        let newCellList = [
-            ...myCellList.slice(0, index),
-            ...myCellList.slice(index + 1)
-        ];
-        setMyCellList(newCellList);
+        setMyCellList(prevCellList => {
+            const newCellList = [
+                ...prevCellList.slice(0, index),
+                ...prevCellList.slice(index + 1)
+            ];
+            setMyCellValue(prevCellValue => ({ ...prevCellValue, cellList: newCellList }));
+            return newCellList;
+        });
     };
 
 
