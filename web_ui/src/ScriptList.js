@@ -17,8 +17,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { grey } from '@mui/material/colors';
 
 
-const ScriptList = ({ id,
-    cellName, setCellName,
+const ScriptList = ({ cellName, setCellName,
     cellValue, setCellValue }) => {
     const [myCellName, setMyCellName] = useState(cellName);
     const [myCellValue, setMyCellValue] = useState(cellValue);

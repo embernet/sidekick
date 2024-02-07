@@ -7,10 +7,10 @@ import { use } from 'marked';
 import { create } from '@mui/material/styles/createTransitions';
 import AI from './AI';
 import SidekickMarkdown from './SidekickMarkdown';
-import StopCircleIcon from '@mui/icons-material/StopCircle';
-import SendIcon from '@mui/icons-material/Send';
+import ScriptTemplate from './ScriptTemplate';
 
-const ScriptPrompt = ({ id, cells,
+
+const ScriptPrompt = ({ cells,
     cellName, setCellName,
     cellValue, setCellValue,
     modelSettings, serverUrl, token, setToken, darkMode, markdownRenderingOn, system }) => {
@@ -97,11 +97,6 @@ const ScriptPrompt = ({ id, cells,
         setMyCellName(event.target.value);
     }
 
-    const handleTemplateChange = (event) => {
-        setTemplate(event.target.value);
-        setMyCellValue({ ...myCellValue, template: event.target.value});
-    };
-
     const handleResponseChange = (event) => {
         setMyCellValue({ ...myCellValue, response: event.target.value});
     };
@@ -143,12 +138,10 @@ const ScriptPrompt = ({ id, cells,
                 value={myCellName} onChange={handleNameChange}
             />
             {toolbar}
-            <TextField label="Template" variant="outlined" sx={{ mt: 2, width: "100%" }} multiline
-                rows={6} value={template} onChange={handleTemplateChange}
-            />
-            <TextField label="Prompt" variant="outlined" sx={{ mt: 2, width: "100%" }} multiline
-                rows={6} value={prompt} disabled
-            />
+            <ScriptTemplate cells={cells}
+                        valueLabel="Edit the template to generate a prompt"
+                        cellValue={cellValue} setCellValue={setMyCellValue}
+                    />;
             <AIPromptResponse 
                 serverUrl={serverUrl}
                 token={token}

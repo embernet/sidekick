@@ -11,12 +11,12 @@ Function:
     When a cell type is selected, the corresponding component is rendered.
 */
 import React, { useState, useEffect } from 'react';
-import { Card, Toolbar, Paper, Box, FormControl, Select, InputLabel, Tooltip, IconButton, TextField, Button, Menu, MenuItem, Divider } from '@mui/material';
-import { grey, blueGrey } from '@mui/material/colors';
-import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
+import { Card, Box, FormControl, Select, InputLabel, Tooltip, IconButton, MenuItem } from '@mui/material';
+import { blueGrey } from '@mui/material/colors';
 import ScriptText from './ScriptText';
 import ScriptList from './ScriptList';
 import ScriptPrompt from './ScriptPrompt';
+import ScriptTemplate from './ScriptTemplate';
 // import ScriptXYQ from './ScriptXYQ';
 import ClearIcon from '@mui/icons-material/Clear';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
@@ -60,24 +60,30 @@ const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
     const renderCell = () => {
         switch (myCellType) {
             case "text":
-                return <ScriptText id={myId}
+                return <ScriptText
                     cellName={cellName} setCellName={setMyCellName}
                     cellValue={cellValue} setCellValue={setMyCellValue}
                 />;
-            case "list":
-                return <ScriptList  id={myId}
+                case "template":
+                    return <ScriptTemplate cells={cells}
+                        valueLabel="Edit the template to generate a value"
+                        cellName={cellName} setCellName={setMyCellName}
+                        cellValue={cellValue} setCellValue={setMyCellValue}
+                    />;
+                case "list":
+                return <ScriptList
                     cellName={cellName} setCellName={setMyCellName}
                     cellValue={cellValue} setCellValue={setMyCellValue}
                 />;
             case "prompt":
-                return <ScriptPrompt  id={myId} cells={cells}
+                return <ScriptPrompt cells={cells}
                     cellName={cellName} setCellName={setMyCellName}
                     cellValue={cellValue} setCellValue={setMyCellValue}
                     modelSettings={modelSettings} serverUrl={serverUrl} token={token} setToken={setToken}
                     darkMode={darkMode} markdownRenderingOn={markdownRenderingOn} system={system}
                 />;
             // case "xyq":
-            //     return <ScriptXYQ  id={myId} cells={cells}
+            //     return <ScriptXYQ cells={cells}
             //         cellName={cellName} setCellName={setMyCellName}
             //         cellValue={cellValue} setCellValue={setMyCellValue}
             //         modelSettings={modelSettings} serverUrl={serverUrl} token={token} setToken={setToken}
@@ -117,6 +123,7 @@ const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
                     onChange={handleSelectCellType}
                     >
                             <MenuItem value="text">Text</MenuItem>
+                            <MenuItem value="template">Template</MenuItem>
                             <MenuItem value="list">List</MenuItem>
                             <MenuItem value="prompt">Prompt</MenuItem>
                             {/* <MenuItem value="xyq">XYQ</MenuItem> */}

@@ -15,8 +15,7 @@ import { TextField, Box } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import { use } from 'marked';
 
-const ScriptText = ({ id,
-    cellName, setCellName,
+const ScriptText = ({ cellName, setCellName,
     cellValue, setCellValue }) => {
     const [myCellName, setMyCellName] = useState(cellName);
     const [myCellValue, setMyCellValue] = useState(cellValue);
