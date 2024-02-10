@@ -7,7 +7,7 @@ const ScriptTemplate = ({ valueLabel, cells,
     cellValue, setCellValue,
     cellName=undefined, setCellName=undefined // leave the cell name undefined to use as part of another cell
 }) => {
-    const [myCellName, setMyCellName] = useState(cellName);
+    const [myCellName, setMyCellName] = useState(cellName || "");
     const [template, setTemplate] = useState(cellValue?.template || "");
     const [myCellValue, setMyCellValue] = useState("");
     const [cellToAddToTemplate, setCellToAddToTemplate] = useState("");
@@ -17,12 +17,12 @@ const ScriptTemplate = ({ valueLabel, cells,
     }, [cells]);
 
     useEffect(() => {
-        setCellName(myCellName);
+        setCellName && setCellName(myCellName);
     }
     , [myCellName]);
 
     useEffect(() => {
-        setCellValue(myCellValue);
+        setCellValue && setCellValue(myCellValue);
     }
     , [myCellValue]);
 
