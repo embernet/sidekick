@@ -478,8 +478,10 @@ const App = () => {
     console.log("handleNoteChange", change);
     if (change.reason === "renamed") {
       setNoteNameChanged(change);
-    } else {
+    } else if (change.reason === "created" || change.reason === "deleted") {
       setRefreshNotesExplorer(change);
+    } else if (change.reason === "changed") {
+      // Do nothing
     }
   }
 
