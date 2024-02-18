@@ -862,6 +862,7 @@ const App = () => {
                 setFocusOnPrompt={setFocusOnPrompt}
                 chatRequest={chatRequest}
                 chatOpen={chatOpen}
+                noteOpen={noteOpen}
                 windowMaximized={chatWindowMaximized}
                 setWindowMaximized={setChatWindowMaximized}
                 setChatOpen={setChatOpen}

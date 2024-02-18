@@ -42,7 +42,7 @@ const Chat = ({
     provider, modelSettings, persona, 
     closeOtherPanels, restoreOtherPanels, windowMaximized, setWindowMaximized,
     newPromptPart, newPrompt, newPromptTemplate, loadChat, setAppendNoteContent,
-    focusOnPrompt, setFocusOnPrompt, chatRequest, chatOpen, setChatOpen, darkMode,
+    focusOnPrompt, setFocusOnPrompt, chatRequest, chatOpen, noteOpen, setChatOpen, darkMode,
     temperatureText, setTemperatureText, modelSettingsOpen, toggleModelSettingsOpen, togglePersonasOpen,
     onChange, personasOpen, promptEngineerOpen, togglePromptEngineerOpen, setOpenChatId, shouldAskAgainWithPersona, serverUrl, token, setToken,
     streamingChatResponse, setStreamingChatResponse, chatStreamingOn, maxWidth }) => {
@@ -1175,8 +1175,8 @@ const Chat = ({
                                 <MenuItem onClick={handleAppendToChatInput}>Append message to chat input</MenuItem>
                                 <MenuItem onClick={handleUseAsChatInput}>Use message as chat input</MenuItem>
                                 <MenuItem divider />
-                                <MenuItem onClick={handleAppendToNote}>Append message to note</MenuItem>
-                                <MenuItem onClick={handleAppendAllToNote}>Append all to note</MenuItem>
+                                <MenuItem disabled={!noteOpen} onClick={handleAppendToNote}>Append message to note</MenuItem>
+                                <MenuItem disabled={!noteOpen} onClick={handleAppendAllToNote}>Append all to note</MenuItem>
                                 <MenuItem divider />
                                 <MenuItem onClick={handleDeleteThisMessage}>Delete this message</MenuItem>
                                 <MenuItem onClick={handleDeleteThisAndPreviousMessage}>Delete this and previous message</MenuItem>
