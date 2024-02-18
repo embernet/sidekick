@@ -670,6 +670,28 @@ const Chat = ({
     }
 
     const handleChatPromptKeydown = (event) => {
+        if (event.ctrlKey || event.metaKey) {
+            if (event.key === 's') {
+                event.preventDefault();
+                save();
+            } else if (
+                event.key !== 'c' && 
+                event.key !== 'v' && 
+                event.key !== 'x' &&
+                event.key !== 'z' &&
+                event.key !== 'y' &&
+                event.key !== 'f' &&
+                event.key !== 'g' &&
+                event.key !== 'a')
+            {
+                // for now, throw away attempts at using hotkeys for formatting
+                // if we don't do this, the defult div behaviour
+                // is to do thinks like bold selected text when ctrl+b is pressed
+                // This is a markdown editor, so we don't want that
+                // we can add event.key === 'b' text later to do things like that
+                event.preventDefault();
+            }
+        }
         setPromptLength(chatPromptRef.current.innerText.length);
         if(event.key === 'Enter'  && !event.shiftKey && chatPromptRef.current.innerText !== "") {
             setLastPrompt(chatPromptRef.current.innerText);
