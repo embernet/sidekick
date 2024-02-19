@@ -7,8 +7,9 @@ import { useContext } from 'react';
 import { Card, Toolbar, Typography, Box, IconButton } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { SystemContext } from './SystemContext';
+import { memo } from 'react';
 
-const SidekickMarkdown = ({ markdown }) => {
+const SidekickMarkdown = memo(({ markdown }) => {
     const system = useContext(SystemContext);
 
     const renderMarkdown = (markdown) => {
@@ -61,6 +62,6 @@ const SidekickMarkdown = ({ markdown }) => {
     }
     const result = renderMarkdown(markdown);
     return (result);
-};
+});
 
 export default SidekickMarkdown;
