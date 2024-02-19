@@ -133,13 +133,11 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
         if (loadScript) {
             reset();
             scriptLoading.current = true; // prevent saves whilst we are updating state during load
-            console.log("loadScript", loadScript);
             axios.get(`${serverUrl}/docdb/${documentType}/documents/${loadScript["id"]}`, {
                 headers: {
                     Authorization: 'Bearer ' + token
                 }
             }).then(response => {
-                console.log("/docdb/scripts GET Response", response);
                 response.data.access_token && setToken(response.data.access_token);
                 setId(response.data.metadata.id);
                 setName(response.data.metadata.name);

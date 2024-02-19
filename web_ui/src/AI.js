@@ -52,10 +52,8 @@ class AI {
             }
         })
         .then((response) => {
-            console.log(`${GENERATETEXT_API} response`, response);
             response.data.access_token && this.setToken(response.data.access_token);
             if (response.data.success) {
-                console.log(`${GENERATETEXT_API} result:`, response.data.generated_text);
                 result = response.data.generated_text;
             } else {
                 this.system.debug(`Error generating text from AI.`, response.error);
