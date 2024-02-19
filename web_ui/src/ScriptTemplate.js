@@ -10,6 +10,7 @@ const ScriptTemplate = ({ valueLabel, cells,
     const [myCellValue, setMyCellValue] = useState(cellValue || "");
     const [template, setTemplate] = useState(cellParameters?.template || "");
     const [cellToAddToTemplate, setCellToAddToTemplate] = useState("");
+    const [templateCursorPosition, setTemplateCursorPosition] = useState(0);
 
     useEffect(() => {
         // regenerate the template if any of the cells change
@@ -76,8 +77,18 @@ const ScriptTemplate = ({ valueLabel, cells,
         setTemplate(event.target.value);
     };
 
+    const trackCursorInTemplate = (event) => {
+        setTemplateCursorPosition(event.target.selectionStart);
+    };
+
     const handleAddCellToPrompt = (name) => {
-        setTemplate(template + "{" + name + "}");
+        const beforeCursor = template.slice(0, templateCursorPosition);
+        const afterCursor = template.slice(templateCursorPosition);
+        let beforeSpace = beforeCursor.endsWith(" ") || beforeCursor.endsWith("\n") ? "" : " ";
+        let afterSpace = afterCursor.startsWith(" ") || afterCursor.startsWith("\n") ? "" : " ";
+        const newTemplate = beforeCursor + beforeSpace + "{" + name + "}" + afterSpace + afterCursor;
+        setTemplate(newTemplate);
+        setTemplateCursorPosition(pos => pos + name.length + 2 + beforeSpace.length + afterSpace.length);
         setCellToAddToTemplate(""); // reset the select box
     };
 
@@ -111,15 +122,15 @@ const ScriptTemplate = ({ valueLabel, cells,
         <Box>
             {
                 setCellName !== undefined && myCellName !== undefined &&
-                <TextField label="cell name" variant="outlined" sx={{ mt: 2, width: "100%" }}
+                <TextField id="name" label="cell name" variant="outlined" sx={{ mt: 2, width: "100%" }}
                     value={myCellName} onChange={handleNameChange}
                 />
             }
             {toolbar}
-            <TextField label="template" variant="outlined" sx={{ mt: 2, width: "100%" }} multiline
-                rows={6} value={template} onChange={handleTemplateChange}
+            <TextField id="template" label="template" variant="outlined" sx={{ mt: 2, width: "100%" }} multiline
+                rows={6} value={template} onChange={handleTemplateChange} onClick={trackCursorInTemplate} onKeyUp={trackCursorInTemplate}
             />
-            <TextField label={valueLabel} variant="outlined" sx={{ mt: 2, width: "100%" }} multiline
+            <TextField id="value" label={valueLabel} variant="outlined" sx={{ mt: 2, width: "100%" }} multiline
                 rows={6} value={myCellValue} disabled
             />
         </Box>
