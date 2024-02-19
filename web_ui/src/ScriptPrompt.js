@@ -106,42 +106,16 @@ const ScriptPrompt = ({ cells,
         setCellToAddToTemplate(""); // reset the select box
     };
 
-    const toolbar =
-        <Box sx={{ width: "100%", paddingLeft: 0, paddingRight: 0, display: "flex",
-        flexDirection: "row", alignItems: "center" }}>
-        <FormControl sx={{ mt: 2, width: "100%" }} size="small">
-            <Select
-                value={cellToAddToTemplate}
-                displayEmpty
-                onChange={(event) => { handleAddCellToPrompt(event.target.value); }}
-                >
-                    <MenuItem disabled value="">
-                        <em>Select cell to add to template...</em>
-                    </MenuItem>
-                    {
-                        cells && cells.map(
-                            (cell, index) => {
-                                if (cell.name === myCellName || cell.name === "") {
-                                    return null;
-                                }
-                                return <MenuItem value={cell.name}>{cell.name}</MenuItem>
-                            }
-                        )
-                    }
-            </Select>
-        </FormControl>
-    </Box>;
-
     return (
         <Box>
             <TextField label="Name" variant="outlined" sx={{ mt: 2, width: "100%" }}
                 value={myCellName} onChange={handleNameChange}
             />
-            {toolbar}
             <ScriptTemplate cells={cells}
                         valueLabel="Edit the template to generate a prompt"
                         cellValue={cellValue} setCellValue={setMyCellValue}
-                    />;
+                    />
+            <br/>
             <AIPromptResponse 
                 serverUrl={serverUrl}
                 token={token}
