@@ -227,7 +227,6 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                       }
                 }).then(response => {
                     saveStatus.current = "saved";
-                    console.log("loadNote Response", response);
                     response.data.access_token && setToken(response.data.access_token);
                     setId(response.data.metadata.id);
                     setName(response.data.metadata.name);

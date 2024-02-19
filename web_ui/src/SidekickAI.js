@@ -218,10 +218,8 @@ const SidekickAI = ({
                 },
                 body: JSON.stringify(requestData),
             };
-            console.log("getChatStream request", request);
 
             const response = await fetch(url , request);
-            console.log("getChatStream response", response);
           
             let decoder = new TextDecoderStream();
             if (!response.body) return;
@@ -366,7 +364,6 @@ const SidekickAI = ({
 
     const handleDeleteThisMessage = () => {
         const updatedMessages = messages.filter((message, index) => index !== messageContextMenu.index);
-        console.log("updatedMessages", updatedMessages);
         setMessages(updatedMessages);
         setMessageContextMenu(null);
     };
@@ -376,7 +373,6 @@ const SidekickAI = ({
         if (messageContextMenu.index > 0) {
             updatedMessages.splice(messageContextMenu.index - 1, 1);
         }
-        console.log("updatedMessages", updatedMessages);
         setMessages(updatedMessages);
         setMessageContextMenu(null);
     };
