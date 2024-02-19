@@ -1,5 +1,4 @@
 import { debounce } from "lodash";
-import axios from 'axios'
 import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Tabs, Tab, Box, Toolbar, IconButton, Typography, TextField,
     List, ListItem, Menu, MenuItem, Tooltip, FormControl } from '@mui/material';
@@ -25,10 +24,9 @@ import ContentFormatter from './ContentFormatter';
 import { lightBlue, grey, blueGrey } from '@mui/material/colors';
 
 const SidekickAI = ({
-    sidekickAIOpen, setSidekickAIOpen, serverUrl, token, setToken, 
-    chatStreamingOn, windowPinnedOpen, setWindowPinnedOpen, darkMode}) => {
+    sidekickAIOpen, setSidekickAIOpen, serverUrl, token, 
+    windowPinnedOpen, setWindowPinnedOpen, darkMode}) => {
 
-    const theme = useTheme();
     const StyledToolbar = styled(Toolbar)(({ theme }) => ({
         backgroundColor: darkMode ? grey[900] : grey[500],
         gap: 2,
@@ -83,7 +81,7 @@ const SidekickAI = ({
     
     If asked about how to do something related to the sidekick app you use the information below to answer the question, giving them a short simple answer for simple requests and step by step guidance for more invovled requests. You also suggest related functionality that may be relevant to their task.
     
-    You provide concise answers that directly answer the question. Do not make things up.`;
+    You provide concise answers that directly answer the question. Do not make things up or use knowledge outside of that provided here.`;
     
     const sidekickAIPromptDirective = `You only answer questions about the Sidekick app and how to use it based on the knowledge you have been given, you do not make things up or guess, or provide guidance on prompt engineering and how to get the best quality response from the sidekick app chat. If the following includes questions that are not about the Sidekick app or how to use it then explain how they could use the Sidekick app to answer their question, e.g. by using the Note tool to sketch out the question in more detail, selecting an appropriate persona from the Persona tool, creating a prompt using the Prompt Composer tool, Using the Chat window to get ideas from GPT-3.5-turbo or GPT-4, using the Note tool to collect the best parts of the Chat. Do not make up anything about the sidekick tool features and how to do things in the tool: only use information provided in the manual. Keep comments on use of the tool short and fact based.
     `;
@@ -269,7 +267,7 @@ const SidekickAI = ({
             model_settings: {
                 provider: "OpenAI",
                 request: {
-                    model: "gpt-3.5-turbo",
+                    model: "gpt-4",
                     temperature: 0.3,
                     top_p: 1,
                     presence_penalty: 0,
@@ -573,11 +571,13 @@ const SidekickAI = ({
             </Tooltip>
             <Box ml="auto">
                 <Tooltip title={ "Ask Sidekick AI" }>
+                    <span>
                     <IconButton edge="end" color="inherit" aria-label="send" disabled={streamingChatResponse !== ""}
                         onClick={() => { setPromptToSend({prompt: sidekickAIPrompt, timestamp: Date.now()}); }}
                     >
                         <SendIcon/>
                     </IconButton>
+                    </span>
                 </Tooltip>
             </Box>
         </SecondaryToolbar>
