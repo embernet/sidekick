@@ -17,6 +17,7 @@
   - [Syntax highlighting of code](#syntax-highlighting-of-code)
   - [Change the AI model settings](#change-the-ai-model-settings)
   - [Sidekick Prompt Composer](#sidekick-prompt-composer)
+  - [Sidekick Script](#sidekick-script)
   - [Sidekick Notes](#sidekick-notes)
   - [Sidekick Manual](#sidekick-manual)
   - [Sidekick AI Help](#sidekick-ai-help)
@@ -108,21 +109,35 @@ Prompt composer lets you build your prompt from a library of fragments.
 
 ![Sidekick Prompt Composer](docs/images/Sidekick_Prompt_Composer.png)
 
+## Sidekick Script
+
+Sidekick Script can be created in a jupyter notebook style tool that lets you create cells of different types including text, lists, and templates to parameterise prompts for querying the AI.
+
+Here is an example script to generate a quiz where the number of questions, topic areas, themes, methods for creating questions, and difficulty levels are parameterised. The script uses the AI to generate the questions and answers:
+
+<img src="docs/images/Sidekick_Script.png" alt="Sidekick Script" width="418"/>
+<img src="docs/images/Sidekick_Script_List.png" alt="Sidekick Script List" width="418"/>
+<img src="docs/images/Sidekick_Script_Text.png" alt="Sidekick Script Text" width="418"/>
+<img src="docs/images/Sidekick_Script_List_Methods.png" alt="Sidekick Script List of Methods" width="418"/>
+<img src="docs/images/Sidekick_Script_Prompt.png" alt="Sidekick Script Prompt" width="418"/>
+<img src="docs/images/Sidekick_Script_Response_Questions.png" alt="Sidekick Script Response - Quiz Questions" width="418"/>
+<img src="docs/images/Sidekick_Script_Response_Answers.png" alt="Sidekick Script Response - Quiz Answers" width="418"/>
+
 ## Sidekick Notes
 
 Sidekick Notes lets you create and edit notes. You can also import and export notes as text files, copy selected AI responses over from the chat window, and use the NoteWriter AI to write your note for you by telling it what you want.
 
-![Sidekick Notes](docs/images/Sidekick_Notes.png)
+<img src="docs/images/Sidekick_Notes.png" alt="Sidekick Notes" width="418"/>
 
 Notes let you edit the content in plain text markdown and then render a view with the formatting applied.
 
-![Note Markdown rendering](docs/images/Sidekick_Note_Markdown.png)
+<img src="docs/images/Sidekick_Note_Markdown.png" alt="Note Markdown Rendering" width="418"/>
 
 ## Sidekick Manual
 
 The Sidekick Manual explains the features of the tool, the ideas behind them, how to use Sidekick and different scenarios you can use it for.
 
-![Sidekick Manual](docs/images/Sidekick_Manual.png)
+<img src="docs/images/Sidekick_Manual.png" alt="Sidekick Manual" width="418"/>
 
 ## Sidekick AI Help
 
@@ -130,7 +145,7 @@ Sidekick AI Help lets you ask questions of the manual rather than reading it!
 
 It also draws on the knowledge of GPT to expand on the principles outlined in the manual, which includes innovation techniques as well as descriptions of how the tool can be used, and provides examples of how to apply the tool to what you are working on.
 
-![Sidekick AI Help](docs/images/Sidekick_AI_Help.png)
+<img src="docs/images/Sidekick_AI_Help.png" alt="Sidekick AI Help" width="418"/>
 
 # Why Sidekick?
 
