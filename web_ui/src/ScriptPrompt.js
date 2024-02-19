@@ -1,29 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, Toolbar, Paper, Box, FormControl, Select, Typography, InputLabel, Tooltip, IconButton, TextField, Button, Menu, MenuItem, Divider } from '@mui/material';
+import { Card, Box, Typography, TextField } from '@mui/material';
 import { lightBlue } from '@mui/material/colors';
-import { PlayArrow } from '@mui/icons-material';
 import AIPromptResponse from './AIPromptResponse';
-import { use } from 'marked';
-import { create } from '@mui/material/styles/createTransitions';
-import AI from './AI';
+
 import SidekickMarkdown from './SidekickMarkdown';
 import ScriptTemplate from './ScriptTemplate';
 
 
 const ScriptPrompt = ({ cells,
     cellName, setCellName,
+    cellParameters, setCellParameters,
     cellValue, setCellValue,
-    modelSettings, serverUrl, token, setToken, darkMode, markdownRenderingOn, system }) => {
-    const [myCellName, setMyCellName] = useState(cellName);
-    const [myCellValue, setMyCellValue] = useState(cellValue);
-    const [template, setTemplate] = useState(cellValue?.template || "");
+    modelSettings, persona, serverUrl, token, setToken, darkMode, markdownRenderingOn, system }) => {
+    const [myCellName, setMyCellName] = useState(cellName || "");
+    const [myCellValue, setMyCellValue] = useState(cellValue || "");
+    const [scriptTemplateParameters, setScriptTemplateParameters] = useState({ template: cellParameters?.template || "" });
     const [prompt, setPrompt] = useState("");
     const [userPromptToSend, setUserPromptToSend] = useState("");
-    const [promptToSend, setPromptToSend] = useState(null);
     const [response, setResponse] = useState(cellValue?.response || "");
     const [AIResponse, setAIResponse] = useState("");
-    const [contentDisabled, setContentDisabled] = useState(false);
-    const [cellToAddToTemplate, setCellToAddToTemplate] = useState("");
     const [streamingChatResponse, setStreamingChatResponse] = useState("");
     const streamingChatResponseRef = useRef("");
     const [cellsByName, setCellsByName] = useState({});
@@ -37,7 +32,6 @@ const ScriptPrompt = ({ cells,
 
     useEffect(() => {
         setCellsByName(listToDict(cells));
-        createPromptFromTemplate();
     }, [cells]);
 
     useEffect(() => {
@@ -50,42 +44,6 @@ const ScriptPrompt = ({ cells,
     }
     , [myCellValue]);
 
-    const createPromptFromTemplate = () => {
-        // replace all the {.*} in the template with the values of the cells with those names
-        let newPrompt = template;
-        cells.forEach((cell) => {
-            switch (cell.type.toLowerCase()) {
-                case "text":
-                    newPrompt = newPrompt.replace(new RegExp("\\{" + cell.name + "\\}", "gi"), cell.value);
-                    break;
-                case "list":
-                    if (cell.value && cell.value?.cellList && cell.value.cellList?.length > 0) {
-                        newPrompt = newPrompt.replace(new RegExp("\\{" + cell.name + "\\}", "gi"), "{" + 
-                            cell.value.cellList.map(element => {
-                                return element.value;
-                            }) + "}");
-                    } else {
-                        newPrompt = newPrompt.replace(new RegExp("\\{" + cell.name + "\\}", "gi"),
-                            "WARNING: {"+cell.name+"} IS AN EMPTY LIST");
-                    }
-                    break;
-                case "prompt":
-                    newPrompt = newPrompt.replace(new RegExp("\\{" + cell.name + "\\}", "gi"), cell.value.response);
-                    break;
-                default:
-                    break;
-            }
-        }
-        );
-        setPrompt(newPrompt);
-    }
-
-    useEffect(() => {
-        setMyCellValue({ ...myCellValue, template: template});
-        createPromptFromTemplate();
-    }
-    , [template]);
-
     useEffect(()=>{
         if (AIResponse !== "") {
             setResponse(AIResponse);
@@ -93,27 +51,28 @@ const ScriptPrompt = ({ cells,
         }
     },[AIResponse]);
 
+    useEffect(()=>{
+        setCellParameters({...cellParameters, template: scriptTemplateParameters?.template || ""});
+    }, [scriptTemplateParameters]);
+
     const handleNameChange = (event) => {
         setMyCellName(event.target.value);
     }
 
     const handleResponseChange = (event) => {
-        setMyCellValue({ ...myCellValue, response: event.target.value});
-    };
-
-    const handleAddCellToPrompt = (name) => {
-        setTemplate(template + "{" + name + "}");
-        setCellToAddToTemplate(""); // reset the select box
+        setMyCellValue(event.target.value);
     };
 
     return (
         <Box>
-            <TextField label="Name" variant="outlined" sx={{ mt: 2, width: "100%" }}
+            <TextField label="cell name" variant="outlined" sx={{ mt: 2, width: "100%" }}
                 value={myCellName} onChange={handleNameChange}
             />
             <ScriptTemplate cells={cells}
                         valueLabel="Edit the template to generate a prompt"
-                        cellValue={cellValue} setCellValue={setMyCellValue}
+                        cellName={cellName}
+                        cellParameters={scriptTemplateParameters} setCellParameters={setScriptTemplateParameters}
+                        cellValue={myCellValue} setCellValue={setPrompt}
                     />
             <br/>
             <AIPromptResponse 
@@ -123,7 +82,7 @@ const ScriptPrompt = ({ cells,
                 modelSettings={modelSettings}
                 streamingOn={true}
                 customUserPromptReady={""}
-                systemPrompt={""}
+                systemPrompt={persona.system_prompt}
                 streamingChatResponseRef={streamingChatResponseRef}
                 streamingChatResponse={streamingChatResponse}
                 setStreamingChatResponse={setStreamingChatResponse}

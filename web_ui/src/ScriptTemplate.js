@@ -1,18 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Card, Box, FormControl, Select, Typography, TextField, MenuItem } from '@mui/material';
-import { lightBlue } from '@mui/material/colors';
-import SidekickMarkdown from './SidekickMarkdown';
+import React, { useState, useEffect } from 'react';
+import { Box, FormControl, Select, TextField, MenuItem } from '@mui/material';
 
 const ScriptTemplate = ({ valueLabel, cells,
     cellValue, setCellValue,
-    cellName=undefined, setCellName=undefined // leave the cell name undefined to use as part of another cell
+    cellParameters, setCellParameters,
+    cellName, setCellName=undefined // leave setCellName undefined to use as part of another cell
 }) => {
     const [myCellName, setMyCellName] = useState(cellName || "");
-    const [template, setTemplate] = useState(cellValue?.template || "");
-    const [myCellValue, setMyCellValue] = useState("");
+    const [myCellValue, setMyCellValue] = useState(cellValue || "");
+    const [template, setTemplate] = useState(cellParameters?.template || "");
     const [cellToAddToTemplate, setCellToAddToTemplate] = useState("");
 
     useEffect(() => {
+        // regenerate the template if any of the cells change
         createValueFromTemplate();
     }, [cells]);
 
@@ -25,6 +25,10 @@ const ScriptTemplate = ({ valueLabel, cells,
         setCellValue && setCellValue(myCellValue);
     }
     , [myCellValue]);
+
+    useEffect(() => {
+        cellName && setMyCellName(cellName);
+    }, [cellName]);
 
     const createValueFromTemplate = () => {
         // replace all the {.*} in the template with the values of the cells with those names
@@ -58,10 +62,11 @@ const ScriptTemplate = ({ valueLabel, cells,
     }
 
     useEffect(() => {
-        setMyCellValue({ ...myCellValue, template: template});
+        setCellParameters && setCellParameters({ ...cellParameters, template: template });
         createValueFromTemplate();
     }
     , [template]);
+
 
     const handleNameChange = (event) => {
         setMyCellName(event.target.value);
@@ -69,11 +74,6 @@ const ScriptTemplate = ({ valueLabel, cells,
 
     const handleTemplateChange = (event) => {
         setTemplate(event.target.value);
-        setMyCellValue({ ...myCellValue, template: event.target.value});
-    };
-
-    const handleResponseChange = (event) => {
-        setMyCellValue({ ...myCellValue, response: event.target.value});
     };
 
     const handleAddCellToPrompt = (name) => {
@@ -99,7 +99,7 @@ const ScriptTemplate = ({ valueLabel, cells,
                                 if (cell.name === myCellName || cell.name === "") {
                                     return null;
                                 }
-                                return <MenuItem value={cell.name}>{cell.name}</MenuItem>
+                                return <MenuItem key={cell.name} value={cell.name}>{cell.name}</MenuItem>
                             }
                         )
                     }
@@ -110,13 +110,13 @@ const ScriptTemplate = ({ valueLabel, cells,
     return (
         <Box>
             {
-                myCellName &&
-                <TextField label="Name" variant="outlined" sx={{ mt: 2, width: "100%" }}
+                setCellName !== undefined && myCellName !== undefined &&
+                <TextField label="cell name" variant="outlined" sx={{ mt: 2, width: "100%" }}
                     value={myCellName} onChange={handleNameChange}
                 />
             }
             {toolbar}
-            <TextField label="Template" variant="outlined" sx={{ mt: 2, width: "100%" }} multiline
+            <TextField label="template" variant="outlined" sx={{ mt: 2, width: "100%" }} multiline
                 rows={6} value={template} onChange={handleTemplateChange}
             />
             <TextField label={valueLabel} variant="outlined" sx={{ mt: 2, width: "100%" }} multiline

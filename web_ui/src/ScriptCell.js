@@ -24,11 +24,12 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
 const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
     cellType, setCellType,
-    cellName, setCellName, cellValue, setCellValue, key, darkMode,
-    modelSettings, serverUrl, token, setToken, markdownRenderingOn, system}) => {
+    cellName, setCellName, cellParameters, setCellParameters, cellValue, setCellValue, cellKey, darkMode,
+    modelSettings, persona, serverUrl, token, setToken, markdownRenderingOn, system}) => {
     const [myId, setMyId] = useState(id);
     const [myCellType, setMyCellType] = useState(cellType);
     const [myCellName, setMyCellName] = useState(cellName);
+    const [myCellParameters, setMyCellParameters] = useState(cellParameters);
     const [myCellValue, setMyCellValue] = useState(cellValue);
 
     const [anchorEl, setAnchorEl] = useState(null);
@@ -42,6 +43,11 @@ const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
         setCellName(myCellName);
     }
     , [myCellName]);
+
+    useEffect(() => {
+        setCellParameters(myCellParameters);
+    }
+    , [myCellParameters]);
 
     useEffect(() => {
         setCellValue(myCellValue);
@@ -68,6 +74,7 @@ const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
                     return <ScriptTemplate cells={cells}
                         valueLabel="Edit the template to generate a value"
                         cellName={cellName} setCellName={setMyCellName}
+                        cellParameters={cellParameters} setCellParameters={setMyCellParameters}
                         cellValue={cellValue} setCellValue={setMyCellValue}
                     />;
                 case "list":
@@ -78,8 +85,10 @@ const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
             case "prompt":
                 return <ScriptPrompt cells={cells}
                     cellName={cellName} setCellName={setMyCellName}
+                    cellParameters={cellParameters} setCellParameters={setMyCellParameters}
                     cellValue={cellValue} setCellValue={setMyCellValue}
-                    modelSettings={modelSettings} serverUrl={serverUrl} token={token} setToken={setToken}
+                    modelSettings={modelSettings} persona={persona}
+                    serverUrl={serverUrl} token={token} setToken={setToken}
                     darkMode={darkMode} markdownRenderingOn={markdownRenderingOn} system={system}
                 />;
             // case "xyq":
@@ -130,8 +139,8 @@ const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
                 </Select>
             </FormControl>
             <Box sx={{ display: "flex", flexDirection: "row", ml: "auto" }}>
-                {onMoveCellUp ? moveCellUpControl(key) : null}
-                {onMoveCellDown ? moveCellDownControl(key) : null}
+                {onMoveCellUp ? moveCellUpControl(cellKey) : null}
+                {onMoveCellDown ? moveCellDownControl(cellKey) : null}
                 <Tooltip title="Delete cell">
                     <IconButton onClick={handleDeleteCell}>
                         <ClearIcon/>

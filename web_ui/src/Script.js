@@ -1,14 +1,13 @@
 import axios from 'axios'
 import { debounce } from "lodash";
 
-import { useEffect, useState, useContext, useCallback, useRef } from 'react';
-import { Card, Box, Paper, Toolbar, IconButton, Typography, TextField,
-    List, ListItem, Menu, MenuItem, Tooltip, Button, FormLabel, Popover
+import { useEffect, useState, useContext, useCallback, useRef, Fragment } from 'react';
+import { Card, Box, Paper, IconButton, Typography, TextField,
+    List, ListItem, Tooltip
      } from '@mui/material';
 import { ClassNames } from "@emotion/react";
 import ScriptCell from './ScriptCell';
-import { InputLabel, FormHelperText, FormControl, Select } from '@mui/material';
-import { red, pink, purple, deepPurple, indigo, blue, lightBlue, cyan, teal, green, lightGreen, lime, yellow, amber, orange, deepOrange, brown, grey, blueGrey } from '@mui/material/colors';
+import { grey } from '@mui/material/colors';
 
 // Icons
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
@@ -22,9 +21,7 @@ import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
 
 import { SystemContext } from './SystemContext';
-import AI from './AI';
-import { StyledBox, StyledToolbar, SecondaryToolbar } from './theme';
-import SidekickMarkdown from './SidekickMarkdown';
+import { StyledBox, StyledToolbar } from './theme';
 
 const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, windowMaximized, setWindowMaximized,
     provider, modelSettings, persona, loadScript,
@@ -285,7 +282,14 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
         return text;
     }
 
-    const defaultNewCell = {id: Date.now(), type: "text", name: "", value: ""};
+    const defaultNewCell = 
+    {
+        id: Date.now(),
+        type: "text",
+        name: "",
+        parameters: {},
+        value: ""
+    };
 
     const reset = () => {
         let scriptLoadingState = scriptLoading.current;
@@ -450,7 +454,7 @@ const scriptName =
     </Box>;
 
     const addCellControl = (index) => 
-        <ListItem>
+        <ListItem key={"add-cell-control-" + index}>
             <Box style={{width:'100%', display: 'flex', justifyContent: 'center'}}>
                 <Tooltip title="Add cell">
                     <IconButton onClick={() => handleAddCell(index)}>
@@ -476,8 +480,8 @@ const scriptName =
                 {addCellControl(-1)}
                 {
                     cells && cells.map((cell, index) => (
-                        <>
-                            <ListItem key={cell.id}>
+                        <Fragment key={ "cell-add-control-group-wrapper-" + cell.id }>
+                            <ListItem key={ "cell-" + cell.id }>
                                 <Box style={{width:'100%'}}>
                                     <ScriptCell id={cell.id}
                                                 cells={cells} onDelete={onDeleteCell}
@@ -497,6 +501,14 @@ const scriptName =
                                                         setCells(newCells);
                                                     }
                                                 }
+                                                cellParameters={cell["parameters"]}
+                                                setCellParameters={
+                                                    (parameters) => {
+                                                        let newCells = [...cells];
+                                                        newCells[index]["parameters"] = parameters;
+                                                        setCells(newCells);
+                                                    }
+                                                }
                                                 cellValue={cell["value"]}
                                                 setCellValue={
                                                     (value) => {
@@ -505,8 +517,8 @@ const scriptName =
                                                         setCells(newCells);
                                                     }
                                                 }
-                                                key={index} darkMode={darkMode}
-                                                modelSettings={modelSettings}
+                                                cellKey={index} darkMode={darkMode}
+                                                modelSettings={modelSettings} persona={myPersona}
                                                 serverUrl={serverUrl} token={token} setToken={setToken}
                                                 markdownRenderingOn={markdownRenderingOn}
                                                 onMoveCellUp={ index > 0 ? () => { handleMoveCellUp(index) } : null }
@@ -516,7 +528,7 @@ const scriptName =
                                 </Box>
                             </ListItem>
                             {addCellControl(index)}
-                        </>
+                        </Fragment>
                     ))
                 }
             </List>

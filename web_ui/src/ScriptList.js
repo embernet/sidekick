@@ -14,7 +14,6 @@ import React, { useState, useEffect } from 'react';
 import { TextField, Box, List, ListItem, Tooltip, IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
-import { grey } from '@mui/material/colors';
 
 
 const ScriptList = ({ cellName, setCellName,
@@ -74,7 +73,7 @@ const ScriptList = ({ cellName, setCellName,
 
 
     const addListItemControl = (index) => 
-        <Tooltip title="Add cell">
+        <Tooltip title="Add cell" key={ "add-list-item-control-" + index }>
             <IconButton onClick={() => handleAddCell(index)}>
                 <AddIcon/>
             </IconButton>
@@ -82,7 +81,7 @@ const ScriptList = ({ cellName, setCellName,
     ;
 
     const deleteListItemControl = (index) =>
-        <Tooltip title="Delete cell">
+        <Tooltip title="Delete cell" key={ "delete-cell-control-" + index }>
             <IconButton onClick={() => handleDeleteCell(index)}>
                 <CloseIcon />
             </IconButton>
@@ -92,22 +91,20 @@ const ScriptList = ({ cellName, setCellName,
 
     return (
         <Box>
-            <TextField label="name" variant="outlined" sx={{ mt: 2, width: "100%" }}
+            <TextField label="cell name" variant="outlined" sx={{ mt: 2, width: "100%" }}
                 value={myCellName} onChange={handleNameChange}
             />
             <List id="list">
                 {addListItemControl(-1)}
                 {
                     myCellList && myCellList.map((cell, index) => (
-                        <Box>
-                            <ListItem key={cell.id}>
-                                <TextField variant="outlined" sx={{ width: "100%" }} multiline
-                                    rowsMax={6} value={cell.value} onChange={(e) => { handleValueChange(e, index) } }
-                                />
-                                {addListItemControl(index)}
-                                {deleteListItemControl(index)}
-                            </ListItem>
-                        </Box>
+                        <ListItem key={cell.id}>
+                            <TextField variant="outlined" sx={{ width: "100%" }} multiline
+                                maxRows={6} value={cell.value} onChange={(e) => { handleValueChange(e, index) } }
+                            />
+                            {addListItemControl(index)}
+                            {deleteListItemControl(index)}
+                        </ListItem>
                     ))
                 }
             </List>
