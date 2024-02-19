@@ -138,6 +138,7 @@ You always do your best to generate text in the same style as the context text p
     const setContent = (text) => {
         if (noteContentRef.current) {
             noteContentRef.current.innerText = text;
+            saveStatus.current = "changed";
         }
     }
 
@@ -265,7 +266,8 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         if (AIResponse !== "") {
             setContent( noteContentRef.current.innerText + "\n" + AIResponse + "\n");
             considerAutoNaming(noteContentRef.current.innerText);
-            focusOnContent(); // this also saves the note on blur
+            _save();
+            focusOnContent();
         }
         setContentDisabled(false);
         showReady();
@@ -286,6 +288,36 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         setPrompt('');
     }
 
+    const _save = () => {
+        const request = {
+            metadata: {
+                id: id,
+                name: name,
+                tags: tags,
+                properties: {
+                    inAILibrary: inAILibrary,
+                },
+            },
+            content: { note: noteContentRef.current.innerText },
+        }
+        let url = `${serverUrl}/docdb/${folder}/documents/${id}`;
+        axios.put(url, request, {
+            headers: {
+                Authorization: 'Bearer ' + token
+            }
+        }).then(response => {
+            saveStatus.current = "saved";
+            response.data.access_token && setToken(response.data.access_token);
+            if (id === "") {
+                setId(response.data.metadata.id);
+            }
+            onChange(id, name, "changed", "");
+            console.log("note save Response", response);
+        }).catch(error => {
+            system.error(`System Error saving note.`, error, url + " PUT");
+        });
+    }
+
     const save = () => {
         console.log("save", id, name);
         if (id === "") {
@@ -295,33 +327,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
             }
         } else {
             if (noteInstantiated.current && saveStatus.current === "changed") {
-                const request = {
-                    metadata: {
-                        id: id,
-                        name: name,
-                        tags: tags,
-                        properties: {
-                            inAILibrary: inAILibrary,
-                        },
-                    },
-                    content: { note: noteContentRef.current.innerText },
-                }
-                let url = `${serverUrl}/docdb/${folder}/documents/${id}`;
-                axios.put(url, request, {
-                    headers: {
-                        Authorization: 'Bearer ' + token
-                    }
-                }).then(response => {
-                    saveStatus.current = "saved";
-                    response.data.access_token && setToken(response.data.access_token);
-                    if (id === "") {
-                        setId(response.data.metadata.id);
-                    }
-                    onChange(id, name, "changed", "");
-                    console.log("note save Response", response);
-                }).catch(error => {
-                    system.error(`System Error saving note.`, error, url + " PUT");
-                });
+                _save();
             }
         }
     }
