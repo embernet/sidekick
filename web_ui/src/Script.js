@@ -1,14 +1,13 @@
 import axios from 'axios'
 import { debounce } from "lodash";
 
-import { useEffect, useState, useContext, useCallback, useRef } from 'react';
-import { Card, Box, Paper, Toolbar, IconButton, Typography, TextField,
-    List, ListItem, Menu, MenuItem, Tooltip, Button, FormLabel, Popover
+import { useEffect, useState, useContext, useCallback, useRef, Fragment } from 'react';
+import { Card, Box, Paper, IconButton, Typography, TextField,
+    List, ListItem, Tooltip
      } from '@mui/material';
 import { ClassNames } from "@emotion/react";
 import ScriptCell from './ScriptCell';
-import { InputLabel, FormHelperText, FormControl, Select } from '@mui/material';
-import { red, pink, purple, deepPurple, indigo, blue, lightBlue, cyan, teal, green, lightGreen, lime, yellow, amber, orange, deepOrange, brown, grey, blueGrey } from '@mui/material/colors';
+import { grey } from '@mui/material/colors';
 
 // Icons
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
@@ -19,11 +18,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CodeIcon from '@mui/icons-material/Code';
 import CodeOffIcon from '@mui/icons-material/CodeOff';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
+import FileCopyIcon from '@mui/icons-material/FileCopy';
 
 import { SystemContext } from './SystemContext';
-import AI from './AI';
-import { StyledBox, StyledToolbar, SecondaryToolbar } from './theme';
-import SidekickMarkdown from './SidekickMarkdown';
+import { StyledBox, StyledToolbar } from './theme';
 
 const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, windowMaximized, setWindowMaximized,
     provider, modelSettings, persona, loadScript,
@@ -185,9 +183,9 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
         return JSON.stringify(script, null, 4);
     }
 
-    const create = () => {
+    const create = (scriptName=name) => {
         let request = {
-            name: name,
+            name: scriptName,
             tags: tags,
             content: {
                 cells: cells,
@@ -204,6 +202,7 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
             onChange(id, name, "created", "");
             system.info(`Script "${response.data.metadata.name}" created.`);
             system.debug("Script created", response, url + " POST");
+            setName(scriptName); // in case of being cloned, update the name
         }).catch(error => {
             system.error(`System Error creating script`, error, url + " POST");
         });
@@ -225,7 +224,6 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
             system.error(`System Error saving script.`, error, `/docdb/${documentType}/documents/${id} PUT`);
         })
     }
-
     
     const handleScriptNameChange = (event) => {
         setName(event.target.value);
@@ -233,6 +231,10 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
 
     const handleNewScript = () => {
         reset();
+    }
+
+    const handleCloneScript = () => {
+        create(name + " clone");
     }
 
     const renameScript = (newName) => {
@@ -280,7 +282,14 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
         return text;
     }
 
-    const defaultNewCell = {id: Date.now(), type: "text", name: "", value: ""};
+    const defaultNewCell = 
+    {
+        id: Date.now(),
+        type: "text",
+        name: "",
+        parameters: {},
+        value: ""
+    };
 
     const reset = () => {
         let scriptLoadingState = scriptLoading.current;
@@ -338,13 +347,31 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
     }
 
     const handleAddCell = (index) => {
-        console.log("handleAddCell", index, cells)
         let newCells = [
             ...cells.slice(0, index + 1),
             { ...JSON.parse(JSON.stringify(defaultNewCell)), id: Date.now() },
             ...cells.slice(index + 1)
         ];
-        console.log("newCells", newCells)
+        setCells(newCells);
+    };
+
+    const handleMoveCellUp = (index) => {
+        let newCells = [
+            ...cells.slice(0, index - 1),
+            cells[index],
+            cells[index - 1],
+            ...cells.slice(index + 1)
+        ];
+        setCells(newCells);
+    };
+
+    const handleMoveCellDown = (index) => {
+        let newCells = [
+            ...cells.slice(0, index),
+            cells[index + 1],
+            cells[index],
+            ...cells.slice(index + 2)
+        ];
         setCells(newCells);
     };
 
@@ -358,6 +385,15 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
                         disabled={ id === "" } onClick={handleNewScript}
                     >
                         <AddOutlinedIcon/>
+                    </IconButton>
+                </span>
+            </Tooltip>
+            <Tooltip title={ id === "" ? "You can clone this script once it has something in it" : "Clone this script" }>
+                <span>
+                    <IconButton edge="start" color="inherit" aria-label="menu"
+                        disabled={ id === "" } onClick={handleCloneScript}
+                    >
+                        <FileCopyIcon/>
                     </IconButton>
                 </span>
             </Tooltip>
@@ -418,7 +454,7 @@ const scriptName =
     </Box>;
 
     const addCellControl = (index) => 
-        <ListItem>
+        <ListItem key={"add-cell-control-" + index}>
             <Box style={{width:'100%', display: 'flex', justifyContent: 'center'}}>
                 <Tooltip title="Add cell">
                     <IconButton onClick={() => handleAddCell(index)}>
@@ -444,8 +480,8 @@ const scriptName =
                 {addCellControl(-1)}
                 {
                     cells && cells.map((cell, index) => (
-                        <>
-                            <ListItem key={cell.id}>
+                        <Fragment key={ "cell-add-control-group-wrapper-" + cell.id }>
+                            <ListItem key={ "cell-" + cell.id }>
                                 <Box style={{width:'100%'}}>
                                     <ScriptCell id={cell.id}
                                                 cells={cells} onDelete={onDeleteCell}
@@ -465,6 +501,14 @@ const scriptName =
                                                         setCells(newCells);
                                                     }
                                                 }
+                                                cellParameters={cell["parameters"]}
+                                                setCellParameters={
+                                                    (parameters) => {
+                                                        let newCells = [...cells];
+                                                        newCells[index]["parameters"] = parameters;
+                                                        setCells(newCells);
+                                                    }
+                                                }
                                                 cellValue={cell["value"]}
                                                 setCellValue={
                                                     (value) => {
@@ -473,15 +517,18 @@ const scriptName =
                                                         setCells(newCells);
                                                     }
                                                 }
-                                                key={index} darkMode={darkMode}
-                                                modelSettings={modelSettings}
+                                                cellKey={index} darkMode={darkMode}
+                                                modelSettings={modelSettings} persona={myPersona}
                                                 serverUrl={serverUrl} token={token} setToken={setToken}
+                                                markdownRenderingOn={markdownRenderingOn}
+                                                onMoveCellUp={ index > 0 ? () => { handleMoveCellUp(index) } : null }
+                                                onMoveCellDown={ index < cells.length - 1 ? () => { handleMoveCellDown(index) } : null }
                                                 system={system}
                                     />
                                 </Box>
                             </ListItem>
                             {addCellControl(index)}
-                        </>
+                        </Fragment>
                     ))
                 }
             </List>

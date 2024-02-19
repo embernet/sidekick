@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { debounce } from "lodash";
+import { createTheme } from '@mui/material/styles';
 
 import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Box, Paper, Toolbar, IconButton, Typography, TextField,
@@ -27,6 +28,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import HelpIcon from '@mui/icons-material/Help';
 import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
 import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
+import FileCopyIcon from '@mui/icons-material/FileCopy';
 
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
@@ -40,7 +42,7 @@ const Chat = ({
     provider, modelSettings, persona, 
     closeOtherPanels, restoreOtherPanels, windowMaximized, setWindowMaximized,
     newPromptPart, newPrompt, newPromptTemplate, loadChat, setAppendNoteContent,
-    focusOnPrompt, setFocusOnPrompt, chatRequest, chatOpen, setChatOpen, darkMode,
+    focusOnPrompt, setFocusOnPrompt, chatRequest, chatOpen, noteOpen, setChatOpen, darkMode,
     temperatureText, setTemperatureText, modelSettingsOpen, toggleModelSettingsOpen, togglePersonasOpen,
     onChange, personasOpen, promptEngineerOpen, togglePromptEngineerOpen, setOpenChatId, shouldAskAgainWithPersona, serverUrl, token, setToken,
     streamingChatResponse, setStreamingChatResponse, chatStreamingOn, maxWidth }) => {
@@ -476,6 +478,31 @@ const Chat = ({
         });
     };
 
+    const clone = () => {
+        let request = {
+            name: name + " clone",
+            tags: tags,
+            content: {
+                chat: messages,
+            }
+        };
+        const url = `${serverUrl}/docdb/${folder}/documents`;
+        axios.post(url, request, {
+            headers: {
+                Authorization: 'Bearer ' + token
+            }
+        }).then(response => {
+            response.data.access_token && setToken(response.data.access_token);
+            setId(response.data.metadata.id);
+            setName(response.data.metadata.name);
+            onChange(id, name, "created", "");
+            system.info(`Cloned chat into "${response.data.metadata.name}".`);
+            system.debug("Chat cloned", response, url + " POST");
+        }).catch(error => {
+            system.error(`System Error cloning chat`, error, url + " POST");
+        });
+    }
+
     const save = () => {
         if (!chatLoaded) {
             setChatLoaded(true);
@@ -643,6 +670,28 @@ const Chat = ({
     }
 
     const handleChatPromptKeydown = (event) => {
+        if (event.ctrlKey || event.metaKey) {
+            if (event.key === 's') {
+                event.preventDefault();
+                save();
+            } else if (
+                event.key !== 'c' && 
+                event.key !== 'v' && 
+                event.key !== 'x' &&
+                event.key !== 'z' &&
+                event.key !== 'y' &&
+                event.key !== 'f' &&
+                event.key !== 'g' &&
+                event.key !== 'a')
+            {
+                // for now, throw away attempts at using hotkeys for formatting
+                // if we don't do this, the defult div behaviour
+                // is to do thinks like bold selected text when ctrl+b is pressed
+                // This is a markdown editor, so we don't want that
+                // we can add event.key === 'b' text later to do things like that
+                event.preventDefault();
+            }
+        }
         setPromptLength(chatPromptRef.current.innerText.length);
         if(event.key === 'Enter'  && !event.shiftKey && chatPromptRef.current.innerText !== "") {
             setLastPrompt(chatPromptRef.current.innerText);
@@ -735,6 +784,10 @@ const Chat = ({
     const handleNewChat = () => {
         reset();
         setPromptFocus();
+    }
+
+    const handleCloneChat = () => {
+        clone(name + " clone");
     }
 
     const renameChat = (newName) => {
@@ -1002,6 +1055,15 @@ const Chat = ({
                 </IconButton>
             </span>
         </Tooltip>
+        <Tooltip title={ id === "" ? "You can clone this chat once it has something in it" : "Clone this chat" }>
+            <span>
+                <IconButton edge="start" color="inherit" aria-label="clone chat"
+                    disabled={ id === "" } onClick={handleCloneChat}
+                >
+                    <FileCopyIcon/>
+                </IconButton>
+            </span>
+        </Tooltip>
         <Tooltip title={ markdownRenderingOn ? "Turn off markdown and code rendering" : "Turn on markdown and code rendering" }>
             <IconButton edge="start" color="inherit" aria-label="delete chat" onClick={handleToggleMarkdownRendering}>
                 { markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }
@@ -1100,7 +1162,7 @@ const Chat = ({
                                         left: messageContextMenu.mouseX,
                                         message: message,
                                         index: index,
-                                     }
+                                    }
                                     : undefined
                                 }
                             > 
@@ -1113,8 +1175,8 @@ const Chat = ({
                                 <MenuItem onClick={handleAppendToChatInput}>Append message to chat input</MenuItem>
                                 <MenuItem onClick={handleUseAsChatInput}>Use message as chat input</MenuItem>
                                 <MenuItem divider />
-                                <MenuItem onClick={handleAppendToNote}>Append message to note</MenuItem>
-                                <MenuItem onClick={handleAppendAllToNote}>Append all to note</MenuItem>
+                                <MenuItem disabled={!noteOpen} onClick={handleAppendToNote}>Append message to note</MenuItem>
+                                <MenuItem disabled={!noteOpen} onClick={handleAppendAllToNote}>Append all to note</MenuItem>
                                 <MenuItem divider />
                                 <MenuItem onClick={handleDeleteThisMessage}>Delete this message</MenuItem>
                                 <MenuItem onClick={handleDeleteThisAndPreviousMessage}>Delete this and previous message</MenuItem>
@@ -1198,8 +1260,7 @@ const Chat = ({
                 // For large text content, TextField lag in rendering individual key strokes is unacceptable
                 id="chat-prompt"
                 ref={chatPromptRef}
-                contenteditable={promptPlaceholder === userPromptWaiting ? "false" : "true"}
-                maxheight="300px"
+                contentEditable={promptPlaceholder === userPromptWaiting ? "false" : "true"}
                 onInput={handleChatPromptInput}
                 onKeyDown={handleChatPromptKeydown}
                 data-placeholder={promptPlaceholder}
@@ -1236,9 +1297,7 @@ const Chat = ({
                         Prompt Engineer
                     </Button>
                 </Tooltip>
-                <Tooltip title="Number of characters in prompt">
-                    <TextStatsDisplay name="Prompt" sizeInCharacters={promptLength} maxTokenSize={myModelSettings.contextTokenSize}/>
-                </Tooltip>
+                <TextStatsDisplay name="Prompt" sizeInCharacters={promptLength} maxTokenSize={myModelSettings.contextTokenSize}/>
             </Paper>
             { aiLibraryOpen ? 
                 <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: darkMode ? grey[900] : grey[100] }}>
@@ -1316,10 +1375,9 @@ const Chat = ({
                 <Typography color="textSecondary">Prompts: {promptCount}</Typography>
                 <Typography color="textSecondary">Responses: {responseCount}</Typography>
                 <Typography color="textSecondary">K-Notes: { Object.keys(selectedAiLibraryNotes).length }</Typography>
-                <Typography color="textSecondary">Total size: <Tooltip title="Number of characters in prompt">
-                        <TextStatsDisplay name="prompt + context" sizeInCharacters={messagesSize + promptLength + selectedAiLibraryFullTextSize}
-                            maxTokenSize={myModelSettings.contextTokenSize} />
-                    </Tooltip>
+                <Typography color="textSecondary">Total size: 
+                    <TextStatsDisplay name="prompt + context" sizeInCharacters={messagesSize + promptLength + selectedAiLibraryFullTextSize}
+                    maxTokenSize={myModelSettings.contextTokenSize} />
                 </Typography>
             </Paper>
         </Box>

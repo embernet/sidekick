@@ -15,13 +15,15 @@ Sidekick provides a chat interface to OpenAI's GPT models along with pre-canned 
 Sidekick has the following Tools:
 
 - **[Sidekick AI Help](#sidekick-ai-help):** This tool. An AI that helps you use the Sidekick app. Ask questions about the Sidekick app to get simple instructions on how and why to use app features. Ask more general questions and it will suggest approaches to using the app to answer those questions.
+- **[Chat Explorer](#chat-explorer):** A filterable list of available chats.
 - **[Chat](#chat):** A window that lets you talk to OpenAI's GPT-3.5-turbo and GPT-4 models, curate the message content, resubmit prompts, and copy responses of interest to notes.
-- **[Chat Explorer](#chat-explorer):** A filterable list of chats you have created.
+- **[Scripts Explorer](#scripts-explorer):** A filterable list of available scripts.
+- **[Script](#script):** A jupyter notebook style tool for creating automations with chains of configurable steps to query the AI.
 - **[Model Settings](#model-settings):** A window that lets you change the model settings for the AI to customise its behaviour.
 - **[AI Personas](#ai-personas):** Select from a library of pre-canned AI personas to change the perspective from which the AI responds to your prompts.
 - **[Prompt Engineer](#prompt-engineer):** Create prompts by selecting from a library of prompt fragments.
 - **[Note](#note):** Create and edit notes to gather your thoughts, plan your work, collate the best AI responses from your chats into something more meaninful.
-- **[Notes Explorer](#notes-explorer):** A filterable list of the notes you have created.
+- **[Notes Explorer](#notes-explorer):** A filterable list of available notes.
 - **[App Settings](#app-settings):** Change general app and account settings.
 
 Each of these is described in more detail below.
@@ -44,6 +46,22 @@ Each of these is described in more detail below.
   - Copy all messages to the clipboard as HTML
   - Delete a message
   - Delete all messages
+
+Return to [Sidekick Tools](#sidekick-tools)
+
+## Chat Explorer
+
+**What is Chat Explorer?** Chat Explorer is a window that lets you explore the chat history. Click on a chat to open it.
+
+**How to access Chat Explorer:** The chat explorer is open by default. If you close it you can click on the Chat Explorer button, which is the double chat bubble icon in the Sidekick toolbar.
+
+### Chat Explorer Features
+
+- Lists the chats you have created
+- Filter chats by name
+- Sort chats by name, date created, or date last modified
+- Click on a chat to open it
+- Bulk delete chats by filtering and clicking the trashcan button next to the filter text
 
 Return to [Sidekick Tools](#sidekick-tools)
 
@@ -84,20 +102,46 @@ Return to [Sidekick Tools](#sidekick-tools)
 
 Return to [Sidekick Tools](#sidekick-tools)
 
-## Chat Explorer
+## Scripts Explorer
 
-**What is Chat Explorer?** Chat Explorer is a window that lets you explore the chat history. Click on a chat to open it.
+**What is Scripts Explorer?** Scripts Explorer is a window that lets you explore the scripts you have created. Click on a script to open it.
 
-**How to access Chat Explorer:** The chat explorer is open by default. If you close it you can click on the Chat Explorer button, which is the double chat bubble icon in the Sidekick toolbar.
+**How to access Scripts Explorer:** Click on the Scripts Explorer button, which is in the Sidekick toolbar next to the play button.
 
-### Chat Explorer Features
+### Scripts Explorer Features
 
-- Lists the chats you have created
-- Filter chats by name
-- Click on a chat to open it
-- Bulk delete chats by filtering and clicking the trashcan button next to the filter text
+- Lists the scripts you have created
+- Filter scripts by name
+- Sort scripts by name, date created, or date last modified
+- Click on a script to open it
+- Bulk delete scripts by filtering and clicking the trashcan button next to the filter text
 
 Return to [Sidekick Tools](#sidekick-tools)
+
+## Script
+
+**What is Script?** Sidekick Script can be created in a jupyter notebook style tool that lets you create cells of different types including text, lists, and templates to parameterise prompts for querying the AI.
+
+**How to access Script:** Click on the Script button, which is the play button icon in the Sidekick toolbar.
+
+### Script Features
+
+- Create cells of different types including text, lists, and templates to parameterise prompts for querying the AI
+- Click the + icon to add a cell
+
+#### Script Cell Features
+
+- Click the X icon on a cell to delete it
+- Click the up and down arrows to move a cell up or down
+- Pick the cell type from the dropdown list
+- Enter a name for the cell in the name box. The name can be used in the template and prompt cells to refer to a cell's value
+
+#### Script Cell Types
+
+- **Text** - A cell that contains text
+- **List** - A cell that contains a list of items; click + to add an item, X to delete an item
+- **Template** - Templates are used to parameterise prompts for querying the AI. The template can contain references to other cells by name. You can enter these between curley brackets {cell name} or use the 'Select cell to add to template...' dropdown to pick from the list of available cells in that script. The references are replaced with the cell's value.
+- **Prompt** - A cell that contains a prompt for querying the AI. The Prompt cell contains an embedded Template cell so you can construct the prompt with references to other cells. You see a preview of the generated template. Once you are happy with the prompt, click the Send button to send the prompt to the AI.
 
 ## Model Settings
 

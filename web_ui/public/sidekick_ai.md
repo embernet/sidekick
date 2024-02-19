@@ -60,6 +60,47 @@ Sidekick provides a chat interface to OpenAI's GPT models along with pre-canned 
 - Click on a chat to open it
 - Bulk delete chats by filtering and clicking the trashcan button next to the filter text
 
+## Scripts Explorer
+
+**What is Scripts Explorer?** Scripts Explorer is a window that lets you explore the scripts you have created. Click on a script to open it.
+
+**How to access Scripts Explorer:** Click on the Scripts Explorer button, which is in the Sidekick toolbar next to the play button.
+
+### Scripts Explorer Features
+
+- Lists the scripts you have created
+- Filter scripts by name
+- Sort scripts by name, date created, or date last modified
+- Click on a script to open it
+- Bulk delete scripts by filtering and clicking the trashcan button next to the filter text
+
+Return to [Sidekick Tools](#sidekick-tools)
+
+## Script
+
+**What is Sidekick Script?** The Script window lets you create scripts by adding text cells of different types including text, lists, and templates to parameterise prompts for querying the AI.
+
+**How to create a script:** Click on the Script button, which is the play button icon in the Sidekick toolbar.
+
+### Script Features
+
+- Create cells of different types including text, lists, and templates to parameterise prompts for querying the AI
+- Click the + icon to add a cell
+
+#### Script Cell Features
+
+- Click the X icon on a cell to delete it
+- Click the up and down arrows to move a cell up or down
+- Pick the cell type from the dropdown list
+- Enter a name for the cell in the name box. The name can be used in the template and prompt cells to refer to a cell's value
+
+#### Script Cell Types
+
+- **Text** - A cell that contains text
+- **List** - A cell that contains a list of items; click + to add an item, X to delete an item
+- **Template** - Templates are used to parameterise prompts for querying the AI. The template can contain references to other cells by name. You can enter these between curley brackets {cell name} or use the 'Select cell to add to template...' dropdown to pick from the list of available cells in that script. The references are replaced with the cell's value.
+- **Prompt** - A cell that contains a prompt for querying the AI. The Prompt cell contains an embedded Template cell so you can construct the prompt with references to other cells. You see a preview of the generated template. Once you are happy with the prompt, click the Send button to send the prompt to the AI.
+
 ## Model Settings
 
 **How to access Model Settings:** Click on the Model Settings button, whcih is the graphic equalizer icon in the Sidekick toolbar.

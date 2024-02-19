@@ -5,7 +5,7 @@ import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Box, Toolbar, IconButton, Typography, TextField, Menu, MenuItem, Tooltip } from '@mui/material';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
-import { green, lightBlue } from '@mui/material/colors';
+import { green, lightBlue, grey } from '@mui/material/colors';
 import { StyledBox } from './theme';
 
 // Icons
@@ -74,6 +74,8 @@ You always do your best to generate text in the same style as the context text p
         });
     }
 
+    const [pageLoaded, setPageLoaded] = useState(false);
+
     useEffect(() => {
         applySystemSettings();
         focusOnContent();
@@ -86,6 +88,7 @@ You always do your best to generate text in the same style as the context text p
           };
       
           document.addEventListener("visibilitychange", handleVisibilityChange);
+          setPageLoaded(true);
       
           return () => {
             document.removeEventListener("visibilitychange", handleVisibilityChange);
@@ -110,10 +113,10 @@ You always do your best to generate text in the same style as the context text p
     const defaultUserPromptReady = "What do you want to add to your note?";
     const userPromptReady = useRef(defaultUserPromptReady);
     const userPromptWaiting = "Waiting for response...";
+    const noteContentRef = useRef(null);
     const [contentDisabled, setContentDisabled] = useState(false);
     const [promptDisabled, setPromptDisabled] = useState(false);
     const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady.current);
-    const [content, setContent] = useState("");
     const [noteContextMenu, setNoteContextMenu] = useState(null);
     const [prompt, setPrompt] = useState("");
     const [folder, setFolder] = useState("notes");
@@ -131,6 +134,12 @@ You always do your best to generate text in the same style as the context text p
     const noteInstantiated = useRef(false);
     const [renameInProcess, setRenameInProcess] = useState(false);
 
+
+    const setContent = (text) => {
+        if (noteContentRef.current) {
+            noteContentRef.current.innerText = text;
+        }
+    }
 
     useEffect(() => {
         if (noteInstantiated.current) {
@@ -150,13 +159,12 @@ Here is the CONTEXT_TEXT:`
 Title: ${name}`
             }
             userPrompt += `
-${content}
+${noteContentRef.current.innerText}
 
 Here is the REQUEST:
 ${userPromptEntered.prompt}
 
 Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response that would naturally follow on from the CONTEXT_TEXT and achieve what is described in the REQUEST.`
-            console.log("Note userPrompt", userPrompt)
             setUserPromptEntered(null);
             setUserPromptToSend({prompt: userPrompt, timestamp: Date.now()});
         }
@@ -168,23 +176,23 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         }
     }, [createNote]);
 
-    useEffect(() => {
+    const handleNoteContentInput = (event) => {
         if (!noteInstantiated.current) {
             noteInstantiated.current = true; // the first time the content changes, we know the note has been instantiated
         } else {
-            if (name === newNoteName && content.length > 200) {
-                considerAutoNaming(content);
+            if (name === newNoteName && noteContentRef.current.innerText.length > 200) {
+                considerAutoNaming(noteContentRef.current.innerText);
             }
             saveStatus.current = "changed";
         }
-    }, [content]);
+    };
 
     useEffect(()=>{
-        if(appendNoteContent.content !== "") {
+        if(pageLoaded && appendNoteContent.content !== "" && noteContentRef?.current) {
             setNoteOpen({id: id, timestamp: Date.now()});
             let newNotePart = appendNoteContent.content.trim();
             if(typeof newNotePart === "string") {
-                let newNote = content;
+                let newNote = noteContentRef.current.innerText;
                 if (newNote !== "") {
                     newNote += "\n";
                 }
@@ -193,7 +201,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 focusOnContent();
             }
         }
-    }, [appendNoteContent]);
+    }, [pageLoaded, appendNoteContent]);
 
     useEffect(()=>{
         setOpenNoteId(id);
@@ -201,7 +209,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
             // If the id has just been set, it's because the note has been saved
             // If there is text in appendNoteContent, it's because the user has just appended
             // So we should consider auto naming the note
-            considerAutoNaming(content);
+            noteContentRef?.current && considerAutoNaming(noteContentRef.current.innerText);
         }
     }, [id]);
 
@@ -255,8 +263,8 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
 
     useEffect(()=>{
         if (AIResponse !== "") {
-            setContent( text => text + "\n" + AIResponse + "\n");
-            considerAutoNaming(content);
+            setContent( noteContentRef.current.innerText + "\n" + AIResponse + "\n");
+            considerAutoNaming(noteContentRef.current.innerText);
             focusOnContent(); // this also saves the note on blur
         }
         setContentDisabled(false);
@@ -279,11 +287,11 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     }
 
     const save = () => {
-        console.log("save", id, name, content);
+        console.log("save", id, name);
         if (id === "") {
             // only save if there is content or the name has been changed
-            if (name !== newNoteName || content !== "") {
-                create({name: name, content: content});
+            if (name !== newNoteName || noteContentRef?.current && noteContentRef.current.innerText !== "") {
+                create({name: name, content: noteContentRef.current.innerText});
             }
         } else {
             if (noteInstantiated.current && saveStatus.current === "changed") {
@@ -296,7 +304,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                             inAILibrary: inAILibrary,
                         },
                     },
-                    content: { note: content },
+                    content: { note: noteContentRef.current.innerText },
                 }
                 let url = `${serverUrl}/docdb/${folder}/documents/${id}`;
                 axios.put(url, request, {
@@ -331,7 +339,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     const handleDownload = () => {
         // remove characters from the name that would not be accepted in a file name
         let filename = name.replace(/[^a-z0-9\-!@()[\];_] /gi, '_');
-        downloadFile(filename + ".txt", content);
+        downloadFile(filename + ".txt", noteContentRef.current.innerText);
     }
 
     const handleUploadFile = (event) => {
@@ -445,7 +453,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
             setName(newName);
         }
         if (id === "") {
-            create({name: newName, content: content});
+            create({name: newName, content: noteContentRef.current.innerText});
         } else {
             let url = `${serverUrl}/docdb/${folder}/documents/${id}/rename`;
             axios.put(url, {
@@ -506,11 +514,11 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     }
 
     const handleGenerateNoteName = async () => {
-        generateNoteName(content);
+        noteContentRef?.current && generateNoteName(noteContentRef.current.innerText);
     }
 
     const considerAutoNaming = async (text) => {
-        if (renameInProcess || name !== newNoteName || content.trim() === "") {
+        if (renameInProcess || name !== newNoteName || noteContentRef?.current?.innerText?.trim() === "") {
             return;
         }
         generateNoteName(text);
@@ -524,7 +532,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 mouseX: event.clientX + 2,
                 mouseY: event.clientY - 6,
                 name: name,
-                note: note,
+                note: noteContentRef.current.innerText,
               }
             : // repeated contextmenu when it is already open closes it with Chrome 84 on Ubuntu
               // Other native context menus might behave differently.
@@ -563,25 +571,47 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     };
 
     const handleCopyNoteAsHTML = () => {
-        ContentFormatter(noteContextMenu.note).copyAsHtml();
+        new ContentFormatter(noteContextMenu.note).copyAsHtml();
         setNoteContextMenu(null);
     }
 
     const handleAppendNoteToChatInput = () => {
         // Just get the selcted text
-        setNewPromptPart({text: content, timestamp: Date.now()});
+        setNewPromptPart({text: noteContentRef.current.innerText, timestamp: Date.now()});
         setNoteContextMenu(null);
     };
 
     const handleUseNoteAsChatInput = () => {
         // Just get the selected text
-        setNewPrompt({text: content, timestamp: Date.now()});
+        setNewPrompt({text: noteContentRef.current.innerText, timestamp: Date.now()});
         setNoteContextMenu(null);
     };
 
     const handleContentKeyDown = async (event) => {
+        if (event.ctrlKey || event.metaKey) {
+            if (event.key === 's') {
+                event.preventDefault();
+                save();
+            } else if (
+                event.key !== 'c' && 
+                event.key !== 'v' && 
+                event.key !== 'x' &&
+                event.key !== 'z' &&
+                event.key !== 'y' &&
+                event.key !== 'f' &&
+                event.key !== 'g' &&
+                event.key !== 'a')
+            {
+                // for now, throw away attempts at using hotkeys for formatting
+                // if we don't do this, the defult div behaviour
+                // is to do thinks like bold selected text when ctrl+b is pressed
+                // This is a markdown editor, so we don't want that
+                // we can add event.key === 'b' text later to do things like that
+                event.preventDefault();
+            }
+        }
         if(event.key === 'Enter') {
-            considerAutoNaming(event.target.value);
+            considerAutoNaming(event.target.innerText);
         }
     }
 
@@ -707,7 +737,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 <Tooltip title={ "Regenerate note name" } sx={{ ml: "auto" }}>
                     <span>
                         <IconButton edge="end" color="inherit" aria-label="regenerate note name" 
-                            disabled={name === newNoteName && content === ""} onClick={handleGenerateNoteName}>
+                            disabled={name === newNoteName && noteContentRef?.current && noteContentRef.current.innerText === ""} onClick={handleGenerateNoteName}>
                             <ReplayIcon/>
                         </IconButton>
                     </span>
@@ -716,27 +746,42 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         </Box>
         <StyledBox id="content-box"
             sx={{ overflow: "auto", flex: 1, width: "100%" }}
-            onContextMenu={(event) => { handleNoteContextMenu(event, content, name); }}
+            onContextMenu={(event) => { handleNoteContextMenu(event, noteContentRef.current.innerText, name); }}
         >
-            { markdownRenderingOn
-                ?
+            { markdownRenderingOn &&
                     <Box sx={{ height: "fit-content", padding: "6px" }}>
-                        <SidekickMarkdown markdown={content}/>
+                        <SidekickMarkdown markdown={noteContentRef.current.innerText}/>
                     </Box>
-                :
-                    <TextField
-                        sx={{ mt: 1, width: "100%", padding: "6px" }}
-                        id="note-content"
-                        label="Note content"
-                        multiline
-                        variant="outlined"
-                        value={content}
-                        onChange={handleContentChange}
-                        onKeyDown={handleContentKeyDown}
-                        onBlur={save}
-                        disabled={contentDisabled}
-                        />
             }
+            <div
+                id="note-content"
+                ref={noteContentRef}
+                onInput={handleNoteContentInput}
+                label="Note content"
+                contentEditable={true}
+                style={{
+                    whiteSpace: "pre-wrap",
+                    display: markdownRenderingOn ? "none" : "block",
+                    width: "100%",
+                    height: streamingChatResponse && streamingChatResponse !== "" ? "50%" : "100%",
+                    padding: "6px",
+                    overflowWrap: "break-word",
+                    wordWrap: "break-word",
+                    overflow: "auto",
+                    flexGrow: 1,
+                    marginTop: "auto",
+                    border: darkMode ? "1px solid rgba(200, 200, 200, 0.23)" : "1px solid rgba(0, 0, 0, 0.23)",
+                    backgroundColor: darkMode ? grey[900] : grey[100],
+                    borderRadius: "4px",
+                    fontSize: "1rem",
+                    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+                    color: darkMode ? "rgba(255, 255, 255, 0.87)" : "rgba(0, 0, 0, 0.87)",
+                }}
+                onChange={handleContentChange}
+                onKeyDown={handleContentKeyDown}
+                onBlur={save}
+                disabled={contentDisabled}
+                />
             <Menu
                 open={noteContextMenu !== null}
                 onClose={handleNoteContextMenuClose}
@@ -746,7 +791,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     ? { 
                         top: noteContextMenu.mouseY,
                         left: noteContextMenu.mouseX,
-                        content: content,
+                        content: noteContentRef.current.innerText,
                         name: name,
                         }
                     : undefined
@@ -759,11 +804,11 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 <MenuItem onClick={handleAppendNoteToChatInput}>Append note to chat input</MenuItem>
                 <MenuItem onClick={handleUseNoteAsChatInput}>Use note as chat input</MenuItem>
             </Menu>
-            <Box sx={{ width: "100%" }}>
+            <Box sx={{ width: "100%", display: streamingChatResponse && streamingChatResponse !== "" ? "block" : "none" }}>
                 {streamingChatResponse && streamingChatResponse !== "" && <Card id="streamingChatResponse"
                     sx={{ 
                         padding: 2, 
-                        width: "100%", 
+                        width: "100%", height: "50%", overflow: "auto",
                         backgroundColor: (darkMode ? lightBlue[900] : "lightyellow"),
                         cursor: "default",
                     }}

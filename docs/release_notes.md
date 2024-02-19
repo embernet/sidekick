@@ -1,5 +1,20 @@
 # Release Notes
 
+# v0.2
+
+Functional changes:
+
+1. Scripts can be created in a jupyter notebook style tool that lets you create cells of different types including text, lists, and templates to parameterise prompts for querying the AI.
+2. Note Writer now uses the same model settings as specified in the Model Settings window rather than GPT-3.5
+3. Sidekick AI Help now uses gpt-4 instead of gpt-3.5-turbo
+4. Added support for OpenAI's gpt-4-0125-preview model
+
+Code improvements:
+
+1. Chat prompt editor responsiveness improved for large prompt sizes
+2. Note editor responsiveness improved for large note sizes
+
+
 # v0.1
 
 Functional changes:

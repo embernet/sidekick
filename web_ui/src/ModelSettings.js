@@ -34,6 +34,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     const [temperature, setTemperature] = useState(null);
     const [selectedModel, setSelectedModel] = useState(null);
     const [selectedModelContextTokenSize, setSelectedModelContextTokenSize] = useState(null);
+    const [selectedModelNotes, setSelectedModelNotes] = useState(null);
     const [top_p, setTop_p] = useState(null);
     const [presence_penalty, setpresence_penalty] = useState(null);
     const [frequency_penalty, setfrequency_penalty] = useState(null);
@@ -90,6 +91,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     useEffect(()=>{
         if (selectedModel) {
             setSelectedModelContextTokenSize(modelSettingsOptions.providers[selectedProvider].models[selectedModel].contextTokenSize);
+            setSelectedModelNotes(modelSettingsOptions.providers[selectedProvider].models[selectedModel].notes);
         }
     }, [selectedModel]);
 
@@ -202,6 +204,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
         let newModelSettings = {
             "provider": selectedProvider,
             "contextTokenSize": selectedModelContextTokenSize,
+            "notes": selectedModelNotes,
             "request": {
                 "model": selectedModel,
                 "temperature": temperature,
@@ -276,14 +279,29 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
                 sx={{ mt: 2, mb: 3 }}
                 renderInput={(params) => <TextField {...params} label="Model" />}
             />
-                <TextField
-                    id="context-token-size"
-                    label="Context size in tokens"
-                    autoComplete='off'
-                    value={selectedModelContextTokenSize}
-                    InputProps={{ readOnly: true, disabled: true }}
-                    sx={{ mt: 2, mb: 3 }}
-                />
+                {
+                    selectedModelNotes &&
+                        <TextField
+                            id="model-notes"
+                            label="Model notes"
+                            multiline
+                            autoComplete='off'
+                            value={selectedModelNotes}
+                            InputProps={{ readOnly: true, disabled: true }}
+                            sx={{ mt: 2, mb: 3 }}
+                        />
+                }
+                {
+                    selectedModelContextTokenSize &&
+                        <TextField
+                            id="context-token-size"
+                            label="Context size in tokens"
+                            autoComplete='off'
+                            value={selectedModelContextTokenSize}
+                            InputProps={{ readOnly: true, disabled: true }}
+                            sx={{ mt: 2, mb: 3 }}
+                        />
+                }
 
             {/* This option to turn off streaming was only added for testing
                 in some environments where streaming was blocked. It is not

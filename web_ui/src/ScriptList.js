@@ -13,17 +13,15 @@ Parameters:
 import React, { useState, useEffect } from 'react';
 import { TextField, Box, List, ListItem, Tooltip, IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import { grey } from '@mui/material/colors';
+import CloseIcon from '@mui/icons-material/Close';
 
 
-const ScriptList = ({ id,
-    cellName, setCellName,
+const ScriptList = ({ cellName, setCellName,
     cellValue, setCellValue }) => {
     const [myCellName, setMyCellName] = useState(cellName);
     const [myCellValue, setMyCellValue] = useState(cellValue);
     const defaultListItem = { id: Date.now(), value: "" };
     const [myCellList, setMyCellList] = useState(cellValue?.cellList || []);
-    console.log("myCellList", myCellList);
 
     useEffect(() => {
         setCellName(myCellName);
@@ -59,34 +57,54 @@ const ScriptList = ({ id,
             ...myCellList.slice(index + 1)
         ];
         setMyCellList(newCellList);
+        // Don't setMyCellValue here, as it will be set in the useEffect when the new cell changes
     };
 
+    const handleDeleteCell = (index) => {
+        setMyCellList(prevCellList => {
+            const newCellList = [
+                ...prevCellList.slice(0, index),
+                ...prevCellList.slice(index + 1)
+            ];
+            setMyCellValue(prevCellValue => ({ ...prevCellValue, cellList: newCellList }));
+            return newCellList;
+        });
+    };
+
+
     const addListItemControl = (index) => 
-        <Tooltip title="Add cell">
+        <Tooltip title="Add cell" key={ "add-list-item-control-" + index }>
             <IconButton onClick={() => handleAddCell(index)}>
                 <AddIcon/>
             </IconButton>
         </Tooltip>
     ;
 
+    const deleteListItemControl = (index) =>
+        <Tooltip title="Delete cell" key={ "delete-cell-control-" + index }>
+            <IconButton onClick={() => handleDeleteCell(index)}>
+                <CloseIcon />
+            </IconButton>
+        </Tooltip>
+
+
 
     return (
         <Box>
-            <TextField label="name" variant="outlined" sx={{ mt: 2, width: "100%" }}
+            <TextField label="cell name" variant="outlined" sx={{ mt: 2, width: "100%" }}
                 value={myCellName} onChange={handleNameChange}
             />
             <List id="list">
                 {addListItemControl(-1)}
                 {
                     myCellList && myCellList.map((cell, index) => (
-                        <Box>
-                            <ListItem key={cell.id}>
-                                <TextField variant="outlined" sx={{ width: "100%" }} multiline
-                                    rowsMax={6} value={cell.value} onChange={(e) => { handleValueChange(e, index) } }
-                                />
-                                {addListItemControl(index)}
-                            </ListItem>
-                        </Box>
+                        <ListItem key={cell.id}>
+                            <TextField variant="outlined" sx={{ width: "100%" }} multiline
+                                maxRows={6} value={cell.value} onChange={(e) => { handleValueChange(e, index) } }
+                            />
+                            {addListItemControl(index)}
+                            {deleteListItemControl(index)}
+                        </ListItem>
                     ))
                 }
             </List>

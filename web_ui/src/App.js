@@ -478,8 +478,10 @@ const App = () => {
     console.log("handleNoteChange", change);
     if (change.reason === "renamed") {
       setNoteNameChanged(change);
-    } else {
+    } else if (change.reason === "created" || change.reason === "deleted") {
       setRefreshNotesExplorer(change);
+    } else if (change.reason === "changed") {
+      // Do nothing
     }
   }
 
@@ -671,6 +673,12 @@ const App = () => {
                   <MenuItem key="menuOpenCloseSidekickAI" onClick={() => { handleAppMenuClose(); handleToggleSidekickAIOpen(); }}>
                     <HelpIcon/><Typography  sx={{ ml: 1 }}>{ sidekickAIOpen ? "Help - Close Sidekick AI Help" : "Help - Open Sidekick AI Help" }</Typography>
                   </MenuItem>
+                  <MenuItem key="menuOpenCloseScripts" onClick={() => { handleAppMenuClose(); handleToggleScriptsOpen(); }}>
+                    <ScriptsExplorerIcon/><Typography  sx={{ ml: 1 }}>{ scriptsOpen ? "Scripts - Close Scripts Explorer" : "Scripts - Open Scripts Explorer" }</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuOpenCloseScript" onClick={() => { handleAppMenuClose(); handleToggleScriptOpen(); }}>
+                    <ScriptIcon/><Typography  sx={{ ml: 1 }}>{ scriptOpen ? "Script - Close" : "Script - Open" }</Typography>
+                  </MenuItem>
                   <MenuItem key="menuOpenCloseChats" onClick={() => { handleAppMenuClose(); handleToggleChatsOpen(); }}>
                     <QuestionAnswerIcon/><Typography  sx={{ ml: 1 }}>{ chatsOpen ? "History - Close Chat History" : "History - Open Chat History" }</Typography>
                   </MenuItem>
@@ -685,12 +693,6 @@ const App = () => {
                   </MenuItem>
                   <MenuItem key="menuOpenCloseChat" onClick={() => { handleAppMenuClose(); handleToggleChatOpen(); }}>
                     { chatOpen ? <ModeCommentIcon/> : <AddCommentIcon/> }<Typography  sx={{ ml: 1 }}>{ chatOpen ? "Chat - Close" : "Chat - Open" }</Typography>
-                  </MenuItem>
-                  <MenuItem key="menuOpenCloseScripts" onClick={() => { handleAppMenuClose(); handleToggleScriptsOpen(); }}>
-                    <ScriptsExplorerIcon/><Typography  sx={{ ml: 1 }}>{ scriptsOpen ? "Scripts - Close Scripts Explorer" : "Scripts - Open Scripts Explorer" }</Typography>
-                  </MenuItem>
-                  <MenuItem key="menuOpenCloseScript" onClick={() => { handleAppMenuClose(); handleToggleScriptOpen(); }}>
-                    <ScriptIcon/><Typography  sx={{ ml: 1 }}>{ scriptOpen ? "Script - Close" : "Script - Open" }</Typography>
                   </MenuItem>
                   <MenuItem key="menuMinimiseWindows" onClick={() => { handleAppMenuClose(); minimiseWindows(); }}>
                     <MinimizeIcon/><Typography  sx={{ ml: 1 }}>Minimise Windows</Typography>
@@ -723,6 +725,16 @@ const App = () => {
                     <HelpIcon/>
                   </IconButton>                  
                 </Tooltip>
+                <Tooltip title={ scriptsOpen ? "Close Scripts Explorer" : "Open Scripts Explorer" }>
+                  <IconButton edge="start" color="inherit" aria-label="Open/Close Scripts Explorer" onClick={handleToggleScriptsOpen}>
+                    <ScriptsExplorerIcon/>
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title={scriptOpen ? "Close Script" : "New Script"}>
+                  <IconButton edge="start" color="inherit" aria-label={ scriptOpen ? "Close Script" : "Open Script" } onClick={handleToggleScriptOpen}>
+                    <ScriptIcon/>
+                  </IconButton>
+                </Tooltip>
                 <Tooltip title={ chatsOpen ? "Close Chat History" : "Open Chat History" }>
                   <IconButton edge="start" color="inherit" aria-label="Open/Close Chat History" onClick={handleToggleChatsOpen}>
                     <QuestionAnswerIcon/>
@@ -746,16 +758,6 @@ const App = () => {
                 <Tooltip title={chatOpen ? "Close Chat" : "New Chat"}>
                   <IconButton edge="start" color="inherit" aria-label={ chatOpen ? "Close Chat" : "Open chat" } onClick={handleToggleChatOpen}>
                     { chatOpen ? <ModeCommentIcon/> : <AddCommentIcon/> }
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title={ scriptsOpen ? "Close Scripts Explorer" : "Open Scripts Explorer" }>
-                  <IconButton edge="start" color="inherit" aria-label="Open/Close Scripts Explorer" onClick={handleToggleScriptsOpen}>
-                    <ScriptsExplorerIcon/>
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title={scriptOpen ? "Close Script" : "New Script"}>
-                  <IconButton edge="start" color="inherit" aria-label={ scriptOpen ? "Close Script" : "Open Script" } onClick={handleToggleScriptOpen}>
-                    <ScriptIcon/>
                   </IconButton>
                 </Tooltip>
                 <Tooltip title="Minimise windows">
@@ -827,147 +829,148 @@ const App = () => {
               darkMode={darkMode}
             />
             { chatsOpen ? <Explorer
-            handleToggleExplorer={handleToggleChatsOpen}
-            name="Chats"
-            icon={<QuestionAnswerIcon />}
-            folder="chats"
-            openItemId={openChatId}
-            setLoadDoc={setLoadChat}
-            docNameChanged={chatNameChanged}
-            refresh={refreshChatsExplorer}
-            setRefresh={setRefreshChatsExplorer}
-            itemOpen={chatOpen}
-            setItemOpen={setChatOpen}
-            windowPinnedOpen = {chatsPinned}
-            setWindowPinnedOpen = {setChatsPinned}
-            deleteEnabled={true}
-            darkMode={darkMode}
-            serverUrl={serverUrl} token={token} setToken={setToken}
+              handleToggleExplorer={handleToggleChatsOpen}
+              name="Chats"
+              icon={<QuestionAnswerIcon />}
+              folder="chats"
+              openItemId={openChatId}
+              setLoadDoc={setLoadChat}
+              docNameChanged={chatNameChanged}
+              refresh={refreshChatsExplorer}
+              setRefresh={setRefreshChatsExplorer}
+              itemOpen={chatOpen}
+              setItemOpen={setChatOpen}
+              windowPinnedOpen = {chatsPinned}
+              setWindowPinnedOpen = {setChatsPinned}
+              deleteEnabled={true}
+              darkMode={darkMode}
+              serverUrl={serverUrl} token={token} setToken={setToken}
             /> : null }
-            <ModelSettings 
-            setModelSettings={setModelSettings}
-            setFocusOnPrompt={setFocusOnPrompt}
-            modelSettingsOpen={modelSettingsOpen}
-            setModelSettingsOpen={setModelSettingsOpen}
-            windowPinnedOpen = {modelSettingsPinned}
-            setWindowPinnedOpen = {setModelSettingsPinned}
-            temperatureText={temperatureText}
-            setTemperatureText={setTemperatureText}
-            settingsManager={new SettingsManager(serverUrl, token, setToken)}
-            serverUrl={serverUrl} token={token} setToken={setToken}
-            chatStreamingOn={chatStreamingOn}
-            setChatStreamingOn={setChatStreamingOn}
-            darkMode={darkMode}
-            />
-            <Personas 
-            handleTogglePersonas={handleTogglePersonasOpen} 
-            persona={persona} 
-            setPersona={setPersona}
-            setFocusOnPrompt={setFocusOnPrompt}
-            personasOpen={personasOpen}
-            windowPinnedOpen = {personasPinned}
-            setWindowPinnedOpen = {setPersonasPinned}
-            settingsManager={new SettingsManager(serverUrl, token, setToken)}
-            setShouldAskAgainWithPersona={setShouldAskAgainWithPersona}
-            serverUrl={serverUrl} token={token} setToken={setToken}
-            streamingChatResponse={streamingChatResponse}
-            darkMode={darkMode}
-            />
-            { promptEngineerOpen ? 
-              <PromptEngineer
-                handleTogglePromptEngineer={handleTogglePromptEngineerOpen} 
-                windowPinnedOpen={promptEngineerPinned}
-                setWindowPinnedOpen={setPromptEngineerPinned}
-                setNewPromptPart={setNewPromptPart}
-                setNewPrompt={setNewPrompt}
-                setNewPromptTemplate={setNewPromptTemplate}
-                openPromptTemplateId={openPromptTemplateId}
-                promptTemplateNameChanged={promptTemplateNameChanged}
-                refreshPromptTemplateExplorer={refreshPromptTemplateExplorer}
-                setRefreshPromptTemplateExplorer={setRefreshPromptTemplateExplorer}
-                setPromptTemplateOpen={setPromptTemplateOpen}
-                promptTemplateOpen={promptTemplateOpen}
+            <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "center", flex: 1 }}>
+              <Chat 
+                provider = {provider}
+                modelSettings={modelSettings} 
+                persona={persona} 
+                closeOtherPanels={closePanelsOtherThanChat}
+                restoreOtherPanels={restoreWindowStates}
+                newPromptPart={newPromptPart}
+                newPrompt={newPrompt} 
+                newPromptTemplate={newPromptTemplate}
+                loadChat={loadChat} 
+                setAppendNoteContent={setAppendNoteContent}
+                focusOnPrompt={focusOnPrompt}
+                setFocusOnPrompt={setFocusOnPrompt}
+                chatRequest={chatRequest}
+                chatOpen={chatOpen}
+                noteOpen={noteOpen}
+                windowMaximized={chatWindowMaximized}
+                setWindowMaximized={setChatWindowMaximized}
+                setChatOpen={setChatOpen}
+                darkMode={darkMode}
+                temperatureText={temperatureText}
+                setTemperatureText={setTemperatureText}
+                modelSettingsOpen={modelSettingsOpen}
+                toggleModelSettingsOpen={handleToggleModelSettingsOpen}
+                personasOpen={personasOpen}
+                togglePersonasOpen={handleTogglePersonasOpen}
+                promptEngineerOpen={promptEngineerOpen}
+                togglePromptEngineerOpen={handleTogglePromptEngineerOpen}
+                onChange={onChange(handleChatChange)}
+                setOpenChatId={setOpenChatId}
+                shouldAskAgainWithPersona={shouldAskAgainWithPersona}
+                serverUrl={serverUrl} token={token} setToken={setToken}
+                streamingChatResponse={streamingChatResponse}
+                setStreamingChatResponse={setStreamingChatResponse}
+                chatStreamingOn={chatStreamingOn}
+                maxWidth={appSettings.maxPanelWidth}
+              />
+              <ModelSettings 
+                setModelSettings={setModelSettings}
+                setFocusOnPrompt={setFocusOnPrompt}
+                modelSettingsOpen={modelSettingsOpen}
+                setModelSettingsOpen={setModelSettingsOpen}
+                windowPinnedOpen = {modelSettingsPinned}
+                setWindowPinnedOpen = {setModelSettingsPinned}
+                temperatureText={temperatureText}
+                setTemperatureText={setTemperatureText}
                 settingsManager={new SettingsManager(serverUrl, token, setToken)}
                 serverUrl={serverUrl} token={token} setToken={setToken}
+                chatStreamingOn={chatStreamingOn}
+                setChatStreamingOn={setChatStreamingOn}
                 darkMode={darkMode}
-                />
-              : null }
-            { scriptsOpen ? <Explorer
-            handleToggleExplorer={handleToggleScriptsOpen}
-            name="Scripts"
-            icon={<ScriptsExplorerIcon />}
-            folder="scripts"
-            openItemId={openScriptId}
-            setLoadDoc={setLoadScript}
-            docNameChanged={scriptNameChanged}
-            refresh={refreshScriptsExplorer}
-            setRefresh={setRefreshScriptsExplorer}
-            itemOpen={scriptOpen}
-            setItemOpen={setScriptOpen}
-            windowPinnedOpen = {scriptsPinned}
-            setWindowPinnedOpen = {setScriptsPinned}
-            deleteEnabled={true}
-            darkMode={darkMode}
-            serverUrl={serverUrl} token={token} setToken={setToken}
-            /> : null }
-              <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "center", flex: 1 }}>
-                <Script
-                  scriptOpen={scriptOpen}
-                  setScriptOpen={setScriptOpen} 
-                  ScriptIcon={ScriptIcon}
-                  darkMode={darkMode}
-                  maxWidth={appSettings.maxPanelWidth}
-                  windowMaximized={scriptWindowMaximized}
-                  setWindowMaximized={setScriptWindowMaximized}
-                  provider = {provider}
-                  modelSettings={modelSettings} 
-                  persona={persona} 
-                  loadScript={loadScript} 
-                  closeOtherPanels={closePanelsOtherThanScript}
-                  restoreOtherPanels={restoreWindowStates}
+              />
+              <Personas 
+                handleTogglePersonas={handleTogglePersonasOpen} 
+                persona={persona} 
+                setPersona={setPersona}
+                setFocusOnPrompt={setFocusOnPrompt}
+                personasOpen={personasOpen}
+                windowPinnedOpen = {personasPinned}
+                setWindowPinnedOpen = {setPersonasPinned}
+                settingsManager={new SettingsManager(serverUrl, token, setToken)}
+                setShouldAskAgainWithPersona={setShouldAskAgainWithPersona}
+                serverUrl={serverUrl} token={token} setToken={setToken}
+                streamingChatResponse={streamingChatResponse}
+                darkMode={darkMode}
+              />
+              { promptEngineerOpen ? 
+                <PromptEngineer
+                  handleTogglePromptEngineer={handleTogglePromptEngineerOpen} 
+                  windowPinnedOpen={promptEngineerPinned}
+                  setWindowPinnedOpen={setPromptEngineerPinned}
                   setNewPromptPart={setNewPromptPart}
                   setNewPrompt={setNewPrompt}
-                  setChatRequest={setChatRequest}
-                  onChange={onChange(handleScriptChange)}
-                  setOpenScriptId={setOpenScriptId}
+                  setNewPromptTemplate={setNewPromptTemplate}
+                  openPromptTemplateId={openPromptTemplateId}
+                  promptTemplateNameChanged={promptTemplateNameChanged}
+                  refreshPromptTemplateExplorer={refreshPromptTemplateExplorer}
+                  setRefreshPromptTemplateExplorer={setRefreshPromptTemplateExplorer}
+                  setPromptTemplateOpen={setPromptTemplateOpen}
+                  promptTemplateOpen={promptTemplateOpen}
+                  settingsManager={new SettingsManager(serverUrl, token, setToken)}
                   serverUrl={serverUrl} token={token} setToken={setToken}
-                />
-                <Chat 
-                  provider = {provider}
-                  modelSettings={modelSettings} 
-                  persona={persona} 
-                  closeOtherPanels={closePanelsOtherThanChat}
-                  restoreOtherPanels={restoreWindowStates}
-                  newPromptPart={newPromptPart}
-                  newPrompt={newPrompt} 
-                  newPromptTemplate={newPromptTemplate}
-                  loadChat={loadChat} 
-                  setAppendNoteContent={setAppendNoteContent}
-                  focusOnPrompt={focusOnPrompt}
-                  setFocusOnPrompt={setFocusOnPrompt}
-                  chatRequest={chatRequest}
-                  chatOpen={chatOpen}
-                  windowMaximized={chatWindowMaximized}
-                  setWindowMaximized={setChatWindowMaximized}
-                  setChatOpen={setChatOpen}
                   darkMode={darkMode}
-                  temperatureText={temperatureText}
-                  setTemperatureText={setTemperatureText}
-                  modelSettingsOpen={modelSettingsOpen}
-                  toggleModelSettingsOpen={handleToggleModelSettingsOpen}
-                  personasOpen={personasOpen}
-                  togglePersonasOpen={handleTogglePersonasOpen}
-                  promptEngineerOpen={promptEngineerOpen}
-                  togglePromptEngineerOpen={handleTogglePromptEngineerOpen}
-                  onChange={onChange(handleChatChange)}
-                  setOpenChatId={setOpenChatId}
-                  shouldAskAgainWithPersona={shouldAskAgainWithPersona}
-                  serverUrl={serverUrl} token={token} setToken={setToken}
-                  streamingChatResponse={streamingChatResponse}
-                  setStreamingChatResponse={setStreamingChatResponse}
-                  chatStreamingOn={chatStreamingOn}
-                  maxWidth={appSettings.maxPanelWidth}
-                  />
+                />
+                : null }
+              { scriptsOpen ? <Explorer
+                handleToggleExplorer={handleToggleScriptsOpen}
+                name="Scripts"
+                icon={<ScriptsExplorerIcon />}
+                folder="scripts"
+                openItemId={openScriptId}
+                setLoadDoc={setLoadScript}
+                docNameChanged={scriptNameChanged}
+                refresh={refreshScriptsExplorer}
+                setRefresh={setRefreshScriptsExplorer}
+                itemOpen={scriptOpen}
+                setItemOpen={setScriptOpen}
+                windowPinnedOpen = {scriptsPinned}
+                setWindowPinnedOpen = {setScriptsPinned}
+                deleteEnabled={true}
+                darkMode={darkMode}
+                serverUrl={serverUrl} token={token} setToken={setToken}
+              /> : null }
+              <Script
+                scriptOpen={scriptOpen}
+                setScriptOpen={setScriptOpen} 
+                ScriptIcon={ScriptIcon}
+                darkMode={darkMode}
+                maxWidth={appSettings.maxPanelWidth}
+                windowMaximized={scriptWindowMaximized}
+                setWindowMaximized={setScriptWindowMaximized}
+                provider = {provider}
+                modelSettings={modelSettings} 
+                persona={persona} 
+                loadScript={loadScript} 
+                closeOtherPanels={closePanelsOtherThanScript}
+                restoreOtherPanels={restoreWindowStates}
+                setNewPromptPart={setNewPromptPart}
+                setNewPrompt={setNewPrompt}
+                setChatRequest={setChatRequest}
+                onChange={onChange(handleScriptChange)}
+                setOpenScriptId={setOpenScriptId}
+                serverUrl={serverUrl} token={token} setToken={setToken}
+              />
               <Note 
                 noteOpen={noteOpen}
                 windowMaximized={noteWindowMaximized}
@@ -987,9 +990,9 @@ const App = () => {
                 modelSettings={modelSettings}
                 serverUrl={serverUrl} token={token} setToken={setToken}
                 maxWidth={appSettings.maxPanelWidth}
-                />
-              </Box>
-              { notesOpen ? <Explorer
+              />
+            </Box>
+            { notesOpen ? <Explorer
               handleToggleExplorer={handleToggleNotesOpen}
               windowPinnedOpen = {notesPinned}
               setWindowPinnedOpen = {setNotesPinned}
@@ -1006,8 +1009,8 @@ const App = () => {
               deleteEnabled={true}
               darkMode={darkMode}
               serverUrl={serverUrl} token={token} setToken={setToken}
-              /> : null}
-        </Box>
+            /> : null}
+          </Box>
         <StatusBar statusUpdates={statusUpdates}/>
       </Box>
     </ThemeProvider>

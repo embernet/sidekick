@@ -244,6 +244,7 @@ def save_system_settings(name):
 def get_settings(name):
     with RequestLogger(request) as rl:
         try:
+            # Load the users settings
             settings = DBUtils.get_document(
                 user_id=get_jwt_identity(),
                 name=name,
@@ -256,17 +257,21 @@ def get_settings(name):
                 mimetype='application/json'
             )
         except NoResultFound:
-            # No settings found, so init with default settings and return those
-            with open(os.path.join("default_settings", f"{name}.json"), "r") as f:
-                settings = json.load(f, object_pairs_hook=OrderedDict)
-                DBUtils.create_document(user_id=get_jwt_identity(), name=name,
-                                        tags=[], properties={},
-                                        content=settings, type="settings")
-                response = app.response_class(
-                    response=json.dumps(settings, indent=4, cls=OrderedEncoder),
-                    status=200,
-                    mimetype='application/json'
-                )
+            # No user settings found, so init with default settings and return those
+            try:
+                with open(os.path.join("default_settings", f"{name}.json"), "r") as f:
+                    settings = json.load(f, object_pairs_hook=OrderedDict)
+            except FileNotFoundError:
+                # If no default settings file found, return empty settings
+                settings = {}
+            DBUtils.create_document(user_id=get_jwt_identity(), name=name,
+                                    tags=[], properties={},
+                                    content=settings, type="settings")
+            response = app.response_class(
+                response=json.dumps(settings, indent=4, cls=OrderedEncoder),
+                status=200,
+                mimetype='application/json'
+            )
         except Exception as e:
             rl.exception(e)
             return str(e), 500

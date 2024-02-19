@@ -12,11 +12,8 @@ Parameters:
 
 import React, { useState, useEffect } from 'react';
 import { TextField, Box } from '@mui/material';
-import { grey } from '@mui/material/colors';
-import { use } from 'marked';
 
-const ScriptText = ({ id,
-    cellName, setCellName,
+const ScriptText = ({ cellName, setCellName,
     cellValue, setCellValue }) => {
     const [myCellName, setMyCellName] = useState(cellName);
     const [myCellValue, setMyCellValue] = useState(cellValue);
@@ -41,11 +38,11 @@ const ScriptText = ({ id,
 
     return (
         <Box>
-            <TextField label="name" variant="outlined" sx={{ mt: 2, width: "100%" }}
+            <TextField label="cell name" variant="outlined" sx={{ mt: 2, width: "100%" }}
                 value={myCellName} onChange={handleNameChange}
             />
-            <TextField label="value" variant="outlined" sx={{ mt: 2, width: "100%" }} multiline
-                rowsMax={6} value={myCellValue} onChange={handleValueChange}
+            <TextField label="cell value" variant="outlined" sx={{ mt: 2, width: "100%" }} multiline
+                maxRows={6} value={myCellValue} onChange={handleValueChange}
             />
         </Box>
     );
