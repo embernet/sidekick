@@ -4,13 +4,32 @@
         "providers": {
             "OpenAI": {
                 "models": {
+                    "gpt-4-turbo-preview": {
+                        "temperature": 0.7,
+                        "topP": 1,
+                        "frequencyPenalty": 0,
+                        "presencePenalty": 0,
+                        "contextTokenSize": 128000,
+                        "systemMessage": "You are a helpful advisor.",
+                        "notes": "Points to the latest preview version of the gpt-4 preview model."
+                    },
+                    "gpt-4-0125-preview": {
+                        "temperature": 0.7,
+                        "topP": 1,
+                        "frequencyPenalty": 0,
+                        "presencePenalty": 0,
+                        "contextTokenSize": 128000,
+                        "systemMessage": "You are a helpful advisor.",
+                        "notes": "Intended to reduce cases of “laziness” where the model doesn’t complete a task. Returns a maximum of 4,096 output tokens."
+                    },
                     "gpt-4-1106-preview": {
                         "temperature": 0.7,
                         "topP": 1,
                         "frequencyPenalty": 0,
                         "presencePenalty": 0,
                         "contextTokenSize": 128000,
-                        "systemMessage": "You are a helpful advisor."
+                        "systemMessage": "You are a helpful advisor.",
+                        "notes": "Training data up to Apr 2023. Improved instruction following, JSON mode, reproducible outputs, parallel function calling, and more. Returns a maximum of 4,096 output tokens."
                     },
                     "gpt-4": {
                         "temperature": 0.7,
@@ -18,7 +37,8 @@
                         "frequencyPenalty": 0,
                         "presencePenalty": 0,
                         "contextTokenSize": 8192,
-                        "systemMessage": "You are a helpful advisor."
+                        "systemMessage": "You are a helpful advisor.",
+                        "notes": "Training data up to Sep 2021"
                     },
                     "gpt-3.5-turbo": {
                         "temperature": 0.7,
@@ -26,7 +46,8 @@
                         "frequencyPenalty": 0,
                         "presencePenalty": 0,
                         "contextTokenSize": 4097,
-                        "systemMessage": "You are a helpful advisor."
+                        "systemMessage": "You are a helpful advisor.",
+                        "notes": "Training data up to Sep 2021"
                     }
                 },
                 "default": "gpt-3.5-turbo"
