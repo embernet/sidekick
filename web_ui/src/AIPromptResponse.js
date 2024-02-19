@@ -206,10 +206,8 @@ const AIPromptResponse = ({modelSettings, serverUrl, token, setToken, customUser
                 },
                 body: JSON.stringify(requestData),
             };
-            console.log("getChatStream request", request);
 
             const response = await fetch(url , request);
-            console.log("getChatStream response", response);
           
             let decoder = new TextDecoderStream();
             if (!response.body) return;
@@ -252,7 +250,6 @@ const AIPromptResponse = ({modelSettings, serverUrl, token, setToken, customUser
             system_prompt: systemPrompt,
             prompt: prompt
         };
-        console.log('sendPrompt request', requestData);
         showWaiting();
         switch (streamingOn) {
             case false:
@@ -263,7 +260,6 @@ const AIPromptResponse = ({modelSettings, serverUrl, token, setToken, customUser
                       }
                 })
                 .then((response) => {
-                    console.log("/chat response", response);
                     result = response;
                 })
                 .catch((error) => {

@@ -18,7 +18,6 @@ class SettingsManager {
         }
   })
       .then( response => {
-        console.log(`settings/${this.key} response`, response);
         response.data.access_token && this.setToken(response.data.access_token);
         responseProcessor(response.data);
       }).catch( error => {

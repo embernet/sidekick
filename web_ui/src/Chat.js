@@ -285,7 +285,6 @@ const Chat = ({
 
     useEffect(()=>{
         if (newPromptPart?.text) {
-            console.log("newPromptPart", newPromptPart);
             if (!chatOpen) { setChatOpen(true); }
             if (streamingChatResponse !== "") {
                 system.warning("Please wait for the current chat to finish loading before adding a prompt part.");
@@ -299,7 +298,6 @@ const Chat = ({
 
     useEffect(()=>{
         if (newPromptTemplate?.id) {
-            console.log("newPrompt", newPrompt);
             if (!chatOpen) { setChatOpen(true); }
                 if (streamingChatResponse !== "") {
                 system.warning("Please wait for the current chat to finish loading before loading a prompt template.");
@@ -377,13 +375,11 @@ const Chat = ({
             if (streamingChatResponse !== "") {
                 system.warning("Please wait for the current chat to finish loading before loading another chat.");
             } else {
-                console.log("loadChat", loadChat);
                 axios.get(`${serverUrl}/docdb/${folder}/documents/${loadChat["id"]}`, {
                     headers: {
                         Authorization: 'Bearer ' + token
                     }
                 }).then(response => {
-                    console.log("/docdb/chat Response", response);
                     response.data.access_token && setToken(response.data.access_token);
                     setId(response.data.metadata.id);
                     setName(response.data.metadata.name);
@@ -469,7 +465,6 @@ const Chat = ({
                 Authorization: 'Bearer ' + token
               }
         }).then(response => {
-            console.log("/docdb/notes/documents Response", response);
             response.data.access_token && setToken(response.data.access_token);
             response.data.documents.sort((a, b) => (a.name > b.name) ? 1 : -1);
             setAiLibrary(response.data.documents);
@@ -517,14 +512,12 @@ const Chat = ({
                 chat: messages,
             }
         };
-        console.log('Save chat request', request);
 
         axios.put(`${serverUrl}/docdb/${folder}/documents/${id}`, request, {
             headers: {
                 Authorization: 'Bearer ' + token
               }
         }).then(response => {
-            console.log("/docdb/save Response", response);
             response.data.access_token && setToken(response.data.access_token);
             onChange(id, name, "changed", "");
         }).catch(error => {
@@ -635,7 +628,6 @@ const Chat = ({
             name: name,
             persona: myPersona,
         };
-        console.log('sendPrompt request', requestData);
         appendMessage({"role": "user", "content": prompt});
         // add the messages as chatHistory but remove the sidekick metadata       
         requestData.chatHistory = messages.map((message) => {
@@ -645,7 +637,6 @@ const Chat = ({
         }
         );
 
-        console.log('request', requestData);
         if (myShouldAskAgainWithPersona) {
             setMyShouldAskAgainWithPersona(null);
             setMyPersona(persona);
@@ -764,7 +755,6 @@ const Chat = ({
                     Authorization: 'Bearer ' + token
                 }
             }).then(response => {
-                console.log("Create prompt template Response", response);
                 response.data.access_token && setToken(response.data.access_token);
                 onChange(response.data.metadata.id, response.data.metadata.name, "created", "promptTemplate");
                 system.info(`Prompt template "${response.data.metadata.name}" created.`);
@@ -931,7 +921,6 @@ const Chat = ({
 
     const handleDeleteThisMessage = () => {
         const updatedMessages = messages.filter((message, index) => index !== messageContextMenu.index);
-        console.log("updatedMessages", updatedMessages);
         setMessages(updatedMessages);
         setMessageContextMenu(null);
     };
@@ -941,7 +930,6 @@ const Chat = ({
         if (messageContextMenu.index > 0) {
             updatedMessages.splice(messageContextMenu.index - 1, 1);
         }
-        console.log("updatedMessages", updatedMessages);
         setMessages(updatedMessages);
         setMessageContextMenu(null);
     };
@@ -964,7 +952,6 @@ const Chat = ({
     };
 
     const handleAppendToNote = () => {
-        console.log("handleAppendToNote", messageContextMenu.message.content);
         setAppendNoteContent({ content: messageContextMenu.message.content, timestamp: Date.now() });
         setMessageContextMenu(null);
     };
@@ -1014,12 +1001,10 @@ const Chat = ({
                     Authorization: 'Bearer ' + token
                   }
             }).then(response => {
-                console.log("Chat AI library note load Response", response);
                 response.data.access_token && setToken(response.data.access_token);
                 const aiLibraryNote = response.data;
                 const updatedSelectedAiLibraryNotes = { ...selectedAiLibraryNotes, [aiLibraryNote.metadata.id]: aiLibraryNote };
                 setSelectedAiLibraryNotes(updatedSelectedAiLibraryNotes);
-                console.log("Selected aiLibrary notes", selectedAiLibraryNotes);
                 // reset the Select component
                 setSelectedAiLibraryNoteId("");
             }).catch(error => {
@@ -1036,7 +1021,6 @@ const Chat = ({
             const updatedSelectedAiLibraryNotes = { ...selectedAiLibraryNotes };
             delete updatedSelectedAiLibraryNotes[id];
             setSelectedAiLibraryNotes(updatedSelectedAiLibraryNotes);
-            console.log("Selected aiLibrary notes", selectedAiLibraryNotes);
         }
     }
 

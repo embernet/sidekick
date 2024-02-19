@@ -66,7 +66,6 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
     useEffect(()=>{
         mySettingsManager.loadSettings("personas",
             (data) => {
-                console.log("Personas loaded:", data)
                 setMyPersonas(data.personas);
                 const defaultPersona = Object.entries(data.personas).reduce((acc, [key, value]) => {
                     if (value.default) {
