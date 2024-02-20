@@ -545,12 +545,29 @@ const Chat = ({
                 uploadedChat = JSON.parse(event.target.result);
                 reset();
                 chatLoading.current = true; // prevent saves whilst we are updating state during load
-                setId("");
-                setName(uploadedChat.metadata.name);
+                if (uploadedChat?.metdata && uploadedChat.metadata.hasOwnProperty("name")) {
+                    setName(uploadedChat.metadata.name);
+                } else {
+                    reset();
+                    throw new Error("No chat name found in file being uploaded.");
+                }
                 setPreviousName(uploadedChat.metadata.name);
-                setMessages(uploadedChat.content.chat);
+
+                if (uploadedChat?.metadata && uploadedChat.metadata.hasOwnProperty("tags")) {
+                    setTags(uploadedChat.metadata.tags);
+                } else {
+                    reset();
+                    throw new Error("No tags found in chat file being uploaded.");
+                }
+
+                if (uploadedChat?.content && uploadedChat.content.hasOwnProperty("chat")) {
+                    setMessages(uploadedChat.content.chat);
+                } else {
+                    reset();
+                    throw new Error("No chat found in chat file being uploaded.");
+                }
             } catch (error) {
-                system.error("Error uploaded chat", error);
+                system.error("Error uploaded chat. Are you sure it is a Chat file?", error);
             }
             chatLoading.current = false;
         };
@@ -1145,7 +1162,7 @@ const Chat = ({
         { uploadingFile
         ?
             <Box sx={{ display: "flex", flexDirection: "row", width: "100%" }}>
-                    <MuiFileInput value={fileToUpload} onChange={handleUploadFile} />
+                    <MuiFileInput value={fileToUpload} onChange={handleUploadFile} placeholder='Click to upload a chat'/>
                 <Box ml="auto">
                     <IconButton onClick={() => { setUploadingFile(false) }}>
                         <CloseIcon />

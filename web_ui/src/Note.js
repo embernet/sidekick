@@ -852,7 +852,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         { uploadingFile
             ?
                 <Box sx={{ display: "flex", flexDirection: "row", width: "100%" }}>
-                        <MuiFileInput value={fileToUpload} onChange={handleUploadFile} />
+                        <MuiFileInput value={fileToUpload} onChange={handleUploadFile} placeholder='Click to upload a note'/>
                     <Box ml="auto">
                         <IconButton onClick={() => { setUploadingFile(false) }}>
                             <CloseIcon />

@@ -211,12 +211,31 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
                 uploadedScript = JSON.parse(event.target.result);
                 reset();
                 scriptLoading.current = true; // prevent saves whilst we are updating state during load
-                setId("");
-                setName(uploadedScript.metadata.name);
+
+                if (uploadedScript?.metadata && uploadedScript.metadata.hasOwnProperty("name")) {
+                    setName(uploadedScript.metadata.name);
+                } else {
+                    reset();
+                    throw new Error("No script name found in script file being uploaded.");
+                }
                 setPreviousName(uploadedScript.metadata.name);
-                setCells(uploadedScript.content.cells);
+
+                if (uploadedScript?.metadata && uploadedScript.metadata.hasOwnProperty("tags")) {
+                    setTags(uploadedScript.metadata.tags);
+                } else {
+                    reset();
+                    throw new Error("No tags found in script file being uploaded.");
+                }
+
+                if (uploadedScript?.content && uploadedScript.content.hasOwnProperty("cells")) {
+                    setCells(uploadedScript.content.cells);
+                } else {
+                    reset();
+                    throw new Error("No cells found in script file being uploaded.");
+                }
             } catch (error) {
-                system.error("Error uploaded script", error);
+                system.error("Error uploading script. Are you sure this is a Script file?", error);
+                reset();
             }
             scriptLoading.current = false;
         };
@@ -529,7 +548,7 @@ const scriptName =
         { uploadingFile
         ?
             <Box sx={{ display: "flex", flexDirection: "row", width: "100%" }}>
-                    <MuiFileInput value={fileToUpload} onChange={handleUploadFile} />
+                    <MuiFileInput value={fileToUpload} onChange={handleUploadFile} placeholder='Click to upload a script' />
                 <Box ml="auto">
                     <IconButton onClick={() => { setUploadingFile(false) }}>
                         <CloseIcon />
