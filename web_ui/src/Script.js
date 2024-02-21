@@ -8,6 +8,7 @@ import { Card, Box, Paper, IconButton, Typography, TextField,
 import { ClassNames } from "@emotion/react";
 import ScriptCell from './ScriptCell';
 import { grey } from '@mui/material/colors';
+import { MuiFileInput } from 'mui-file-input';
 
 // Icons
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
@@ -19,6 +20,9 @@ import CodeIcon from '@mui/icons-material/Code';
 import CodeOffIcon from '@mui/icons-material/CodeOff';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import FileUploadIcon from '@mui/icons-material/FileUpload';
+
 
 import { SystemContext } from './SystemContext';
 import { StyledBox, StyledToolbar } from './theme';
@@ -60,7 +64,8 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
     const [previousName, setPreviousName] = useState(newItemName);
     const [cells, setCells] = useState([]);
     const [myPersona, setMyPersona] = useState({});
-
+    const [uploadingFile, setUploadingFile] = useState(false);
+    const [fileToUpload, setFileToUpload] = useState(null);
     const [markdownRenderingOn, setMarkdownRenderingOn] = useState(true);
     const [settings, setSettings] = useState({});
     const [settingsLoaded, setSettingsLoaded] = useState(false);
@@ -179,6 +184,68 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
     const scriptAsJSON = () => {
         let script = scriptAsObject();
         return JSON.stringify(script, null, 4);
+    }
+
+    const downloadFile = (filename, content) => {
+        const element = document.createElement("a");
+        const file = new Blob([content], {type: "text/plain"});
+        element.href = URL.createObjectURL(file);
+        element.download = filename;
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+      }
+
+    const handleDownload = () => {
+        // remove characters from the name that would not be accepted in a file name
+        let filename = name.replace(/[^a-z0-9\-!@()[\];_] /gi, '_');
+        downloadFile(filename + ".json", scriptAsJSON());
+    }
+
+    const handleUploadFile = (event) => {
+        console.log("handleUploadFile", event)
+        const reader = new FileReader();
+        let uploadedScript = null;
+        reader.onload = (event) => {
+            try {
+                uploadedScript = JSON.parse(event.target.result);
+                reset();
+                scriptLoading.current = true; // prevent saves whilst we are updating state during load
+
+                if (uploadedScript?.metadata && uploadedScript.metadata.hasOwnProperty("name")) {
+                    setName(uploadedScript.metadata.name);
+                } else {
+                    reset();
+                    throw new Error("No script name found in script file being uploaded.");
+                }
+                setPreviousName(uploadedScript.metadata.name);
+
+                if (uploadedScript?.metadata && uploadedScript.metadata.hasOwnProperty("tags")) {
+                    setTags(uploadedScript.metadata.tags);
+                } else {
+                    reset();
+                    throw new Error("No tags found in script file being uploaded.");
+                }
+
+                if (uploadedScript?.content && uploadedScript.content.hasOwnProperty("cells")) {
+                    setCells(uploadedScript.content.cells);
+                } else {
+                    reset();
+                    throw new Error("No cells found in script file being uploaded.");
+                }
+            } catch (error) {
+                system.error("Error uploading script. Are you sure this is a Script file?", error);
+                reset();
+            }
+            scriptLoading.current = false;
+        };
+        reader.readAsText(event);
+        setUploadingFile(false);
+        setFileToUpload(null);
+    };
+
+    const handleUploadRequest = () => {
+        setUploadingFile(true);
     }
 
     const create = (scriptName=name) => {
@@ -395,6 +462,16 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
                     </IconButton>
                 </span>
             </Tooltip>
+            <Tooltip title={ "Download script" }>
+                <IconButton edge="start" color="inherit" aria-label="download script" onClick={handleDownload}>
+                    <FileDownloadIcon/>
+                </IconButton>
+            </Tooltip>
+            <Tooltip title={ "Upload script" }>
+                <IconButton edge="start" color="inherit" aria-label="upload script" onClick={handleUploadRequest}>
+                    <FileUploadIcon/>
+                </IconButton>
+            </Tooltip>
             <Tooltip title={ markdownRenderingOn ? "Turn off markdown and code rendering" : "Turn on markdown and code rendering" }>
                 <IconButton edge="start" color="inherit" aria-label="delete script" onClick={handleToggleMarkdownRendering}>
                     { markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }
@@ -466,11 +543,29 @@ const scriptName =
         let newCells = cells.filter((cell) => cell.id !== id);
         setCells(newCells);
     };
+    const fileUploadBar =
+    <Box>
+        { uploadingFile
+        ?
+            <Box sx={{ display: "flex", flexDirection: "row", width: "100%" }}>
+                    <MuiFileInput value={fileToUpload} onChange={handleUploadFile} placeholder='Click to upload a script' />
+                <Box ml="auto">
+                    <IconButton onClick={() => { setUploadingFile(false) }}>
+                        <CloseIcon />
+                    </IconButton>
+                </Box>
+            </Box>
+        :
+            null
+        }
+    </Box>;
+
 
     const render = <Card id="script-panel" ref={panelWindowRef}
                     sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, 
                     width: windowMaximized ? "calc(100vw - 12px)" : null, minWidth: "500px", maxWidth: windowMaximized ? null : maxWidth ? maxWidth : "600px" }}>
                         {toolbar}
+                        {fileUploadBar}
     <Box sx={{ display: "flex", flexDirection: "column", height:"calc(100% - 64px)"}}>
         {scriptName}
         <StyledBox sx={{ overflow: 'auto', flex: 1, minHeight: "300px" }} ref={panelItemsContainerRef}>

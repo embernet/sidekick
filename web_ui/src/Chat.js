@@ -1,15 +1,14 @@
 import axios from 'axios'
 import { debounce } from "lodash";
-import { createTheme } from '@mui/material/styles';
 
 import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Box, Paper, Toolbar, IconButton, Typography, TextField,
     List, ListItem, Menu, MenuItem, Tooltip, Button, FormLabel, Popover
      } from '@mui/material';
-import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
 import { InputLabel, FormHelperText, FormControl, Select } from '@mui/material';
-import { red, pink, purple, deepPurple, indigo, blue, lightBlue, cyan, teal, green, lightGreen, lime, yellow, amber, orange, deepOrange, brown, grey, blueGrey } from '@mui/material/colors';
+import { lightBlue,grey, blueGrey } from '@mui/material/colors';
+import { MuiFileInput } from 'mui-file-input';
 
 // Icons
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
@@ -29,6 +28,8 @@ import HelpIcon from '@mui/icons-material/Help';
 import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
 import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import FileUploadIcon from '@mui/icons-material/FileUpload';
 
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
@@ -100,9 +101,12 @@ const Chat = ({
     const [systemPrompt, setSystemPrompt] = useState("");
     const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady.current);
     const [messageContextMenu, setMessageContextMenu] = useState(null);
+    const [uploadingFile, setUploadingFile] = useState(false);
+    const [fileToUpload, setFileToUpload] = useState(null);
     const [markdownRenderingOn, setMarkdownRenderingOn] = useState(true);
     const [settings, setSettings] = useState({});
     const [settingsLoaded, setSettingsLoaded] = useState(false);
+    const chatLoading = useRef(false);
     const [chatLoaded, setChatLoaded] = useState(false);
     const [folder, setFolder] = useState("chats");
     const [tags, setTags] = useState([]);
@@ -498,12 +502,8 @@ const Chat = ({
         });
     }
 
-    const save = () => {
-        if (!chatLoaded) {
-            setChatLoaded(true);
-            return; // don't save on load, just on change
-        }
-        let request = {
+    const chatAsObject = () => {
+        let chat = {
             metadata: {
                 name: name,
                 tags: [],
@@ -512,6 +512,80 @@ const Chat = ({
                 chat: messages,
             }
         };
+        return chat;
+    }
+
+    const chatAsJSON = () => {
+        let chat = chatAsObject();
+        return JSON.stringify(chat, null, 4);
+    }
+
+    const downloadFile = (filename, content) => {
+        const element = document.createElement("a");
+        const file = new Blob([content], {type: "text/plain"});
+        element.href = URL.createObjectURL(file);
+        element.download = filename;
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+      }
+
+    const handleDownload = () => {
+        // remove characters from the name that would not be accepted in a file name
+        let filename = name.replace(/[^a-z0-9\-!@()[\];_] /gi, '_');
+        downloadFile(filename + ".json", chatAsJSON());
+    }
+
+    const handleUploadFile = (event) => {
+        console.log("handleUploadFile", event)
+        const reader = new FileReader();
+        let uploadedChat = null;
+        reader.onload = (event) => {
+            try {
+                uploadedChat = JSON.parse(event.target.result);
+                reset();
+                chatLoading.current = true; // prevent saves whilst we are updating state during load
+                if (uploadedChat?.metdata && uploadedChat.metadata.hasOwnProperty("name")) {
+                    setName(uploadedChat.metadata.name);
+                } else {
+                    reset();
+                    throw new Error("No chat name found in file being uploaded.");
+                }
+                setPreviousName(uploadedChat.metadata.name);
+
+                if (uploadedChat?.metadata && uploadedChat.metadata.hasOwnProperty("tags")) {
+                    setTags(uploadedChat.metadata.tags);
+                } else {
+                    reset();
+                    throw new Error("No tags found in chat file being uploaded.");
+                }
+
+                if (uploadedChat?.content && uploadedChat.content.hasOwnProperty("chat")) {
+                    setMessages(uploadedChat.content.chat);
+                } else {
+                    reset();
+                    throw new Error("No chat found in chat file being uploaded.");
+                }
+            } catch (error) {
+                system.error("Error uploaded chat. Are you sure it is a Chat file?", error);
+            }
+            chatLoading.current = false;
+        };
+        reader.readAsText(event);
+        setUploadingFile(false);
+        setFileToUpload(null);
+    };
+
+    const handleUploadRequest = () => {
+        setUploadingFile(true);
+    }
+
+    const save = () => {
+        if (!chatLoaded) {
+            setChatLoaded(true);
+            return; // don't save on load, just on change
+        }
+        let request = chatAsObject();
 
         axios.put(`${serverUrl}/docdb/${folder}/documents/${id}`, request, {
             headers: {
@@ -885,12 +959,15 @@ const Chat = ({
     };
 
     const reset = () => {
+        let chatLoadingState = chatLoading.current;
+        chatLoading.current = true;
         setId("");
         setName(newChatName);
         setPreviousName(newChatName);
         setMessages([]);
         setChatPrompt("");
         setLastPrompt("");
+        chatLoading.current = chatLoadingState;
     }
 
     const closeChatWindow = () => {
@@ -1024,9 +1101,7 @@ const Chat = ({
         }
     }
 
-    const render = <Card id="chat-panel" ref={chatWindowRef}
-                    sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, 
-                    width: windowMaximized ? "calc(100vw - 12px)" : null, minWidth: "500px", maxWidth: windowMaximized ? null : maxWidth ? maxWidth : "600px" }}>
+    const toolbar =
     <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
         <CommentIcon/>
         <Typography sx={{mr:2}}>Chat</Typography>
@@ -1047,6 +1122,16 @@ const Chat = ({
                     <FileCopyIcon/>
                 </IconButton>
             </span>
+        </Tooltip>
+        <Tooltip title={ "Download chat" }>
+            <IconButton edge="start" color="inherit" aria-label="download chat" onClick={handleDownload}>
+                <FileDownloadIcon/>
+            </IconButton>
+        </Tooltip>
+        <Tooltip title={ "Upload chat" }>
+            <IconButton edge="start" color="inherit" aria-label="upload chat" onClick={handleUploadRequest}>
+                <FileUploadIcon/>
+            </IconButton>
         </Tooltip>
         <Tooltip title={ markdownRenderingOn ? "Turn off markdown and code rendering" : "Turn on markdown and code rendering" }>
             <IconButton edge="start" color="inherit" aria-label="delete chat" onClick={handleToggleMarkdownRendering}>
@@ -1070,7 +1155,30 @@ const Chat = ({
                 </IconButton>
             </Tooltip>
         </Box>
-    </StyledToolbar>
+    </StyledToolbar>;
+
+    const fileUploadBar =
+    <Box>
+        { uploadingFile
+        ?
+            <Box sx={{ display: "flex", flexDirection: "row", width: "100%" }}>
+                    <MuiFileInput value={fileToUpload} onChange={handleUploadFile} placeholder='Click to upload a chat'/>
+                <Box ml="auto">
+                    <IconButton onClick={() => { setUploadingFile(false) }}>
+                        <CloseIcon />
+                    </IconButton>
+                </Box>
+            </Box>
+        :
+            null
+        }
+    </Box>;
+
+    const render = <Card id="chat-panel" ref={chatWindowRef}
+                    sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, 
+                    width: windowMaximized ? "calc(100vw - 12px)" : null, minWidth: "500px", maxWidth: windowMaximized ? null : maxWidth ? maxWidth : "600px" }}>
+    {toolbar}
+    {fileUploadBar}
     <Box sx={{ display: "flex", flexDirection: "column", height:"calc(100% - 64px)"}}>
         <Box sx={{ display:"flex", direction: "row" }}>
             <TextField
