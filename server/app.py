@@ -8,7 +8,7 @@ from flask_cors import CORS
 from flask_oidc import OpenIDConnect
 from sqlalchemy.engine.url import make_url
 
-VERSION = "0.2"
+VERSION = "0.2.1"
 
 app = Flask(__name__)
 app.logger.setLevel(logging.getLevelName(
