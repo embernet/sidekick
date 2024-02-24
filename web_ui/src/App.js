@@ -1011,7 +1011,15 @@ const App = () => {
               serverUrl={serverUrl} token={token} setToken={setToken}
             /> : null}
           </Box>
-        <StatusBar statusUpdates={statusUpdates}/>
+        <StatusBar
+          statusUpdates={statusUpdates}
+          modelSettings={modelSettings}
+          persona={persona}
+          modelSettingsOpen={modelSettingsOpen}
+          toggleModelSettingsOpen={handleToggleModelSettingsOpen}
+          personasOpen={personasOpen}
+          togglePersonasOpen={handleTogglePersonasOpen}
+        />
       </Box>
     </ThemeProvider>
   </SystemProvider>

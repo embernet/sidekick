@@ -23,6 +23,7 @@ import SendIcon from '@mui/icons-material/Send';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CodeIcon from '@mui/icons-material/Code';
 import CodeOffIcon from '@mui/icons-material/CodeOff';
+import BuildIcon from '@mui/icons-material/Build';
 import SaveIcon from '@mui/icons-material/Save';
 import HelpIcon from '@mui/icons-material/Help';
 import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
@@ -1296,6 +1297,11 @@ const Chat = ({
         <Box sx={{ display: "flex", flexDirection: "column", minHeight: "128px" }}>
             <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
                 <Typography sx={{mr:2}}>Prompt Editor</Typography>
+                <Tooltip title={ promptEngineerOpen ? "Hide Prompt Engineer" : "Show Prompt Engineer"}>
+                    <IconButton edge="start" color="inherit" aria-label="prompt engineer" onClick={togglePromptEngineerOpen}>
+                        <BuildIcon/>
+                    </IconButton>
+                </Tooltip>
                 <Tooltip title={ "Save prompt as template" }>
                     <span>
                         <IconButton edge="start" color="inherit" aria-label="save prompt as template"
@@ -1336,6 +1342,7 @@ const Chat = ({
                             </IconButton>
                         </span>
                     </Tooltip>}
+                    <TextStatsDisplay name="Prompt" sizeInCharacters={promptLength} maxTokenSize={myModelSettings.contextTokenSize}/>
                     <Tooltip title={ "Send prompt to AI" }>
                         <span>
                             <IconButton edge="end" color="inherit" aria-label="send" disabled={promptPlaceholder === userPromptWaiting}
@@ -1373,24 +1380,6 @@ const Chat = ({
                 }}
             >
             </div>
-            <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: darkMode ? grey[900] : grey[100] }}>
-                <Tooltip title={ personasOpen ? "Hide AI Personas" : "Show AI Personas"}>
-                    <Button id="button-personas" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={togglePersonasOpen}>
-                        {myPersona.name}
-                    </Button>
-                </Tooltip>
-                <Tooltip title={ modelSettingsOpen ? "Hide Model Settings" : "Show Model Settings" }>
-                    <Button id="button-model-settings" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={toggleModelSettingsOpen}>
-                        {myModelSettings.request && myModelSettings.request.model} (context: {myModelSettings.contextTokenSize}T) ({temperatureText})
-                    </Button>
-                </Tooltip>
-                <Tooltip title={ promptEngineerOpen ? "Hide Prompt Engineer" : "Show Prompt Engineer"}>
-                    <Button id="button-prompt-engineer" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={togglePromptEngineerOpen}>
-                        Prompt Engineer
-                    </Button>
-                </Tooltip>
-                <TextStatsDisplay name="Prompt" sizeInCharacters={promptLength} maxTokenSize={myModelSettings.contextTokenSize}/>
-            </Paper>
             { aiLibraryOpen ? 
                 <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: darkMode ? grey[900] : grey[100] }}>
                     <Box sx={{ mt: 2, display: "flex", flexDirection: "column", width: "100%" }}>
@@ -1468,7 +1457,7 @@ const Chat = ({
                 <Typography color="textSecondary">Responses: {responseCount}</Typography>
                 <Typography color="textSecondary">K-Notes: { Object.keys(selectedAiLibraryNotes).length }</Typography>
                 <Typography color="textSecondary">Total size: 
-                    <TextStatsDisplay name="prompt + context" sizeInCharacters={messagesSize + promptLength + selectedAiLibraryFullTextSize}
+                    <TextStatsDisplay sx={{ ml:1 }} name="prompt + context" sizeInCharacters={messagesSize + promptLength + selectedAiLibraryFullTextSize}
                     maxTokenSize={myModelSettings.contextTokenSize} />
                 </Typography>
             </Paper>
