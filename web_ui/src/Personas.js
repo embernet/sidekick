@@ -230,12 +230,10 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
                         >
                             <ListItemText
                                 primary={
-                                    <Typography sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                        <Typography>
-                                            {persona.name.charAt(0).toUpperCase() + persona.name.slice(1)}
-                                            {persona.default && <Typography sx={{ ml:2 }} variant="caption">(default)</Typography>}
-                                        </Typography>
-                                        <Box ml="auto">
+                                    <Typography component="span" sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                        <Typography component="span">{persona.name.charAt(0).toUpperCase() + persona.name.slice(1)}</Typography>
+                                        {persona.default && <Typography component="span" sx={{ ml:2 }} variant="caption">(default)</Typography>}
+                                        <Typography component="span" ml="auto">
                                             {!expanded && 
                                                 <Tooltip sx={{mr:1}} title={expandedPersona === persona.name ? "Hide details" : "Show details"}>
                                                     {expandedPersona === persona.name
@@ -272,18 +270,18 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
                                                     )
                                                 }
                                             </Tooltip>
-                                        </Box>
+                                        </Typography>
                                     </Typography>
                                 }
                                 secondary={
-                                    <Fragment>
+                                    <Typography component="span">
                                         <Typography>{persona.description}</Typography>
                                         {
                                             expanded || expandedPersona === persona.name
                                             ? <Typography mt={1}>{persona.system_prompt}</Typography>
                                             : null
                                         } 
-                                    </Fragment>
+                                    </Typography>
                                 }
                             />
                         </Card>
