@@ -11,6 +11,7 @@ Parameters:
 */
 
 import React, { useState, useEffect } from 'react';
+
 import { TextField, Box, List, ListItem, Tooltip, IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
@@ -20,7 +21,7 @@ const ScriptList = ({ cellName, setCellName,
     cellValue, setCellValue }) => {
     const [myCellName, setMyCellName] = useState(cellName);
     const [myCellValue, setMyCellValue] = useState(cellValue);
-    const defaultListItem = { id: Date.now(), value: "" };
+    const defaultListItem = { value: "" };
     const [myCellList, setMyCellList] = useState(cellValue?.cellList || []);
 
     useEffect(() => {
@@ -53,7 +54,7 @@ const ScriptList = ({ cellName, setCellName,
     const handleAddCell = (index) => {
         let newCellList = [
             ...myCellList.slice(0, index + 1),
-            { ...JSON.parse(JSON.stringify(defaultListItem)), id: Date.now() },
+            { ...JSON.parse(JSON.stringify(defaultListItem)) },
             ...myCellList.slice(index + 1)
         ];
         setMyCellList(newCellList);
@@ -98,7 +99,7 @@ const ScriptList = ({ cellName, setCellName,
                 {addListItemControl(-1)}
                 {
                     myCellList && myCellList.map((cell, index) => (
-                        <ListItem key={cell.id}>
+                        <ListItem key={index}>
                             <TextField variant="outlined" sx={{ width: "100%" }} multiline
                                 maxRows={6} value={cell.value} onChange={(e) => { handleValueChange(e, index) } }
                             />
