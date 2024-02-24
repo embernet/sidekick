@@ -391,7 +391,6 @@ const Chat = ({
                     setPreviousName(response.data.metadata.name);
                     setMessages(response.data.content.chat);
 
-                    setChatPrompt("");
                     setLastPrompt("");
                     // set lastPrompt to the last user message
                     try {
