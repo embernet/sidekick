@@ -7,8 +7,10 @@ from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_oidc import OpenIDConnect
 from sqlalchemy.engine.url import make_url
+import uuid
 
 VERSION = "0.2.1"
+server_instance_id = str(uuid.uuid4())
 
 app = Flask(__name__)
 app.logger.setLevel(logging.getLevelName(
