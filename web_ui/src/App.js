@@ -988,6 +988,7 @@ const App = () => {
                 onChange={onChange(handleNoteChange)}
                 setOpenNoteId={setOpenNoteId}
                 modelSettings={modelSettings}
+                persona={persona}
                 serverUrl={serverUrl} token={token} setToken={setToken}
                 maxWidth={appSettings.maxPanelWidth}
               />

@@ -34,7 +34,7 @@ import AIPromptResponse from './AIPromptResponse';
 const Note = ({noteOpen, setNoteOpen, appendNoteContent, loadNote, createNote, darkMode,
     closeOtherPanels, restoreOtherPanels, windowMaximized, setWindowMaximized,
     setNewPromptPart, setNewPrompt, setChatRequest, onChange, setOpenNoteId, 
-    modelSettings, serverUrl, token, setToken, maxWidth}) => {
+    modelSettings, persona, serverUrl, token, setToken, maxWidth}) => {
 
     const StyledToolbar = styled(Toolbar)(({ theme }) => ({
         backgroundColor: darkMode ? green[900] : green[300],
@@ -834,7 +834,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
             setToken={setToken}
             streamingOn={true}
             customUserPromptReady={userPromptReady.current}
-            systemPrompt={systemPrompt}
+            systemPrompt={ persona.system_prompt + "\n\n" + systemPrompt }
             streamingChatResponseRef={streamingChatResponseRef}
             streamingChatResponse={streamingChatResponse}
             setStreamingChatResponse={setStreamingChatResponse}
