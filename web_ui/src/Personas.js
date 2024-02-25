@@ -231,7 +231,7 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
                             <ListItemText
                                 primary={
                                     <Typography component="span" sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                        <Typography component="span">{persona.name.charAt(0).toUpperCase() + persona.name.slice(1)}</Typography>
+                                        <Typography component="span" style={{ fontWeight: 'bold', color: darkMode ? lightBlue[800] : lightBlue[600] }}>{persona.name.charAt(0).toUpperCase() + persona.name.slice(1)}</Typography>
                                         {persona.default && <Typography component="span" sx={{ ml:2 }} variant="caption">(default)</Typography>}
                                         <Typography component="span" ml="auto">
                                             {!expanded && 
