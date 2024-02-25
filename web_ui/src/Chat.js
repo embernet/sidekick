@@ -1261,7 +1261,7 @@ const Chat = ({
                     </ListItem>
                 ))}
                 {streamingChatResponse && streamingChatResponse !== "" && 
-                <ListItem id="streamingChatResponse">
+                <ListItem id="streamingChatResponse" sx={{ paddingLeft: 0 }} >
                     <Card id="streaming-response-message" sx={{ 
                         padding: 2, 
                         width: "100%", 
@@ -1350,7 +1350,7 @@ const Chat = ({
                     }
                 }
                 onPaste={editorEventHandlers.onPaste}
-                dataPlaceholder={promptPlaceholder}
+                data-placeholder={promptPlaceholder}
                 className={chatPromptIsEmpty ? 'empty' : ''}
                 style={{
                     ...editorEventHandlers.style,
