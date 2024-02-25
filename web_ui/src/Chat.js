@@ -39,6 +39,7 @@ import AI from './AI';
 import { StyledBox, StyledToolbar, SecondaryToolbar } from './theme';
 
 import SidekickMarkdown from './SidekickMarkdown';
+import NativeTextEditorEventHandlers from './NativeTextEditorEventHandlers';
 
 const Chat = ({
     provider, modelSettings, persona, 
@@ -735,28 +736,6 @@ const Chat = ({
     }
 
     const handleChatPromptKeydown = (event) => {
-        if (event.ctrlKey || event.metaKey) {
-            if (event.key === 's') {
-                event.preventDefault();
-                save();
-            } else if (
-                event.key !== 'c' && 
-                event.key !== 'v' && 
-                event.key !== 'x' &&
-                event.key !== 'z' &&
-                event.key !== 'y' &&
-                event.key !== 'f' &&
-                event.key !== 'g' &&
-                event.key !== 'a')
-            {
-                // for now, throw away attempts at using hotkeys for formatting
-                // if we don't do this, the defult div behaviour
-                // is to do thinks like bold selected text when ctrl+b is pressed
-                // This is a markdown editor, so we don't want that
-                // we can add event.key === 'b' text later to do things like that
-                event.preventDefault();
-            }
-        }
         setPromptLength(chatPromptRef.current.innerText.length);
         if(event.key === 'Enter'  && !event.shiftKey && chatPromptRef.current.innerText !== "") {
             setLastPrompt(chatPromptRef.current.innerText);
@@ -1100,7 +1079,11 @@ const Chat = ({
             setSelectedAiLibraryNotes(updatedSelectedAiLibraryNotes);
         }
     }
-
+    
+    const editorEventHandlers = new NativeTextEditorEventHandlers(
+        { hotKeyHandlers: { "save": save }, darkMode: darkMode }
+    );
+    
     const toolbar =
     <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
         <CommentIcon/>
@@ -1182,7 +1165,7 @@ const Chat = ({
     <Box sx={{ display: "flex", flexDirection: "column", height:"calc(100% - 64px)"}}>
         <Box sx={{ display:"flex", direction: "row" }}>
             <TextField
-                sx={{ mt: 2, flexGrow: 1 }}
+                sx={{ mt: 2, flexGrow: 1, paddingBottom: "6px" }}
                 id="chat-name"
                 autoComplete='off'
                 label="Chat name"
@@ -1209,7 +1192,7 @@ const Chat = ({
                 onBlur={() => {handleRenameChat();}}
                 onChange={handleTitleChange}
             />
-            <Toolbar>
+            <Toolbar sx={{ paddingLeft: "0px" }}>
                 <Tooltip title={ "Regenerate chat name" } sx={{ ml: "auto" }}>
                     <span>
                         <IconButton edge="end" color="inherit" aria-label="regenerate chat name" 
@@ -1223,7 +1206,7 @@ const Chat = ({
         <StyledBox sx={{ overflow: 'auto', flex: 1, minHeight: "300px" }} ref={chatMessagesContainerRef}>
             <List id="message-list" ref={chatMessagesRef}>
                 {messages && messages.map((message, index) => (
-                    <ListItem key={index}>
+                    <ListItem sx={{ paddingLeft: 0 }} key={index}>
                         <Box style={{width:'100%'}} onContextMenu={(event) => { handleMessageContextMenu(event, message, index); }}>
                             <Card sx={{ 
                                 padding: 2, 
@@ -1360,22 +1343,23 @@ const Chat = ({
                 ref={chatPromptRef}
                 contentEditable={promptPlaceholder === userPromptWaiting ? "false" : "true"}
                 onInput={handleChatPromptInput}
-                onKeyDown={handleChatPromptKeydown}
-                data-placeholder={promptPlaceholder}
+                onKeyDown={
+                    (event) => {
+                        editorEventHandlers.onKeyDown(event);
+                        handleChatPromptKeydown(event);
+                    }
+                }
+                onPaste={editorEventHandlers.onPaste}
+                dataPlaceholder={promptPlaceholder}
                 className={chatPromptIsEmpty ? 'empty' : ''}
                 style={{
+                    ...editorEventHandlers.style,
                     overflow: "auto",
                     minHeight: "56px",
                     maxHeight: "300px",
                     flex: 1,
                     marginTop: "auto",
-                    border: darkMode ? "1px solid rgba(200, 200, 200, 0.23)" : "1px solid rgba(0, 0, 0, 0.23)",
-                    backgroundColor: darkMode ? grey[900] : grey[100],
-                    borderRadius: "4px",
                     padding: "18.5px 14px",
-                    fontSize: "1rem",
-                    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-                    color: darkMode ? "rgba(255, 255, 255, 0.87)" : "rgba(0, 0, 0, 0.87)",
                 }}
             >
             </div>
