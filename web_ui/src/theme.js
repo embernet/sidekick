@@ -1,9 +1,8 @@
 import { createTheme } from '@mui/material/styles';
 import { styled } from '@mui/system';
 import { Toolbar, Box, List } from '@mui/material';
-import { useState } from 'react';
 
-import { red, pink, purple, deepPurple, indigo, blue, lightBlue, cyan, teal, green, lightGreen, lime, yellow, amber, orange, deepOrange, brown, grey, blueGrey } from '@mui/material/colors';
+import { blue, grey } from '@mui/material/colors';
 
 export const theme = createTheme({
     palette: {
