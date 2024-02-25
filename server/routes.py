@@ -19,7 +19,7 @@ from sqlalchemy.exc import NoResultFound
 from sqlalchemy.exc import IntegrityError
 
 from app import app, oidc
-from app import VERSION
+from app import VERSION, server_instance_id
 
 class OrderedEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -45,6 +45,7 @@ def health():
             seconds = (seconds % 60)
             database_health = DBUtils.health()
             health_response = {
+                "serverInstanceId": f"{server_instance_id}",
                 "success": True,
                 "status": "UP",
                 "version": f"{VERSION}",

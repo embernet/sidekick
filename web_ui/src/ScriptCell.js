@@ -10,7 +10,8 @@ Function:
     Cell types are: Text (ScriptText component), List (ScriptList component), Prompt (ScriptPrompt component)
     When a cell type is selected, the corresponding component is rendered.
 */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { debounce } from "lodash";
 import { Card, Box, FormControl, Select, InputLabel, Tooltip, IconButton, MenuItem } from '@mui/material';
 import { blueGrey } from '@mui/material/colors';
 import ScriptText from './ScriptText';
@@ -33,6 +34,27 @@ const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
     const [myCellValue, setMyCellValue] = useState(cellValue);
 
     const [anchorEl, setAnchorEl] = useState(null);
+
+    const [width, setWidth] = useState(0);
+
+    const handleResize = useCallback(
+        // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
+        debounce((entries) => {
+            entries && entries.length > 0 && setWidth(entries[0].contentRect.width);
+        }, 100),
+        []
+    );
+
+    useEffect(() => {
+        const element = document.getElementById(`script-cell-${myId}`);
+        const observer = new ResizeObserver((entries) => {
+            if (entries && entries.length > 0 && entries[0].target === element) {
+              handleResize();
+            }
+        });
+        element && observer.observe(element);
+        return () => observer.disconnect();
+    }, [handleResize]);
 
     useEffect(() => {
         setCellType(myCellType);
@@ -151,7 +173,7 @@ const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
 
 
     return (
-        <Card sx={{ 
+        <Card id={"script-cell-" + myId} sx={{ 
             padding: 2, 
             width: "100%", 
             backgroundColor: darkMode ? blueGrey[800] : "lightblue",

@@ -58,7 +58,7 @@ import Admin from './Admin';
 import SidekickAI from './SidekickAI';
 import StatusBar from './StatusBar';
 
-const VERSION = "0.2";
+const VERSION = "0.2.1";
 
 const ScriptIcon = SmartDisplayOutlinedIcon;
 const ScriptsExplorerIcon = SubscriptionsOutlinedIcon;
@@ -988,6 +988,7 @@ const App = () => {
                 onChange={onChange(handleNoteChange)}
                 setOpenNoteId={setOpenNoteId}
                 modelSettings={modelSettings}
+                persona={persona}
                 serverUrl={serverUrl} token={token} setToken={setToken}
                 maxWidth={appSettings.maxPanelWidth}
               />
@@ -1011,7 +1012,15 @@ const App = () => {
               serverUrl={serverUrl} token={token} setToken={setToken}
             /> : null}
           </Box>
-        <StatusBar statusUpdates={statusUpdates}/>
+        <StatusBar
+          statusUpdates={statusUpdates}
+          modelSettings={modelSettings}
+          persona={persona}
+          modelSettingsOpen={modelSettingsOpen}
+          toggleModelSettingsOpen={handleToggleModelSettingsOpen}
+          personasOpen={personasOpen}
+          togglePersonasOpen={handleTogglePersonasOpen}
+        />
       </Box>
     </ThemeProvider>
   </SystemProvider>

@@ -1,11 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Paper, Typography, Popover, List, ListItem, ListItemText } from '@mui/material';
+import React, { useState, useRef, useEffect, Fragment } from 'react';
+import { Tooltip, Paper, Typography, Popover, Button, List, ListItem, ListItemText } from '@mui/material';
 import { useContext } from 'react';
 import { SystemContext } from './SystemContext';
 
 import { grey, red, orange, blue } from '@mui/material/colors';
 
-const StatusBar = ({ statusUpdates }) => {
+const StatusBar = ({ statusUpdates, persona, modelSettings,
+modelSettingsOpen, toggleModelSettingsOpen,
+personasOpen, togglePersonasOpen }) => {
     const system = useContext(SystemContext);
     const [displayMessage, setDisplayMessage] = useState('');
     const [dateTimeString, setDateTimeString] = useState('');
@@ -68,41 +70,74 @@ const StatusBar = ({ statusUpdates }) => {
 
     return (
         <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: grey[100] }}>
-            <Typography variant="caption" component="span"
-                sx={{ cursor: statusUpdates.length > 0 ? 'pointer' : 'default', margin: '2px', padding: '2px', borderRadius: '4px', width: '100%' }}
-                ref={statusRef}
-                onClick={handleStatusClick}
-                style={{ color: displayMessage !== ''
-                        ? statusColor(statusUpdates.length && statusUpdates[statusUpdates.length - 1].type)
-                        : statusColor('default')
+            <Button id="status-button-log" variant={statusUpdates.length > 0 ? "outlined" : "text"}
+                size="small" color="primary"
+                sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={handleStatusClick}>
+                <Typography variant="caption" component="span"
+                    sx={{ cursor: statusUpdates.length > 0 ? 'pointer' : 'default', margin: '2px', padding: '2px', borderRadius: '4px', width: '100%' }}
+                    ref={statusRef}
+                    style={{ color: displayMessage !== ''
+                            ? statusColor(statusUpdates.length && statusUpdates[statusUpdates.length - 1].type)
+                            : "primary"
+                    }}
+                >
+                    {displayMessage !== '' ? displayMessage : dateTimeString}
+                </Typography>
+            </Button>
+            <Popover
+                open={popoverOpen}
+                anchorEl={statusRef.current}
+                onClose={handleClose}
+                onClick={handleClose}
+                anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'left',
+                }}
+                transformOrigin={{
+                vertical: 'bottom',
+                horizontal: 'left',
                 }}
             >
-                {displayMessage !== '' ? displayMessage : dateTimeString}
-            </Typography>
-        <Popover
-            open={popoverOpen}
-            anchorEl={statusRef.current}
-            onClose={handleClose}
-            onClick={handleClose}
-            anchorOrigin={{
-            vertical: 'top',
-            horizontal: 'left',
-            }}
-            transformOrigin={{
-            vertical: 'bottom',
-            horizontal: 'left',
-            }}
-        >
-            <List dense>
-            {statusUpdates.map((msg, index) => (
-                <ListItem key={index}>
-                <ListItemText primary={`${msg?.timestamp} - ${msg.message}`}
-                    style={{ color: statusColor(msg.type) }}
-                 />
-                </ListItem>
-            ))}
-            </List>
-        </Popover>
+                <List dense>
+                {statusUpdates.map((msg, index) => (
+                    <ListItem key={index}>
+                        <ListItemText primary={`${msg?.timestamp} - ${msg.message}`}
+                            style={{ color: statusColor(msg.type) }}
+                        />
+                    </ListItem>
+                ))}
+                </List>
+            </Popover>
+            { persona && 
+                <Tooltip title={
+                        "Selected AI persona" + (personasOpen ? " (click to hide Persona Explorer)" : " (click to show Persona Explorer)")
+                }>
+                    <Button id="status-button-personas" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={togglePersonasOpen}>
+                        <Typography variant="caption" component="span"
+                            sx={{ margin: '2px', padding: '2px', borderRadius: '4px', whiteSpace: 'nowrap', display: 'inline-block' }}>
+                            {persona.name}
+                        </Typography>
+                    </Button>
+                </Tooltip>
+            }
+            {  modelSettings?.request && modelSettings?.request?.model &&
+                <Tooltip title={ 
+                    <Fragment>
+                        <pre>
+                            {"Model Settings" +
+                            (modelSettingsOpen ? " (click to hide)" : " (click to edit)") +
+                            "\n" + modelSettings.asMultiLineText}
+                        </pre>
+                    </Fragment>
+                    }>
+                    <Button id="status-button-model-settings" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={toggleModelSettingsOpen}>
+                        <Typography variant="caption" component="span"
+                            sx={{ margin: '2px', padding: '2px', borderRadius: '4px', whiteSpace: 'nowrap', display: 'inline-block' }}>
+                            {modelSettings.asShortText}
+                        </Typography>
+                    </Button>
+                </Tooltip>
+            }
         </Paper>
     );
 };

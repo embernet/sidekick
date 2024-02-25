@@ -23,6 +23,7 @@ import SendIcon from '@mui/icons-material/Send';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CodeIcon from '@mui/icons-material/Code';
 import CodeOffIcon from '@mui/icons-material/CodeOff';
+import BuildIcon from '@mui/icons-material/Build';
 import SaveIcon from '@mui/icons-material/Save';
 import HelpIcon from '@mui/icons-material/Help';
 import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
@@ -38,6 +39,7 @@ import AI from './AI';
 import { StyledBox, StyledToolbar, SecondaryToolbar } from './theme';
 
 import SidekickMarkdown from './SidekickMarkdown';
+import NativeTextEditorEventHandlers from './NativeTextEditorEventHandlers';
 
 const Chat = ({
     provider, modelSettings, persona, 
@@ -390,7 +392,6 @@ const Chat = ({
                     setPreviousName(response.data.metadata.name);
                     setMessages(response.data.content.chat);
 
-                    setChatPrompt("");
                     setLastPrompt("");
                     // set lastPrompt to the last user message
                     try {
@@ -735,28 +736,6 @@ const Chat = ({
     }
 
     const handleChatPromptKeydown = (event) => {
-        if (event.ctrlKey || event.metaKey) {
-            if (event.key === 's') {
-                event.preventDefault();
-                save();
-            } else if (
-                event.key !== 'c' && 
-                event.key !== 'v' && 
-                event.key !== 'x' &&
-                event.key !== 'z' &&
-                event.key !== 'y' &&
-                event.key !== 'f' &&
-                event.key !== 'g' &&
-                event.key !== 'a')
-            {
-                // for now, throw away attempts at using hotkeys for formatting
-                // if we don't do this, the defult div behaviour
-                // is to do thinks like bold selected text when ctrl+b is pressed
-                // This is a markdown editor, so we don't want that
-                // we can add event.key === 'b' text later to do things like that
-                event.preventDefault();
-            }
-        }
         setPromptLength(chatPromptRef.current.innerText.length);
         if(event.key === 'Enter'  && !event.shiftKey && chatPromptRef.current.innerText !== "") {
             setLastPrompt(chatPromptRef.current.innerText);
@@ -1100,7 +1079,11 @@ const Chat = ({
             setSelectedAiLibraryNotes(updatedSelectedAiLibraryNotes);
         }
     }
-
+    
+    const editorEventHandlers = new NativeTextEditorEventHandlers(
+        { hotKeyHandlers: { "save": save }, darkMode: darkMode }
+    );
+    
     const toolbar =
     <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
         <CommentIcon/>
@@ -1182,7 +1165,7 @@ const Chat = ({
     <Box sx={{ display: "flex", flexDirection: "column", height:"calc(100% - 64px)"}}>
         <Box sx={{ display:"flex", direction: "row" }}>
             <TextField
-                sx={{ mt: 2, flexGrow: 1 }}
+                sx={{ mt: 2, flexGrow: 1, paddingBottom: "6px" }}
                 id="chat-name"
                 autoComplete='off'
                 label="Chat name"
@@ -1209,7 +1192,7 @@ const Chat = ({
                 onBlur={() => {handleRenameChat();}}
                 onChange={handleTitleChange}
             />
-            <Toolbar>
+            <Toolbar sx={{ paddingLeft: "0px" }}>
                 <Tooltip title={ "Regenerate chat name" } sx={{ ml: "auto" }}>
                     <span>
                         <IconButton edge="end" color="inherit" aria-label="regenerate chat name" 
@@ -1223,7 +1206,7 @@ const Chat = ({
         <StyledBox sx={{ overflow: 'auto', flex: 1, minHeight: "300px" }} ref={chatMessagesContainerRef}>
             <List id="message-list" ref={chatMessagesRef}>
                 {messages && messages.map((message, index) => (
-                    <ListItem key={index}>
+                    <ListItem sx={{ paddingLeft: 0 }} key={index}>
                         <Box style={{width:'100%'}} onContextMenu={(event) => { handleMessageContextMenu(event, message, index); }}>
                             <Card sx={{ 
                                 padding: 2, 
@@ -1278,7 +1261,7 @@ const Chat = ({
                     </ListItem>
                 ))}
                 {streamingChatResponse && streamingChatResponse !== "" && 
-                <ListItem id="streamingChatResponse">
+                <ListItem id="streamingChatResponse" sx={{ paddingLeft: 0 }} >
                     <Card id="streaming-response-message" sx={{ 
                         padding: 2, 
                         width: "100%", 
@@ -1296,6 +1279,11 @@ const Chat = ({
         <Box sx={{ display: "flex", flexDirection: "column", minHeight: "128px" }}>
             <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
                 <Typography sx={{mr:2}}>Prompt Editor</Typography>
+                <Tooltip title={ promptEngineerOpen ? "Hide Prompt Engineer" : "Show Prompt Engineer"}>
+                    <IconButton edge="start" color="inherit" aria-label="prompt engineer" onClick={togglePromptEngineerOpen}>
+                        <BuildIcon/>
+                    </IconButton>
+                </Tooltip>
                 <Tooltip title={ "Save prompt as template" }>
                     <span>
                         <IconButton edge="start" color="inherit" aria-label="save prompt as template"
@@ -1336,6 +1324,7 @@ const Chat = ({
                             </IconButton>
                         </span>
                     </Tooltip>}
+                    <TextStatsDisplay name="Prompt" sizeInCharacters={promptLength} maxTokenSize={myModelSettings.contextTokenSize}/>
                     <Tooltip title={ "Send prompt to AI" }>
                         <span>
                             <IconButton edge="end" color="inherit" aria-label="send" disabled={promptPlaceholder === userPromptWaiting}
@@ -1354,43 +1343,26 @@ const Chat = ({
                 ref={chatPromptRef}
                 contentEditable={promptPlaceholder === userPromptWaiting ? "false" : "true"}
                 onInput={handleChatPromptInput}
-                onKeyDown={handleChatPromptKeydown}
+                onKeyDown={
+                    (event) => {
+                        editorEventHandlers.onKeyDown(event);
+                        handleChatPromptKeydown(event);
+                    }
+                }
+                onPaste={editorEventHandlers.onPaste}
                 data-placeholder={promptPlaceholder}
                 className={chatPromptIsEmpty ? 'empty' : ''}
                 style={{
+                    ...editorEventHandlers.style,
                     overflow: "auto",
                     minHeight: "56px",
                     maxHeight: "300px",
                     flex: 1,
                     marginTop: "auto",
-                    border: darkMode ? "1px solid rgba(200, 200, 200, 0.23)" : "1px solid rgba(0, 0, 0, 0.23)",
-                    backgroundColor: darkMode ? grey[900] : grey[100],
-                    borderRadius: "4px",
                     padding: "18.5px 14px",
-                    fontSize: "1rem",
-                    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-                    color: darkMode ? "rgba(255, 255, 255, 0.87)" : "rgba(0, 0, 0, 0.87)",
                 }}
             >
             </div>
-            <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: darkMode ? grey[900] : grey[100] }}>
-                <Tooltip title={ personasOpen ? "Hide AI Personas" : "Show AI Personas"}>
-                    <Button id="button-personas" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={togglePersonasOpen}>
-                        {myPersona.name}
-                    </Button>
-                </Tooltip>
-                <Tooltip title={ modelSettingsOpen ? "Hide Model Settings" : "Show Model Settings" }>
-                    <Button id="button-model-settings" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={toggleModelSettingsOpen}>
-                        {myModelSettings.request && myModelSettings.request.model} (context: {myModelSettings.contextTokenSize}T) ({temperatureText})
-                    </Button>
-                </Tooltip>
-                <Tooltip title={ promptEngineerOpen ? "Hide Prompt Engineer" : "Show Prompt Engineer"}>
-                    <Button id="button-prompt-engineer" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={togglePromptEngineerOpen}>
-                        Prompt Engineer
-                    </Button>
-                </Tooltip>
-                <TextStatsDisplay name="Prompt" sizeInCharacters={promptLength} maxTokenSize={myModelSettings.contextTokenSize}/>
-            </Paper>
             { aiLibraryOpen ? 
                 <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: darkMode ? grey[900] : grey[100] }}>
                     <Box sx={{ mt: 2, display: "flex", flexDirection: "column", width: "100%" }}>
@@ -1468,7 +1440,7 @@ const Chat = ({
                 <Typography color="textSecondary">Responses: {responseCount}</Typography>
                 <Typography color="textSecondary">K-Notes: { Object.keys(selectedAiLibraryNotes).length }</Typography>
                 <Typography color="textSecondary">Total size: 
-                    <TextStatsDisplay name="prompt + context" sizeInCharacters={messagesSize + promptLength + selectedAiLibraryFullTextSize}
+                    <TextStatsDisplay sx={{ ml:1 }} name="prompt + context" sizeInCharacters={messagesSize + promptLength + selectedAiLibraryFullTextSize}
                     maxTokenSize={myModelSettings.contextTokenSize} />
                 </Typography>
             </Paper>

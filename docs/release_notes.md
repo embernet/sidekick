@@ -1,5 +1,20 @@
 # Release Notes
 
+# v0.2.1
+
+Functional changes:
+
+1. Chat prompt no longer cleared when opening another chat
+2. Note now uses the selected persona in the same way Chat and Script does
+3. Current Model Settings and Persona are now displayed in the App status bar as they apply to all tools and not just Chat
+4. Current Model Settings and Persona are removed from the Chat secondary toolbar to give more space in Chat
+5. Server health reports now contain a unique instance id to differentiate in load balanced environments
+
+Code improvements:
+
+1. Library updates to fix security vulnerabilities
+2. Minor UI and performance improvements
+
 # v0.2
 
 Functional changes:

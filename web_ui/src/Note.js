@@ -24,6 +24,7 @@ import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
 import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
 import { MuiFileInput } from 'mui-file-input';
 import SidekickMarkdown from './SidekickMarkdown';
+import NativeTextEditorEventHandlers from './NativeTextEditorEventHandlers';
 
 
 import { SystemContext } from './SystemContext';
@@ -34,7 +35,7 @@ import AIPromptResponse from './AIPromptResponse';
 const Note = ({noteOpen, setNoteOpen, appendNoteContent, loadNote, createNote, darkMode,
     closeOtherPanels, restoreOtherPanels, windowMaximized, setWindowMaximized,
     setNewPromptPart, setNewPrompt, setChatRequest, onChange, setOpenNoteId, 
-    modelSettings, serverUrl, token, setToken, maxWidth}) => {
+    modelSettings, persona, serverUrl, token, setToken, maxWidth}) => {
 
     const StyledToolbar = styled(Toolbar)(({ theme }) => ({
         backgroundColor: darkMode ? green[900] : green[300],
@@ -593,28 +594,6 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     };
 
     const handleContentKeyDown = async (event) => {
-        if (event.ctrlKey || event.metaKey) {
-            if (event.key === 's') {
-                event.preventDefault();
-                save();
-            } else if (
-                event.key !== 'c' && 
-                event.key !== 'v' && 
-                event.key !== 'x' &&
-                event.key !== 'z' &&
-                event.key !== 'y' &&
-                event.key !== 'f' &&
-                event.key !== 'g' &&
-                event.key !== 'a')
-            {
-                // for now, throw away attempts at using hotkeys for formatting
-                // if we don't do this, the defult div behaviour
-                // is to do thinks like bold selected text when ctrl+b is pressed
-                // This is a markdown editor, so we don't want that
-                // we can add event.key === 'b' text later to do things like that
-                event.preventDefault();
-            }
-        }
         if(event.key === 'Enter') {
             considerAutoNaming(event.target.innerText);
         }
@@ -650,6 +629,10 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         save();
         setNoteOpen(false);
     }
+
+    const editorEventHandlers = new NativeTextEditorEventHandlers(
+        { hotKeyHandlers: { "save": save }, darkMode: darkMode }
+    );
 
     const aiToolbarButtons = (<>
         <Tooltip title={ "Download note" }>
@@ -711,7 +694,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         overflow: "auto", width: "100%", minHeight: "300px" }}>
         <Box sx={{ display: "flex", flexDirection: "row"}}>
             <TextField
-                sx={{ mt: 2 , padding: "6px", flexGrow: 1}}
+                sx={{ mt: 2 , flexGrow: 1, paddingBottom: "6px" }}
                 id="note-name"
                 autoComplete='off'
                 label="Note name"
@@ -738,7 +721,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 onBlur={(event) => { handleNameBlur(event) }}
                 onChange={handleNameChange}
             />
-            <Toolbar>
+            <Toolbar sx={{ paddingLeft: "0px" }}>
                 <Tooltip title={ "Regenerate note name" } sx={{ ml: "auto" }}>
                     <span>
                         <IconButton edge="end" color="inherit" aria-label="regenerate note name" 
@@ -761,29 +744,26 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
             <div
                 id="note-content"
                 ref={noteContentRef}
-                onInput={handleNoteContentInput}
                 label="Note content"
                 contentEditable={true}
                 style={{
-                    whiteSpace: "pre-wrap",
+                    ...editorEventHandlers.style,
                     display: markdownRenderingOn ? "none" : "block",
                     width: "100%",
                     height: streamingChatResponse && streamingChatResponse !== "" ? "50%" : "100%",
                     padding: "6px",
-                    overflowWrap: "break-word",
-                    wordWrap: "break-word",
-                    overflow: "auto",
                     flexGrow: 1,
                     marginTop: "auto",
-                    border: darkMode ? "1px solid rgba(200, 200, 200, 0.23)" : "1px solid rgba(0, 0, 0, 0.23)",
-                    backgroundColor: darkMode ? grey[900] : grey[100],
-                    borderRadius: "4px",
-                    fontSize: "1rem",
-                    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-                    color: darkMode ? "rgba(255, 255, 255, 0.87)" : "rgba(0, 0, 0, 0.87)",
                 }}
+                onInput={handleNoteContentInput}
                 onChange={handleContentChange}
-                onKeyDown={handleContentKeyDown}
+                onKeyDown={ 
+                    (event) => {
+                        editorEventHandlers.onKeyDown(event);
+                        handleContentKeyDown(event)
+                    }
+                }
+                onPaste={editorEventHandlers.onPaste}
                 onBlur={save}
                 disabled={contentDisabled}
                 />
@@ -834,7 +814,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
             setToken={setToken}
             streamingOn={true}
             customUserPromptReady={userPromptReady.current}
-            systemPrompt={systemPrompt}
+            systemPrompt={ persona.system_prompt + "\n\n" + systemPrompt }
             streamingChatResponseRef={streamingChatResponseRef}
             streamingChatResponse={streamingChatResponse}
             setStreamingChatResponse={setStreamingChatResponse}
@@ -864,6 +844,8 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         }
     </Box>
 </Card>
+
+
     return noteOpen ? render : null;
   }
 

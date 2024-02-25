@@ -1,4 +1,4 @@
-import { debounce } from "lodash";
+import { debounce, get } from "lodash";
 import { useEffect, useState, useCallback } from 'react';
 import { Toolbar, Card, Paper, Box, IconButton, Tooltip,
     Typography, TextField, Autocomplete, Slider, Switch, Stack } from '@mui/material';
@@ -205,6 +205,15 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
             "provider": selectedProvider,
             "contextTokenSize": selectedModelContextTokenSize,
             "notes": selectedModelNotes,
+            "asShortText": selectedProvider + " " + selectedModel,
+            "asMultiLineText": 
+                "Provider: " + selectedProvider + 
+                "\nmodel: " + selectedModel + 
+                "\ntemperature: " + temperature + " (" + getTemperatureText(temperature) + ")" +
+                "\ntop_p: " + top_p +
+                "\npresence_penalty: " + presence_penalty +
+                "\nfrequency_penalty: " + frequency_penalty +
+                "\ncontext window size: " + selectedModelContextTokenSize + "K tokens",
             "request": {
                 "model": selectedModel,
                 "temperature": temperature,
