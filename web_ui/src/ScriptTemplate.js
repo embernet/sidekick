@@ -43,12 +43,12 @@ const ScriptTemplate = memo(({ valueLabel, cells,
     }, [cells]);
 
     useEffect(() => {
-        cellName !== myCellName && setCellName(myCellName);
+        cellName !== myCellName && setCellName && setCellName(myCellName);
     }
     , [myCellName]);
 
     useEffect(() => {
-        cellValue !== myCellValue && setCellValue(myCellValue);
+        cellValue !== myCellValue && setCellValue && setCellValue(myCellValue);
     }
     , [myCellValue]);
 

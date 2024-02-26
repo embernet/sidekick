@@ -48,12 +48,12 @@ const ScriptList = memo(({ cellName, setCellName,
     }, [handleResize]);
 
     useEffect(() => {
-        cellName !== myCellName && setCellName(myCellName);
+        cellName !== myCellName && setCellName && setCellName(myCellName);
     }
     , [myCellName]);
 
     useEffect(() => {
-        cellValue !== myCellValue && setCellValue(myCellValue);
+        cellValue !== myCellValue && setCellValue && setCellValue(myCellValue);
     }
     , [myCellValue]);
 
