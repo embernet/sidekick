@@ -8,6 +8,7 @@ from flask_cors import CORS
 from flask_oidc import OpenIDConnect
 from sqlalchemy.engine.url import make_url
 import uuid
+from prometheus_flask_exporter import PrometheusMetrics
 
 VERSION = "0.2.1"
 server_instance_id = str(uuid.uuid4())
@@ -52,6 +53,11 @@ db.init_app(app)
 jwt = JWTManager(app)
 CORS(app)
 migrate = Migrate(app, db)
+
+metrics = PrometheusMetrics(app)
+
+# static information as metric
+metrics.info('app_info', 'Application info', version=VERSION)
 
 # Remove all logger handlers and add a new one
 while app.logger.hasHandlers():
