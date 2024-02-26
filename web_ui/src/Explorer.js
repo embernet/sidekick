@@ -104,7 +104,6 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
                 Authorization: 'Bearer ' + token
               }
         }).then(response => {
-            system.debug(`Response loading items in ${name} Explorer`, response, url + " GET");
             response.data.access_token && setToken(response.data.access_token);
             setDocs(sortedList(response.data.documents, sortOrder, sortOrderDirection));
         }).catch(error => {
