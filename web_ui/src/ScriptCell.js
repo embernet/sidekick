@@ -62,7 +62,7 @@ const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
     , [myCellType]);
 
     useEffect(() => {
-        cellName !== myCellName && setCellName(myCellName);
+        cellName !== myCellName && setCellName && setCellName(myCellName);
     }
     , [myCellName]);
 
@@ -72,7 +72,7 @@ const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
     , [myCellParameters]);
 
     useEffect(() => {
-        cellValue !== myCellValue && setCellValue(myCellValue);
+        cellValue !== myCellValue && setCellValue && setCellValue(myCellValue);
     }
     , [myCellValue]);
 
@@ -149,7 +149,7 @@ const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
                     id={`script-cell-type-select-${myId}`}
                     name={"Script cell type"}
                     labelId={"script-cell-type-label"}
-                    value={myCellType}
+                    value={myCellType||"text"}
                     label="Cell type"
                     onChange={handleSelectCellType}
                     >

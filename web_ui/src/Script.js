@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { debounce } from "lodash";
+import { debounce, set } from "lodash";
 
 import { useEffect, useState, useContext, useCallback, useRef, Fragment } from 'react';
 import { Card, Box, Paper, IconButton, Typography, TextField,
@@ -74,6 +74,7 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
     const [documentType, setDocumentType] = useState("scripts");
     const [tags, setTags] = useState([]);
     const [myServerUrl, setMyServerUrl] = useState(serverUrl);
+    const [pageLoaded, setPageLoaded] = useState(false);
 
     const applyCustomSettings = () => {
         axios.get(`${serverUrl}/system_settings/script`).then(response => {
@@ -98,6 +99,7 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
             system.error(`System Error loading script settings.`, error, "/settings/script_settings GET");
         });
         applyCustomSettings();
+        setPageLoaded(true);
     }, []);
 
     useEffect(()=>{
