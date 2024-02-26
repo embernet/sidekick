@@ -78,7 +78,6 @@ function Login({setUser, serverUrl, setToken, darkMode, setDarkMode}) {
   }
 
   const loggedInWithToken = (jwtToken) => {
-    system.debug("Logged in with token", jwtToken);
     try {        
       if (jwtToken) {
         setToken(jwtToken);
