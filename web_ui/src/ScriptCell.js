@@ -62,7 +62,7 @@ const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
     , [myCellType]);
 
     useEffect(() => {
-        setCellName(myCellName);
+        cellName !== myCellName && setCellName(myCellName);
     }
     , [myCellName]);
 
@@ -72,7 +72,7 @@ const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
     , [myCellParameters]);
 
     useEffect(() => {
-        setCellValue(myCellValue);
+        cellValue !== myCellValue && setCellValue(myCellValue);
     }
     , [myCellValue]);
 
@@ -94,7 +94,7 @@ const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
                 />;
                 case "template":
                     return <ScriptTemplate cells={cells}
-                        valueLabel="Edit the template to generate a value"
+                        valueLabel={"Edit the template to generate a value"}
                         cellName={cellName} setCellName={setMyCellName}
                         cellParameters={cellParameters} setCellParameters={setMyCellParameters}
                         cellValue={cellValue} setCellValue={setMyCellValue}
@@ -146,7 +146,7 @@ const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
             <FormControl sx={{ mt: 2, minWidth: 120 }} size="small">
                 <InputLabel>Cell type</InputLabel>
                 <Select
-                    id={"script-cell-type-select"}
+                    id={`script-cell-type-select-${myId}`}
                     name={"Script cell type"}
                     labelId={"script-cell-type-label"}
                     value={myCellType}

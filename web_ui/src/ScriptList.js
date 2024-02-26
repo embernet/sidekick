@@ -10,27 +10,50 @@ Parameters:
     setValue: a function to update the value of the text box
 */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { debounce } from "lodash";
 
 import { TextField, Box, List, ListItem, Tooltip, IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
+import { memo } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
-
-const ScriptList = ({ cellName, setCellName,
+const ScriptList = memo(({ cellName, setCellName,
     cellValue, setCellValue }) => {
     const [myCellName, setMyCellName] = useState(cellName);
     const [myCellValue, setMyCellValue] = useState(cellValue);
     const defaultListItem = { value: "" };
     const [myCellList, setMyCellList] = useState(cellValue?.cellList || []);
+    const myId= uuidv4();
+
+    const [width, setWidth] = useState(0);
+    const handleResize = useCallback(
+        // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
+        debounce((entries) => {
+            entries && entries.length > 0 && setWidth(entries[0].contentRect.width);
+        }, 100),
+        []
+    );
 
     useEffect(() => {
-        setCellName(myCellName);
+        const element = document.getElementById(`script-list-${myId}`);
+        const observer = new ResizeObserver((entries) => {
+            if (entries && entries.length > 0 && entries[0].target === element) {
+              handleResize();
+            }
+        });
+        element && observer.observe(element);
+        return () => observer.disconnect();
+    }, [handleResize]);
+
+    useEffect(() => {
+        cellName !== myCellName && setCellName(myCellName);
     }
     , [myCellName]);
 
     useEffect(() => {
-        setCellValue(myCellValue);
+        cellValue !== myCellValue && setCellValue(myCellValue);
     }
     , [myCellValue]);
 
@@ -91,7 +114,7 @@ const ScriptList = ({ cellName, setCellName,
 
 
     return (
-        <Box>
+        <Box id={`script-list-${myId}`}>
             <TextField label="cell name" variant="outlined" sx={{ mt: 2, width: "100%" }}
                 value={myCellName} onChange={handleNameChange}
             />
@@ -111,6 +134,6 @@ const ScriptList = ({ cellName, setCellName,
             </List>
         </Box>
     );
-}
+});
 
 export default ScriptList;

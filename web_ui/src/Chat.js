@@ -735,8 +735,11 @@ const Chat = ({
         setChatPromptIsEmpty(!event.target.textContent)
     }
 
-    const handleChatPromptKeydown = (event) => {
+    const handleChatPromptKeyup = (event) => {
         setPromptLength(chatPromptRef.current.innerText.length);
+    }
+
+    const handleChatPromptKeydown = (event) => {
         if(event.key === 'Enter'  && !event.shiftKey && chatPromptRef.current.innerText !== "") {
             setLastPrompt(chatPromptRef.current.innerText);
             setPromptToSend({prompt: chatPromptRef.current.innerText, timestamp: Date.now()});
@@ -1315,7 +1318,9 @@ const Chat = ({
                     </span>
                 </Tooltip>
                 <Box ml="auto">
-                    {streamingChatResponse !== "" && <Tooltip title={ "Stop" }>
+                    <TextStatsDisplay name="Prompt" sizeInCharacters={promptLength} maxTokenSize={myModelSettings.contextTokenSize}/>
+                    {streamingChatResponse !== "" && 
+                    <Tooltip title={ "Stop" }>
                         <span>
                             <IconButton id="chat-stop" edge="end" color="inherit" aria-label="stop"
                                 onClick={() => { handleStopStreaming(); }}
@@ -1324,7 +1329,6 @@ const Chat = ({
                             </IconButton>
                         </span>
                     </Tooltip>}
-                    <TextStatsDisplay name="Prompt" sizeInCharacters={promptLength} maxTokenSize={myModelSettings.contextTokenSize}/>
                     <Tooltip title={ "Send prompt to AI" }>
                         <span>
                             <IconButton edge="end" color="inherit" aria-label="send" disabled={promptPlaceholder === userPromptWaiting}
@@ -1349,6 +1353,7 @@ const Chat = ({
                         handleChatPromptKeydown(event);
                     }
                 }
+                onKeyUp={handleChatPromptKeyup}
                 onPaste={editorEventHandlers.onPaste}
                 data-placeholder={promptPlaceholder}
                 className={chatPromptIsEmpty ? 'empty' : ''}

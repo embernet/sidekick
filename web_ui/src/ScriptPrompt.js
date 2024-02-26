@@ -1,13 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { debounce } from "lodash";
+
 import { Card, Box, Typography, TextField } from '@mui/material';
 import { lightBlue } from '@mui/material/colors';
 import AIPromptResponse from './AIPromptResponse';
 
 import SidekickMarkdown from './SidekickMarkdown';
 import ScriptTemplate from './ScriptTemplate';
+import { memo } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
-
-const ScriptPrompt = ({ cells,
+const ScriptPrompt = memo(({ cells,
     cellName, setCellName,
     cellParameters, setCellParameters,
     cellValue, setCellValue,
@@ -22,6 +25,27 @@ const ScriptPrompt = ({ cells,
     const [streamingChatResponse, setStreamingChatResponse] = useState("");
     const streamingChatResponseRef = useRef("");
     const [cellsByName, setCellsByName] = useState({});
+    const myId= uuidv4();
+
+    const [width, setWidth] = useState(0);
+    const handleResize = useCallback(
+        // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
+        debounce((entries) => {
+            entries && entries.length > 0 && setWidth(entries[0].contentRect.width);
+        }, 100),
+        []
+    );
+
+    useEffect(() => {
+        const element = document.getElementById(`script-prompt-${myId}`);
+        const observer = new ResizeObserver((entries) => {
+            if (entries && entries.length > 0 && entries[0].target === element) {
+              handleResize();
+            }
+        });
+        element && observer.observe(element);
+        return () => observer.disconnect();
+    }, [handleResize]);
 
     const listToDict = (list) => {
         list.reduce((acc, cell) => {
@@ -35,12 +59,12 @@ const ScriptPrompt = ({ cells,
     }, [cells]);
 
     useEffect(() => {
-        setCellName(myCellName);
+        cellName !== myCellName && setCellName(myCellName);
     }
     , [myCellName]);
 
     useEffect(() => {
-        setCellValue(myCellValue);
+        cellValue !== myCellValue && setCellValue(myCellValue);
     }
     , [myCellValue]);
 
@@ -64,12 +88,12 @@ const ScriptPrompt = ({ cells,
     };
 
     return (
-        <Box>
+        <Box id={`script-prompt-${myId}`}>
             <TextField label="cell name" variant="outlined" sx={{ mt: 2, width: "100%" }}
                 value={myCellName} onChange={handleNameChange}
             />
             <ScriptTemplate cells={cells}
-                        valueLabel="Edit the template to generate a prompt"
+                        valueLabel={"Edit the template to generate a prompt"}
                         cellName={cellName}
                         cellParameters={scriptTemplateParameters} setCellParameters={setScriptTemplateParameters}
                         cellValue={myCellValue} setCellValue={setPrompt}
@@ -140,6 +164,6 @@ const ScriptPrompt = ({ cells,
             </Box>
         </Box>
     );
-};
+});
 
 export default ScriptPrompt;

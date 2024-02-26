@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Box, FormControl, Select, TextField, MenuItem } from '@mui/material';
+import React, { useState, useEffect, useCallback } from 'react';
+import { debounce } from "lodash";
 
-const ScriptTemplate = ({ valueLabel, cells,
+import { Box, FormControl, Select, TextField, MenuItem } from '@mui/material';
+import { memo } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+
+const ScriptTemplate = memo(({ valueLabel, cells,
     cellValue, setCellValue,
     cellParameters, setCellParameters,
     cellName, setCellName=undefined // leave setCellName undefined to use as part of another cell
@@ -11,6 +15,27 @@ const ScriptTemplate = ({ valueLabel, cells,
     const [template, setTemplate] = useState(cellParameters?.template || "");
     const [cellToAddToTemplate, setCellToAddToTemplate] = useState("");
     const [templateCursorPosition, setTemplateCursorPosition] = useState(0);
+    const myId= uuidv4();
+
+    const [width, setWidth] = useState(0);
+    const handleResize = useCallback(
+        // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
+        debounce((entries) => {
+            entries && entries.length > 0 && setWidth(entries[0].contentRect.width);
+        }, 100),
+        []
+    );
+
+    useEffect(() => {
+        const element = document.getElementById(`script-template-${myId}`);
+        const observer = new ResizeObserver((entries) => {
+            if (entries && entries.length > 0 && entries[0].target === element) {
+              handleResize();
+            }
+        });
+        element && observer.observe(element);
+        return () => observer.disconnect();
+    }, [handleResize]);
 
     useEffect(() => {
         // regenerate the template if any of the cells change
@@ -18,12 +43,12 @@ const ScriptTemplate = ({ valueLabel, cells,
     }, [cells]);
 
     useEffect(() => {
-        setCellName && setCellName(myCellName);
+        cellName !== myCellName && setCellName(myCellName);
     }
     , [myCellName]);
 
     useEffect(() => {
-        setCellValue && setCellValue(myCellValue);
+        cellValue !== myCellValue && setCellValue(myCellValue);
     }
     , [myCellValue]);
 
@@ -97,6 +122,7 @@ const ScriptTemplate = ({ valueLabel, cells,
         flexDirection: "row", alignItems: "center" }}>
         <FormControl sx={{ mt: 2, width: "100%" }} size="small">
             <Select
+                id={`script-template-cell-select-${myId}`}
                 value={cellToAddToTemplate}
                 displayEmpty
                 onChange={(event) => { handleAddCellToPrompt(event.target.value); }}
@@ -119,22 +145,22 @@ const ScriptTemplate = ({ valueLabel, cells,
     </Box>;
 
     return (
-        <Box>
+        <Box id={`script-template-${myId}`}>
             {
                 setCellName !== undefined && myCellName !== undefined &&
-                <TextField id="name" label="cell name" variant="outlined" sx={{ mt: 2, width: "100%" }}
+                <TextField label="cell name" variant="outlined" sx={{ mt: 2, width: "100%" }}
                     value={myCellName} onChange={handleNameChange}
                 />
             }
             {toolbar}
-            <TextField id="template" label="template" variant="outlined" sx={{ mt: 2, width: "100%" }} multiline
+            <TextField label="template" variant="outlined" sx={{ mt: 2, width: "100%" }} multiline
                 rows={6} value={template} onChange={handleTemplateChange} onClick={trackCursorInTemplate} onKeyUp={trackCursorInTemplate}
             />
-            <TextField id="value" label={valueLabel} variant="outlined" sx={{ mt: 2, width: "100%" }} multiline
+            <TextField label={valueLabel} variant="outlined" sx={{ mt: 2, width: "100%" }} multiline
                 rows={6} value={myCellValue} disabled
             />
         </Box>
     );
-};
+});
 
 export default ScriptTemplate;

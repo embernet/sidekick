@@ -10,21 +10,46 @@ Parameters:
     setValue: a function to update the value of the text box
 */
 
-import React, { useState, useEffect } from 'react';
-import { TextField, Box } from '@mui/material';
+import React, { useState, useEffect, useCallback } from 'react';
+import { debounce } from "lodash";
 
-const ScriptText = ({ cellName, setCellName,
+import { TextField, Box } from '@mui/material';
+import { memo } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+
+const ScriptText = memo(({ cellName, setCellName,
     cellValue, setCellValue }) => {
     const [myCellName, setMyCellName] = useState(cellName);
     const [myCellValue, setMyCellValue] = useState(cellValue);
+    const myId= uuidv4();
+
+    const [width, setWidth] = useState(0);
+    const handleResize = useCallback(
+        // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
+        debounce((entries) => {
+            entries && entries.length > 0 && setWidth(entries[0].contentRect.width);
+        }, 100),
+        []
+    );
 
     useEffect(() => {
-        setCellName(myCellName);
+        const element = document.getElementById(`script-text-${myId}`);
+        const observer = new ResizeObserver((entries) => {
+            if (entries && entries.length > 0 && entries[0].target === element) {
+              handleResize();
+            }
+        });
+        element && observer.observe(element);
+        return () => observer.disconnect();
+    }, [handleResize]);
+
+    useEffect(() => {
+        cellName !== myCellName && setCellName(myCellName);
     }
     , [myCellName]);
 
     useEffect(() => {
-        setCellValue(myCellValue);
+        cellValue !== myCellValue && setCellValue(myCellValue);
     }
     , [myCellValue]);
 
@@ -37,7 +62,7 @@ const ScriptText = ({ cellName, setCellName,
     };
 
     return (
-        <Box>
+        <Box id={`script-text-${myId}`}>
             <TextField label="cell name" variant="outlined" sx={{ mt: 2, width: "100%" }}
                 value={myCellName} onChange={handleNameChange}
             />
@@ -46,6 +71,6 @@ const ScriptText = ({ cellName, setCellName,
             />
         </Box>
     );
-}
+});
 
 export default ScriptText;

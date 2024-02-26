@@ -8,6 +8,7 @@ import { StyledBox } from './theme';
 import { ClassNames } from "@emotion/react";
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
+import { v4 as uuidv4 } from 'uuid';
 
 
 // Icons
@@ -26,6 +27,8 @@ import { lightBlue, grey, blueGrey } from '@mui/material/colors';
 const SidekickAI = ({
     sidekickAIOpen, setSidekickAIOpen, serverUrl, token, 
     windowPinnedOpen, setWindowPinnedOpen, darkMode}) => {
+    
+    const myId= uuidv4();
 
     const StyledToolbar = styled(Toolbar)(({ theme }) => ({
         backgroundColor: darkMode ? grey[900] : grey[500],
@@ -98,7 +101,7 @@ const SidekickAI = ({
     );
 
     useEffect(() => {
-        const element = document.getElementById("sidekick-ai-panel");
+        const element = document.getElementById(`sidekick-ai-panel-${myId}`);
         const observer = new ResizeObserver((entries) => {
             if (entries && entries.length > 0 && entries[0].target === element) {
               handleResize();
@@ -163,7 +166,7 @@ const SidekickAI = ({
         setSidekickAIOpen(true);
         setTimeout(() => {
             try {
-                const messageList = document.getElementById("sidekick-ai-message-list");
+                const messageList = document.getElementById(`sidekick-ai-message-list-${myId}`);
                 if (messageList === null) {
                     return;
                 }
@@ -427,7 +430,7 @@ const SidekickAI = ({
         }, 0);
     };
 
-    const render = <Card id="sidekick-ai-panel"
+    const render = <Card id={`sidekick-ai-panel-${myId}`}
         sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", 
         flex:1, minWidth: "380px", maxWidth: "450px"}}>
     <StyledToolbar className={ClassNames.toolbar}>
@@ -455,7 +458,7 @@ const SidekickAI = ({
         <StyledBox sx={{ overflow: 'auto', flex: 1 }}>
 
             {tabIndex === TABS.MANUAL && (
-                <StyledBox id="sidekick-manual-top" sx={{ overflow: 'auto', flex: 1 }}>
+                <StyledBox sx={{ overflow: 'auto', flex: 1 }}>
                     <img alt="Sidekick AI" src="./logo512.png" style={{ maxWidth: "100%" }} />
                     <Typography>You could read the manual, which is below, or you could just ask the AI about Sidekick at the bottom of this window.</Typography>
                     <br/>
@@ -473,7 +476,7 @@ const SidekickAI = ({
                 </StyledBox>
             )}
             {tabIndex === TABS.PROMPTS && (
-                <StyledBox id="sidekick-prompt-engineering-guide-top" sx={{ overflow: 'auto', flex: 1 }}>
+                <StyledBox sx={{ overflow: 'auto', flex: 1 }}>
                     <img alt="Sidekick AI" src="./logo512.png" style={{ maxWidth: "100%" }} />
                     <Typography>The better the quality of your prompt, the better the quality of the response from the AI.</Typography>
                     <br/>
@@ -494,7 +497,7 @@ const SidekickAI = ({
                 <Box>
                     <img alt="Sidekick AI" src="./logo512.png" style={{ maxWidth: "100%" }} />
                     <StyledBox sx={{ overflow: 'auto', flex: 1 }}>
-                        <List id="sidekick-ai-message-list">
+                        <List id={`sidekick-ai-message-list-${myId}`}>
                             {messages && messages.length === 0 && <Typography>{aiWelcomeMessage}</Typography>}
                             {messages && messages.map((message, index) => (
                                 <ListItem key={index}>
@@ -538,7 +541,7 @@ const SidekickAI = ({
                                     </div>
                                 </ListItem>
                             ))}
-                            {streamingChatResponse && streamingChatResponse !== "" && <ListItem id="sidekickAIStreamingChatResponse">
+                            {streamingChatResponse && streamingChatResponse !== "" && <ListItem>
                                 <Card sx={{ 
                                     padding: 2, 
                                     width: "100%", 
@@ -580,7 +583,7 @@ const SidekickAI = ({
         <FormControl>
             <TextField 
                 sx={{ width: "100%", mt: "auto"}}
-                id="sidekick-ai-prompt"
+                id={`sidekick-ai-prompt-${myId}`}
                 name="sidekick-ai-prompt"
                 multiline 
                 variant="outlined" 

@@ -9,6 +9,7 @@ import { ClassNames } from "@emotion/react";
 import ScriptCell from './ScriptCell';
 import { grey } from '@mui/material/colors';
 import { MuiFileInput } from 'mui-file-input';
+import { v4 as uuidv4 } from 'uuid';
 
 // Icons
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
@@ -349,7 +350,7 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
 
     const defaultNewCell = 
     {
-        id: Date.now(),
+        id: uuidv4(),
         type: "text",
         name: "",
         parameters: {},
@@ -414,7 +415,7 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
     const handleAddCell = (index) => {
         let newCells = [
             ...cells.slice(0, index + 1),
-            { ...JSON.parse(JSON.stringify(defaultNewCell)), id: Date.now() },
+            { ...JSON.parse(JSON.stringify(defaultNewCell)), id: uuidv4() },
             ...cells.slice(index + 1)
         ];
         setCells(newCells);
