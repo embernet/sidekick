@@ -57,7 +57,7 @@ migrate = Migrate(app, db)
 metrics = PrometheusMetrics(app)
 
 # static information as metric
-metrics.info('app_info', 'Application info', version='0.2')
+metrics.info('app_info', 'Application info', version=VERSION)
 
 # Remove all logger handlers and add a new one
 while app.logger.hasHandlers():
