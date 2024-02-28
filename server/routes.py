@@ -230,7 +230,7 @@ def save_system_settings(name):
                     mimetype='application/json'
                 )
             else:
-                rl.info(f"Unauthorized attempt to update system settings by user {acting_user_id}")
+                rl.info(f"SECURITY_ALERT: Unauthorized attempt to update system settings by user {acting_user_id}")
                 return app.response_class(
                     response=json.dumps({"success": False}),
                     status=403,
@@ -251,7 +251,6 @@ def get_settings(name):
                 name=name,
                 type="settings"
             )["content"]
-            rl.debug(f"response", settings=settings)
             response = app.response_class(
                 response=json.dumps(settings, indent=4, cls=OrderedEncoder),
                 status=200,
@@ -594,8 +593,9 @@ def docdb_load_document(document_id, document_type=""):
             # if the document privacy is set to private, only the owner can access it
             if document.get("visibility", "private") == "private" and document["metadata"]["user_id"] != acting_user_id:
                 rl.warning("SECURITY_ALERT: Attempt to access private document",
-                           document_id=document_id, acting_user_id=acting_user_id)
-                return "Document not found", 404
+                           document_id=document_id, acting_user_id=acting_user_id,
+                           owning_user_id=document["metadata"]["user_id"])
+                return "Not authorized", 401
             
             document_size = len(json.dumps(document))
             rl.push(action="got document", document_id=document_id, size=document_size)
@@ -611,6 +611,15 @@ def docdb_load_document(document_id, document_type=""):
 def docdb_save_document(document_id, document_type=""):
     with RequestLogger(request) as rl:
         acting_user_id = get_jwt_identity()
+
+        document = DBUtils.get_document(document_id=document_id)
+        # users can only save documents they own
+        if document["metadata"]["user_id"] != acting_user_id:
+            rl.warning("SECURITY_ALERT: Attempt to write to another user's document",
+                        document_id=document_id, acting_user_id=acting_user_id,
+                        owning_user_id=document["metadata"]["user_id"])
+            return "Not authorized", 401
+
         increment_server_stat(category="requests", stat_name=f"docdbSave({document_type})")
         data = request.get_json()
         document_size = len(json.dumps(data))
@@ -631,6 +640,15 @@ def docdb_save_document(document_id, document_type=""):
 def docdb_rename_document(document_type, document_id):
     with RequestLogger(request) as rl:
         acting_user_id = get_jwt_identity()
+
+        # users can only rename documents they own
+        document = DBUtils.get_document(document_id=document_id)
+        if document["metadata"]["user_id"] != acting_user_id:
+            rl.warning("SECURITY_ALERT: Attempt to rename another user's document",
+                        document_id=document_id, acting_user_id=acting_user_id,
+                        owning_user_id=document["metadata"]["user_id"])
+            return "Not authorized", 401
+
         increment_server_stat(category="requests", stat_name=f"docdbRename({document_type})")
         document = DBUtils.update_document_name(document_id,
                                                 request.get_json()["name"])
@@ -642,6 +660,15 @@ def docdb_rename_document(document_type, document_id):
 def docdb_move_document(document_type, document_id):
     with RequestLogger(request) as rl:
         acting_user_id = get_jwt_identity()
+
+        # users can only move documents they own
+        document = DBUtils.get_document(document_id=document_id)
+        if document["metadata"]["user_id"] != acting_user_id:
+            rl.warning("SECURITY_ALERT: Attempt to move another user's document",
+                        document_id=document_id, acting_user_id=acting_user_id,
+                        owning_user_id=document["metadata"]["user_id"])
+            return "Not authorized", 401
+
         increment_server_stat(category="requests", stat_name=f"docdbMove({document_type})")
         document = DBUtils.update_document_type(id, request.get_json()["type"])
         rl.push(action="moved document", document_id=document_id)
@@ -654,6 +681,15 @@ def docdb_move_document(document_type, document_id):
 def docdb_delete_document(document_type, document_id):
     with RequestLogger(request) as rl:
         acting_user_id = get_jwt_identity()
+
+        # users can only delete documents they own
+        document = DBUtils.get_document(document_id=document_id)
+        if document["metadata"]["user_id"] != acting_user_id:
+            rl.warning("SECURITY_ALERT: Attempt to delete another user's document",
+                        document_id=document_id, acting_user_id=acting_user_id,
+                        owning_user_id=document["metadata"]["user_id"])
+            return "Not authorized", 401
+
         increment_server_stat(category="requests", stat_name=f"docdbDelete({document_type})")
         document = DBUtils.delete_document(document_id)
         return jsonify(document)
@@ -871,7 +907,7 @@ def delete_user():
         acting_user_id = get_jwt_identity()
         rl.info("request to delete user", acting_user_id=acting_user_id, user_id_to_delete=user_id_to_delete)
         if acting_user_id != user_id_to_delete and not DBUtils.user_isadmin(acting_user_id):
-            rl.info("Unauthorized attempt to delete user", acting_user_id=acting_user_id, user_id_to_delete=user_id_to_delete)
+            rl.warning("SECURITY_ALERT: Unauthorized attempt to delete user", acting_user_id=acting_user_id, user_id_to_delete=user_id_to_delete)
             return app.response_class(
                 response=json.dumps({"success": False, "message": "Only admins can delete other users"}),
                 status=403,
