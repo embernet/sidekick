@@ -658,14 +658,33 @@ def create_account():
         increment_server_stat(category="requests", stat_name="createAccount")
         try:
             data = request.get_json()
+
+            # check if creating accounts is enabled
+            settings = DBUtils.get_document(
+                user_id="sidekick",
+                name="login",
+                type="system_settings"
+            )["content"]
+            if not settings.get("functionality", {}).get("createAccount", False):
+                rl.warning("SECURITY_ALERT: Attempt to create account when account creation is disabled.")
+                return jsonify({'success': False, 'message': 'Account creation is disabled.'})
+
+            new_user_properties = data.get('properties', {})
+
+            # Do not allow admin users to be created from this unprotected endpoint
+            if "roles" in new_user_properties:
+                rl.warning("SECURITY_ALERT: Attempt to add roles to a user from unprotected endpoint.")
+                return jsonify({'success': False, 'message': 'Adding roles to a user is not permitted from this endpoint.'})
+
             # if 'sidekick' appears in the user_id, throw an exception
             if 'sidekick' in data['user_id']:
-                raise Exception("Invalid user_id: cannot contain 'sidekick'")
+                return jsonify({'success': False, 'message': 'Invalid user_id: cannot contain "sidekick"'})
+            
             DBUtils.create_user(
                 user_id=data["user_id"],
                 name=data["name"],
                 password=data["password"],
-                properties=data['properties'] if 'properties' in data else {})
+                properties=new_user_properties)
             return jsonify({'success': True})
         except IntegrityError as e:
             rl.error(f"/create_account user_id:{data['user_id']} error: User already exists")
