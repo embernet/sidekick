@@ -590,6 +590,13 @@ def docdb_load_document(document_id, document_type=""):
         increment_server_stat(category="requests", stat_name=f"docdbGet({document_type})")
         try:
             document = DBUtils.get_document(document_id=document_id)
+
+            # if the document privacy is set to private, only the owner can access it
+            if document.get("visibility", "private") == "private" and document["metadata"]["user_id"] != acting_user_id:
+                rl.warning("SECURITY_ALERT: Attempt to access private document",
+                           document_id=document_id, acting_user_id=acting_user_id)
+                return "Document not found", 404
+            
             document_size = len(json.dumps(document))
             rl.push(action="got document", document_id=document_id, size=document_size)
             return jsonify(document)
