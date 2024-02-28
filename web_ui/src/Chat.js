@@ -1347,7 +1347,7 @@ const Chat = ({
                     }
                 }
                 onKeyUp={handleChatPromptKeyup}
-                onPaste={editorEventHandlers.onPaste}
+                onPaste={ (event) => { editorEventHandlers.onPaste(event); setChatPromptIsEmpty(false); }}
                 data-placeholder={promptPlaceholder}
                 className={chatPromptIsEmpty ? 'empty' : ''}
                 style={{
