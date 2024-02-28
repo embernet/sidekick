@@ -109,7 +109,6 @@ const Chat = ({
     const [settings, setSettings] = useState({});
     const [settingsLoaded, setSettingsLoaded] = useState(false);
     const chatLoading = useRef(false);
-    const [chatLoaded, setChatLoaded] = useState(false);
     const [folder, setFolder] = useState("chats");
     const [tags, setTags] = useState([]);
     const [myServerUrl, setMyServerUrl] = useState(serverUrl);
@@ -200,7 +199,7 @@ const Chat = ({
     }, [id]);
 
     useEffect(()=>{
-        if (messages.length > 0) {
+        if (messages.length > 0 && !chatLoading.current) {
             if (id !== "" && id !== null) {
                 save();
             } else {
@@ -376,7 +375,6 @@ const Chat = ({
     }, [newStreamDelta]);
 
     useEffect(()=>{
-        setChatLoaded(false); // set true in chat load callback
         if (loadChat) {
             if (streamingChatResponse !== "") {
                 system.warning("Please wait for the current chat to finish loading before loading another chat.");
@@ -582,12 +580,7 @@ const Chat = ({
     }
 
     const save = () => {
-        if (!chatLoaded) {
-            setChatLoaded(true);
-            return; // don't save on load, just on change
-        }
         let request = chatAsObject();
-
         axios.put(`${serverUrl}/docdb/${folder}/documents/${id}`, request, {
             headers: {
                 Authorization: 'Bearer ' + token
