@@ -760,7 +760,8 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 onKeyDown={ 
                     (event) => {
                         editorEventHandlers.onKeyDown(event);
-                        handleContentKeyDown(event)
+                        handleContentKeyDown(event);
+                        handleNoteContentInput(event);
                     }
                 }
                 onPaste={editorEventHandlers.onPaste}

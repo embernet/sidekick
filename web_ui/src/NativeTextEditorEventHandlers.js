@@ -11,6 +11,15 @@ export default class NativeTextEditorEventHandlers {
     constructor({hotkeyHandlers, darkMode}) {
         this.hotkeyHandlers = hotkeyHandlers;
         this.darkMode = darkMode;
+        this.markdownHotkeys = {
+            'b': { insertBeforeSelection: '**', insertAfterSelection: '**' }, // bold
+            'i': { insertBeforeSelection: '_', insertAfterSelection: '_' },  // italic
+            'u': { insertBeforeSelection: '', insertAfterSelection: '' }, // underline not supported in markdown, but disable the browser's default behavior
+            'k': { insertBeforeSelection: '[', insertAfterSelection: '](url)' }, // link
+            'k1': { insertBeforeSelection: '[pagename](', insertAfterSelection: ')' }, // link
+        };
+    
+
     }
     
     onPaste = (event) => {
@@ -24,6 +33,96 @@ export default class NativeTextEditorEventHandlers {
         range.collapse(false);
     }
 
+    handleMarkdownHotkeys = (event) => {
+        try {
+            const markdown = this.markdownHotkeys[event.key];
+            if (markdown)
+            {
+                const selection = window.getSelection();
+                const range = selection.getRangeAt(0);
+                const selectedText = range.toString();
+
+                // Create two text nodes for before and after the selected text
+                const markdownBefore = markdown.insertBeforeSelection;
+                const markdownAfter = markdown.insertAfterSelection;
+            
+                // Delete the selected text (if any)
+                range.deleteContents();
+
+                if (event.key === 'k') {
+                    if (selectedText.toLowerCase().startsWith('http')) {
+                        const beforeNode = document.createTextNode(this.markdownHotkeys['k1'].insertBeforeSelection);
+                        const afterNode = document.createTextNode(this.markdownHotkeys['k1'].insertAfterSelection);
+                        range.insertNode(afterNode);
+                        range.insertNode(document.createTextNode(selectedText));
+                        range.insertNode(beforeNode);
+                        range.setStart(beforeNode, 1);
+                        range.setEnd(beforeNode, beforeNode.length - 3 + 1);
+                    } else {
+                        const newNode = document.createTextNode(markdownBefore + selectedText + markdownAfter);
+                        range.insertNode(newNode);
+                        range.setStart(newNode, markdownBefore.length + selectedText.length + 2);
+                        range.setEnd(newNode, markdownBefore.length + selectedText.length + markdownAfter.length - 1);
+                    }
+
+                } else {
+                    // Check the surrounding text to see if the markdown is already in place
+                    // and hence we need to remove it or not and hence we need to add it
+                    const beforeRange = document.createRange();
+                    beforeRange.setStart(range.startContainer, 0);
+                    beforeRange.setEnd(range.startContainer, range.startOffset);
+                    const beforeText = beforeRange.toString().slice(-markdownBefore.length);
+
+                    const afterRange = document.createRange();
+                    afterRange.setStart(range.endContainer, range.endOffset);
+                    afterRange.setEnd(range.endContainer, range.endContainer.length);
+                    const afterText = afterRange.toString().substring(0, markdownAfter.length);
+
+                    if (beforeText === markdownBefore && afterText === markdownAfter) {
+                        // If the beforeNode, afterNode, and startOfLine text is already present, remove it
+                        const totalRange = document.createRange();
+                        totalRange.setStart(range.startContainer, range.startOffset - markdownBefore.length);
+                        totalRange.setEnd(range.endContainer, range.endOffset + markdownAfter.length);
+                        totalRange.deleteContents();
+                        const newNode = document.createTextNode(selectedText);
+                        totalRange.insertNode(newNode);
+                        // re-select the text
+                        // Create a new range to select the text in the new node
+                        const newRange = document.createRange();
+                        newRange.setStart(newNode, 0);
+                        newRange.setEnd(newNode, newNode.nodeValue.length);
+
+                        // Set the selection to the new range
+                        const selection = window.getSelection();
+                        selection.removeAllRanges();
+                        selection.addRange(newRange);
+                    } else {
+                        // Add the markdown syntax
+                        const newText = markdownBefore.toString() + selectedText + markdownAfter.toString();
+                        range.deleteContents();
+                        const newNode = document.createTextNode(newText);
+                        range.insertNode(newNode);
+
+                        // Update the range to point to the new text node
+                        range.setStart(newNode, 0);
+                        range.setEnd(newNode, newNode.length);
+
+                        // Select the text that was previously selected or place the cursor between the markdown syntax
+                        if (selectedText === '') {
+                            range.setStart(newNode, markdownBefore.length);
+                            range.setEnd(newNode, markdownBefore.length);
+                        } else {
+                            range.setStart(newNode, markdownBefore.length);
+                            range.setEnd(newNode, markdownBefore.length + selectedText.length);
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error handling markdown hotkey', error);
+        }
+    }
+
     onKeyDown = (event) => {
         if (event.ctrlKey || event.metaKey) {
             if (event.key === 's') {
@@ -31,22 +130,10 @@ export default class NativeTextEditorEventHandlers {
                 if (this.hotkeyHandlers?.save) {
                     this.hotkeyHandlers.save();
                 }
-            } else if (
-                event.key !== 'c' && 
-                event.key !== 'v' && 
-                event.key !== 'x' &&
-                event.key !== 'z' &&
-                event.key !== 'y' &&
-                event.key !== 'f' &&
-                event.key !== 'g' &&
-                event.key !== 'a')
+            } else if ((event.ctrlKey || event.metaKey) && event.key in this.markdownHotkeys)
             {
-                // for now, throw away attempts at using hotkeys for formatting
-                // if we don't do this, the defult div behaviour
-                // is to do thinks like bold selected text when ctrl+b is pressed
-                // This is a markdown editor, so we don't want that
-                // we can add event.key === 'b' text later to do things like that
-                event.preventDefault();
+                event.preventDefault();            
+                this.handleMarkdownHotkeys(event);
             }
         } 
         if (event.key === 'Tab') {
