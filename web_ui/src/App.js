@@ -58,7 +58,7 @@ import Admin from './Admin';
 import SidekickAI from './SidekickAI';
 import StatusBar from './StatusBar';
 
-const VERSION = "0.2.2";
+const VERSION = "0.2.3";
 
 const ScriptIcon = SmartDisplayOutlinedIcon;
 const ScriptsExplorerIcon = SubscriptionsOutlinedIcon;
