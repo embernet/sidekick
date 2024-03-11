@@ -38,7 +38,46 @@ Sidekick provides a chat interface to OpenAI's GPT models along with pre-canned 
 - To clear the prompt box: When in the prompt box, press the Escape key
 - To create a new chat: Click the New Chat icon in the Chat main Toolbar
 - To turn code syntax highlighting on or off: Click the Code Highlighting icon in the Chat main Toolbar
-- Right clicking on a message in the chat lets you copy the message, use it in the prompt, append it to a note, or delete it
+- Right clicking on a message in the chat lets you:
+  - Copy the message to the clipboard as text
+  - Copy the message to the clipboard as HTML
+  - Run Actions against the whole Chat
+    - Continue
+    - Summarise
+    - Summarise key points as bullets
+    - Provide more detail
+    - Explain in simple terms
+    - Explain in detail
+    - Give the background and history
+    - Predict future outcomes or scenarios this could lead to
+    - Answer What are the implications of this?
+    - Answer What questions does this give rise to?
+    - Answer What are the pros and cons of this?
+    - List related topics
+    - List related trends
+    - Answer How can this help me?
+    - Answer How might this hinder me
+  - Run Actions against the selected text
+    - Define
+    - Explain in simple terms
+    - Explain in detail
+    - Provide synonyms for
+    - Provide antonyms for
+    - Give examples of
+    - Give counter-examples of
+    - Give arguments for
+    - Give counter-arugments for
+    - Provide history for
+    - List related topics to
+    - List trends related to
+    - Answer How can this help me?
+    - Answer How might this hinder me?
+  - Append the message to the prompt
+  - Use the message as the prompt
+  - Append the message to a note
+  - Append all messages in the chat to a note
+  - Delete a message
+  - Delete all messages in the chat
 - The chat history is saved in the Sidekick database
 - Click the book icon to open the AI knowledge library and add notes you want the AI to use as context in this chat
 

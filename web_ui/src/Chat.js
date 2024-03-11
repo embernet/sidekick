@@ -3,7 +3,8 @@ import { debounce } from "lodash";
 
 import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Box, Paper, Toolbar, IconButton, Typography, TextField,
-    List, ListItem, Menu, MenuItem, Tooltip, Button, FormLabel, Popover
+    List, ListItem, Menu, MenuItem, Tooltip, Button, FormLabel, Popover,
+    ListItemText, ListItemIcon
      } from '@mui/material';
 import { ClassNames } from "@emotion/react";
 import { InputLabel, FormHelperText, FormControl, Select } from '@mui/material';
@@ -31,6 +32,7 @@ import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
@@ -103,6 +105,8 @@ const Chat = ({
     const [systemPrompt, setSystemPrompt] = useState("");
     const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady.current);
     const [messageContextMenu, setMessageContextMenu] = useState(null);
+    const [selectedTextContextSubMenu, setSelectedTextContextSubMenu] = useState(null);
+    const [chatContextSubMenu, setChatContextSubMenu] = useState(null);
     const [uploadingFile, setUploadingFile] = useState(false);
     const [fileToUpload, setFileToUpload] = useState(null);
     const [markdownRenderingOn, setMarkdownRenderingOn] = useState(true);
@@ -873,15 +877,46 @@ const Chat = ({
                 message: message,
                 index: index,
               }
-            : // repeated contextmenu when it is already open closes it with Chrome 84 on Ubuntu
-              // Other native context menus might behave differently.
-              // With this behavior we prevent contextmenu from the backdrop re-locating existing context menus.
-              null,
+            : null,
+        );
+    };
+
+    const handleChatContextSubMenu = (event) => {
+        event.preventDefault();
+        setChatContextSubMenu(
+            chatContextSubMenu === null
+            ? {
+                mouseX: event.clientX + 2,
+                mouseY: event.clientY - 6,
+                }
+            : null,
+        );
+    };
+
+    const handleSelectedTextContextSubMenu = (event) => {
+        event.preventDefault();
+        setSelectedTextContextSubMenu(
+            selectedTextContextSubMenu === null
+            ? {
+                mouseX: event.clientX + 2,
+                mouseY: event.clientY - 6,
+                }
+            : null,
         );
     };
 
     const handleMessageContextMenuClose = () => {
         setMessageContextMenu(null);
+    };
+
+    const handleChatContextSubMenuClose = () => {
+        setChatContextSubMenu(null);
+        handleMessageContextMenuClose();
+    };
+
+    const handleSelectedTextContextSubMenuClose = () => {
+        setSelectedTextContextSubMenu(null);
+        handleMessageContextMenuClose();
     };
 
     const handleCopyHighlightedText = () => {
@@ -1079,7 +1114,25 @@ const Chat = ({
     const editorEventHandlers = new NativeTextEditorEventHandlers(
         { hotKeyHandlers: { "save": save }, darkMode: darkMode }
     );
+
+    const ActionMenu = ({prompt}) => {
+        return (
+            <MenuItem onClick={ () => {
+                handleChatContextSubMenuClose();
+                sendPrompt(prompt);
+                }}>{prompt}</MenuItem>
+        )
+    }
     
+    const ActionOnTextMenu = ({prompt, text}) => {
+        return (
+            <MenuItem onClick={ () => {
+                handleSelectedTextContextSubMenuClose();
+                sendPrompt(prompt + ": " + text);
+                }}>{prompt}</MenuItem>
+        )
+    }
+
     const toolbar =
     <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
         <CommentIcon/>
@@ -1223,21 +1276,100 @@ const Chat = ({
                                 }
                             </Card>
                             <Menu
+                                id="chat-context-menu"
                                 open={messageContextMenu !== null}
                                 onClose={handleMessageContextMenuClose}
                                 anchorReference="anchorPosition"
                                 anchorPosition={
-                                messageContextMenu !== null
+                                    messageContextMenu !== null
                                     ? { 
                                         top: messageContextMenu.mouseY,
                                         left: messageContextMenu.mouseX,
                                         message: message,
                                         index: index,
                                     }
-                                    : undefined
+                                    : { top: 0, left: 0 } // Default position
                                 }
                             > 
-                                <MenuItem disabled={!window.getSelection().toString()} onClick={handleCopyHighlightedText}>Copy highlighted text</MenuItem>
+                                <MenuItem
+                                    disabled={!window.getSelection().toString()}
+                                    onClick={handleCopyHighlightedText}>
+                                    Copy highlighted text
+                                </MenuItem>
+                                <MenuItem
+                                    disabled={!window.getSelection().toString() || promptPlaceholder === userPromptWaiting}
+                                    onClick={handleSelectedTextContextSubMenu}>
+                                    <ListItemText>Selection Actions</ListItemText>
+                                    <ListItemIcon>
+                                        <KeyboardArrowRightIcon />
+                                    </ListItemIcon>                                    
+                                    <Menu
+                                        open={selectedTextContextSubMenu !== null}
+                                        onClose={handleSelectedTextContextSubMenuClose}
+                                        anchorReference="anchorPosition"
+                                        anchorPosition={
+                                            messageContextMenu !== null
+                                            ? { 
+                                                top: messageContextMenu?.mouseY + 100 || 0,
+                                                left: messageContextMenu?.mouseX + 100 || 0,
+                                            }
+                                            : { top: 0, left: 0 } // Default position
+                                        }
+                                    >
+                                        <ActionOnTextMenu prompt="Define" text={window.getSelection().toString()}/>
+                                        <ActionOnTextMenu prompt="Explain in simple terms" text={window.getSelection().toString()}/>
+                                        <ActionOnTextMenu prompt="Explain in detail" text={window.getSelection().toString()}/>
+                                        <ActionOnTextMenu prompt="Provide synonyms for" text={window.getSelection().toString()}/>
+                                        <ActionOnTextMenu prompt="Provide antonyms for" text={window.getSelection().toString()}/>
+                                        <ActionOnTextMenu prompt="Give examples of" text={window.getSelection().toString()}/>
+                                        <ActionOnTextMenu prompt="Give counter-examples of" text={window.getSelection().toString()}/>
+                                        <ActionOnTextMenu prompt="Give arguments for" text={window.getSelection().toString()}/>
+                                        <ActionOnTextMenu prompt="Give counter-arguments for" text={window.getSelection().toString()}/>
+                                        <ActionOnTextMenu prompt="Provide history for" text={window.getSelection().toString()}/>
+                                        <ActionOnTextMenu prompt="List related topics to" text={window.getSelection().toString()}/>
+                                        <ActionOnTextMenu prompt="List trends related to" text={window.getSelection().toString()}/>
+                                        <ActionOnTextMenu prompt="How can this help me" text={window.getSelection().toString()}/>
+                                        <ActionOnTextMenu prompt="How might this hinder me" text={window.getSelection().toString()}/>
+                                    </Menu>
+                                </MenuItem>
+                                <MenuItem
+                                    disabled={messages.length === 0 || !!window.getSelection().toString() || promptPlaceholder === userPromptWaiting}
+                                    onClick={handleChatContextSubMenu}
+                                >
+                                    <ListItemText>Chat Actions</ListItemText>
+                                    <ListItemIcon>
+                                        <KeyboardArrowRightIcon />
+                                    </ListItemIcon>
+                                    <Menu
+                                        open={chatContextSubMenu !== null}
+                                        onClose={handleChatContextSubMenuClose}
+                                        anchorReference="anchorPosition"
+                                        anchorPosition={
+                                            messageContextMenu !== null
+                                            ? { 
+                                                top: messageContextMenu?.mouseY + 100 || 0,
+                                                left: messageContextMenu?.mouseX + 100|| 0,
+                                            }
+                                            : { top: 0, left: 0 } // Default position
+                                        }
+                                    >
+                                        <ActionMenu prompt="Continue"/>
+                                        <ActionMenu prompt="Summarise"/>
+                                        <ActionMenu prompt="Summarise key points as a bullet list"/>
+                                        <ActionMenu prompt="Provide more detail"/>
+                                        <ActionMenu prompt="Explain in simple terms"/>
+                                        <ActionMenu prompt="Explain in detail"/>
+                                        <ActionMenu prompt="Give the background and history"/>
+                                        <ActionMenu prompt="Predict future outcomes or scenarios this could lead to"/>
+                                        <ActionMenu prompt="What are the implications of this?"/>
+                                        <ActionMenu prompt="What questions does this give rise to?"/>
+                                        <ActionMenu prompt="What are the pros and cons of this?"/>
+                                        <ActionMenu prompt="List related topics"/>
+                                        <ActionMenu prompt="List related trends"/>
+                                        <ActionMenu prompt="How can this help me?"/>
+                                        <ActionMenu prompt="How might this hinder me?"/>
+                                    </Menu>
+                                </MenuItem>
                                 <MenuItem onClick={handleCopyMessageAsText}>Copy message as text</MenuItem>
                                 <MenuItem onClick={handleCopyAllAsText}>Copy all as text</MenuItem>
                                 <MenuItem onClick={handleCopyMessageAsHTML}>Copy message as html</MenuItem>

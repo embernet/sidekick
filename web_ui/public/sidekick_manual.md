@@ -85,6 +85,37 @@ Return to [Sidekick Tools](#sidekick-tools)
 - Right clicking on a message in the chat lets you:
   - Copy the message to the clipboard as text
   - Copy the message to the clipboard as HTML
+  - Run Actions against the whole Chat
+    - Continue
+    - Summarise
+    - Summarise key points as bullets
+    - Provide more detail
+    - Explain in simple terms
+    - Explain in detail
+    - Give the background and history
+    - Predict future outcomes or scenarios this could lead to
+    - Answer What are the implications of this?
+    - Answer What questions does this give rise to?
+    - Answer What are the pros and cons of this?
+    - List related topics
+    - List related trends
+    - Answer How can this help me?
+    - Answer How might this hinder me
+  - Run Actions against the selected text
+    - Define
+    - Explain in simple terms
+    - Explain in detail
+    - Provide synonyms for
+    - Provide antonyms for
+    - Give examples of
+    - Give counter-examples of
+    - Give arguments for
+    - Give counter-arugments for
+    - Provide history for
+    - List related topics to
+    - List trends related to
+    - Answer How can this help me?
+    - Answer How might this hinder me?
   - Append the message to the prompt
   - Use the message as the prompt
   - Append the message to a note

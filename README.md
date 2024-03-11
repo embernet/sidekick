@@ -79,6 +79,14 @@ Right clicking on a message in the chat lets you copy it to the clipboard, copy 
 
 ![Sidekick chat context menu](docs/images/Sidekick_Chat_Context_Menu.png)
 
+When text is selected, you can submit prompts provided in the **Selection Actions sub-menu** applied to that selection.
+
+![Sidekick chat selection actions context menu](docs/images/Sidekick_Chat_Selection_Actions_Context_Menu.png)
+
+The **Chat Actions sub-menu** provides actions that can be applied to the whole chat.
+
+![Sidekick chat actions context menu](docs/images/Sidekick_Chat_Actions_Context_Menu.png)
+
 ## Pick from different AI personas
 
 The Personas tool lets you change the persona of the AI so the response can be provided from a perspective that suits your purpose. You can filter personas by name, keywords in their profile, and favourite status. So you can search for personas that are good at a particular topic or that have a particular personality. E.g. try searching for expert, creative, logic, company.
