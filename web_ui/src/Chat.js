@@ -1490,6 +1490,9 @@ const Chat = ({
                     flex: 1,
                     marginTop: "auto",
                     padding: "18.5px 14px",
+                    backgroundColor: darkMode ? grey[900] : 'white',
+                    color: darkMode ? "rgba(255, 255, 255, 0.87)" : "rgba(0, 0, 0, 0.87)",
+                    border: darkMode ? "1px solid rgba(200, 200, 200, 0.23)" : "1px solid rgba(0, 0, 0, 0.23)",
                 }}
             >
             </div>

@@ -754,6 +754,9 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     padding: "6px",
                     flexGrow: 1,
                     marginTop: "auto",
+                    backgroundColor: darkMode ? grey[900] : 'white',
+                    color: darkMode ? "rgba(255, 255, 255, 0.87)" : "rgba(0, 0, 0, 0.87)",
+                    border: darkMode ? "1px solid rgba(200, 200, 200, 0.23)" : "1px solid rgba(0, 0, 0, 0.23)",
                 }}
                 onInput={handleNoteContentInput}
                 onChange={handleContentChange}

@@ -8,9 +8,8 @@
 import { grey } from '@mui/material/colors';
 
 export default class NativeTextEditorEventHandlers {
-    constructor({hotkeyHandlers, darkMode}) {
+    constructor({hotkeyHandlers}) {
         this.hotkeyHandlers = hotkeyHandlers;
-        this.darkMode = darkMode;
         this.markdownHotkeys = {
             'b': { insertBeforeSelection: '**', insertAfterSelection: '**' }, // bold
             'i': { insertBeforeSelection: '_', insertAfterSelection: '_' },  // italic
@@ -18,8 +17,6 @@ export default class NativeTextEditorEventHandlers {
             'k': { insertBeforeSelection: '[', insertAfterSelection: '](url)' }, // link
             'k1': { insertBeforeSelection: '[pagename](', insertAfterSelection: ')' }, // link
         };
-    
-
     }
     
     onPaste = (event) => {
@@ -158,11 +155,8 @@ export default class NativeTextEditorEventHandlers {
         padding: '0',
         margin: '0',
         lineHeight: '1.5em',
-        border: this.darkMode ? "1px solid rgba(200, 200, 200, 0.23)" : "1px solid rgba(0, 0, 0, 0.23)",
-        backgroundColor: this.darkMode ? grey[900] : grey[100],
         borderRadius: "4px",
         fontSize: "1rem",
         fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-        color: this.darkMode ? "rgba(255, 255, 255, 0.87)" : "rgba(0, 0, 0, 0.87)",
     }
 }
