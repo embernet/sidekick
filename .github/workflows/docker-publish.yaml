@@ -2,7 +2,9 @@ name: Publish Docker images
 
 on:
   push:
-    branches: [main]
+    branches: 
+      - main
+      - develop
 
 jobs:
   push_to_dockerhub:
@@ -13,22 +15,30 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v4
 
+      - name: Set Docker tag variable
+        run: |
+          if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
+            echo "DOCKER_TAG=latest" >> "$GITHUB_ENV"
+          else
+            echo "DOCKER_TAG=dev" >> "$GITHUB_ENV"
+          fi
+
       - name: Log in to Docker Hub
         run: |
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
       
       - name: Build Server Image
         run: |
-          docker build --tag ${{ vars.DOCKER_ORG }}/sidekick-server:latest server/
+          docker build --tag ${{ vars.DOCKER_ORG }}/sidekick-server:${{ env.DOCKER_TAG }} server/
 
       - name: Build Web UI Image
         run: |
-          docker build --tag ${{ vars.DOCKER_ORG }}/sidekick-web-ui:latest web_ui/
+          docker build --tag ${{ vars.DOCKER_ORG }}/sidekick-web-ui:${{ env.DOCKER_TAG }} web_ui/
       
       - name: Push Server Image
         run: |
-          docker push ${{ vars.DOCKER_ORG }}/sidekick-server:latest
+          docker push ${{ vars.DOCKER_ORG }}/sidekick-server:${{ env.DOCKER_TAG }}
 
       - name: Push Web UI Image
         run: |
-          docker push ${{ vars.DOCKER_ORG }}/sidekick-web-ui:latest
+          docker push ${{ vars.DOCKER_ORG }}/sidekick-web-ui:${{ env.DOCKER_TAG }}
