@@ -91,6 +91,7 @@ const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
                 return <ScriptText
                     cellName={cellName} setCellName={setMyCellName}
                     cellValue={cellValue} setCellValue={setMyCellValue}
+                    cellParameters={cellParameters} setCellParameters={setMyCellParameters}
                 />;
                 case "template":
                     return <ScriptTemplate cells={cells}
@@ -103,6 +104,7 @@ const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
                 return <ScriptList
                     cellName={cellName} setCellName={setMyCellName}
                     cellValue={cellValue} setCellValue={setMyCellValue}
+                    cellParameters={cellParameters} setCellParameters={setMyCellParameters}
                 />;
             case "prompt":
                 return <ScriptPrompt cells={cells}

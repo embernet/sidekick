@@ -10,12 +10,18 @@ const ScriptTemplate = memo(({ valueLabel, cells,
     cellParameters, setCellParameters,
     cellName, setCellName=undefined // leave setCellName undefined to use as part of another cell
 }) => {
+    // Set the initial state of the cell
+    // taking into account the user may switch between cell types in the UI
     const [myCellName, setMyCellName] = useState(cellName || "");
-    const [myCellValue, setMyCellValue] = useState(cellValue || "");
-    const [template, setTemplate] = useState(cellParameters?.template || "");
+    const [myCellValue, setMyCellValue] = useState( typeof cellValue === "string" ? cellValue : "");
+    // If the cellParameters are not set, use the cellValue as the template
+    // This enables the user to switch between cell types and keep the same value
+    const [template, setTemplate] = useState(cellParameters?.template || (typeof cellValue === "string" ? cellValue : ""));
+    const myId= uuidv4();
+
+    // UI state
     const [cellToAddToTemplate, setCellToAddToTemplate] = useState("");
     const [templateCursorPosition, setTemplateCursorPosition] = useState(0);
-    const myId= uuidv4();
 
     const [width, setWidth] = useState(0);
     const handleResize = useCallback(

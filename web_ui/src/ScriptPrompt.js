@@ -15,9 +15,16 @@ const ScriptPrompt = memo(({ cells,
     cellParameters, setCellParameters,
     cellValue, setCellValue,
     modelSettings, persona, serverUrl, token, setToken, darkMode, markdownRenderingOn, system }) => {
+    // Set the initial state of the cell
+    // taking into account the user may switch between cell types in the UI
     const [myCellName, setMyCellName] = useState(cellName || "");
-    const [myCellValue, setMyCellValue] = useState(cellValue || "");
-    const [scriptTemplateParameters, setScriptTemplateParameters] = useState({ template: cellParameters?.template || "" });
+    const [myCellValue, setMyCellValue] = useState({ response: typeof cellValue === "string" ? cellValue : "" });
+    // If the cellParameters are not set, use the cellValue as the template
+    // This enables the user to switch between cell types and keep the same value
+    const [scriptTemplateParameters, setScriptTemplateParameters] =
+        useState({ template: cellParameters?.template || (typeof cellValue === "string" ? cellValue : "") });
+    
+    // UI state
     const [prompt, setPrompt] = useState("");
     const [userPromptToSend, setUserPromptToSend] = useState("");
     const [response, setResponse] = useState(cellValue?.response || "");

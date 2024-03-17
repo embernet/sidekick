@@ -20,12 +20,16 @@ import { memo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 const ScriptList = memo(({ cellName, setCellName,
-    cellValue, setCellValue }) => {
-    const [myCellName, setMyCellName] = useState(cellName);
-    const [myCellValue, setMyCellValue] = useState(cellValue);
+    cellValue, setCellValue, setCellParameters }) => {
+    // Set the initial state of the cell
+    // taking into account the user may switch between cell types in the UI
+    const [myCellName, setMyCellName] = useState(cellName || "");
+    const [myCellValue, setMyCellValue] = useState({ cellList: cellValue?.cellList || [] });
+    const myId= uuidv4();
+    
+    // UI state
     const defaultListItem = { value: "" };
     const [myCellList, setMyCellList] = useState(cellValue?.cellList || []);
-    const myId= uuidv4();
 
     const [width, setWidth] = useState(0);
     const handleResize = useCallback(
@@ -35,6 +39,11 @@ const ScriptList = memo(({ cellName, setCellName,
         }, 100),
         []
     );
+
+    useEffect(() => {
+        // Clear the cell parameters as they are not used in this cell type
+        setCellParameters && setCellParameters({});
+    }, [setCellParameters]);
 
     useEffect(() => {
         const element = document.getElementById(`script-list-${myId}`);
