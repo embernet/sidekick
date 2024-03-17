@@ -204,11 +204,15 @@ const Chat = ({
 
     useEffect(()=>{
         if (messages.length > 0 && !chatLoading.current) {
+            // don't save if this hook was called as a result of loading a chat
             if (id !== "" && id !== null) {
                 save();
             } else {
                 create();
             }
+        } else {
+            // reset the loading state so that future changes will be saved
+            chatLoading.current = false;
         }
         // recalculate prompt and response counts
         let promptCount = 0;
@@ -383,6 +387,9 @@ const Chat = ({
             if (streamingChatResponse !== "") {
                 system.warning("Please wait for the current chat to finish loading before loading another chat.");
             } else {
+                // prevent saves whilst we are updating state during load
+                chatLoading.current = true; // note: this will be reset in the [messages] useEffect hook
+                
                 axios.get(`${serverUrl}/docdb/${folder}/documents/${loadChat["id"]}`, {
                     headers: {
                         Authorization: 'Bearer ' + token
@@ -547,7 +554,9 @@ const Chat = ({
             try {
                 uploadedChat = JSON.parse(event.target.result);
                 reset();
-                chatLoading.current = true; // prevent saves whilst we are updating state during load
+                // prevent saves whilst we are updating state during load
+                chatLoading.current = true; // note: this will be reset in the [messages] useEffect hook
+
                 if (uploadedChat?.metdata && uploadedChat.metadata.hasOwnProperty("name")) {
                     setName(uploadedChat.metadata.name);
                 } else {
@@ -572,7 +581,6 @@ const Chat = ({
             } catch (error) {
                 system.error("Error uploaded chat. Are you sure it is a Chat file?", error);
             }
-            chatLoading.current = false;
         };
         reader.readAsText(event);
         setUploadingFile(false);
