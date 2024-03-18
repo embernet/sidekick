@@ -352,7 +352,10 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         console.log("handleUploadFile", event)
         const reader = new FileReader();
         reader.onload = (event) => {
-          setContent(event.target.result);
+            setContent(event.target.result);
+            setTimeout(() => {
+                save();
+            }, 500);
         };
         reader.readAsText(event);
         setUploadingFile(false);
@@ -634,22 +637,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         { hotKeyHandlers: { "save": save }, darkMode: darkMode }
     );
 
-    const aiToolbarButtons = (<>
-        <Tooltip title={ "Download note" }>
-            <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleDownload}>
-                <FileDownloadIcon/>
-            </IconButton>
-        </Tooltip>
-        <Tooltip title={ "Upload note" }>
-            <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleUploadRequest}>
-                <FileUploadIcon/>
-            </IconButton>
-        </Tooltip>
-    </>);
-
-    const render = <Card id="note-panel" ref={noteRef}
-                    sx={{display: "flex", flexDirection: "column", padding: "6px", margin: "6px", height: "calc(100%-64px)", 
-                        width: windowMaximized ? "calc(100vw - 12px)" : null, minWidth: "500px", maxWidth: windowMaximized ? null : maxWidth ? maxWidth : "600px", flex: 1 }}>
+    const toolbar = (
     <StyledToolbar className={ClassNames.toolbar} sx={{ width: "100%", gap: 1 }} >
         <EditNoteIcon/>
         <Typography sx={{mr:2}}>Note</Typography>
@@ -661,6 +649,16 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     <PlaylistAddIcon/>
                 </IconButton>
             </span>
+        </Tooltip>
+        <Tooltip title={ "Download note" }>
+            <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleDownload}>
+                <FileDownloadIcon/>
+            </IconButton>
+        </Tooltip>
+        <Tooltip title={ "Upload note" }>
+            <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleUploadRequest}>
+                <FileUploadIcon/>
+            </IconButton>
         </Tooltip>
         <Tooltip title={ markdownRenderingOn ? "Stop rendering as markdown and edit as text" : "Preview markdown and code rendering (read only)" }>
             <IconButton edge="start" color="inherit" aria-label="delete chat" onClick={handleToggleMarkdownRendering}>
@@ -690,6 +688,31 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
             </IconButton>
         </Box>
     </StyledToolbar>
+    );
+
+    const fileUploadBar = (
+        <Box>
+            { uploadingFile
+                ?
+                    <Box sx={{ display: "flex", flexDirection: "row", width: "100%", mt: 1 }}>
+                        <MuiFileInput value={fileToUpload} onChange={handleUploadFile} placeholder='Click to upload a note'/>
+                        <Box ml="auto">
+                            <IconButton onClick={() => { setUploadingFile(false) }}>
+                                <CloseIcon />
+                            </IconButton>
+                        </Box>
+                    </Box>
+                :
+                    null
+            }
+        </Box>
+    );
+
+    const render = <Card id="note-panel" ref={noteRef}
+                    sx={{display: "flex", flexDirection: "column", padding: "6px", margin: "6px", height: "calc(100%-64px)", 
+                        width: windowMaximized ? "calc(100vw - 12px)" : null, minWidth: "500px", maxWidth: windowMaximized ? null : maxWidth ? maxWidth : "600px", flex: 1 }}>
+        {toolbar}
+        {fileUploadBar}
     <StyledBox sx={{ display: "flex", flexDirection: "column", flex: 1, 
         overflow: "auto", width: "100%", minHeight: "300px" }}>
         <Box sx={{ display: "flex", flexDirection: "row"}}>
@@ -828,24 +851,10 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
             userPromptToSend={userPromptToSend}
             setUserPromptToSend={setUserPromptToSend}
             controlName="Note Writer"
-            toolbarButtons={aiToolbarButtons}
             sendButtonTooltip="Send note and prompt to AI"
             onBlur={save}
             darkMode={darkMode}
         />
-        { uploadingFile
-            ?
-                <Box sx={{ display: "flex", flexDirection: "row", width: "100%" }}>
-                        <MuiFileInput value={fileToUpload} onChange={handleUploadFile} placeholder='Click to upload a note'/>
-                    <Box ml="auto">
-                        <IconButton onClick={() => { setUploadingFile(false) }}>
-                            <CloseIcon />
-                        </IconButton>
-                    </Box>
-                </Box>
-            :
-                null
-        }
     </Box>
 </Card>
 
