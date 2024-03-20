@@ -133,7 +133,7 @@ const ScriptList = memo(({ cellName, setCellName,
                     myCellList && myCellList.map((cell, index) => (
                         <ListItem key={index}>
                             <TextField variant="outlined" sx={{ width: "100%" }} multiline
-                                maxRows={6} value={cell.value} onChange={(e) => { handleValueChange(e, index) } }
+                                minRows={1} maxRows={6} value={cell.value} onChange={(e) => { handleValueChange(e, index) } }
                             />
                             {addListItemControl(index)}
                             {deleteListItemControl(index)}

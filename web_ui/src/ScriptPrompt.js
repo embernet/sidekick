@@ -31,7 +31,6 @@ const ScriptPrompt = memo(({ cells,
     const [AIResponse, setAIResponse] = useState("");
     const [streamingChatResponse, setStreamingChatResponse] = useState("");
     const streamingChatResponseRef = useRef("");
-    const [cellsByName, setCellsByName] = useState({});
     const myId= uuidv4();
 
     const [width, setWidth] = useState(0);
@@ -60,10 +59,6 @@ const ScriptPrompt = memo(({ cells,
         return acc;
         }, {});
     };
-
-    useEffect(() => {
-        setCellsByName(listToDict(cells));
-    }, [cells]);
 
     useEffect(() => {
         cellName !== myCellName && setCellName && setCellName(myCellName);

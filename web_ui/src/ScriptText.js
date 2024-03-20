@@ -70,13 +70,15 @@ const ScriptText = memo(({ cellName, setCellName,
         setMyCellValue(event.target.value);
     };
 
+    const memoizedValue = React.useMemo(() => myCellValue, [myCellValue]);
+
     return (
         <Box id={`script-text-${myId}`}>
             <TextField label="cell name" variant="outlined" sx={{ mt: 2, width: "100%" }}
                 value={myCellName} onChange={handleNameChange}
             />
             <TextField label="cell value" variant="outlined" sx={{ mt: 2, width: "100%" }} multiline
-                maxRows={6} value={myCellValue} onChange={handleValueChange}
+                rows={6} value={memoizedValue} onChange={handleValueChange}
             />
         </Box>
     );
