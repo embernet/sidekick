@@ -1328,9 +1328,9 @@ const Chat = ({
                     }
                 >
                     <ListItemText>Commands</ListItemText>
-                    <ListItemIcon>
+                    <IconButton  edge="end" style={{ padding: 0 }}>
                         <KeyboardArrowRightIcon />
-                    </ListItemIcon>
+                    </IconButton>
                 </MenuItem>
             </Tooltip>
             <Tooltip title="Explore the situation further by asking a series of simple questions that span causes, effects, stakeholders, perspectives, and strategies for preventing, improving, or coping with a situation." placement="right">
@@ -1344,9 +1344,9 @@ const Chat = ({
                     }
                 >
                     <ListItemText>Exploration</ListItemText>
-                    <ListItemIcon>
+                    <IconButton  edge="end" style={{ padding: 0 }}>
                         <KeyboardArrowRightIcon />
-                    </ListItemIcon>
+                    </IconButton>
                 </MenuItem>
             </Tooltip>
             <Tooltip title="Apply well-known analytical and strategic tools and methodologies designed to inform decision-making, improve the rigor and completeness of problem-solving, and navigate complex challenges effectively." placement="right">
@@ -1360,9 +1360,9 @@ const Chat = ({
                     }
                 >
                     <ListItemText>Analysis</ListItemText>
-                    <ListItemIcon>
+                    <IconButton  edge="end" style={{ padding: 0 }}>
                         <KeyboardArrowRightIcon />
-                    </ListItemIcon>
+                    </IconButton>
                 </MenuItem>
             </Tooltip>
             <Tooltip title="Apply creativity methods to stimulate out-of-the-box thinking, explore new perspectives, and generate new ideas to overcome challenges and avoid getting stuck in a rut." placement="right">
@@ -1376,9 +1376,9 @@ const Chat = ({
                     }
                 >
                     <ListItemText>Creativity</ListItemText>
-                    <ListItemIcon>
+                    <IconButton  edge="end" style={{ padding: 0 }}>
                         <KeyboardArrowRightIcon />
-                    </ListItemIcon>
+                    </IconButton>
                 </MenuItem>
             </Tooltip>
             <Tooltip title="Get insights to help with understanding and learning more about the situation to come up with strategies and actions to improve it." placement="right">
@@ -1392,9 +1392,9 @@ const Chat = ({
                     }
                 >
                     <ListItemText>Insights</ListItemText>
-                    <ListItemIcon>
+                    <IconButton  edge="end" style={{ padding: 0 }}>
                         <KeyboardArrowRightIcon />
-                    </ListItemIcon>
+                    </IconButton>
                 </MenuItem>
             </Tooltip>
         </Menu>
