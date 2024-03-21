@@ -1440,6 +1440,10 @@ const Chat = ({
             <ActionMenu name="Pros and cons" prompt="What are the pros and cons of that?"/>
             <ActionMenu name="Pivot topic" prompt="Let's pivot the conversation. Tell me about something different but related?"/>
             <ActionMenu name="Alternative perspective" prompt="Please provide an alternative perspective"/>
+            <ActionMenu name="Contrary view" prompt="Propose a contrary view, explain how it is contrary and why it might be relevant and worth considering"/>
+            <ActionMenu name="Compare options" prompt="Given the situation and potential options, compare and contrast options discussed with a few other possible options"/>
+            <ActionMenu name="Be me" prompt="Given my previous messages and how I am directing this chat and where and how I am digging into the topics discussed, predict the next question I would ask, and answer it."/>
+            <ActionMenu name="Ask a friend" prompt="Imagine I get my give smartest friends and colleagues to work on this with me. They are each very different in their experience, skills, and motivations, but they are all super-smart and keen to help. Predict a question each might ask and then answer it."/>
             <ActionMenu name="Background and history" prompt="Please give the background and history"/>
             <ActionMenu name="Predict the future" prompt="Predict future outcomes or scenarios this could lead to"/>
             <ActionMenu name="Go up a level" prompt="Let's go up a level. Describe the super-system that this system operates within. What is its role, what other systems are related to it, how do they support or hinder eachother?"/>
@@ -1448,6 +1452,8 @@ const Chat = ({
             <ActionMenu name="Evolve with no action" prompt="What might this situation evolve into if no action is taken?"/>
             <ActionMenu name="Evolve with worsening action" prompt="What might this situation evolve into if the tensions are not resolved and the actions that are taken progressively make things worse?"/>
             <ActionMenu name="Evolve with improving action" prompt="What might this situation evolve into if the tensions are resolved and actions are taken to progressively improve the situation?"/>
+            <ActionMenu name="Evolve with best action" prompt="What might this situation evolve into if the tensions are resolved and the best possible actions are taken to improve the situation?"/>
+            <ActionMenu name="Report" prompt="Write a report summarising what we discussed. Use markdown for sections to include: Abstract (a one sentence summary), Introduction and Background, Topics discussed, Insights, Conclusions, Potential next steps. Where the chat does not include enough content to answer these sections, extrapolate it."/>
         </Menu>
         <Menu
             id="menu-exploration"
@@ -1793,7 +1799,6 @@ const Chat = ({
                                 padding: 2, 
                                 width: "100%", 
                                 backgroundColor: message.role === "user" ? (darkMode ? blueGrey[800] : "lightblue") : (darkMode ? lightBlue[900] : "lightyellow"),
-                                cursor: message.role === "user" ? "pointer" : "default",
                             }}
                         >
                                 {
