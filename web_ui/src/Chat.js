@@ -34,6 +34,10 @@ import FileCopyIcon from '@mui/icons-material/FileCopy';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
 
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
@@ -121,6 +125,8 @@ const Chat = ({
     const chatLoading = useRef(false);
     const [folder, setFolder] = useState("chats");
     const [tags, setTags] = useState([]);
+    const [bookmarked, setBookmarked] = useState(false);
+    const [starred, setStarred] = useState(false);
     const [promptLength, setPromptLength] = useState(0);
 
     // AI Library state
@@ -234,7 +240,7 @@ const Chat = ({
         setPromptCount(promptCount);
         setResponseCount(responseCount);
         setMessagesSize(messagesSize);
-    }, [messages]);
+    }, [messages, starred, bookmarked, tags]);
 
     useEffect(()=>{
         settings["rendered"] = markdownRenderingOn;
@@ -413,6 +419,9 @@ const Chat = ({
                     setName(response.data.metadata.name);
                     setPreviousName(response.data.metadata.name);
                     setMessages(response.data.content.chat);
+                    setTags(response.data.metadata?.tags || []);
+                    setStarred(response.data.metadata?.properties?.starred || false);
+                    setBookmarked(response.data.metadata?.properties?.bookmarked || false);
 
                     setLastPrompt("");
                     // set lastPrompt to the last user message
@@ -463,15 +472,19 @@ const Chat = ({
     }
 
     const create = () => {
-        let request = {
+        let newChatObject = {
             name: name,
             tags: tags,
+            properties: {
+                starred: starred,
+                bookmarked: bookmarked,
+            },
             content: {
                 chat: messages,
             }
         };
         const url = `${serverUrl}/docdb/${folder}/documents`;
-        axios.post(url, request, {
+        axios.post(url, newChatObject, {
             headers: {
                 Authorization: 'Bearer ' + token
             }
@@ -529,7 +542,11 @@ const Chat = ({
         let chat = {
             metadata: {
                 name: name,
-                tags: [],
+                tags: tags,
+                properties: {
+                    starred: starred,
+                    bookmarked: bookmarked,
+                },
             },
             content: {
                 chat: messages,
@@ -581,8 +598,19 @@ const Chat = ({
                 if (uploadedChat?.metadata && uploadedChat.metadata.hasOwnProperty("tags")) {
                     setTags(uploadedChat.metadata.tags);
                 } else {
-                    reset();
-                    throw new Error("No tags found in chat file being uploaded.");
+                    setTags([]);
+                }
+
+                if (uploadedChat?.metadata?.properties && uploadedChat.metadata.properties.hasOwnProperty("starred")) {
+                    setStarred(uploadedChat.metadata.starred);
+                } else {
+                    setStarred(false);
+                }
+
+                if (uploadedChat?.metadata?.properties && uploadedChat.metadata.properties.hasOwnProperty("bookmarked")) {
+                    setStarred(uploadedChat.metadata.bookmarked);
+                } else {
+                    setBookmarked(false);
                 }
 
                 if (uploadedChat?.content && uploadedChat.content.hasOwnProperty("chat")) {
@@ -825,6 +853,10 @@ const Chat = ({
             axios.post(url, {
                 "name": promptTemplateName,
                 "tags": [],
+                "properties": {
+                    "starred": false,
+                    "bookmarked": false,
+                },
                 "content": {
                     "prompt_template": chatPromptRef.current.innerText.replace(/^.*?\n/, '')
                 },
@@ -1037,6 +1069,9 @@ const Chat = ({
         setName(newChatName);
         setPreviousName(newChatName);
         setMessages([]);
+        setTags([]);
+        setStarred(false);
+        setBookmarked(false);
         setChatPrompt("");
         setLastPrompt("");
         chatLoading.current = chatLoadingState;
@@ -1242,6 +1277,24 @@ const Chat = ({
                     disabled={ id === "" } onClick={handleNewChat}
                 >
                     <AddCommentIcon/>
+                </IconButton>
+            </span>
+        </Tooltip>
+        <Tooltip title={ bookmarked ? "Unbookmark this chat" : "Bookmark this chat"}>
+            <span>
+                <IconButton edge="start" color="inherit" aria-label={bookmarked ? "Unbookmark this chat" : "Bookmark this chat"}
+                    disabled={ id === "" } onClick={ () => {setBookmarked(x=>!x)} }
+                >
+                    {bookmarked ? <BookmarkIcon/> : <BookmarkBorderIcon/>}
+                </IconButton>
+            </span>
+        </Tooltip>
+        <Tooltip title={ starred ? "Unstar this chat" : "Star this chat"}>
+            <span>
+                <IconButton edge="start" color="inherit" aria-label={starred ? "Unstar this chat" : "Star this chat"}
+                    disabled={ id === "" } onClick={ () => {setStarred(x=>!x)} }
+                >
+                    {starred ? <StarIcon/> : <StarBorderIcon/>}
                 </IconButton>
             </span>
         </Tooltip>

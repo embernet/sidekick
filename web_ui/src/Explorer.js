@@ -11,6 +11,11 @@ import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ListAltIcon from '@mui/icons-material/ListAlt';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
+
 import { indigo, grey } from '@mui/material/colors';
 import { StyledBox } from "./theme";
 
@@ -39,6 +44,8 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
     const [sortOrderDirection, setSortOrderDirection] = useState(-1);
     const [showItemDetails, setShowItemDetails] = useState(false);
     const [userDefaultsLoaded, setUserDefaultsLoaded] = useState(false);
+    const [filterBookmarked, setFilterBookmarked] = useState(false);
+    const [filterStarred, setFilterStarred] = useState(false);
 
     const [width, setWidth] = useState(0);
     const handleResize = useCallback(
@@ -166,7 +173,11 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
     };
 
     const filteredDocs = docs.filter(doc => {
-        return doc.name.toLowerCase().includes(filterText.toLowerCase());
+        const matches = 
+            doc.name.toLowerCase().includes(filterText.toLowerCase()) &&
+            (!filterBookmarked || doc?.properties?.bookmarked) &&
+            (!filterStarred || doc?.properties?.starred);
+        return matches;
     });
 
     const handleDeleteFilteredItems = () => {
@@ -198,30 +209,48 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
     };
 
     const render = <Card id={{name}+"-explorer-panel"} sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
-    flex:1, minWidth: "320px", maxWidth: "450px", width: "100%"}}>
+    flex:1, minWidth: "380px", maxWidth: "450px", width: "100%"}}>
        {
            hidePrimaryToolbar ? null 
            :
                <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
-                   {icon}
-                   <Typography sx={{mr:2}}>{name}</Typography>
-                   <Tooltip title={showItemDetails ? "Hide details" : "Show details"}>
-                       <IconButton edge="start" onClick={() => { setShowItemDetails(state => !state); }}>
-                           <ListAltIcon />
-                       </IconButton>
-                   </Tooltip>
-                   <Box ml="auto">
-                       <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
-                           <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
-                               {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
-                           </IconButton>
-                       </Tooltip>
-                       <Tooltip title="Close window">
-                           <IconButton onClick={handleToggleExplorer}>
-                               <CloseIcon />
-                           </IconButton>
-                       </Tooltip>
-                   </Box>
+                    {icon}
+                    <Typography sx={{mr:2}}>{name}</Typography>
+                    <Tooltip title={showItemDetails ? "Hide details" : "Show details"}>
+                        <IconButton edge="start" onClick={() => { setShowItemDetails(state => !state); }}>
+                            <ListAltIcon />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title={ filterBookmarked ? "Don't filter on bookmarked" : "Filter to show only bookmarked items"}>
+                        <span>
+                            <IconButton edge="start" color="inherit" aria-label={ filterBookmarked ? "Don't filter on bookmarked" : "Filter to show only bookmarked items"}
+                                onClick={ () => {setFilterBookmarked(x=>!x)} }
+                            >
+                                {filterBookmarked ? <BookmarkIcon/> : <BookmarkBorderIcon/>}
+                            </IconButton>
+                        </span>
+                    </Tooltip>
+                    <Tooltip title={ filterStarred ? "Don't filter on starred" : "Show only starred items"}>
+                        <span>
+                            <IconButton edge="start" color="inherit" aria-label={ filterStarred ? "Don't filter on starred" : "Show only starred items"}
+                                onClick={ () => {setFilterStarred(x=>!x)} }
+                            >
+                                {filterStarred ? <StarIcon/> : <StarBorderIcon/>}
+                            </IconButton>
+                        </span>
+                    </Tooltip>
+                    <Box ml="auto">
+                        <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
+                            <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
+                                {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Close window">
+                            <IconButton onClick={handleToggleExplorer}>
+                                <CloseIcon />
+                            </IconButton>
+                        </Tooltip>
+                    </Box>
                </StyledToolbar>
        }
        <Box sx={{ width: "100%", paddingLeft: 0, paddingRight: 0, display: "flex", flexDirection: "row" }}>

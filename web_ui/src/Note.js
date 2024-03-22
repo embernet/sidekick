@@ -22,6 +22,11 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
 import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
+
 import { MuiFileInput } from 'mui-file-input';
 import SidekickMarkdown from './SidekickMarkdown';
 import NativeTextEditorEventHandlers from './NativeTextEditorEventHandlers';
@@ -122,6 +127,8 @@ You always do your best to generate text in the same style as the context text p
     const [prompt, setPrompt] = useState("");
     const [folder, setFolder] = useState("notes");
     const [tags, setTags] = useState([]);
+    const [bookmarked, setBookmarked] = useState(false);
+    const [starred, setStarred] = useState(false);
     const [uploadingFile, setUploadingFile] = useState(false);
     const [fileToUpload, setFileToUpload] = useState(null);
     const [markdownRenderingOn, setMarkdownRenderingOn] = useState(false);
@@ -134,22 +141,36 @@ You always do your best to generate text in the same style as the context text p
     const saveStatus = useRef("");
     const noteInstantiated = useRef(false);
     const [renameInProcess, setRenameInProcess] = useState(false);
+    const [timeToSave, setTimeToSave] = useState(false);
 
+
+    useEffect(() => {
+        if (timeToSave) {
+            save();
+            setTimeToSave(false);
+        }
+    } , [timeToSave]);
 
     const setContent = (text) => {
         if (noteContentRef.current) {
             noteContentRef.current.innerText = text;
-            saveStatus.current = "changed";
+            noteInstantiated.current = true;
+            if (saveStatus.current === "saved") {
+                saveStatus.current = "changed";
+            }
+            setTimeToSave(true);
         }
     }
 
     useEffect(() => {
-        if (noteInstantiated.current) {
-            console.log("Note inAILibrary", inAILibrary);
-            saveStatus.current = "changed";
-            save();
+        if (!noteInstantiated.current) {
+            return;
         }
-    }, [inAILibrary]);
+        if (["saved", "created"].includes(saveStatus.current)) {
+            saveStatus.current = "changed";
+        }
+        save();
+    }, [inAILibrary, starred, bookmarked, tags]);
 
     useEffect(() => {
         if (noteOpen && userPromptEntered) {
@@ -181,6 +202,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     const handleNoteContentInput = (event) => {
         if (!noteInstantiated.current) {
             noteInstantiated.current = true; // the first time the content changes, we know the note has been instantiated
+            save();
         } else {
             if (name === newNoteName && noteContentRef.current.innerText.length > 200) {
                 considerAutoNaming(noteContentRef.current.innerText);
@@ -217,7 +239,8 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
 
     useEffect(()=>{
         if(loadNote) {
-            noteInstantiated.current = false; // we set it to instantiated when the [content] hook runs
+            noteInstantiated.current = false;
+            saveStatus.current = "loading";
             setNoteOpen({id: loadNote.id, timestamp: Date.now()});
             if (loadNote.id !== null) {
                 let url = `${serverUrl}/docdb/${folder}/documents/${loadNote.id}`;
@@ -227,18 +250,16 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                         Authorization: 'Bearer ' + token
                       }
                 }).then(response => {
-                    saveStatus.current = "saved";
                     response.data.access_token && setToken(response.data.access_token);
                     setId(response.data.metadata.id);
                     setName(response.data.metadata.name);
-                    setTags(response.data.metadata.tags);
+                    setTags(response.data.metadata?.tags || []);
+                    setBookmarked(response.data.metadata?.properties?.bookmarked || false);
+                    setStarred(response.data.metadata?.properties?.starred || false);
+                    setInAILibrary(response.data.metadata?.properties?.inAILibrary || false);
                     setPreviousName(response.data.metadata.name);
                     setContent(response.data.content.note);
-                    if ("inAILibrary" in response.data.metadata.properties) {
-                        setInAILibrary(response.data.metadata.properties.inAILibrary);
-                    } else {
-                        setInAILibrary(false);
-                    }
+                    saveStatus.current = "saved";// we know its saved because we just loaded it!
                     focusOnContent();
                 }).catch(error => {
                     system.error(`System Error loading note.`, error, url + " GET");
@@ -289,13 +310,16 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     }
 
     const _save = () => {
+        console.log("_Save", id, name, saveStatus.current);
+        saveStatus.current = "saving"; 
         const request = {
             metadata: {
-                id: id,
                 name: name,
                 tags: tags,
                 properties: {
                     inAILibrary: inAILibrary,
+                    starred: starred,
+                    bookmarked: bookmarked,
                 },
             },
             content: { note: noteContentRef.current.innerText },
@@ -315,18 +339,22 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
             console.log("note save Response", response);
         }).catch(error => {
             system.error(`System Error saving note.`, error, url + " PUT");
+            saveStatus.current = "changed";
         });
     }
 
     const save = () => {
+        if (["loading", "saving", "creating"].includes(saveStatus.current)) {
+            return;
+        }
         console.log("save", id, name);
         if (id === "") {
             // only save if there is content or the name has been changed
-            if (name !== newNoteName || noteContentRef?.current && noteContentRef.current.innerText !== "") {
+            if (name !== newNoteName || (noteContentRef?.current && noteContentRef.current.innerText !== "")) {
                 create({name: name, content: noteContentRef.current.innerText});
             }
         } else {
-            if (noteInstantiated.current && saveStatus.current === "changed") {
+            if (saveStatus.current === "changed") {
                 _save();
             }
         }
@@ -383,6 +411,8 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
             "tags": tags,
             "properties": {
                 "inAILibrary": inAILibrary,
+                "starred": starred,
+                "bookmarked": bookmarked,
            },
                 "content": {
                 "note": content
@@ -398,11 +428,6 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
             saveStatus.current = "saved";
             response.data.access_token && setToken(response.data.access_token);
             setId(response.data.metadata.id);
-            if (name !== response.data.metadata.name) {
-                setName(response.data.metadata.name);
-                setPreviousName(response.data.metadata.name);
-            }
-            setTags(response.data.metadata.tags);
             onChange(response.data.metadata.id, response.data.metadata.name, "created", "");
             setOpenNoteId({ id: response.data.metadata.id, timestamp: Date.now()});
             system.info(`Note "${response.data.metadata.name}" created.`);
@@ -420,6 +445,8 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         setName(newNoteName);
         setPreviousName(newNoteName);
         setTags([]);
+        setBookmarked(false);
+        setStarred(false);
         setContent("");
         setAIResponse('');
         setInAILibrary(false);
@@ -650,6 +677,24 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 </IconButton>
             </span>
         </Tooltip>
+        <Tooltip title={ bookmarked ? "Unbookmark this note" : "Bookmark this note"}>
+            <span>
+                <IconButton edge="start" color="inherit" aria-label={bookmarked ? "Unbookmark this note" : "Bookmark this note"}
+                    onClick={ () => {setBookmarked(x=>!x)} }
+                >
+                    {bookmarked ? <BookmarkIcon/> : <BookmarkBorderIcon/>}
+                </IconButton>
+            </span>
+        </Tooltip>
+        <Tooltip title={ starred ? "Unstar this note" : "Star this note"}>
+            <span>
+                <IconButton edge="start" color="inherit" aria-label={starred ? "Unstar this note" : "Star this note"}
+                    onClick={ () => {setStarred(x=>!x)} }
+                >
+                    {starred ? <StarIcon/> : <StarBorderIcon/>}
+                </IconButton>
+            </span>
+        </Tooltip>
         <Tooltip title={ "Download note" }>
             <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleDownload}>
                 <FileDownloadIcon/>
@@ -791,7 +836,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     }
                 }
                 onPaste={editorEventHandlers.onPaste}
-                onBlur={save}
+                onBlur={() => {save()}}
                 disabled={contentDisabled}
                 />
             <Menu
