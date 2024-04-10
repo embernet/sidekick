@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { debounce } from "lodash";
 
 import { Box, FormControl, Select, TextField, MenuItem } from '@mui/material';
@@ -10,12 +10,18 @@ const ScriptTemplate = memo(({ valueLabel, cells,
     cellParameters, setCellParameters,
     cellName, setCellName=undefined // leave setCellName undefined to use as part of another cell
 }) => {
+    // Set the initial state of the cell
+    // taking into account the user may switch between cell types in the UI
     const [myCellName, setMyCellName] = useState(cellName || "");
-    const [myCellValue, setMyCellValue] = useState(cellValue || "");
-    const [template, setTemplate] = useState(cellParameters?.template || "");
+    const [myCellValue, setMyCellValue] = useState( typeof cellValue === "string" ? cellValue : "");
+    // If the cellParameters are not set, use the cellValue as the template
+    // This enables the user to switch between cell types and keep the same value
+    const [template, setTemplate] = useState(cellParameters?.template || (typeof cellValue === "string" ? cellValue : ""));
+    const myId= uuidv4();
+
+    // UI state
     const [cellToAddToTemplate, setCellToAddToTemplate] = useState("");
     const [templateCursorPosition, setTemplateCursorPosition] = useState(0);
-    const myId= uuidv4();
 
     const [width, setWidth] = useState(0);
     const handleResize = useCallback(
@@ -37,9 +43,24 @@ const ScriptTemplate = memo(({ valueLabel, cells,
         return () => observer.disconnect();
     }, [handleResize]);
 
+    const recalculateDebounceTimerId = useRef(null);
+
     useEffect(() => {
-        // regenerate the template if any of the cells change
-        createValueFromTemplate();
+        // Clear the previous timer if it exists
+        if (recalculateDebounceTimerId.current !== null) {
+            clearTimeout(recalculateDebounceTimerId.current);
+        }
+    
+        // Start a new timer
+        recalculateDebounceTimerId.current = setTimeout(() => {
+            // Regenerate the template if any of the cells change
+            createValueFromTemplate();
+        }, 500); // 500ms delay
+    
+        // Clear the timer when the component unmounts or when cells change
+        return () => {
+            clearTimeout(recalculateDebounceTimerId.current);
+        };
     }, [cells]);
 
     useEffect(() => {

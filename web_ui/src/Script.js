@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { memo } from 'react';
 import { debounce, set } from "lodash";
 
 import { useEffect, useState, useContext, useCallback, useRef, Fragment } from 'react';
@@ -28,7 +29,7 @@ import FileUploadIcon from '@mui/icons-material/FileUpload';
 import { SystemContext } from './SystemContext';
 import { StyledBox, StyledToolbar } from './theme';
 
-const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, windowMaximized, setWindowMaximized,
+const Script = memo(({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, windowMaximized, setWindowMaximized,
     provider, modelSettings, persona, loadScript,
     closeOtherPanels, restoreOtherPanels,
     onChange, setOpenScriptId, serverUrl, token, setToken,
@@ -59,11 +60,28 @@ const Script = ({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, win
         return () => observer.disconnect();
     }, [handleResize]);
 
+    function useDebouncedState(initialValue, delay) {
+        const [state, setState] = useState(initialValue);
+        const [debouncedState, setDebouncedState] = useState(initialValue);
+    
+        useEffect(() => {
+            const handler = setTimeout(() => {
+                setDebouncedState(state);
+            }, delay);
+    
+            return () => {
+                clearTimeout(handler);
+            };
+        }, [state, delay]);
+    
+        return [debouncedState, setState];
+    }
+
     const system = useContext(SystemContext);
     const [id, setId] = useState("");
     const [name, setName] = useState(newItemName);
     const [previousName, setPreviousName] = useState(newItemName);
-    const [cells, setCells] = useState([]);
+    const [cells, setCells] = useDebouncedState([], 200);
     const [myPersona, setMyPersona] = useState({});
     const [uploadingFile, setUploadingFile] = useState(false);
     const [fileToUpload, setFileToUpload] = useState(null);
@@ -635,6 +653,6 @@ const scriptName =
     </Paper>
 </Card>;
     return ( scriptOpen ? render : null )
-  }
+  });
 
 export default Script;

@@ -58,7 +58,7 @@ import Admin from './Admin';
 import SidekickAI from './SidekickAI';
 import StatusBar from './StatusBar';
 
-const VERSION = "0.2.3";
+const VERSION = "0.3";
 
 const ScriptIcon = SmartDisplayOutlinedIcon;
 const ScriptsExplorerIcon = SubscriptionsOutlinedIcon;
@@ -478,10 +478,8 @@ const App = () => {
     console.log("handleNoteChange", change);
     if (change.reason === "renamed") {
       setNoteNameChanged(change);
-    } else if (change.reason === "created" || change.reason === "deleted") {
+    } else if (change.reason === "created" || change.reason === "deleted" || change.reason === "changed") {
       setRefreshNotesExplorer(change);
-    } else if (change.reason === "changed") {
-      // Do nothing
     }
   }
 

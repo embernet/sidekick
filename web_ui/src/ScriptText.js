@@ -18,11 +18,15 @@ import { memo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 const ScriptText = memo(({ cellName, setCellName,
-    cellValue, setCellValue }) => {
-    const [myCellName, setMyCellName] = useState(cellName);
-    const [myCellValue, setMyCellValue] = useState(cellValue);
+    cellValue, setCellValue, setCellParameters }) => {
+
+    // Set the initial state of the cell
+    // taking into account the user may switch between cell types in the UI
+    const [myCellName, setMyCellName] = useState(cellName || "");
+    const [myCellValue, setMyCellValue] = useState( typeof cellValue === "string" ? cellValue : "");
     const myId= uuidv4();
 
+    // UI state
     const [width, setWidth] = useState(0);
     const handleResize = useCallback(
         // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
@@ -31,6 +35,11 @@ const ScriptText = memo(({ cellName, setCellName,
         }, 100),
         []
     );
+
+    useEffect(() => {
+        // Clear the cell parameters as they are not used in this cell type
+        setCellParameters && setCellParameters({});
+    }, [setCellParameters]);
 
     useEffect(() => {
         const element = document.getElementById(`script-text-${myId}`);
@@ -61,13 +70,15 @@ const ScriptText = memo(({ cellName, setCellName,
         setMyCellValue(event.target.value);
     };
 
+    const memoizedValue = React.useMemo(() => myCellValue, [myCellValue]);
+
     return (
         <Box id={`script-text-${myId}`}>
             <TextField label="cell name" variant="outlined" sx={{ mt: 2, width: "100%" }}
                 value={myCellName} onChange={handleNameChange}
             />
             <TextField label="cell value" variant="outlined" sx={{ mt: 2, width: "100%" }} multiline
-                maxRows={6} value={myCellValue} onChange={handleValueChange}
+                rows={6} value={memoizedValue} onChange={handleValueChange}
             />
         </Box>
     );

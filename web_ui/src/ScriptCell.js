@@ -10,7 +10,8 @@ Function:
     Cell types are: Text (ScriptText component), List (ScriptList component), Prompt (ScriptPrompt component)
     When a cell type is selected, the corresponding component is rendered.
 */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { memo } from 'react';
 import { debounce } from "lodash";
 import { Card, Box, FormControl, Select, InputLabel, Tooltip, IconButton, MenuItem } from '@mui/material';
 import { blueGrey } from '@mui/material/colors';
@@ -23,7 +24,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
-const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
+const ScriptCell = memo(({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
     cellType, setCellType,
     cellName, setCellName, cellParameters, setCellParameters, cellValue, setCellValue, cellKey, darkMode,
     modelSettings, persona, serverUrl, token, setToken, markdownRenderingOn, system}) => {
@@ -91,6 +92,7 @@ const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
                 return <ScriptText
                     cellName={cellName} setCellName={setMyCellName}
                     cellValue={cellValue} setCellValue={setMyCellValue}
+                    cellParameters={cellParameters} setCellParameters={setMyCellParameters}
                 />;
                 case "template":
                     return <ScriptTemplate cells={cells}
@@ -103,6 +105,7 @@ const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
                 return <ScriptList
                     cellName={cellName} setCellName={setMyCellName}
                     cellValue={cellValue} setCellValue={setMyCellValue}
+                    cellParameters={cellParameters} setCellParameters={setMyCellParameters}
                 />;
             case "prompt":
                 return <ScriptPrompt cells={cells}
@@ -183,6 +186,6 @@ const ScriptCell = ({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
             {renderCell()}
         </Card>
     );
-}
+});
 
 export default ScriptCell;
