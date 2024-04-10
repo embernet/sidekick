@@ -6,7 +6,7 @@ RUN pip install --upgrade pip
 RUN pip install pipenv
 RUN pipenv requirements > requirements.txt
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
-COPY init.py app.py models.py routes.py utils.py docker-entrypoint.sh ./
+COPY init.py app.py models.py routes.py utils.py docker-entrypoint.sh gunicorn_config.py ./
 COPY default_documents ./default_documents
 COPY default_settings ./default_settings
 COPY system_settings ./system_settings
