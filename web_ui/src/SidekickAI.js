@@ -26,8 +26,11 @@ import { lightBlue, grey, blueGrey } from '@mui/material/colors';
 
 const SidekickAI = ({
     sidekickAIOpen, setSidekickAIOpen, serverUrl, token, 
-    windowPinnedOpen, setWindowPinnedOpen, darkMode}) => {
-    
+    windowPinnedOpen, setWindowPinnedOpen, darkMode,
+    isMobile
+    }) => {
+
+    const panelWindowRef = useRef(null);
     const myId= uuidv4();
 
     const StyledToolbar = styled(Toolbar)(({ theme }) => ({
@@ -129,7 +132,12 @@ const SidekickAI = ({
     }, []);
 
     useEffect(()=>{
-    }, [setSidekickAIOpen]);
+        // onOpen
+        if (isMobile) {
+            panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+        }
+        document.getElementById(`sidekick-ai-prompt-${myId}`)?.focus();
+    }, [sidekickAIOpen]);
 
     useEffect(()=>{
     }, [messages]);
@@ -430,18 +438,24 @@ const SidekickAI = ({
         }, 0);
     };
 
-    const render = <Card id={`sidekick-ai-panel-${myId}`}
-        sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", 
-        flex:1, minWidth: "380px", maxWidth: "450px"}}>
+    const render = <Card id={`sidekick-ai-panel-${myId}`}  ref={panelWindowRef}
+        sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1,
+        width: isMobile ? `${window.innerWidth}px` : null,
+        minWidth: isMobile ? `${window.innerWidth}px` : "380px",
+        maxWidth: isMobile ? `${window.innerWidth}px` : "450px",
+        }}
+        >
     <StyledToolbar className={ClassNames.toolbar}>
         <HelpIcon/>
         <Typography sx={{mr:2}}>Sidekick AI Help</Typography>
         <Box sx={{ display: "flex", flexDirection: "row", ml: "auto" }}>
-            <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
-                <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
-                    {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
-                </IconButton>
-            </Tooltip>
+            { isMobile ? null :
+                <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
+                    <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
+                        {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
+                    </IconButton>
+                </Tooltip>
+            }
             <Tooltip title="Close window">
                 <IconButton onClick={() => { window.history.replaceState({}, document.title, "/"); setSidekickAIOpen(false); }}>
                     <CloseIcon />

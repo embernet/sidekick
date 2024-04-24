@@ -2,7 +2,8 @@ import axios from 'axios'
 import { debounce } from "lodash";
 
 import { useEffect, useState, useContext, useCallback, useRef } from 'react';
-import { Card, Box, Toolbar, IconButton, Typography, TextField, Menu, MenuItem, Tooltip } from '@mui/material';
+import { Card, Box, Toolbar, IconButton, Typography, TextField, Menu,
+    ListItemIcon, MenuItem, Tooltip } from '@mui/material';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
 import { green, lightBlue, grey } from '@mui/material/colors';
@@ -40,14 +41,14 @@ import AIPromptResponse from './AIPromptResponse';
 const Note = ({noteOpen, setNoteOpen, appendNoteContent, loadNote, createNote, darkMode,
     closeOtherPanels, restoreOtherPanels, windowMaximized, setWindowMaximized,
     setNewPromptPart, setNewPrompt, setChatRequest, onChange, setOpenNoteId, 
-    modelSettings, persona, serverUrl, token, setToken, maxWidth}) => {
+    modelSettings, persona, serverUrl, token, setToken, maxWidth, isMobile}) => {
 
     const StyledToolbar = styled(Toolbar)(({ theme }) => ({
         backgroundColor: darkMode ? green[900] : green[300],
         marginRight: theme.spacing(2),
     }));
     
-    const noteRef = useRef(null);
+    const panelWindowRef = useRef(null);
     const newNoteName = "New Note";
     const systemPrompt = `You are DocumentGPT.
 You take CONTEXT_TEXT from a document along with a REQUEST to generate more text to include in the document.
@@ -123,6 +124,7 @@ You always do your best to generate text in the same style as the context text p
     const [contentDisabled, setContentDisabled] = useState(false);
     const [promptDisabled, setPromptDisabled] = useState(false);
     const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady.current);
+    const [menuNoteAnchorEl, setMenuNoteAnchorEl] = useState(null);
     const [noteContextMenu, setNoteContextMenu] = useState(null);
     const [prompt, setPrompt] = useState("");
     const [folder, setFolder] = useState("notes");
@@ -260,6 +262,9 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     setPreviousName(response.data.metadata.name);
                     setContent(response.data.content.note);
                     saveStatus.current = "saved";// we know its saved because we just loaded it!
+                    if (isMobile) {
+                        panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+                    }
                     focusOnContent();
                 }).catch(error => {
                     system.error(`System Error loading note.`, error, url + " GET");
@@ -276,9 +281,13 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     }, [loadNote]);
 
     useEffect(()=>{
+        // onOpen
         if (!noteOpen) {
             resetNote();
         } else {
+            if (isMobile) {
+                panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+            }
             //focusOnContent();
         }
     }, [noteOpen]);
@@ -295,7 +304,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     },[AIResponse]);
 
     useEffect(() => {
-        noteRef?.current?.scrollIntoView({ behavior: 'instant' });
+        panelWindowRef?.current?.scrollIntoView({ behavior: 'instant' });
     }, [windowMaximized]);
 
     const showReady = () => {
@@ -560,6 +569,14 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         generateNoteName(text);
     }
 
+    const handleMenuNoteOpen = (event) => {
+        setMenuNoteAnchorEl(event.currentTarget);
+    };
+
+    const handleMenuNoteClose = () => {
+        setMenuNoteAnchorEl(null);
+    };
+
     const handleNoteContextMenu = (event, note, title) => {
         event.preventDefault();
         setNoteContextMenu(
@@ -666,7 +683,12 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
 
     const toolbar = (
     <StyledToolbar className={ClassNames.toolbar} sx={{ width: "100%", gap: 1 }} >
-        <EditNoteIcon/>
+        <IconButton edge="start" color="inherit" aria-label="Sidekick Note Menu"
+            onClick={handleMenuNoteOpen}
+            disabled={promptPlaceholder === userPromptWaiting}
+        >
+            <EditNoteIcon/>
+        </IconButton>
         <Typography sx={{mr:2}}>Note</Typography>
         <Tooltip title={ id === "" ? "You are in a new note" : "New note" }>
             <span>
@@ -695,16 +717,6 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 </IconButton>
             </span>
         </Tooltip>
-        <Tooltip title={ "Download note" }>
-            <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleDownload}>
-                <FileDownloadIcon/>
-            </IconButton>
-        </Tooltip>
-        <Tooltip title={ "Upload note" }>
-            <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleUploadRequest}>
-                <FileUploadIcon/>
-            </IconButton>
-        </Tooltip>
         <Tooltip title={ markdownRenderingOn ? "Stop rendering as markdown and edit as text" : "Preview markdown and code rendering (read only)" }>
             <IconButton edge="start" color="inherit" aria-label="delete chat" onClick={handleToggleMarkdownRendering}>
                 { markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }
@@ -723,15 +735,62 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     <DeleteIcon/>
                 </IconButton>
             </Tooltip>
-            <Tooltip title={ windowMaximized ? "Shrink window" : "Expand window" }>
-                <IconButton edge="end" color="inherit" aria-label={ windowMaximized ? "Shrink window" : "Expand window" } onClick={handleToggleWindowMaximise}>
-                    { windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }
-                </IconButton>
-            </Tooltip>
+            {
+                !isMobile ?
+                    <Tooltip title={ windowMaximized ? "Shrink window" : "Expand window" }>
+                        <IconButton edge="end" color="inherit" aria-label={ windowMaximized ? "Shrink window" : "Expand window" } onClick={handleToggleWindowMaximise}>
+                            { windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }
+                        </IconButton>
+                    </Tooltip>
+                    : null
+            }
             <IconButton onClick={handleClose}>
                 <CloseIcon />
             </IconButton>
         </Box>
+        <Menu
+            id="menu-note"
+            anchorEl={menuNoteAnchorEl}
+            open={Boolean(menuNoteAnchorEl)}
+            onClose={handleMenuNoteClose}
+            anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+            }}
+            transformOrigin={{
+                vertical: 'top',
+                horizontal: 'left',
+            }}
+        >
+            <MenuItem onClick={handleNewNote}>
+                <ListItemIcon><PlaylistAddIcon/></ListItemIcon>
+                New Note
+            </MenuItem>
+            <MenuItem onClick={handleDownload}>
+                <ListItemIcon><FileDownloadIcon/></ListItemIcon>
+                Download Note
+            </MenuItem>
+            <MenuItem onClick={handleUploadRequest}>
+                <ListItemIcon><FileUploadIcon/></ListItemIcon>
+                Upload Note
+            </MenuItem>
+            <MenuItem onClick={handleToggleMarkdownRendering}>
+                <ListItemIcon>{ markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }</ListItemIcon>
+                { markdownRenderingOn ? "Turn off markdown rendering" : "Turn on markdown rendering" }
+            </MenuItem>
+            <MenuItem onClick={handleToggleWindowMaximise}>
+                <ListItemIcon>{ windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }</ListItemIcon>
+                { windowMaximized ? "Shrink window" : "Expand window" }
+            </MenuItem>
+            <MenuItem onClick={handleDeleteNote}>
+                <ListItemIcon><DeleteIcon/></ListItemIcon>
+                Delete Note</MenuItem>
+            <MenuItem onClick={handleClose}>
+                <ListItemIcon><CloseIcon/></ListItemIcon>
+                Close Window
+            </MenuItem>
+
+        </Menu>
     </StyledToolbar>
     );
 
@@ -753,9 +812,11 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         </Box>
     );
 
-    const render = <Card id="note-panel" ref={noteRef}
+    const render = <Card id="note-panel" ref={panelWindowRef}
                     sx={{display: "flex", flexDirection: "column", padding: "6px", margin: "6px", height: "calc(100%-64px)", 
-                        width: windowMaximized ? "calc(100vw - 12px)" : null, minWidth: "500px", maxWidth: windowMaximized ? null : maxWidth ? maxWidth : "600px", flex: 1 }}>
+                        width: isMobile ? `${window.innerWidth}px` : (windowMaximized ? "calc(100vw - 12px)" : null),
+                        minWidth: isMobile ? `${window.innerWidth}px` : "500px",
+                        maxWidth: isMobile ? `${window.innerWidth}px` : (windowMaximized ? null : maxWidth ? maxWidth : "600px"), flex: 1 }}>
         {toolbar}
         {fileUploadBar}
     <StyledBox sx={{ display: "flex", flexDirection: "column", flex: 1, 

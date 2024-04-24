@@ -1,5 +1,5 @@
 import { debounce } from "lodash";
-import { useEffect, useState, useContext, useCallback } from 'react';
+import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Box, IconButton, Typography, Collapse, Tooltip,
      List, ListItem, ListItemText, 
      Accordion, AccordionSummary, AccordionDetails, Toolbar } from '@mui/material';
@@ -17,10 +17,12 @@ import { StyledBox } from "./theme";
 import { SystemContext } from './SystemContext';
 import Explorer from './Explorer';
 
-const PromptEngineer = ({handleTogglePromptEngineer, setNewPromptPart, setNewPromptTemplate, openPromptTemplateId,
+const PromptEngineer = ({promptEngineerOpen, onClose, setNewPromptPart, setNewPromptTemplate, openPromptTemplateId,
     promptTemplateNameChanged, refreshPromptTemplateExplorer, setRefreshPromptTemplateExplorer,
     setPromptTemplateOpen, promptTemplateOpen, settingsManager, serverUrl, token, setToken,
-    windowPinnedOpen, setWindowPinnedOpen, darkMode}) => {
+    windowPinnedOpen, setWindowPinnedOpen, darkMode, isMobile}) => {
+
+    const panelWindowRef = useRef(null);
 
     const StyledToolbar = styled(Toolbar)(({ theme }) => ({
         backgroundColor: darkMode ? lightBlue[800] : lightBlue[200],
@@ -73,7 +75,11 @@ const PromptEngineer = ({handleTogglePromptEngineer, setNewPromptPart, setNewPro
                 setLoadingPromptPartsMessage("Error loading prompt parts: " + error);
             }
         );
-    }, []);
+        if (isMobile) {
+            panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+        }
+        document.getElementById("prompt-templates-explorer")?.focus();
+    }, [promptEngineerOpen]);
 
     const handleSectionClick = (section) => {
         setOpenSections((prevState) => ({
@@ -86,8 +92,14 @@ const PromptEngineer = ({handleTogglePromptEngineer, setNewPromptPart, setNewPro
         setNewPromptPart({text: text, timestamp: Date.now()});
     };
 
-    const loadingRender = <Card sx={{display:"flex", flexDirection:"column", padding:"6px",
-        flex:1, minWidth: "380px", maxWidth: "450px"}}>
+    const loadingRender = 
+        <Card id="prompt-engineer-panel" ref={panelWindowRef}
+            sx={{display:"flex", flexDirection:"column", padding:"6px", flex:1,
+            width: isMobile ? `${window.innerWidth}px` : null,
+            minWidth: isMobile ? `${window.innerWidth}px` : "380px",
+            maxWidth: isMobile ? `${window.innerWidth}px` : "450px",
+        }}
+        >
             <Typography>{loadingPromptPartsMessage}</Typography>
         </Card>
 
@@ -137,8 +149,10 @@ const PromptEngineer = ({handleTogglePromptEngineer, setNewPromptPart, setNewPro
                     <Typography>Prompt Templates</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
-                    <Explorer sx={{flexGrow:1}}
-                        handleToggleExplorer={handleTogglePromptEngineer}
+                    <Explorer 
+                        id="prompt-templates-explorer"
+                        sx={{flexGrow:1}}
+                        handleToggleExplorer={onClose}
                         name="Prompt Templates"
                         icon={<BuildIcon/>}
                         folder="prompt_templates"
@@ -171,7 +185,7 @@ const PromptEngineer = ({handleTogglePromptEngineer, setNewPromptPart, setNewPro
                     </IconButton>
                 </Tooltip>
                 <Tooltip title="Close window">
-                    <IconButton onClick={handleTogglePromptEngineer}>
+                    <IconButton onClick={onClose}>
                         <CloseIcon />
                     </IconButton>
                 </Tooltip>

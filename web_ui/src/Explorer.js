@@ -1,5 +1,5 @@
 import { debounce } from "lodash";
-import { useEffect, useState, useContext, useCallback } from 'react';
+import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Box, Toolbar, IconButton, Typography, TextField, List, ListItem, ListItemText,
     Tooltip, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { styled } from '@mui/system';
@@ -23,14 +23,14 @@ import axios from 'axios';
 
 import { SystemContext } from './SystemContext';
 import SettingsManager from './SettingsManager';
-import { use } from "marked";
 
-const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, name, icon, folder, openItemId, setLoadDoc,
+const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, folder, openItemId, setLoadDoc,
      docNameChanged, refresh, setRefresh, itemOpen, hidePrimaryToolbar, deleteEnabled, darkMode,
     setItemOpen, // to be able to close the item editor if the item is deleted
-    serverUrl, token, setToken
+    serverUrl, token, setToken, isMobile
     }) => {
 
+    const panelWindowRef = useRef(null);
     const [mySettingsManager, setMySettingsManager] = useState(new SettingsManager(serverUrl, token, setToken));
     const StyledToolbar = styled(Toolbar)(({ theme }) => ({
         backgroundColor: darkMode ? indigo[800] : indigo[300],
@@ -76,11 +76,20 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
     }, [sortOrder, sortOrderDirection]);
 
     useEffect(()=>{
+        // onOpen
+        // This hook is called when the explorer opens
+        // is the equivalent of [explorerOpen] / [chatsOpen]
         setMyFolder(folder);
+        if (isMobile) {
+            panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+        }
     }, [folder]);
 
     useEffect(()=>{
         loadItems(sortOrder, sortOrderDirection);
+        if (refresh?.reason === "showExplorer" && isMobile) {
+            panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+        }
     }, [refresh]);
 
     useEffect(()=>{
@@ -208,8 +217,13 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
         });
     };
 
-    const render = <Card id={{name}+"-explorer-panel"} sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
-    flex:1, minWidth: "380px", maxWidth: "450px", width: "100%"}}>
+    const render = <Card id={{name}+"-explorer-panel"} ref={panelWindowRef}
+                    sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1,
+                    width: isMobile ? `${window.innerWidth}px` : null,
+                    minWidth: isMobile ? `${window.innerWidth}px` : "380px",
+                    maxWidth: isMobile ? `${window.innerWidth}px` : "450px"
+                    }}
+                    >
        {
            hidePrimaryToolbar ? null 
            :
@@ -240,13 +254,17 @@ const Explorer = ({handleToggleExplorer, windowPinnedOpen, setWindowPinnedOpen, 
                         </span>
                     </Tooltip>
                     <Box ml="auto">
-                        <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
-                            <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
-                                {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
-                            </IconButton>
-                        </Tooltip>
+                        {
+                            isMobile ? null :
+                                <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
+                                    <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
+                                        {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
+                                    </IconButton>
+                                </Tooltip>
+                        }
+                        
                         <Tooltip title="Close window">
-                            <IconButton onClick={handleToggleExplorer}>
+                            <IconButton onClick={onClose}>
                                 <CloseIcon />
                             </IconButton>
                         </Tooltip>

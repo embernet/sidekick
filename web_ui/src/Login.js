@@ -216,7 +216,7 @@ function Login({setUser, serverUrl, setToken, darkMode, setDarkMode}) {
     {loginMode === 'oidc' ? oidcLoginUI : null}
     {loginMode === 'local' ? nativeLoginUI : null}
     <Box variant="body3" color="text.secondary" 
-      sx={{ textAlign: "center", width: "700px", height: "200px", overflow: "auto", whiteSpace: 'pre-line' }}>
+      sx={{ textAlign: "center", width: "80%", height: "200px", overflow: "auto", whiteSpace: 'pre-line' }}>
       { (systemSettings?.preLogin?.message) ? systemSettings.preLogin.message : null}
     </Box>
   </Box>
