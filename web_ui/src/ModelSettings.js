@@ -1,7 +1,7 @@
-import { debounce, get } from "lodash";
-import { useEffect, useState, useCallback } from 'react';
+import { debounce } from "lodash";
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Toolbar, Card, Paper, Box, IconButton, Tooltip,
-    Typography, TextField, Autocomplete, Slider, Switch, Stack } from '@mui/material';
+    Typography, TextField, Autocomplete, Slider } from '@mui/material';
 import { ClassNames } from "@emotion/react";
 import TuneIcon from '@mui/icons-material/Tune';
 import CloseIcon from '@mui/icons-material/Close';
@@ -17,7 +17,9 @@ import { lightBlue } from '@mui/material/colors';
 const ModelSettings = ({setModelSettings, setFocusOnPrompt, 
     modelSettingsOpen, setModelSettingsOpen, windowPinnedOpen, setWindowPinnedOpen,
     temperatureText, setTemperatureText, settingsManager,
-    chatStreamingOn, setChatStreamingOn, darkMode}) => {
+    chatStreamingOn, setChatStreamingOn, darkMode, isMobile}) => {
+
+    const panelWindowRef = useRef(null);
 
     const StyledToolbar = styled(Toolbar)(({ theme }) => ({
         backgroundColor: darkMode ? lightBlue[800] : lightBlue[200],
@@ -77,16 +79,23 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     }
 
     useEffect(()=>{
-        mySettingsManager.loadSettings("model_settings",
-            (data) => {
-                setModelSettingsOptionsFromData(data);
-            },
-            (error) => {
-                console.log("get prompt_parts:", error);
-                setLoadingModelSettingsOptionsMessage("Error loading model settings options: " + error);
+        // onOpen
+        if (modelSettingsOpen) {
+            mySettingsManager.loadSettings("model_settings",
+                (data) => {
+                    setModelSettingsOptionsFromData(data);
+                },
+                (error) => {
+                    console.log("get model_settings:", error);
+                    setLoadingModelSettingsOptionsMessage("Error loading model settings options: " + error);
+                }
+            );
+            if (isMobile) {
+                panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
             }
-        )
-    }, []);
+            document.getElementById("model")?.focus();
+        }
+    }, [modelSettingsOpen]);
 
     useEffect(()=>{
         if (selectedModel) {
@@ -247,9 +256,13 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     }, [selectedProvider, selectedModel, temperature, top_p, presence_penalty, frequency_penalty, selectedModelContextTokenSize]);
 
     const loadingRender =
-        <Card
-            sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", 
-            flex:1, minWidth: "400px", maxWidth: "450px" }}>
+        <Card id="model-settings-panel"  ref={panelWindowRef}
+            sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1,
+            width: isMobile ? `${window.innerWidth}px` : null,
+            minWidth: isMobile ? `${window.innerWidth}px` : "400px",
+            maxWidth: isMobile ? `${window.innerWidth}px` : "450px",
+            }}
+            >
             <Typography>{loadingModelSettingsOptionsMessage}</Typography>
         </Card>;
 
@@ -441,11 +454,13 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
                             <HelpIcon />
                         </IconButton>
                     </Tooltip>
-                    <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
-                        <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
-                            {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
-                        </IconButton>
-                    </Tooltip>
+                    { isMobile ? null :
+                        <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
+                            <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
+                                {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
+                            </IconButton>
+                        </Tooltip>
+                    }
                     <Tooltip title="Close window">
                         <IconButton onClick={handleToggleModelSettings}>
                             <CloseIcon />

@@ -1,5 +1,5 @@
 import { debounce } from "lodash";
-import { useEffect, useState, useContext, Fragment, useCallback } from 'react';
+import { useEffect, useState, useContext, useRef, useCallback } from 'react';
 import { Card, Box, IconButton, Tooltip, Typography, TextField,
     ListItem, ListItemText, Menu, MenuItem, Toolbar } from '@mui/material';
 import { styled } from '@mui/system';
@@ -20,9 +20,11 @@ import CancelIcon from '@mui/icons-material/Cancel';
 
 import { SystemContext } from './SystemContext';
 
-const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, personasOpen, 
+const Personas = ({onClose, persona, setPersona, setFocusOnPrompt, personasOpen, 
     settingsManager, setShouldAskAgainWithPersona, serverUrl, StreamingChatResponse,
-    windowPinnedOpen, setWindowPinnedOpen, darkMode}) => {
+    windowPinnedOpen, setWindowPinnedOpen, darkMode, isMobile}) => {
+
+    const panelWindowRef = useRef(null);
 
     const StyledToolbar = styled(Toolbar)(({ theme }) => ({
         backgroundColor: darkMode ? lightBlue[800] : lightBlue[200],
@@ -84,6 +86,10 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
     }, []);
 
     useEffect(()=>{
+        // onOpen
+        if (isMobile) {
+            panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+        }
         if (personasLoaded && personasOpen) {
             setPersonasFilterFocus();
         }
@@ -210,7 +216,7 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
         return acc;
       }, {});
 
-    const loadingRender = <Card id="personas-panel"
+    const loadingRender = <Card id="personas-panel" ref={panelWindowRef}
         sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
         flex:1, minWidth: "400px", maxWidth: "450px"}}>
         <Typography>{loadingPersonasMessage}</Typography>
@@ -339,13 +345,16 @@ const Personas = ({handleTogglePersonas, persona, setPersona, setFocusOnPrompt, 
                         { expanded ? <CompressIcon/> : <ExpandIcon/> }
                     </IconButton>
                 </Tooltip>
-                <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
-                    <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
-                        {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
-                    </IconButton>
-                </Tooltip>
+                {
+                    isMobile ? null :
+                    <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
+                        <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
+                            {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
+                        </IconButton>
+                    </Tooltip>
+                }
                 <Tooltip title="Close window">
-                    <IconButton onClick={handleTogglePersonas}>
+                    <IconButton onClick={onClose}>
                         <CloseIcon />
                     </IconButton>
                 </Tooltip>

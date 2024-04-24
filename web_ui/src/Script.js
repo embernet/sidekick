@@ -32,7 +32,7 @@ import { StyledBox, StyledToolbar } from './theme';
 const Script = memo(({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, windowMaximized, setWindowMaximized,
     provider, modelSettings, persona, loadScript,
     closeOtherPanels, restoreOtherPanels,
-    onChange, setOpenScriptId, serverUrl, token, setToken,
+    onChange, setOpenScriptId, serverUrl, token, setToken, isMobile,
 }) => {
     
     const panelWindowRef = useRef(null);
@@ -122,6 +122,9 @@ const Script = memo(({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth
 
     useEffect(()=>{
         if (scriptOpen) {
+            if (isMobile) {
+                panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+            }    
             if (!loadScript) {
                 scriptLoading.current = true;
                 reset();
@@ -171,10 +174,22 @@ const Script = memo(({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth
                 setCells(response.data.content.cells);
                 if (!scriptOpen) { setScriptOpen(true); }
                 scriptLoading.current = false;
-            }).catch(error => {
+                if (isMobile && scriptOpen) {
+                    panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+                }
+                if (!scriptOpen) {
+                    setScriptOpen(true);
+                }
+                }).catch(error => {
                 scriptLoading.current = false;
                 system.error(`System Error loading script.`, error, "/docdb/scripts GET");
             });
+            if (isMobile && scriptOpen) {
+                panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+            }
+            if (!scriptOpen) {
+                setScriptOpen(true);
+            }
         }
     }, [loadScript]);
 
@@ -504,11 +519,15 @@ const Script = memo(({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth
                         <DeleteIcon/>
                     </IconButton>
                 </Tooltip>
-                <Tooltip title={ windowMaximized ? "Shrink window" : "Expand window" }>
-                    <IconButton edge="end" color="inherit" aria-label={ windowMaximized ? "Shrink window" : "Expand window" } onClick={handleToggleWindowMaximise}>
-                        { windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }
-                    </IconButton>
-                </Tooltip>
+                {
+                    !isMobile ?
+                        <Tooltip title={ windowMaximized ? "Shrink window" : "Expand window" }>
+                            <IconButton edge="end" color="inherit" aria-label={ windowMaximized ? "Shrink window" : "Expand window" } onClick={handleToggleWindowMaximise}>
+                                { windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }
+                            </IconButton>
+                        </Tooltip>
+                    : null
+                }
                 <Tooltip title="Close window">
                     <IconButton onClick={handleClose}>
                         <CloseIcon />
@@ -584,7 +603,10 @@ const scriptName =
 
     const render = <Card id="script-panel" ref={panelWindowRef}
                     sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, 
-                    width: windowMaximized ? "calc(100vw - 12px)" : null, minWidth: "500px", maxWidth: windowMaximized ? null : maxWidth ? maxWidth : "600px" }}>
+                    width: isMobile ? `${window.innerWidth}px` : (windowMaximized ? "calc(100vw - 12px)" : null),
+                    minWidth: isMobile ? `${window.innerWidth}px` : "500px",
+                    maxWidth: isMobile ? `${window.innerWidth}px` : (windowMaximized ? null : maxWidth ? maxWidth : "600px")
+                    }}>
                         {toolbar}
                         {fileUploadBar}
     <Box sx={{ display: "flex", flexDirection: "column", height:"calc(100% - 64px)"}}>

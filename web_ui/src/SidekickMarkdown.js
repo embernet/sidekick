@@ -33,7 +33,7 @@ const SidekickMarkdown = memo(({ markdown }) => {
                         <Typography sx={{ mr: 2 }}>{language}</Typography>
                         <Box sx={{ display: "flex", width: "100%", flexDirection: "row", ml: "auto" }}>
                             <IconButton edge="start" color="inherit" aria-label="menu"
-                            onClick={() => { navigator.clipboard.writeText(code); }}>
+                            onClick={(event) => { navigator.clipboard.writeText(code); event.stopPropagation(); }}>
                             <ContentCopyIcon/>
                             </IconButton>
                         </Box>

@@ -26,6 +26,7 @@ import AddCommentIcon from '@mui/icons-material/AddComment';
 import PersonIcon from '@mui/icons-material/Person';
 import TuneIcon from '@mui/icons-material/Tune';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
+import QuestionAnswerOutlinedIcon from '@mui/icons-material/QuestionAnswerOutlined';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -34,6 +35,7 @@ import NotesIcon from '@mui/icons-material/Notes';
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import MinimizeIcon from '@mui/icons-material/Minimize';
 import FolderIcon from '@mui/icons-material/Folder';
+import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import RateReviewIcon from '@mui/icons-material/RateReview';
@@ -128,7 +130,8 @@ const App = () => {
   const [chatWindowMaximized, setChatWindowMaximized] = useState(false);
   const [scriptWindowMaximized, setScriptWindowMaximized] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
-
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
+  
   const theme = createTheme({
     palette: {
       mode: darkMode ? 'dark' : 'light',
@@ -196,6 +199,18 @@ const App = () => {
       console.error("Error getting App custom settings:", error);
     });
   }
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 600);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   useEffect(() => {
       if (!appLoaded) {
@@ -384,93 +399,145 @@ const App = () => {
 
   const handleToggleChatsOpen = (event) => {
     unmaximiseWindows();
-    if (chatsOpen) {
-      setChatsPinned(false);
-      setChatsOpen(false);
+    if (isMobile) {
+      if (chatsOpen) {
+        setRefreshChatsExplorer({ reason: "showExplorer", timestamp: Date.now() }); // Force a re-render so it scrolls into view
+      } else {
+        setChatsOpen(true);
+      }
     } else {
-      closeUnpinnedLeftSideWindows(event);
-      setChatsOpen(true);
+      if (chatsOpen) {
+        setChatsPinned(false);
+        setChatsOpen(false);
+      } else {
+        closeUnpinnedLeftSideWindows(event);
+        setChatsOpen(true);
+      }
     }
   }
 
   const handleToggleScriptsOpen = (event) => {
     unmaximiseWindows();
-    if (scriptsOpen) {
-      setScriptsPinned(false);
-      setScriptsOpen(false);
+    if (isMobile) {
+      if (scriptsOpen) {
+        setRefreshScriptsExplorer({ reason: "showExplorer", timestamp: Date.now() }); // Force a re-render so it scrolls into view
+      } else {
+        setScriptsOpen(true);
+      }
     } else {
-      closeUnpinnedLeftSideWindows(event);
-      setScriptsOpen(true);
+      if (scriptsOpen) {
+        setScriptsPinned(false);
+        setScriptsOpen(false);
+      } else {
+        closeUnpinnedLeftSideWindows(event);
+        setScriptsOpen(true);
+      }
     }
   }
 
   const handleToggleSidekickAIOpen = (event) => {  
     unmaximiseWindows();
-    if (sidekickAIOpen) {
-      setSidekickAIPinned(false);
-      setSidekickAIOpen(false);
+    if (isMobile) {
+      setSidekickAIOpen(Date.now()); // Force a re-render so it scrolls into view
     } else {
-      closeUnpinnedLeftSideWindows(event);
-      setSidekickAIOpen(true);
+      if (sidekickAIOpen) {
+        setSidekickAIPinned(false);
+        setSidekickAIOpen(false);
+      } else {
+        closeUnpinnedLeftSideWindows(event);
+        setSidekickAIOpen(true);
+      }
     }
   }
 
   const handleTogglePromptEngineerOpen = (event) => {
     unmaximiseWindows();
-    if (promptEngineerOpen) {
-      setPromptEngineerPinned(false);
-      setPromptEngineerOpen(false);
+    if (isMobile) {
+      setPromptEngineerOpen(Date.now()); // Force a re-render so it scrolls into view
     } else {
-      closeUnpinnedLeftSideWindows(event);
-      setPromptEngineerOpen(true);
+      if (promptEngineerOpen) {
+        setPromptEngineerPinned(false);
+        setPromptEngineerOpen(false);
+      } else {
+        closeUnpinnedLeftSideWindows(event);
+        setPromptEngineerOpen(true);
+      }
     }
   }
 
   const handleTogglePersonasOpen = (event) => {
     unmaximiseWindows();
-    if (personasOpen) {
-      setPersonasPinned(false);
-      setPersonasOpen(false);
+    if (isMobile) {
+      setPersonasOpen(Date.now()); // Force a re-render so it scrolls into view
     } else {
-      closeUnpinnedLeftSideWindows(event);
-      setPersonasOpen(true);
+      if (personasOpen) {
+        setPersonasPinned(false);
+        setPersonasOpen(false);
+      } else {
+        closeUnpinnedLeftSideWindows(event);
+        setPersonasOpen(true);
+      }
     }
   }
 
   const handleToggleModelSettingsOpen = (event) => {
     unmaximiseWindows();
-    if (modelSettingsOpen) {
-      setModelSettingsPinned(false);
-      setModelSettingsOpen(false);
+    if (isMobile) {
+      setModelSettingsOpen(Date.now()); // Force a re-render so it scrolls into view
     } else {
-      closeUnpinnedLeftSideWindows(event);
-      setModelSettingsOpen(true);
+      if (modelSettingsOpen) {
+        setModelSettingsPinned(false);
+        setModelSettingsOpen(false);
+      } else {
+        closeUnpinnedLeftSideWindows(event);
+        setModelSettingsOpen(true);
+      }
     }
   }
 
   const handleToggleChatOpen = () => {
     unmaximiseWindows();
-    setChatOpen(state => !state);
+    if (isMobile) {
+      setChatOpen(Date.now()); // Force a re-render so it scrolls into view
+    } else {
+      setChatOpen(state => !state);
+    }
   }
 
   const handleToggleScriptOpen = () => {
     unmaximiseWindows();
-    setScriptOpen(state => !state);
+    if (isMobile) {
+      setScriptOpen(Date.now()); // Force a re-render so it scrolls into view
+    } else {
+      setScriptOpen(state => !state);
+    }
   }
 
   const handleToggleNoteOpen = () => {
     unmaximiseWindows();
-    setNoteOpen(state => !state);
+    if (isMobile) {
+      setNoteOpen(Date.now()); // Force a re-render so it scrolls into view
+    } else {
+      setNoteOpen(state => !state);
+    }
   }
 
   const handleToggleNotesOpen = (event) => {
     unmaximiseWindows();
-    if (notesOpen) {
-      setNotesPinned(false);
-      setNotesOpen(false);
+    if (isMobile) {
+      if (notesOpen) {
+        setRefreshNotesExplorer({ reason: "showExplorer", timestamp: Date.now() }); // Force a re-render so it scrolls into view
+      } else {
+        setNotesOpen(true);
+      }
     } else {
-      closeUnpinnedRightSideWindows(event);
-      setNotesOpen(true);
+      if (notesOpen) {
+        setNotesPinned(false);
+        setNotesOpen(false);
+      } else {
+        closeUnpinnedRightSideWindows(event);
+        setNotesOpen(true);
+      }
     }
   }
 
@@ -640,15 +707,75 @@ const App = () => {
     setAdminOpen(false);
   }
 
+  const versionInfo =
+    <Typography sx={{ mr: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", variant: "subtitle2"}}>
+      v{VERSION} {appInstanceName} {instanceUsage}
+    </Typography>
 
   const appInfo =
-    <Box display="flex">
-      <Typography sx={{ mr: 2, display: "inline-flex", alignItems: "center", justifyContent: "center" }} variant="h6">Sidekick</Typography>
-      <Typography sx={{ mr: 1, display: "inline-flex", alignItems: "center", justifyContent: "center" }} variant='subtitle2'>
-        v{VERSION} {appInstanceName} {instanceUsage}
-      </Typography>
+    <Box sx={{ display: "flex" }}>
+      <Typography sx={{ mr: 1, display: "inline-flex", alignItems: "center", justifyContent: "center" }} variant="h6">Sidekick</Typography>
+      {isMobile ? null : <Box>{versionInfo}</Box>}
     </Box>
 
+  const extendedLeftToolbar =
+    <>
+      <Tooltip title="Sidekick AI help">
+        <IconButton edge="start" color="inherit" aria-label="Sidekick AI help" onClick={handleToggleSidekickAIOpen}>
+          <HelpIcon/>
+        </IconButton>                  
+      </Tooltip>
+      <Tooltip title={ scriptsOpen ? "Close Scripts Explorer" : "Open Scripts Explorer" }>
+        <IconButton edge="start" color="inherit" aria-label="Open/Close Scripts Explorer" onClick={handleToggleScriptsOpen}>
+          <ScriptsExplorerIcon/>
+        </IconButton>
+      </Tooltip>
+      <Tooltip title={scriptOpen ? "Close Script" : "New Script"}>
+        <IconButton edge="start" color="inherit" aria-label={ scriptOpen ? "Close Script" : "Open Script" } onClick={handleToggleScriptOpen}>
+          <ScriptIcon/>
+        </IconButton>
+      </Tooltip>
+      <Tooltip title={ modelSettingsOpen ? "Close Model Settings" : "Open Model Settings" }>
+        <IconButton edge="start" color="inherit" aria-label="Model settings" onClick={handleToggleModelSettingsOpen}>
+          <TuneIcon/>
+        </IconButton>
+      </Tooltip>
+      <Tooltip title={ personasOpen ? "Close AI personas" : "Open AI persons" }>
+        <IconButton edge="start" color="inherit" aria-label="Personas" onClick={handleTogglePersonasOpen}>
+          <PersonIcon/>
+        </IconButton>
+      </Tooltip>
+      <Tooltip title={ promptEngineerOpen ? "Close prompt engineer" : "Open prompt engineer" }>
+        <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleTogglePromptEngineerOpen}>
+          <BuildIcon/>
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="Minimise windows">
+        <IconButton edge="start" color="inherit" aria-label="Minimise windows" onClick={minimiseWindows}>
+          <MinimizeIcon/>
+        </IconButton>
+      </Tooltip>
+    </>
+
+  const extendedRightToolbar =
+    <>
+      <Tooltip title={ darkMode ? "Switch to Light Mode" : "Switch to Dark Mode" }>
+        <IconButton edge="end" color="inherit" aria-label={ darkMode ? "Light mode" : "Dark mode" } onClick={handleToggleDarkMode}>
+          { darkMode ? <LightModeIcon/> : <DarkModeIcon/> }
+        </IconButton>
+      </Tooltip>
+      <FeedbackButton icon={<RateReviewIcon/>} serverUrl={serverUrl} token={token} setToken={setToken}>
+          <RateReviewIcon/>
+      </FeedbackButton>
+      { user?.is_oidc
+        ? null
+        : <Tooltip title={ appSettingsOpen ? "Close App Settings" : "Open App Setings" }>
+            <IconButton edge="end" color="inherit" aria-label="Settings" onClick={handleToggleAppSettingsOpen}>
+              <SettingsIcon/>
+            </IconButton>
+          </Tooltip>
+      }
+    </>
 
   const appRender =
   <BrowserRouter>
@@ -658,7 +785,7 @@ const App = () => {
         <Box sx={{display:"flex", height:"100vh", flexDirection:"column", overflow:"hidden"}}>
           <AppBar position="sticky">
             <Toolbar>
-                <Box display="flex" gap={2}>
+              <Box display="flex" gap={2}>
                 <IconButton edge="start" color="inherit" aria-label="Sidekick App Menu" onClick={handleAppMenuOpen}>
                   <MenuIcon/>
                 </IconButton>
@@ -672,85 +799,62 @@ const App = () => {
                     <HelpIcon/><Typography  sx={{ ml: 1 }}>{ sidekickAIOpen ? "Help - Close Sidekick AI Help" : "Help - Open Sidekick AI Help" }</Typography>
                   </MenuItem>
                   <MenuItem key="menuOpenCloseScripts" onClick={() => { handleAppMenuClose(); handleToggleScriptsOpen(); }}>
-                    <ScriptsExplorerIcon/><Typography  sx={{ ml: 1 }}>{ scriptsOpen ? "Scripts - Close Scripts Explorer" : "Scripts - Open Scripts Explorer" }</Typography>
+                    <ScriptsExplorerIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Scripts Explorer" : scriptsOpen ? "Scripts - Close Scripts Explorer" : "Scripts - Open Scripts Explorer" }</Typography>
                   </MenuItem>
                   <MenuItem key="menuOpenCloseScript" onClick={() => { handleAppMenuClose(); handleToggleScriptOpen(); }}>
-                    <ScriptIcon/><Typography  sx={{ ml: 1 }}>{ scriptOpen ? "Script - Close" : "Script - Open" }</Typography>
+                    <ScriptIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Script" : scriptOpen ? "Script - Close" : "Script - Open" }</Typography>
                   </MenuItem>
                   <MenuItem key="menuOpenCloseChats" onClick={() => { handleAppMenuClose(); handleToggleChatsOpen(); }}>
-                    <QuestionAnswerIcon/><Typography  sx={{ ml: 1 }}>{ chatsOpen ? "History - Close Chat History" : "History - Open Chat History" }</Typography>
+                    {chatsOpen ? <QuestionAnswerIcon/> : <QuestionAnswerOutlinedIcon/>}
+                    <Typography  sx={{ ml: 1 }}>{ isMobile ? "Chat Explorer" : chatsOpen ? "Chat Explorer - Close Chat Explorer" : "Chat Explorer - Open Chat Explorer" }</Typography>
                   </MenuItem>
                   <MenuItem key="menuOpenCloseModelSettings" onClick={() => { handleAppMenuClose(); handleToggleModelSettingsOpen(); }}>
-                    <TuneIcon/><Typography  sx={{ ml: 1 }}>{ modelSettingsOpen ? "Model - Close Model Settings" : "Model - Open Model Settings" }</Typography>
+                    <TuneIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Model Settings" : modelSettingsOpen ? "Model Settings - Close" : "Model Settings - Open" }</Typography>
                   </MenuItem>
                   <MenuItem key="menuOpenCloseAIPersonas" onClick={() => { handleAppMenuClose(); handleTogglePersonasOpen(); }}>
-                    <PersonIcon/><Typography  sx={{ ml: 1 }}>{ sidekickAIOpen ? "Personas - Close AI Personas" : "Personas - Open AI Personas" }</Typography>
+                    <PersonIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Personas" : personasOpen ? "Personas - Close AI Personas" : "Personas - Open AI Personas" }</Typography>
                   </MenuItem>
                   <MenuItem key="menuOpenClosePromptEngineer" onClick={() => { handleAppMenuClose(); handleTogglePromptEngineerOpen(); }}>
-                    <BuildIcon/><Typography  sx={{ ml: 1 }}>{ sidekickAIOpen ? "Prompt Engineer - Close" : "Prompt Engineer - Open" }</Typography>
+                    <BuildIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Prompt Engineer" : promptEngineerOpen ? "Prompt Engineer - Close" : "Prompt Engineer - Open" }</Typography>
                   </MenuItem>
                   <MenuItem key="menuOpenCloseChat" onClick={() => { handleAppMenuClose(); handleToggleChatOpen(); }}>
-                    { chatOpen ? <ModeCommentIcon/> : <AddCommentIcon/> }<Typography  sx={{ ml: 1 }}>{ chatOpen ? "Chat - Close" : "Chat - Open" }</Typography>
+                    { chatOpen ? <ModeCommentIcon/> : <AddCommentIcon/> }<Typography  sx={{ ml: 1 }}>{ isMobile ? "Chat" : chatOpen ? "Chat - Close" : "Chat - Open" }</Typography>
                   </MenuItem>
                   <MenuItem key="menuMinimiseWindows" onClick={() => { handleAppMenuClose(); minimiseWindows(); }}>
                     <MinimizeIcon/><Typography  sx={{ ml: 1 }}>Minimise Windows</Typography>
                   </MenuItem>
                   <MenuItem key="menuOpenCloseNote" onClick={() => { handleAppMenuClose(); handleToggleNoteOpen(); }}>
-                    { noteOpen ? <NotesIcon/> : <PlaylistAddIcon/> }<Typography  sx={{ ml: 1 }}>{noteOpen ? "Note - Close Note" : "Note - New Note"}</Typography>
+                    { noteOpen ? <NotesIcon/> : <PlaylistAddIcon/> }<Typography  sx={{ ml: 1 }}>{isMobile ? "Note" : noteOpen ? "Note - Close Note" : "Note - New Note"}</Typography>
                   </MenuItem>
                   <MenuItem key="menuOpenCloseNotes" onClick={() => { handleAppMenuClose(); handleToggleNotesOpen(); }}>
-                    <FolderIcon/><Typography  sx={{ ml: 1 }}>{notesOpen ? "Notes - Close Notes Explorer" : "Notes - Open Notes Explorer"}</Typography>
+                    {notesOpen ? <FolderIcon/> : <FolderOutlinedIcon/>}
+                    <Typography  sx={{ ml: 1 }}>{isMobile ? "Notes Explorer" : notesOpen ? "Notes Explorer - Close" : "Notes Explorer - Open"}</Typography>
                   </MenuItem>
                   <MenuItem key="menuDarkMode" onClick={() => { handleAppMenuClose(); handleToggleDarkMode(); }}>
                     { darkMode ? <LightModeIcon/> : <DarkModeIcon/> }<Typography  sx={{ ml: 1 }}>{ darkMode ? "Switch to Light Mode" : "Switch to Dark Mode" }</Typography>
                   </MenuItem>
-                  { user?.is_oidc ? null : <MenuItem key="menuAppSettings" onClick={() => { handleAppMenuClose(); handleToggleAppSettingsOpen(); }}>
-                    <SettingsIcon/><Typography  sx={{ ml: 1 }}>{ appSettingsOpen ? "Settings - Close App Settings" : "Settings - Open App Setings" }</Typography>
-                  </MenuItem> }
-                  { user?.properties?.roles?.admin && <MenuItem key="menuAdmin" onClick={() => { handleAppMenuClose(); handleToggleAdminOpen(); }}>
-                    <AdminPanelSettingsIcon/><Typography sx={{ ml: 1 }}>Admin</Typography>
-                  </MenuItem> }
+                  { user?.is_oidc ? null :
+                      <MenuItem key="menuAppSettings" onClick={() => { handleAppMenuClose(); handleToggleAppSettingsOpen(); }}>
+                        <SettingsIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Settings" : appSettingsOpen ? "Settings - Close App Settings" : "Settings - Open App Setings" }</Typography>
+                      </MenuItem>
+                  }
+                  { user?.properties?.roles?.admin && 
+                    <MenuItem key="menuAdmin" onClick={() => { handleAppMenuClose(); handleToggleAdminOpen(); }}>
+                      <AdminPanelSettingsIcon/><Typography sx={{ ml: 1 }}>Admin</Typography>
+                    </MenuItem>
+                  }
                   <MenuItem key="menuLogout" onClick={() => { handleAppMenuClose(); handleLogout(); }}>
                     <LogoutIcon/><Typography sx={{ ml: 1 }}>Logout</Typography>
                   </MenuItem>
                 </Menu>          
                 {appInfo}
-                <Typography sx={{ mr: 2, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
+                {isMobile ? null : <Typography sx={{ mr: 2, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
                   ({ user?.name ? user.name : user?.id })
-                </Typography>
-                <Tooltip title="Sidekick AI help">
-                  <IconButton edge="start" color="inherit" aria-label="Sidekick AI help" onClick={handleToggleSidekickAIOpen}>
-                    <HelpIcon/>
-                  </IconButton>                  
-                </Tooltip>
-                <Tooltip title={ scriptsOpen ? "Close Scripts Explorer" : "Open Scripts Explorer" }>
-                  <IconButton edge="start" color="inherit" aria-label="Open/Close Scripts Explorer" onClick={handleToggleScriptsOpen}>
-                    <ScriptsExplorerIcon/>
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title={scriptOpen ? "Close Script" : "New Script"}>
-                  <IconButton edge="start" color="inherit" aria-label={ scriptOpen ? "Close Script" : "Open Script" } onClick={handleToggleScriptOpen}>
-                    <ScriptIcon/>
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title={ chatsOpen ? "Close Chat History" : "Open Chat History" }>
-                  <IconButton edge="start" color="inherit" aria-label="Open/Close Chat History" onClick={handleToggleChatsOpen}>
-                    <QuestionAnswerIcon/>
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title={ modelSettingsOpen ? "Close Model Settings" : "Open Model Settings" }>
-                  <IconButton edge="start" color="inherit" aria-label="Model settings" onClick={handleToggleModelSettingsOpen}>
-                    <TuneIcon/>
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title={ personasOpen ? "Close AI personas" : "Open AI persons" }>
-                  <IconButton edge="start" color="inherit" aria-label="Personas" onClick={handleTogglePersonasOpen}>
-                    <PersonIcon/>
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title={ promptEngineerOpen ? "Close prompt engineer" : "Open prompt engineer" }>
-                  <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleTogglePromptEngineerOpen}>
-                    <BuildIcon/>
+                </Typography>}
+                {isMobile ? null : extendedLeftToolbar}
+                <Tooltip title={ chatsOpen ? "Close Chat Explorer" : "Open Chat Explorer" }>
+                  <IconButton edge="start" color="inherit" aria-label="Open/Close Chat Explorer" onClick={handleToggleChatsOpen}>
+                    {chatsOpen ? <QuestionAnswerIcon/> : <QuestionAnswerOutlinedIcon/>}
                   </IconButton>
                 </Tooltip>
                 <Tooltip title={chatOpen ? "Close Chat" : "New Chat"}>
@@ -758,39 +862,19 @@ const App = () => {
                     { chatOpen ? <ModeCommentIcon/> : <AddCommentIcon/> }
                   </IconButton>
                 </Tooltip>
-                <Tooltip title="Minimise windows">
-                  <IconButton edge="start" color="inherit" aria-label="Minimise windows" onClick={minimiseWindows}>
-                    <MinimizeIcon/>
-                  </IconButton>
-                </Tooltip>
               </Box>
               <Box display="flex" ml="auto" gap={2}>
-                <Tooltip title={noteOpen ? "Close Note" : "New Note"}>
-                  <IconButton edge="end" color="inherit" aria-label="New note" onClick={handleToggleNoteOpen}>
-                    { noteOpen ? <NotesIcon/> : <PlaylistAddIcon/> }
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title={ notesOpen ? "Close Notes" : "Open Notes" }>
-                  <IconButton edge="end" color="inherit" aria-label="Hide/Show notes" onClick={handleToggleNotesOpen}>
-                    <FolderIcon/>
-                  </IconButton>
-                </Tooltip>
-                <FeedbackButton icon={<RateReviewIcon/>} serverUrl={serverUrl} token={token} setToken={setToken}>
-                    <RateReviewIcon/>
-                </FeedbackButton>
-                <Tooltip title={ darkMode ? "Switch to Light Mode" : "Switch to Dark Mode" }>
-                    <IconButton edge="end" color="inherit" aria-label={ darkMode ? "Light mode" : "Dark mode" } onClick={handleToggleDarkMode}>
-                      { darkMode ? <LightModeIcon/> : <DarkModeIcon/> }
-                    </IconButton>
-                  </Tooltip>
-                { user?.is_oidc
-                  ? null
-                  : <Tooltip title={ appSettingsOpen ? "Close App Settings" : "Open App Setings" }>
-                      <IconButton edge="end" color="inherit" aria-label="Settings" onClick={handleToggleAppSettingsOpen}>
-                        <SettingsIcon/>
-                      </IconButton>
-                    </Tooltip>
-                }
+              <Tooltip title={noteOpen ? "Close Note" : "New Note"}>
+                <IconButton edge="end" color="inherit" aria-label="New note" onClick={handleToggleNoteOpen}>
+                  { noteOpen ? <NotesIcon/> : <PlaylistAddIcon/> }
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={ notesOpen ? "Close Notes" : "Open Notes" }>
+                <IconButton edge="end" color="inherit" aria-label="Hide/Show notes" onClick={handleToggleNotesOpen}>
+                  {notesOpen ? <FolderIcon/> : <FolderOutlinedIcon/>}
+                </IconButton>
+              </Tooltip>
+                {isMobile ? null : extendedRightToolbar}
                 <Tooltip title="Logout">
                   <IconButton edge="end" color="inherit" aria-label="Logout" onClick={handleLogout}>
                     <LogoutIcon/>
@@ -809,6 +893,7 @@ const App = () => {
               chatStreamingOn={chatStreamingOn} 
               serverUrl={serverUrl} token={token} setToken={setToken}
               darkMode={darkMode}
+              isMobile={isMobile}
             />
             { user?.properties?.roles?.admin && adminOpen ? <Admin 
               adminOpen={adminOpen}
@@ -827,7 +912,7 @@ const App = () => {
               darkMode={darkMode}
             />
             { chatsOpen ? <Explorer
-              handleToggleExplorer={handleToggleChatsOpen}
+              onClose={()=>{setChatsOpen(false)}}
               name="Chats"
               icon={<QuestionAnswerIcon />}
               folder="chats"
@@ -843,6 +928,7 @@ const App = () => {
               deleteEnabled={true}
               darkMode={darkMode}
               serverUrl={serverUrl} token={token} setToken={setToken}
+              isMobile={isMobile}
             /> : null }
             <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "center", flex: 1 }}>
               <Chat 
@@ -881,6 +967,7 @@ const App = () => {
                 setStreamingChatResponse={setStreamingChatResponse}
                 chatStreamingOn={chatStreamingOn}
                 maxWidth={appSettings.maxPanelWidth}
+                isMobile={isMobile}
               />
               <ModelSettings 
                 setModelSettings={setModelSettings}
@@ -896,9 +983,10 @@ const App = () => {
                 chatStreamingOn={chatStreamingOn}
                 setChatStreamingOn={setChatStreamingOn}
                 darkMode={darkMode}
+                isMobile={isMobile}
               />
               <Personas 
-                handleTogglePersonas={handleTogglePersonasOpen} 
+                onClose={() => {setPersonasOpen(false)}} 
                 persona={persona} 
                 setPersona={setPersona}
                 setFocusOnPrompt={setFocusOnPrompt}
@@ -910,10 +998,12 @@ const App = () => {
                 serverUrl={serverUrl} token={token} setToken={setToken}
                 streamingChatResponse={streamingChatResponse}
                 darkMode={darkMode}
+                isMobile={isMobile}
               />
               { promptEngineerOpen ? 
                 <PromptEngineer
-                  handleTogglePromptEngineer={handleTogglePromptEngineerOpen} 
+                  promptEngineerOpen={promptEngineerOpen}
+                  onClose={() => {setPromptEngineerOpen(false)}} 
                   windowPinnedOpen={promptEngineerPinned}
                   setWindowPinnedOpen={setPromptEngineerPinned}
                   setNewPromptPart={setNewPromptPart}
@@ -928,10 +1018,11 @@ const App = () => {
                   settingsManager={new SettingsManager(serverUrl, token, setToken)}
                   serverUrl={serverUrl} token={token} setToken={setToken}
                   darkMode={darkMode}
+                  isMobile={isMobile}
                 />
                 : null }
               { scriptsOpen ? <Explorer
-                handleToggleExplorer={handleToggleScriptsOpen}
+                onClose={()=>{setScriptsOpen(false)}}
                 name="Scripts"
                 icon={<ScriptsExplorerIcon />}
                 folder="scripts"
@@ -947,6 +1038,7 @@ const App = () => {
                 deleteEnabled={true}
                 darkMode={darkMode}
                 serverUrl={serverUrl} token={token} setToken={setToken}
+                isMobile={isMobile}
               /> : null }
               <Script
                 scriptOpen={scriptOpen}
@@ -968,6 +1060,7 @@ const App = () => {
                 onChange={onChange(handleScriptChange)}
                 setOpenScriptId={setOpenScriptId}
                 serverUrl={serverUrl} token={token} setToken={setToken}
+                isMobile={isMobile}
               />
               <Note 
                 noteOpen={noteOpen}
@@ -989,10 +1082,11 @@ const App = () => {
                 persona={persona}
                 serverUrl={serverUrl} token={token} setToken={setToken}
                 maxWidth={appSettings.maxPanelWidth}
+                isMobile={isMobile}
               />
             </Box>
             { notesOpen ? <Explorer
-              handleToggleExplorer={handleToggleNotesOpen}
+              onClose={()=>{setNotesOpen(false)}}
               windowPinnedOpen = {notesPinned}
               setWindowPinnedOpen = {setNotesPinned}
               name="Notes"
@@ -1008,6 +1102,7 @@ const App = () => {
               deleteEnabled={true}
               darkMode={darkMode}
               serverUrl={serverUrl} token={token} setToken={setToken}
+              isMobile={isMobile}
             /> : null}
           </Box>
         <StatusBar
@@ -1018,6 +1113,7 @@ const App = () => {
           toggleModelSettingsOpen={handleToggleModelSettingsOpen}
           personasOpen={personasOpen}
           togglePersonasOpen={handleTogglePersonasOpen}
+          isMobile={isMobile}
         />
       </Box>
     </ThemeProvider>

@@ -38,6 +38,7 @@ import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
+import LightbulbIcon from '@mui/icons-material/Lightbulb';
 
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
@@ -55,9 +56,9 @@ const Chat = ({
     focusOnPrompt, setFocusOnPrompt, chatRequest, chatOpen, noteOpen, setChatOpen, darkMode,
     temperatureText, setTemperatureText, modelSettingsOpen, toggleModelSettingsOpen, togglePersonasOpen,
     onChange, personasOpen, promptEngineerOpen, togglePromptEngineerOpen, setOpenChatId, shouldAskAgainWithPersona, serverUrl, token, setToken,
-    streamingChatResponse, setStreamingChatResponse, chatStreamingOn, maxWidth }) => {
+    streamingChatResponse, setStreamingChatResponse, chatStreamingOn, maxWidth, isMobile }) => {
     
-    const chatWindowRef = useRef(null);
+    const panelWindowRef = useRef(null);
     const chatMessagesContainerRef = useRef(null);
     const chatMessagesRef = useRef(null);
     const streamingChatResponseCardRef = useRef(null);
@@ -110,9 +111,10 @@ const Chat = ({
     const [systemPrompt, setSystemPrompt] = useState("");
     const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady.current);
     const [menuPromptsAnchorEl, setMenuPromptsAnchorEl] = useState(null);
+    const [menuChatAnchorEl, setMenuChatAnchorEl] = useState(null);
     const [menuMessageContext, setMenuMessageContext] = useState(null);
-    const [menuCommandsOnSelection, setMenuSelectedText] = useState(null);
     const [menuCommandsAnchorEl, setMenuCommandsAnchorEl] = useState(null);
+    const [menuCommandsOnSelectionAnchorEl, setMenuCommandsOnSelectionAnchorEl] = useState(null);
     const [menuExplorationAnchorEl, setMenuExplorationAnchorEl] = useState(null);
     const [menuInsightsAnchorEl, setMenuInsightsAnchorEl] = useState(null);
     const [menuAnalysisAnchorEl, setMenuAnalysisAnchorEl] = useState(null);
@@ -198,7 +200,11 @@ const Chat = ({
     }, []);
 
     useEffect(()=>{
+        // onOpen
         if (chatOpen) {
+            if (isMobile) {
+                panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+            }
             if (!loadChat) {
                 reset();
             }
@@ -366,7 +372,7 @@ const Chat = ({
     }, [promptToSend]);
 
     useEffect(() => {
-        chatWindowRef?.current?.scrollIntoView({ behavior: 'instant' });
+        panelWindowRef?.current?.scrollIntoView({ behavior: 'instant' });
     }, [windowMaximized]);
 
     useEffect(()=>{
@@ -435,6 +441,9 @@ const Chat = ({
                         setLastPrompt(lastUserMessage);
                     } catch (err) {
                         console.log(err);
+                    }
+                    if (isMobile && chatOpen) {
+                        panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
                     }
                     if (!chatOpen) { setChatOpen(true); }
                 }).catch(error => {
@@ -925,6 +934,7 @@ const Chat = ({
     }
 
     const handleMenuMessageContextOpen = (event, message, index) => {
+        // to handle right-click and click on a message
         event.preventDefault();
         setMenuMessageContext(
           menuMessageContext === null
@@ -942,12 +952,21 @@ const Chat = ({
         setMenuMessageContext(null);
     };
 
+    const handleMenuChatOpen = (event) => {
+        setMenuChatAnchorEl(event.currentTarget);
+    };
+
+    const handleMenuChatClose = () => {
+        setMenuChatAnchorEl(null);
+    };
+
     const handleMenuPromptsOpen = (event) => {
         setMenuPromptsAnchorEl(event.currentTarget);
     };
 
     const handleMenuPromptsClose = () => {
         handleMenuCommandsClose();
+        handleMenuCommandsOnSelectionClose();
         handleMenuExplorationClose();
         handleMenuAnalysisClose();
         handleMenuInsightsClose();
@@ -997,20 +1016,11 @@ const Chat = ({
     };
 
     const handleMenuCommandsOnSelectionOpen = (event) => {
-        event.preventDefault();
-        setMenuSelectedText(
-            menuCommandsOnSelection === null
-            ? {
-                mouseX: event.clientX + 2,
-                mouseY: event.clientY - 6,
-                }
-            : null,
-        );
+        setMenuCommandsOnSelectionAnchorEl(event.currentTarget);
     };
 
     const handleMenuCommandsOnSelectionClose = () => {
-        setMenuSelectedText(null);
-        handleMenuMessageContextClose();
+        setMenuCommandsOnSelectionAnchorEl(null);
     };
 
     const handleCopyHighlightedText = () => {
@@ -1254,9 +1264,14 @@ const Chat = ({
     
     const ActionOnTextMenu = ({prompt, text}) => {
         return (
-            <MenuItem onClick={ () => {
-                handleMenuCommandsOnSelectionClose();
-                sendPrompt(prompt + ": " + text);
+            <MenuItem onClick={ (event) => {
+                handleMenuPromptsClose();
+                if (event.altKey) {
+                    setChatPrompt(prompt + ": " + text);
+                    setPromptFocus();
+                } else {
+                    sendPrompt(prompt + ": " + text);
+                }
                 }}>{prompt}</MenuItem>
         )
     }
@@ -1265,7 +1280,7 @@ const Chat = ({
     const toolbar =
     <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
         <IconButton edge="start" color="inherit" aria-label="Sidekick Chat Menu"
-            onClick={handleMenuPromptsOpen}
+            onClick={handleMenuChatOpen}
             disabled={promptPlaceholder === userPromptWaiting}
         >
             <CommentIcon/>
@@ -1298,25 +1313,6 @@ const Chat = ({
                 </IconButton>
             </span>
         </Tooltip>
-        <Tooltip title={ id === "" ? "You can clone this chat once it has something in it" : "Clone this chat" }>
-            <span>
-                <IconButton edge="start" color="inherit" aria-label="clone chat"
-                    disabled={ id === "" } onClick={handleCloneChat}
-                >
-                    <FileCopyIcon/>
-                </IconButton>
-            </span>
-        </Tooltip>
-        <Tooltip title={ "Download chat" }>
-            <IconButton edge="start" color="inherit" aria-label="download chat" onClick={handleDownload}>
-                <FileDownloadIcon/>
-            </IconButton>
-        </Tooltip>
-        <Tooltip title={ "Upload chat" }>
-            <IconButton edge="start" color="inherit" aria-label="upload chat" onClick={handleUploadRequest}>
-                <FileUploadIcon/>
-            </IconButton>
-        </Tooltip>
         <Tooltip title={ markdownRenderingOn ? "Turn off markdown and code rendering" : "Turn on markdown and code rendering" }>
             <IconButton edge="start" color="inherit" aria-label="delete chat" onClick={handleToggleMarkdownRendering}>
                 { markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }
@@ -1328,17 +1324,125 @@ const Chat = ({
                     <DeleteIcon/>
                 </IconButton>
             </Tooltip>
-            <Tooltip title={ windowMaximized ? "Shrink window" : "Expand window" }>
-                <IconButton edge="end" color="inherit" aria-label={ windowMaximized ? "Shrink window" : "Expand window" } onClick={handleToggleWindowMaximise}>
-                    { windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }
-                </IconButton>
-            </Tooltip>
+            {
+                isMobile ? null :
+                    <Tooltip title={ windowMaximized ? "Shrink window" : "Expand window" }>
+                        <IconButton edge="end" color="inherit" aria-label={ windowMaximized ? "Shrink window" : "Expand window" } onClick={handleToggleWindowMaximise}>
+                            { windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }
+                        </IconButton>
+                    </Tooltip>
+            }
             <Tooltip title="Close window">
                 <IconButton onClick={handleClose}>
                     <CloseIcon />
                 </IconButton>
             </Tooltip>
         </Box>
+        <Menu
+            id="menu-chat"
+            anchorEl={menuChatAnchorEl}
+            open={Boolean(menuChatAnchorEl)}
+            onClose={handleMenuChatClose}
+            anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+            }}
+            transformOrigin={{
+                vertical: 'top',
+                horizontal: 'left',
+            }}
+        >
+            <MenuItem onClick={handleMenuPromptsOpen}>
+                <ListItemIcon><LightbulbIcon/></ListItemIcon>
+                Prompts
+                <IconButton  edge="end" style={{ padding: 0 }}>
+                    <KeyboardArrowRightIcon />
+                </IconButton>
+            </MenuItem>
+            <MenuItem onClick={handleNewChat}>
+                <ListItemIcon><AddCommentIcon/></ListItemIcon>
+                New Chat
+            </MenuItem>
+            <MenuItem onClick={handleCloneChat} disabled={id === ""}>
+                <ListItemIcon><FileCopyIcon/></ListItemIcon>
+                Clone Chat
+            </MenuItem>
+            <MenuItem onClick={handleDownload}>
+                <ListItemIcon><FileDownloadIcon/></ListItemIcon>
+                Download Chat
+            </MenuItem>
+            <MenuItem onClick={handleUploadRequest}>
+                <ListItemIcon><FileUploadIcon/></ListItemIcon>
+                Upload Chat
+            </MenuItem>
+            <MenuItem onClick={handleToggleMarkdownRendering}>
+            <ListItemIcon>{ markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }</ListItemIcon>
+                { markdownRenderingOn ? "Turn off markdown rendering" : "Turn on markdown rendering" }</MenuItem>
+            <MenuItem onClick={handleToggleWindowMaximise}>
+                <ListItemIcon>{ windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }</ListItemIcon>
+                { windowMaximized ? "Shrink window" : "Expand window" }
+            </MenuItem>
+            <MenuItem onClick={handleDeleteChat}>
+                <ListItemIcon><DeleteIcon/></ListItemIcon>
+                Delete Chat</MenuItem>
+            <MenuItem onClick={handleClose}>
+                <ListItemIcon><CloseIcon/></ListItemIcon>
+                Close Window
+            </MenuItem>
+        </Menu>
+        <Menu
+            id="chat-context-menu"
+            open={menuMessageContext !== null}
+            onClose={handleMenuMessageContextClose}
+            anchorReference="anchorPosition"
+            anchorPosition={
+                menuMessageContext !== null
+                ? { 
+                    top: menuMessageContext.mouseY,
+                    left: menuMessageContext.mouseX,
+                    message: menuMessageContext.message,
+                    index: menuMessageContext.index,
+                }
+                : { top: 0, left: 0 } // Default position
+            }
+        > 
+            <MenuItem
+                disabled={!window.getSelection().toString() || promptPlaceholder === userPromptWaiting}
+                onClick={handleMenuCommandsOnSelectionOpen}>
+                <ListItemText>Commands on selection</ListItemText>
+                <IconButton  edge="end" style={{ padding: 0 }}>
+                    <KeyboardArrowRightIcon />
+                </IconButton>              
+            </MenuItem>
+            <MenuItem
+                disabled={messages.length === 0 || !!window.getSelection().toString() || promptPlaceholder === userPromptWaiting}
+                onClick={handleMenuPromptsOpen}
+            >
+                <ListItemText>Prompts</ListItemText>
+                <IconButton  edge="end" style={{ padding: 0 }}>
+                    <KeyboardArrowRightIcon />
+                </IconButton>
+            </MenuItem>
+            <MenuItem
+                disabled={!window.getSelection().toString()}
+                onClick={handleCopyHighlightedText}>
+                Copy highlighted text
+            </MenuItem>
+            <MenuItem onClick={handleCopyMessageAsText}>Copy message as text</MenuItem>
+            <MenuItem onClick={handleCopyAllAsText}>Copy all as text</MenuItem>
+            <MenuItem onClick={handleCopyMessageAsHTML}>Copy message as html</MenuItem>
+            <MenuItem onClick={handleCopyAllAsHTML}>Copy all as html</MenuItem>
+            <MenuItem divider />
+            <MenuItem onClick={handleAppendToChatInput}>Append message to chat input</MenuItem>
+            <MenuItem onClick={handleUseAsChatInput}>Use message as chat input</MenuItem>
+            <MenuItem divider />
+            <MenuItem disabled={!noteOpen} onClick={handleAppendToNote}>Append message to note</MenuItem>
+            <MenuItem disabled={!noteOpen} onClick={handleAppendAllToNote}>Append all to note</MenuItem>
+            <MenuItem divider />
+            <MenuItem onClick={handleDeleteThisMessage}>Delete this message</MenuItem>
+            <MenuItem onClick={handleDeleteThisAndPreviousMessage}>Delete this and previous message</MenuItem>
+            <MenuItem onClick={handleDeleteAllMessages}>Delete all messages</MenuItem>
+        </Menu>
         <Menu 
             id="menu-prompts"
             anchorEl={menuPromptsAnchorEl}
@@ -1507,6 +1611,45 @@ const Chat = ({
             <ActionMenu name="Evolve with improving action" prompt="What might this situation evolve into if the tensions are resolved and actions are taken to progressively improve the situation?"/>
             <ActionMenu name="Evolve with best action" prompt="What might this situation evolve into if the tensions are resolved and the best possible actions are taken to improve the situation?"/>
             <ActionMenu name="Report" prompt="Write a report summarising what we discussed. Use markdown for sections to include: Abstract (a one sentence summary), Introduction and Background, Topics discussed, Insights, Conclusions, Potential next steps. Where the chat does not include enough content to answer these sections, extrapolate it."/>
+        </Menu>
+        <Menu
+            id="menu-commands-on-selection"
+            anchorEl={menuCommandsOnSelectionAnchorEl}
+            open={Boolean(menuCommandsOnSelectionAnchorEl)}
+            onClose={handleMenuCommandsOnSelectionClose}
+            anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+            }}
+            transformOrigin={{
+                vertical: 'top',
+                horizontal: 'left',
+            }}                            
+        >
+            <Tooltip title={promptSelectionInstructions} placement="right">
+                <MenuItem onClick={handleMenuCommandsOnSelectionClose}>
+                    <Typography variant="subtitle1" component="div" style={{ flexGrow: 1, fontWeight: 'bold' }}>
+                    Commands on selection
+                    </Typography>
+                    <IconButton edge="end" color="inherit" onClick={handleMenuCommandsOnSelectionClose}>
+                    <CloseIcon />
+                    </IconButton>
+                </MenuItem>
+            </Tooltip>
+            <ActionOnTextMenu prompt="Define" text={window.getSelection().toString()}/>
+            <ActionOnTextMenu prompt="Explain in simple terms" text={window.getSelection().toString()}/>
+            <ActionOnTextMenu prompt="Explain in detail" text={window.getSelection().toString()}/>
+            <ActionOnTextMenu prompt="Provide synonyms for" text={window.getSelection().toString()}/>
+            <ActionOnTextMenu prompt="Provide antonyms for" text={window.getSelection().toString()}/>
+            <ActionOnTextMenu prompt="Give examples of" text={window.getSelection().toString()}/>
+            <ActionOnTextMenu prompt="Give counter-examples of" text={window.getSelection().toString()}/>
+            <ActionOnTextMenu prompt="Give arguments for" text={window.getSelection().toString()}/>
+            <ActionOnTextMenu prompt="Give counter-arguments for" text={window.getSelection().toString()}/>
+            <ActionOnTextMenu prompt="Provide history for" text={window.getSelection().toString()}/>
+            <ActionOnTextMenu prompt="List related topics to" text={window.getSelection().toString()}/>
+            <ActionOnTextMenu prompt="List trends related to" text={window.getSelection().toString()}/>
+            <ActionOnTextMenu prompt="How can this help me" text={window.getSelection().toString()}/>
+            <ActionOnTextMenu prompt="How might this hinder me" text={window.getSelection().toString()}/>
         </Menu>
         <Menu
             id="menu-exploration"
@@ -1797,9 +1940,13 @@ const Chat = ({
         }
     </Box>;
 
-    const render = <Card id="chat-panel" ref={chatWindowRef}
+    const render = <Card id="chat-panel" ref={panelWindowRef}
                     sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, 
-                    width: windowMaximized ? "calc(100vw - 12px)" : null, minWidth: "500px", maxWidth: windowMaximized ? null : maxWidth ? maxWidth : "600px" }}>
+                    width: isMobile ? `${window.innerWidth}px` : (windowMaximized ? "calc(100vw - 12px)" : null),
+                    minWidth: isMobile ? `${window.innerWidth}px` : "500px",
+                    maxWidth: isMobile ? `${window.innerWidth}px` : (windowMaximized ? null : maxWidth ? maxWidth : "600px")
+                    }}
+                    >
     {toolbar}
     {fileUploadBar}
     <Box sx={{ display: "flex", flexDirection: "column", height:"calc(100% - 64px)"}}>
@@ -1847,7 +1994,7 @@ const Chat = ({
             <List id="message-list" ref={chatMessagesRef}>
                 {messages && messages.map((message, index) => (
                     <ListItem sx={{ paddingLeft: 0 }} key={index}>
-                        <Box style={{width:'100%'}} onContextMenu={(event) => { handleMenuMessageContextOpen(event, message, index); }}>
+                        <Box style={{width:'100%'}} onContextMenu={(event) => { handleMenuMessageContextOpen(event, message, index); }} onClick={(event) => { handleMenuMessageContextOpen(event, message, index); }}>
                             <Card sx={{ 
                                 padding: 2, 
                                 width: "100%", 
@@ -1864,88 +2011,6 @@ const Chat = ({
                                         </Typography>
                                 }
                             </Card>
-                            <Menu
-                                id="chat-context-menu"
-                                open={menuMessageContext !== null}
-                                onClose={handleMenuMessageContextClose}
-                                anchorReference="anchorPosition"
-                                anchorPosition={
-                                    menuMessageContext !== null
-                                    ? { 
-                                        top: menuMessageContext.mouseY,
-                                        left: menuMessageContext.mouseX,
-                                        message: message,
-                                        index: index,
-                                    }
-                                    : { top: 0, left: 0 } // Default position
-                                }
-                            > 
-                                <MenuItem
-                                    disabled={!window.getSelection().toString() || promptPlaceholder === userPromptWaiting}
-                                    onClick={handleMenuCommandsOnSelectionOpen}>
-                                    <ListItemText>Commands on selection</ListItemText>
-                                    <ListItemIcon>
-                                        <KeyboardArrowRightIcon />
-                                    </ListItemIcon>                                    
-                                    <Menu
-                                        id="menu-commands-on-selection"
-                                        open={menuCommandsOnSelection !== null}
-                                        onClose={handleMenuCommandsOnSelectionClose}
-                                        anchorReference="anchorPosition"
-                                        anchorPosition={
-                                            menuMessageContext !== null
-                                            ? { 
-                                                top: menuMessageContext?.mouseY + 100 || 0,
-                                                left: menuMessageContext?.mouseX + 100 || 0,
-                                            }
-                                            : { top: 0, left: 0 } // Default position
-                                        }
-                                    >
-                                        <ActionOnTextMenu prompt="Define" text={window.getSelection().toString()}/>
-                                        <ActionOnTextMenu prompt="Explain in simple terms" text={window.getSelection().toString()}/>
-                                        <ActionOnTextMenu prompt="Explain in detail" text={window.getSelection().toString()}/>
-                                        <ActionOnTextMenu prompt="Provide synonyms for" text={window.getSelection().toString()}/>
-                                        <ActionOnTextMenu prompt="Provide antonyms for" text={window.getSelection().toString()}/>
-                                        <ActionOnTextMenu prompt="Give examples of" text={window.getSelection().toString()}/>
-                                        <ActionOnTextMenu prompt="Give counter-examples of" text={window.getSelection().toString()}/>
-                                        <ActionOnTextMenu prompt="Give arguments for" text={window.getSelection().toString()}/>
-                                        <ActionOnTextMenu prompt="Give counter-arguments for" text={window.getSelection().toString()}/>
-                                        <ActionOnTextMenu prompt="Provide history for" text={window.getSelection().toString()}/>
-                                        <ActionOnTextMenu prompt="List related topics to" text={window.getSelection().toString()}/>
-                                        <ActionOnTextMenu prompt="List trends related to" text={window.getSelection().toString()}/>
-                                        <ActionOnTextMenu prompt="How can this help me" text={window.getSelection().toString()}/>
-                                        <ActionOnTextMenu prompt="How might this hinder me" text={window.getSelection().toString()}/>
-                                    </Menu>
-                                </MenuItem>
-                                <MenuItem
-                                    disabled={messages.length === 0 || !!window.getSelection().toString() || promptPlaceholder === userPromptWaiting}
-                                    onClick={handleMenuPromptsOpen}
-                                >
-                                    <ListItemText>Prompts</ListItemText>
-                                    <ListItemIcon>
-                                        <KeyboardArrowRightIcon />
-                                    </ListItemIcon>
-                                </MenuItem>
-                                <MenuItem
-                                    disabled={!window.getSelection().toString()}
-                                    onClick={handleCopyHighlightedText}>
-                                    Copy highlighted text
-                                </MenuItem>
-                                <MenuItem onClick={handleCopyMessageAsText}>Copy message as text</MenuItem>
-                                <MenuItem onClick={handleCopyAllAsText}>Copy all as text</MenuItem>
-                                <MenuItem onClick={handleCopyMessageAsHTML}>Copy message as html</MenuItem>
-                                <MenuItem onClick={handleCopyAllAsHTML}>Copy all as html</MenuItem>
-                                <MenuItem divider />
-                                <MenuItem onClick={handleAppendToChatInput}>Append message to chat input</MenuItem>
-                                <MenuItem onClick={handleUseAsChatInput}>Use message as chat input</MenuItem>
-                                <MenuItem divider />
-                                <MenuItem disabled={!noteOpen} onClick={handleAppendToNote}>Append message to note</MenuItem>
-                                <MenuItem disabled={!noteOpen} onClick={handleAppendAllToNote}>Append all to note</MenuItem>
-                                <MenuItem divider />
-                                <MenuItem onClick={handleDeleteThisMessage}>Delete this message</MenuItem>
-                                <MenuItem onClick={handleDeleteThisAndPreviousMessage}>Delete this and previous message</MenuItem>
-                                <MenuItem onClick={handleDeleteAllMessages}>Delete all messages</MenuItem>
-                            </Menu>
                         </Box>
                     </ListItem>
                 ))}
@@ -2004,7 +2069,10 @@ const Chat = ({
                     </span>
                 </Tooltip>
                 <Box ml="auto">
-                    <TextStatsDisplay name="Prompt" sizeInCharacters={promptLength} maxTokenSize={myModelSettings.contextTokenSize}/>
+                { !isMobile
+                    ? <TextStatsDisplay name="Prompt" sizeInCharacters={promptLength} maxTokenSize={myModelSettings.contextTokenSize}/>
+                    : null
+                }
                     {streamingChatResponse !== "" && 
                     <Tooltip title={ "Stop" }>
                         <span>
@@ -2130,15 +2198,18 @@ const Chat = ({
                     </Box>
                 </Paper> : null
             }
-            <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 2, backgroundColor: darkMode ? grey[900] : grey[100] }}>
-                <Typography color="textSecondary">Prompts: {promptCount}</Typography>
-                <Typography color="textSecondary">Responses: {responseCount}</Typography>
-                <Typography color="textSecondary">K-Notes: { Object.keys(selectedAiLibraryNotes).length }</Typography>
-                <Typography color="textSecondary">Total size: 
-                    <TextStatsDisplay sx={{ ml:1 }} name="prompt + context" sizeInCharacters={messagesSize + promptLength + selectedAiLibraryFullTextSize}
-                    maxTokenSize={myModelSettings.contextTokenSize} />
-                </Typography>
-            </Paper>
+            { !isMobile
+                ? <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 2, backgroundColor: darkMode ? grey[900] : grey[100] }}>
+                        <Typography color="textSecondary">Prompts: {promptCount}</Typography>
+                        <Typography color="textSecondary">Responses: {responseCount}</Typography>
+                        <Typography color="textSecondary">K-Notes: { Object.keys(selectedAiLibraryNotes).length }</Typography>
+                        <Typography color="textSecondary">Total size: 
+                            <TextStatsDisplay sx={{ ml:1 }} name="prompt + context" sizeInCharacters={messagesSize + promptLength + selectedAiLibraryFullTextSize}
+                            maxTokenSize={myModelSettings.contextTokenSize} />
+                        </Typography>
+                    </Paper>
+                : null
+            }
         </Box>
     </Box>
 </Card>;

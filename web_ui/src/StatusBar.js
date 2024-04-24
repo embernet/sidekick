@@ -7,7 +7,7 @@ import { grey, red, orange, blue } from '@mui/material/colors';
 
 const StatusBar = ({ statusUpdates, persona, modelSettings,
 modelSettingsOpen, toggleModelSettingsOpen,
-personasOpen, togglePersonasOpen }) => {
+personasOpen, togglePersonasOpen, isMobile }) => {
     const system = useContext(SystemContext);
     const [displayMessage, setDisplayMessage] = useState('');
     const [dateTimeString, setDateTimeString] = useState('');
@@ -72,7 +72,7 @@ personasOpen, togglePersonasOpen }) => {
         <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: grey[100] }}>
             <Button id="status-button-log" variant={statusUpdates.length > 0 ? "outlined" : "text"}
                 size="small" color="primary"
-                sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={handleStatusClick}>
+                sx={{ fontSize: "0.8em", textTransform: 'none', width: isMobile ? "100%" : "auto" }} onClick={handleStatusClick}>
                 <Typography variant="caption" component="span"
                     sx={{ cursor: statusUpdates.length > 0 ? 'pointer' : 'default', margin: '2px', padding: '2px', borderRadius: '4px', width: '100%' }}
                     ref={statusRef}
@@ -97,6 +97,7 @@ personasOpen, togglePersonasOpen }) => {
                 vertical: 'bottom',
                 horizontal: 'left',
                 }}
+                sx={{width: isMobile ? "100%" : "auto"}}
             >
                 <List dense>
                 {statusUpdates.map((msg, index) => (
@@ -108,7 +109,7 @@ personasOpen, togglePersonasOpen }) => {
                 ))}
                 </List>
             </Popover>
-            { persona && 
+            { !isMobile && persona && 
                 <Tooltip title={
                         "Selected AI persona" + (personasOpen ? " (click to hide Persona Explorer)" : " (click to show Persona Explorer)")
                 }>
@@ -120,7 +121,7 @@ personasOpen, togglePersonasOpen }) => {
                     </Button>
                 </Tooltip>
             }
-            {  modelSettings?.request && modelSettings?.request?.model &&
+            {  !isMobile && modelSettings?.request && modelSettings?.request?.model &&
                 <Tooltip title={ 
                     <Fragment>
                         <pre>
