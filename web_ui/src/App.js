@@ -12,7 +12,8 @@ import { SystemContext } from './SystemContext';
 import { BrowserRouter } from 'react-router-dom';
 import useToken from './useToken';
 import { useEffect, useState } from 'react';
-import { CssBaseline, Box, AppBar, Toolbar, IconButton, Typography, Tooltip } from '@mui/material';
+import { CssBaseline, Box, AppBar, Toolbar, IconButton, Typography,
+  Tooltip, ListItemIcon } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { styled } from '@mui/system';
 
@@ -42,7 +43,7 @@ import RateReviewIcon from '@mui/icons-material/RateReview';
 import HelpIcon from '@mui/icons-material/Help';
 import SmartDisplayOutlinedIcon from '@mui/icons-material/SmartDisplayOutlined';
 import SubscriptionsOutlinedIcon from '@mui/icons-material/SubscriptionsOutlined';
-import { red, pink, purple, deepPurple, indigo, blue, lightBlue, cyan, teal, green, lightGreen, lime, yellow, amber, orange, deepOrange, brown, grey, blueGrey } from '@mui/material/colors';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 
 import Chat from './Chat';
@@ -707,15 +708,12 @@ const App = () => {
     setAdminOpen(false);
   }
 
-  const versionInfo =
-    <Typography sx={{ mr: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", variant: "subtitle2"}}>
-      v{VERSION} {appInstanceName} {instanceUsage}
-    </Typography>
+  const versionInfo = `v${VERSION} ${appInstanceName} ${instanceUsage}`;
 
   const appInfo =
-    <Box sx={{ display: "flex" }}>
-      <Typography sx={{ mr: 1, display: "inline-flex", alignItems: "center", justifyContent: "center" }} variant="h6">Sidekick</Typography>
-      {isMobile ? null : <Box>{versionInfo}</Box>}
+    <Box sx={{ display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+      <Typography sx={{ mr: 1}} variant="h6">Sidekick</Typography>
+      {isMobile ? null : <Typography variant="subtitle2">{versionInfo}</Typography>}
     </Box>
 
   const extendedLeftToolbar =
@@ -795,6 +793,13 @@ const App = () => {
                   open={Boolean(appMenuAnchorEl)}
                   onClose={handleAppMenuClose}
                 >
+                  { isMobile ?
+                    <MenuItem onClick={() => { handleAppMenuClose(); }}>
+                      <ListItemIcon><InfoOutlinedIcon/></ListItemIcon>
+                      {versionInfo}
+                    </MenuItem>
+                    : null
+                  }
                   <MenuItem key="menuOpenCloseSidekickAI" onClick={() => { handleAppMenuClose(); handleToggleSidekickAIOpen(); }}>
                     <HelpIcon/><Typography  sx={{ ml: 1 }}>{ sidekickAIOpen ? "Help - Close Sidekick AI Help" : "Help - Open Sidekick AI Help" }</Typography>
                   </MenuItem>
