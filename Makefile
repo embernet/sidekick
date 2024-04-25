@@ -1,27 +1,36 @@
-.PHONY: init test build-docker run-dev-locally run-prod-locally run-container stop-container
+# Makefile for the Sidekick project
+# Make web_ui and server_api docker images
+
+.PHONY: init local run-dev-locally run-prod-locally all test web_ui server_api test-locally
+
+all: local build
 
 init:
-	pipenv install
+	$(MAKE) -C web_ui init
+	$(MAKE) -C server init
 
 test: init
-	pipenv run python -m pytest
-
-build-docker:
-	docker build --tag sidekick-server .
+	$(MAKE) -C web_ui test
+	$(MAKE) -C server test
 
 run-dev-locally: init
-	pipenv run python run.py
+	$(MAKE) -C server run-dev-locally &
+	$(MAKE) -C web_ui run-dev-locally &
 
 run-prod-locally: init
-	pipenv run gunicorn -w 4 -b 0.0.0.0:5003 app:app
+	$(MAKE) -C server run-prod-locally &
+	$(MAKE) -C web_ui run-prod-locally &
 
-stop-container:
-	docker stop sidekick-server; \
-	docker ps
+web_ui:
+	$(MAKE) -C web_ui
+
+server_api:
+	$(MAKE) -C server
 
 test-locally:
-	$(MAKE) init
-	$(MAKE) test
+	$(MAKE) -C web_ui test-locally
+	$(MAKE) -C server test-locally
 
-db-upgrade:
-	pipenv run flask db upgrade
+build-docker:
+	docker build --tag sidekick-server server/
+	docker build --tag sidekick-web-ui web_ui/
