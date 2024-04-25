@@ -15,19 +15,11 @@ from flask import request, jsonify, Response, stream_with_context, redirect, ses
 from flask_jwt_extended import get_jwt_identity, jwt_required, \
     create_access_token, unset_jwt_cookies
 
-from prometheus_client import Counter, Gauge
-
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.exc import IntegrityError
 
 from app import app, oidc
 from app import VERSION, server_instance_id
-
-prompt_characters = Gauge(
-    'prompt_characters',
-    'Number of characters in the prompt',
-    ['route', 'user']
-)
 
 class OrderedEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -355,9 +347,6 @@ def name_topic():
             message_usage["prompt_characters"] = promptCharacters
             increment_server_stat(category="usage", stat_name="promptCharacters", increment=promptCharacters)
             increment_server_stat(category="usage", stat_name="totalCharacters", increment=promptCharacters)
-            
-            prompt_characters.labels('name-topic', acting_user_id).set(promptCharacters)
-            
             proxy_url = app.config["OPENAI_PROXY"]
             proxies = {"http": proxy_url,
                     "https": proxy_url} if proxy_url else None
