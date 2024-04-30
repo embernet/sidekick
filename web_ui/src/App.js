@@ -12,7 +12,8 @@ import { SystemContext } from './SystemContext';
 import { BrowserRouter } from 'react-router-dom';
 import useToken from './useToken';
 import { useEffect, useState } from 'react';
-import { CssBaseline, Box, AppBar, Toolbar, IconButton, Typography, Tooltip } from '@mui/material';
+import { CssBaseline, Box, AppBar, Toolbar, IconButton, Typography, Tooltip, Popover,
+   Button, Grid } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { styled } from '@mui/system';
 
@@ -42,7 +43,7 @@ import RateReviewIcon from '@mui/icons-material/RateReview';
 import HelpIcon from '@mui/icons-material/Help';
 import SmartDisplayOutlinedIcon from '@mui/icons-material/SmartDisplayOutlined';
 import SubscriptionsOutlinedIcon from '@mui/icons-material/SubscriptionsOutlined';
-import { red, pink, purple, deepPurple, indigo, blue, lightBlue, cyan, teal, green, lightGreen, lime, yellow, amber, orange, deepOrange, brown, grey, blueGrey } from '@mui/material/colors';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 
 import Chat from './Chat';
@@ -68,6 +69,7 @@ const ScriptsExplorerIcon = SubscriptionsOutlinedIcon;
 const App = () => {
   const system = useContext(SystemContext);
   const { token, removeToken, setToken } = useToken();
+  const [aboutWindowOpen, setAboutWindowOpen] = useState(false);
   const [sidekickAIOpen, setSidekickAIOpen] = useState(false);
   const [sidekickAIPinned, setSidekickAIPinned] = useState(false);
   const [appSettingsOpen, setAppSettingsOpen] = useState(false);
@@ -708,7 +710,7 @@ const App = () => {
   }
 
   const versionInfo =
-    <Typography sx={{ mr: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", variant: "subtitle2"}}>
+    <Typography sx={{ ml: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", variant: "subtitle2"}}>
       v{VERSION} {appInstanceName} {instanceUsage}
     </Typography>
 
@@ -795,18 +797,25 @@ const App = () => {
                   open={Boolean(appMenuAnchorEl)}
                   onClose={handleAppMenuClose}
                 >
-                  <MenuItem key="menuOpenCloseSidekickAI" onClick={() => { handleAppMenuClose(); handleToggleSidekickAIOpen(); }}>
-                    <HelpIcon/><Typography  sx={{ ml: 1 }}>{ sidekickAIOpen ? "Help - Close Sidekick AI Help" : "Help - Open Sidekick AI Help" }</Typography>
-                  </MenuItem>
-                  <MenuItem key="menuOpenCloseScripts" onClick={() => { handleAppMenuClose(); handleToggleScriptsOpen(); }}>
-                    <ScriptsExplorerIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Scripts Explorer" : scriptsOpen ? "Scripts - Close Scripts Explorer" : "Scripts - Open Scripts Explorer" }</Typography>
-                  </MenuItem>
-                  <MenuItem key="menuOpenCloseScript" onClick={() => { handleAppMenuClose(); handleToggleScriptOpen(); }}>
-                    <ScriptIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Script" : scriptOpen ? "Script - Close" : "Script - Open" }</Typography>
-                  </MenuItem>
                   <MenuItem key="menuOpenCloseChats" onClick={() => { handleAppMenuClose(); handleToggleChatsOpen(); }}>
                     {chatsOpen ? <QuestionAnswerIcon/> : <QuestionAnswerOutlinedIcon/>}
                     <Typography  sx={{ ml: 1 }}>{ isMobile ? "Chat Explorer" : chatsOpen ? "Chat Explorer - Close Chat Explorer" : "Chat Explorer - Open Chat Explorer" }</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuOpenCloseChat" onClick={() => { handleAppMenuClose(); handleToggleChatOpen(); }}>
+                    { chatOpen ? <ModeCommentIcon/> : <AddCommentIcon/> }<Typography  sx={{ ml: 1 }}>{ isMobile ? "Chat" : chatOpen ? "Chat - Close" : "Chat - Open" }</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuOpenCloseNotes" onClick={() => { handleAppMenuClose(); handleToggleNotesOpen(); }}>
+                    {notesOpen ? <FolderIcon/> : <FolderOutlinedIcon/>}
+                    <Typography  sx={{ ml: 1 }}>{isMobile ? "Notes Explorer" : notesOpen ? "Notes Explorer - Close" : "Notes Explorer - Open"}</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuOpenCloseNote" onClick={() => { handleAppMenuClose(); handleToggleNoteOpen(); }}>
+                    { noteOpen ? <NotesIcon/> : <PlaylistAddIcon/> }<Typography  sx={{ ml: 1 }}>{isMobile ? "Note" : noteOpen ? "Note - Close Note" : "Note - New Note"}</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuOpenCloseScripts" onClick={() => { handleAppMenuClose(); handleToggleScriptsOpen(); }}>
+                    <ScriptsExplorerIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Scripts Explorer" : scriptsOpen ? "Scripts Explorer" : "Scripts Explorer" }</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuOpenCloseScript" onClick={() => { handleAppMenuClose(); handleToggleScriptOpen(); }}>
+                    <ScriptIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Script" : scriptOpen ? "Script - Close" : "Script - Open" }</Typography>
                   </MenuItem>
                   <MenuItem key="menuOpenCloseModelSettings" onClick={() => { handleAppMenuClose(); handleToggleModelSettingsOpen(); }}>
                     <TuneIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Model Settings" : modelSettingsOpen ? "Model Settings - Close" : "Model Settings - Open" }</Typography>
@@ -817,18 +826,8 @@ const App = () => {
                   <MenuItem key="menuOpenClosePromptEngineer" onClick={() => { handleAppMenuClose(); handleTogglePromptEngineerOpen(); }}>
                     <BuildIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Prompt Engineer" : promptEngineerOpen ? "Prompt Engineer - Close" : "Prompt Engineer - Open" }</Typography>
                   </MenuItem>
-                  <MenuItem key="menuOpenCloseChat" onClick={() => { handleAppMenuClose(); handleToggleChatOpen(); }}>
-                    { chatOpen ? <ModeCommentIcon/> : <AddCommentIcon/> }<Typography  sx={{ ml: 1 }}>{ isMobile ? "Chat" : chatOpen ? "Chat - Close" : "Chat - Open" }</Typography>
-                  </MenuItem>
                   <MenuItem key="menuMinimiseWindows" onClick={() => { handleAppMenuClose(); minimiseWindows(); }}>
                     <MinimizeIcon/><Typography  sx={{ ml: 1 }}>Minimise Windows</Typography>
-                  </MenuItem>
-                  <MenuItem key="menuOpenCloseNote" onClick={() => { handleAppMenuClose(); handleToggleNoteOpen(); }}>
-                    { noteOpen ? <NotesIcon/> : <PlaylistAddIcon/> }<Typography  sx={{ ml: 1 }}>{isMobile ? "Note" : noteOpen ? "Note - Close Note" : "Note - New Note"}</Typography>
-                  </MenuItem>
-                  <MenuItem key="menuOpenCloseNotes" onClick={() => { handleAppMenuClose(); handleToggleNotesOpen(); }}>
-                    {notesOpen ? <FolderIcon/> : <FolderOutlinedIcon/>}
-                    <Typography  sx={{ ml: 1 }}>{isMobile ? "Notes Explorer" : notesOpen ? "Notes Explorer - Close" : "Notes Explorer - Open"}</Typography>
                   </MenuItem>
                   <MenuItem key="menuDarkMode" onClick={() => { handleAppMenuClose(); handleToggleDarkMode(); }}>
                     { darkMode ? <LightModeIcon/> : <DarkModeIcon/> }<Typography  sx={{ ml: 1 }}>{ darkMode ? "Switch to Light Mode" : "Switch to Dark Mode" }</Typography>
@@ -843,6 +842,12 @@ const App = () => {
                       <AdminPanelSettingsIcon/><Typography sx={{ ml: 1 }}>Admin</Typography>
                     </MenuItem>
                   }
+                  <MenuItem key="menuOpenCloseSidekickAI" onClick={() => { handleAppMenuClose(); handleToggleSidekickAIOpen(); }}>
+                    <HelpIcon/><Typography sx={{ ml: 1 }}>{ sidekickAIOpen ? "Help - Close Sidekick AI Help" : "Help - Open Sidekick AI Help" }</Typography>
+                  </MenuItem>
+                  <MenuItem onClick={ () => { handleAppMenuClose(); setAboutWindowOpen(true);}}>
+                    <InfoOutlinedIcon/><Typography sx={{ ml: 1 }}>About Sidekick</Typography>
+                  </MenuItem>
                   <MenuItem key="menuLogout" onClick={() => { handleAppMenuClose(); handleLogout(); }}>
                     <LogoutIcon/><Typography sx={{ ml: 1 }}>Logout</Typography>
                   </MenuItem>
@@ -883,6 +888,64 @@ const App = () => {
               </Box>
             </Toolbar>
           </AppBar>
+          <Popover
+            open={aboutWindowOpen}
+            anchorOrigin={{
+              vertical: 'center',
+              horizontal: 'center',
+            }}
+            transformOrigin={{
+              vertical: 'center',
+              horizontal: 'center',
+            }}
+            PaperProps={{
+              style: {
+                maxWidth: '400px',
+                padding: '4px',
+              },
+            }}
+            onClose={() => {setAboutWindowOpen(false);}}
+          >
+            <StyledToolbar sx={{ gap: 1 }}>
+              <InfoOutlinedIcon/><Typography variant="h6" align="center">About Sidekick</Typography>
+            </StyledToolbar>
+            <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <img alt="Sidekick AI" src="./logo512.png" style={{ maxWidth: "200px" }} />
+            </Grid>
+            <Grid item xs={6}>
+              <Box display="flex" alignItems="center" sx={{mt:2}}>
+                <Typography style={{ fontWeight: 'bold' }}>Version:</Typography>
+                <Typography style={{ marginLeft: '5px' }}>{VERSION}</Typography>
+              </Box>
+              { appInstanceName !== "" ? 
+                  <Box display="flex" alignItems="center">
+                    <Typography style={{ fontWeight: 'bold' }}>Instance:</Typography>
+                    <Typography style={{ marginLeft: '5px' }}>{appInstanceName}</Typography>
+                  </Box>
+                : null
+              }
+              { instanceUsage !== "" ? 
+                  <Box display="flex" alignItems="center">
+                    <Typography style={{ fontWeight: 'bold' }}>Usage:</Typography>
+                    <Typography style={{ marginLeft: '5px' }}>{instanceUsage}</Typography>
+                  </Box>
+                : null
+              }
+              <Box display="flex" alignItems="center">
+                <Typography style={{ fontWeight: 'bold' }}>Logged in as:</Typography>
+                <Typography multiline style={{ marginLeft: '5px', fontSize: '0.8rem', wordWrap: 'break-word', overflowWrap: 'break-word',
+                  maxWidth: '100px' }}>
+                  { user?.name ? user.name : user?.id }
+                </Typography>
+              </Box>
+              <Typography sx={{mt:1}} style={{ fontSize: '0.8rem' }}>Sidekick is an AI powered tool for creativity, thinking, learning, exploring ideas, problem-solving, and getting things done.</Typography>
+            </Grid>
+          </Grid>
+          <Box display="flex" justifyContent="flex-end">
+            <Button onClick={()=>{setAboutWindowOpen(false);}}>Close</Button>
+          </Box>
+          </Popover>
           <Box id="app-workspace" display="flex" height="100%" flexDirection="row" flex="1" 
             overflow-y="hidden" overflow="auto" width="100%">
             <SidekickAI
@@ -1107,6 +1170,7 @@ const App = () => {
           </Box>
         <StatusBar
           statusUpdates={statusUpdates}
+          darkMode={darkMode}
           modelSettings={modelSettings}
           persona={persona}
           modelSettingsOpen={modelSettingsOpen}
