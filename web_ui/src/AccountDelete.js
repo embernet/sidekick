@@ -57,14 +57,14 @@ function AccountDelete({warningMessage, serverUrl, token, setToken, onAccountDel
             <Typography margin={6}>{warningMessage}</Typography>
             <TextField label="Enter userid to delete" value={userToDelete} autoComplete="off"
                 onChange={(event) => {setUserToDelete(event.target.value);}}
-                sx={{ width: "300px" }} />
+                sx={{ width: "90%" }} />
             <TextField label="Confirm userid to delete" value={confirmedUserToDelete} autoComplete="off"
                 onChange={(event) => {setConfirmedUserToDelete(event.target.value);}}
-                sx={{ width: "300px" }} />
+                sx={{ width: "90%" }} />
             <TextField type="password" label="Your password" value={password} 
                 autoComplete="off" /* disable autoComplete of password for deleting accounts */
                 onChange={(event) => {setPassword(event.target.value);}} 
-                sx={{ width: "300px" }} />
+                sx={{ width: "90%" }} />
             <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
                 <Button type="button" onClick={handleDeleteAccount} sx={{ mr: 1 }}>Delete</Button>
                 <Button type="button" onClick={handleCancel}>Cancel</Button>

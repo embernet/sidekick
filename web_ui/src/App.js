@@ -320,7 +320,7 @@ const App = () => {
     if (!appSettingsOpen) {
         closeUnpinnedLeftSideWindows(event);
       }
-    setAppSettingsOpen(state => !state);
+    setAppSettingsOpen(Date.now());
   }
 
   const handleToggleAdminOpen = (event) => {
@@ -328,7 +328,7 @@ const App = () => {
     if (!adminOpen) {
       closeUnpinnedLeftSideWindows(event);
     }
-    setAdminOpen(state => !state);
+    setAdminOpen(Date.now());
   }
 
   const handleLogout = () => {
@@ -405,7 +405,7 @@ const App = () => {
       if (chatsOpen) {
         setRefreshChatsExplorer({ reason: "showExplorer", timestamp: Date.now() }); // Force a re-render so it scrolls into view
       } else {
-        setChatsOpen(true);
+        setChatsOpen(Date.now());
       }
     } else {
       if (chatsOpen) {
@@ -413,7 +413,7 @@ const App = () => {
         setChatsOpen(false);
       } else {
         closeUnpinnedLeftSideWindows(event);
-        setChatsOpen(true);
+        setChatsOpen(Date.now());
       }
     }
   }
@@ -424,7 +424,7 @@ const App = () => {
       if (scriptsOpen) {
         setRefreshScriptsExplorer({ reason: "showExplorer", timestamp: Date.now() }); // Force a re-render so it scrolls into view
       } else {
-        setScriptsOpen(true);
+        setScriptsOpen(Date.now());
       }
     } else {
       if (scriptsOpen) {
@@ -432,7 +432,7 @@ const App = () => {
         setScriptsOpen(false);
       } else {
         closeUnpinnedLeftSideWindows(event);
-        setScriptsOpen(true);
+        setScriptsOpen(Date.now());
       }
     }
   }
@@ -447,7 +447,7 @@ const App = () => {
         setSidekickAIOpen(false);
       } else {
         closeUnpinnedLeftSideWindows(event);
-        setSidekickAIOpen(true);
+        setSidekickAIOpen(Date.now());
       }
     }
   }
@@ -462,7 +462,7 @@ const App = () => {
         setPromptEngineerOpen(false);
       } else {
         closeUnpinnedLeftSideWindows(event);
-        setPromptEngineerOpen(true);
+        setPromptEngineerOpen(Date.now());
       }
     }
   }
@@ -477,7 +477,7 @@ const App = () => {
         setPersonasOpen(false);
       } else {
         closeUnpinnedLeftSideWindows(event);
-        setPersonasOpen(true);
+        setPersonasOpen(Date.now());
       }
     }
   }
@@ -492,7 +492,7 @@ const App = () => {
         setModelSettingsOpen(false);
       } else {
         closeUnpinnedLeftSideWindows(event);
-        setModelSettingsOpen(true);
+        setModelSettingsOpen(Date.now());
       }
     }
   }
@@ -530,7 +530,7 @@ const App = () => {
       if (notesOpen) {
         setRefreshNotesExplorer({ reason: "showExplorer", timestamp: Date.now() }); // Force a re-render so it scrolls into view
       } else {
-        setNotesOpen(true);
+        setNotesOpen(Date.now());
       }
     } else {
       if (notesOpen) {
@@ -538,7 +538,7 @@ const App = () => {
         setNotesOpen(false);
       } else {
         closeUnpinnedRightSideWindows(event);
-        setNotesOpen(true);
+        setNotesOpen(Date.now());
       }
     }
   }
@@ -845,7 +845,7 @@ const App = () => {
                   <MenuItem key="menuOpenCloseSidekickAI" onClick={() => { handleAppMenuClose(); handleToggleSidekickAIOpen(); }}>
                     <HelpIcon/><Typography sx={{ ml: 1 }}>{ sidekickAIOpen ? "Help - Close Sidekick AI Help" : "Help - Open Sidekick AI Help" }</Typography>
                   </MenuItem>
-                  <MenuItem onClick={ () => { handleAppMenuClose(); setAboutWindowOpen(true);}}>
+                  <MenuItem onClick={ () => { handleAppMenuClose(); setAboutWindowOpen(Date.now());}}>
                     <InfoOutlinedIcon/><Typography sx={{ ml: 1 }}>About Sidekick</Typography>
                   </MenuItem>
                   <MenuItem key="menuLogout" onClick={() => { handleAppMenuClose(); handleLogout(); }}>
@@ -939,7 +939,8 @@ const App = () => {
                   { user?.name ? user.name : user?.id }
                 </Typography>
               </Box>
-              <Typography sx={{mt:1}} style={{ fontSize: '0.8rem' }}>Sidekick is an AI powered tool for creativity, thinking, learning, exploring ideas, problem-solving, and getting things done.</Typography>
+              <Typography sx={{mt:1}} style={{ fontSize: '0.8rem' }}>Sidekick is an open-source AI powered tool for creativity, thinking, learning, exploring ideas, problem-solving, and getting things done.</Typography>
+              <Typography sx={{mt:1}} style={{ fontSize: '0.8rem' }}>You can find the project here: <a href="https://github.com/embernet/sidekick" target="_blank" rel="noreferrer">github.com/embernet/sidekick</a></Typography>
             </Grid>
           </Grid>
           <Box display="flex" justifyContent="flex-end">
@@ -973,6 +974,7 @@ const App = () => {
               setUser={setUser}
               serverUrl={serverUrl} token={token} setToken={setToken}
               darkMode={darkMode}
+              isMobile={isMobile}
             />
             { chatsOpen ? <Explorer
               onClose={()=>{setChatsOpen(false)}}
