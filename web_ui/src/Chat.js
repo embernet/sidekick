@@ -13,6 +13,7 @@ import { lightBlue,grey, blueGrey } from '@mui/material/colors';
 import { MuiFileInput } from 'mui-file-input';
 
 // Icons
+import MenuIcon from '@mui/icons-material/Menu';
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 import CloseIcon from '@mui/icons-material/Close';
@@ -1408,6 +1409,7 @@ const Chat = ({
     const ActionMenu = React.forwardRef(({name, prompt, tooltip}, ref) => {
         const menuItem = 
             <MenuItem
+                sx={{ width: "100%", whiteSpace: 'normal' }}
                 ref={ref}
                 onClick={
                     (event) => 
@@ -2217,6 +2219,9 @@ const Chat = ({
         </StyledBox>
         <Box sx={{ display: "flex", flexDirection: "column", minHeight: "128px" }}>
             <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
+                <IconButton edge="start" color="inherit" aria-label="Slash commands" onClick={handleMenuPromptsOpen}>
+                  <MenuIcon/>
+                </IconButton>
                 <Typography sx={{mr:2}}>Prompt Editor</Typography>
                 <Tooltip title={ promptEngineerOpen ? "Hide Prompt Engineer" : "Show Prompt Engineer"}>
                     <IconButton edge="start" color="inherit" aria-label="prompt engineer" onClick={togglePromptEngineerOpen}>
