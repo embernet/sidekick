@@ -60,6 +60,7 @@ import AppSettings from './AppSettings';
 import Admin from './Admin';
 import SidekickAI from './SidekickAI';
 import StatusBar from './StatusBar';
+import Carousel from './Carousel';
 
 const VERSION = "0.3.1";
 
@@ -909,9 +910,11 @@ const App = () => {
             <StyledToolbar sx={{ gap: 1 }}>
               <InfoOutlinedIcon/><Typography variant="h6" align="center">About Sidekick</Typography>
             </StyledToolbar>
-            <Grid container spacing={2}>
+            <Grid container spacing={2} alignItems="center">
             <Grid item xs={6}>
-              <img alt="Sidekick AI" src="./logo512.png" style={{ maxWidth: "200px" }} />
+              <Carousel imageFolderName="./images/logo/" filenamePrefix="sidekick_" 
+                filenameExtension=".png" altText="Sidekick logo"
+                transitions="8" cycleTime="250" imageWidth="200px" imageHeight='200px'/>
             </Grid>
             <Grid item xs={6}>
               <Box display="flex" alignItems="center" sx={{mt:2}}>
