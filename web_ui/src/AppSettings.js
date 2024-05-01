@@ -1,17 +1,19 @@
 import { debounce } from "lodash";
 import axios from 'axios';
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
 import { SystemContext } from './SystemContext';
 import { Card, Toolbar, IconButton, Box, Paper, Tabs, Tab, TextField, Button, Typography } from '@mui/material';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
 import CloseIcon from '@mui/icons-material/Close';
 import SettingsIcon from '@mui/icons-material/Settings';
-import { grey, lightBlue } from '@mui/material/colors';
+import { lightBlue } from '@mui/material/colors';
 import AccountDelete from "./AccountDelete";
 
 const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
-     onClose, serverUrl, token, setToken, darkMode }) => {
+     onClose, serverUrl, token, setToken, darkMode, isMobile }) => {
+
+    const panelWindowRef = useRef(null);
 
     const StyledToolbar = styled(Toolbar)(({ theme }) => ({
         backgroundColor: darkMode ? lightBlue[800] : lightBlue[200],
@@ -70,9 +72,13 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
 
     useEffect(() => {
         loadSystemSettings();
-    }, []);
+        if (isMobile) {
+            panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+        }
+}, [appSettingsOpen]);
 
     useEffect(() => {
+        // onOpen
         if (tabIndex === 2) {
             setConfirmUserId('');
         }
@@ -141,16 +147,20 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
     );
   };
 
-  const render = <Card id="app-settings-panel"
-    sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
-    flex:1, minWidth: "600px", maxWidth: "600px"}}
+  const render = <Card id="app-settings-panel" ref={panelWindowRef}
+    sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1,
+    width: isMobile ? `${window.innerWidth}px` : null,
+    minWidth: isMobile ? `${window.innerWidth}px` : "600px",
+    maxWidth: isMobile ? `${window.innerWidth}px` : "600px"
+    }}
     >
     
-  <StyledToolbar className={ClassNames.toolbar}>
-      <SettingsIcon/>
+  <StyledToolbar sx={{width:"100%"}} className={ClassNames.toolbar}>
+    <IconButton edge="start" color="inherit" aria-label="Settings">
+        <SettingsIcon/>
+    </IconButton>
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }} gap={2}>
-          <Typography variant="h6">Settings for user: </Typography>
-          <Typography sx={{ fontWeight: "bold" }}>{user?.name ? user?.name : user?.id}</Typography>
+          <Typography>Settings</Typography>
       </Box>
       <Box ml="auto">
           <IconButton onClick={() => setAppSettingsOpen(false)}>
@@ -158,10 +168,14 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
           </IconButton>
       </Box>
   </StyledToolbar>
+  <Box>
+      <TextField label="User" disabled sx={{ width: "100%", mt: 2, mb: 2 }}
+      value={user?.name ? user?.name : user?.id} />
+  </Box>
 
-  <Box sx={{ height: "100%" }}>
+  <Box sx={{ height: "100%", width: "100%" }}>
     <Box sx={{ display: "flex", flexDirection: "row", height: "100%"}}>
-          <Box sx={{ width: "200px" }}>
+          <Box sx={{ width: isMobile ? "115px" : "200px" }}>
               <Tabs value={tabIndex} onChange={handleTabChange} orientation="vertical"
                   sx={{  textAlign: "left" }}>
                   <Tab label="About" />
@@ -181,11 +195,11 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
               {tabIndex === 1 && (
                   <Box style={inputContainerStyle} component="form" gap={2}>
                       <TextField type="password" label="Current Password" value={currentPassword} 
-                          sx={{ width: "300px" }} autoComplete="off" onChange={handleCurrentPasswordChange} />
+                          sx={{ width: "90%" }} autoComplete="off" onChange={handleCurrentPasswordChange} />
                       <TextField type="password" label="New Password" value={newPassword} 
-                          sx={{ width: "300px" }} autoComplete="off" onChange={handleNewPasswordChange} />
+                          sx={{ width: "90%" }} autoComplete="off" onChange={handleNewPasswordChange} />
                       <TextField type="password" label="Re-enter new Password" value={reEnteredNewPassword} 
-                          sx={{ width: "300px" }} autoComplete="off" onChange={handleReEnteredNewPasswordChange} />
+                          sx={{ width: "90%" }} autoComplete="off" onChange={handleReEnteredNewPasswordChange} />
                       <Box sx={{ display: "flex" }}>
                           <Button type="button" onClick={handleChangePassword} sx={{ mr: 1 }}>Save</Button>
                           <Button type="button" onClick={handleCancelPasswordChange}>Cancel</Button>

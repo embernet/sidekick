@@ -1,10 +1,10 @@
 import axios from 'axios'
 import { memo } from 'react';
-import { debounce, set } from "lodash";
+import { debounce } from "lodash";
 
 import { useEffect, useState, useContext, useCallback, useRef, Fragment } from 'react';
 import { Card, Box, Paper, IconButton, Typography, TextField,
-    List, ListItem, Tooltip
+    List, ListItem, Tooltip, Menu, MenuItem, ListItemIcon,
      } from '@mui/material';
 import { ClassNames } from "@emotion/react";
 import ScriptCell from './ScriptCell';
@@ -93,6 +93,7 @@ const Script = memo(({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth
     const [tags, setTags] = useState([]);
     const [myServerUrl, setMyServerUrl] = useState(serverUrl);
     const [pageLoaded, setPageLoaded] = useState(false);
+    const [menuPanelAnchorEl, setMenuPanelAnchorEl] = useState(null);
 
     const applyCustomSettings = () => {
         axios.get(`${serverUrl}/system_settings/script`).then(response => {
@@ -427,6 +428,14 @@ const Script = memo(({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth
         });
     }
 
+    const handleMenuPanelOpen = (event) => {
+        setMenuPanelAnchorEl(event.currentTarget);
+    };
+
+    const handleMenuPanelClose = () => {
+        setMenuPanelAnchorEl(null);
+    };
+
     const handleDeleteScript = () => {
         deleteItem()
     }
@@ -478,7 +487,11 @@ const Script = memo(({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth
 
     const toolbar =
         <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
-            <ScriptIcon/>
+            <IconButton edge="start" color="inherit" aria-label="Sidekick Script Menu"
+                onClick={handleMenuPanelOpen}
+            >
+                <ScriptIcon/>
+            </IconButton>
             <Typography sx={{mr:2}}>Script</Typography>
             <Tooltip title={ id === "" ? "You are in a new Script" : "New Script" }>
                 <span>
@@ -488,25 +501,6 @@ const Script = memo(({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth
                         <AddOutlinedIcon/>
                     </IconButton>
                 </span>
-            </Tooltip>
-            <Tooltip title={ id === "" ? "You can clone this script once it has something in it" : "Clone this script" }>
-                <span>
-                    <IconButton edge="start" color="inherit" aria-label="menu"
-                        disabled={ id === "" } onClick={handleCloneScript}
-                    >
-                        <FileCopyIcon/>
-                    </IconButton>
-                </span>
-            </Tooltip>
-            <Tooltip title={ "Download script" }>
-                <IconButton edge="start" color="inherit" aria-label="download script" onClick={handleDownload}>
-                    <FileDownloadIcon/>
-                </IconButton>
-            </Tooltip>
-            <Tooltip title={ "Upload script" }>
-                <IconButton edge="start" color="inherit" aria-label="upload script" onClick={handleUploadRequest}>
-                    <FileUploadIcon/>
-                </IconButton>
             </Tooltip>
             <Tooltip title={ markdownRenderingOn ? "Turn off markdown and code rendering" : "Turn on markdown and code rendering" }>
                 <IconButton edge="start" color="inherit" aria-label="delete script" onClick={handleToggleMarkdownRendering}>
@@ -534,6 +528,54 @@ const Script = memo(({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth
                     </IconButton>
                 </Tooltip>
             </Box>
+            <Menu
+            id="menu-script"
+            anchorEl={menuPanelAnchorEl}
+            open={Boolean(menuPanelAnchorEl)}
+            onClose={handleMenuPanelClose}
+            anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+            }}
+            transformOrigin={{
+                vertical: 'top',
+                horizontal: 'left',
+            }}
+            >
+                <MenuItem onClick={() => {handleMenuPanelClose(); handleNewScript();}}>
+                    <ListItemIcon><AddOutlinedIcon/></ListItemIcon>
+                    New Script
+                </MenuItem>
+                <MenuItem onClick={() => {handleMenuPanelClose(); handleCloneScript();}} disabled={id === ""}>
+                    <ListItemIcon><FileCopyIcon/></ListItemIcon>
+                    Clone Script
+                </MenuItem>
+                <MenuItem onClick={() => {handleMenuPanelClose(); handleDownload();}}>
+                    <ListItemIcon><FileDownloadIcon/></ListItemIcon>
+                    Download Script
+                </MenuItem>
+                <MenuItem onClick={() => {handleMenuPanelClose(); handleUploadRequest();}}>
+                    <ListItemIcon><FileUploadIcon/></ListItemIcon>
+                    Upload Script
+                </MenuItem>
+                <MenuItem onClick={() => {handleMenuPanelClose(); handleToggleMarkdownRendering();}}>
+                <ListItemIcon>{ markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }</ListItemIcon>
+                    { markdownRenderingOn ? "Turn off markdown rendering" : "Turn on markdown rendering" }</MenuItem>
+                {
+                    isMobile ? null :
+                    <MenuItem onClick={() => {handleMenuPanelClose(); handleToggleWindowMaximise();}}>
+                        <ListItemIcon>{ windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }</ListItemIcon>
+                        { windowMaximized ? "Shrink window" : "Expand window" }
+                    </MenuItem>
+                }
+                <MenuItem onClick={() => {handleMenuPanelClose(); handleDeleteScript();}}>
+                    <ListItemIcon><DeleteIcon/></ListItemIcon>
+                    Delete Script</MenuItem>
+                <MenuItem onClick={() => {handleMenuPanelClose(); handleClose();}}>
+                    <ListItemIcon><CloseIcon/></ListItemIcon>
+                    Close Window
+                </MenuItem>
+            </Menu>
         </StyledToolbar>;
 
 const scriptName =

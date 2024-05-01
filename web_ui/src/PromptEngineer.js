@@ -78,7 +78,6 @@ const PromptEngineer = ({promptEngineerOpen, onClose, setNewPromptPart, setNewPr
         if (isMobile) {
             panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
         }
-        document.getElementById("prompt-templates-explorer")?.focus();
     }, [promptEngineerOpen]);
 
     const handleSectionClick = (section) => {
@@ -93,7 +92,7 @@ const PromptEngineer = ({promptEngineerOpen, onClose, setNewPromptPart, setNewPr
     };
 
     const loadingRender = 
-        <Card id="prompt-engineer-panel" ref={panelWindowRef}
+        <Card id="prompt-engineer-panel"
             sx={{display:"flex", flexDirection:"column", padding:"6px", flex:1,
             width: isMobile ? `${window.innerWidth}px` : null,
             minWidth: isMobile ? `${window.innerWidth}px` : "380px",
@@ -173,28 +172,33 @@ const PromptEngineer = ({promptEngineerOpen, onClose, setNewPromptPart, setNewPr
             </Accordion>
         </StyledBox>
 
-    const render = <Card id="prompt-engineer-panel" sx={{display:"flex", flexDirection:"column", padding:"6px", margin: "6px",
-        flex:1, minWidth: "380px", maxWidth: "450px"}}>
-        <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
-            <BuildIcon/>
-            <Typography sx={{mr:2}}>Prompt Engineer</Typography>
-            <Box ml="auto">
-                <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
-                    <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
-                        {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
-                    </IconButton>
-                </Tooltip>
-                <Tooltip title="Close window">
-                    <IconButton onClick={onClose}>
-                        <CloseIcon />
-                    </IconButton>
-                </Tooltip>
-            </Box>
-        </StyledToolbar>
-            <StyledBox sx={{ height: "100%", overflow: 'hidden' }}>
-                {promptPartsLoaded ? loadedRender : loadingRender}
-            </StyledBox>
-    </Card>
+    const render = 
+        <Card id="prompt-engineer-panel" ref={panelWindowRef}
+            sx={{display:"flex", flexDirection:"column", padding:"6px", margin: "6px", flex:1,
+            width: isMobile ? `${window.innerWidth}px` : null,
+            minWidth: isMobile ? `${window.innerWidth}px` : "380px",
+            maxWidth: isMobile ? `${window.innerWidth}px` : "450px",
+            }}>
+            <StyledToolbar className={ClassNames.toolbar} sx={{ width:"100%", gap: 1 }}>
+                <BuildIcon/>
+                <Typography sx={{mr:2}}>Prompt Engineer</Typography>
+                <Box ml="auto">
+                    <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
+                        <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
+                            {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Close window">
+                        <IconButton onClick={onClose}>
+                            <CloseIcon />
+                        </IconButton>
+                    </Tooltip>
+                </Box>
+            </StyledToolbar>
+                <StyledBox sx={{ height: "100%", overflow: 'hidden' }}>
+                    {promptPartsLoaded ? loadedRender : loadingRender}
+                </StyledBox>
+        </Card>
 
     return (render);
   }

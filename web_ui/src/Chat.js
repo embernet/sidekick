@@ -39,6 +39,7 @@ import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
+import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
@@ -65,6 +66,189 @@ const Chat = ({
 
     const newChatName = "New Chat"
 
+    const promptTemplates = {
+        "Analysis": {
+            "Balanced Scorecard": {
+                "prompt": "Perform a Balanced Scorecard analysis on the chat content, identifying key metrics across financial, customer, internal process, and learning & growth perspectives.",
+                "tooltip": "The Balanced Scorecard (BSC) is a strategic planning and management framework that translates an organization's vision and strategy into a coherent set of performance measures across four perspectives: financial, customer, internal processes, and learning and growth."
+            },
+            "Benefits Analysis": {
+                "prompt": "Conduct a Benefits Analysis on the topics discussed, identifying potential benefits, costs, and risks.",
+                "tooltip": "Benefits Analysis is a technique used to evaluate the potential benefits, costs, and risks associated with a decision, project, or investment. It helps in making informed decisions and assessing the value of an initiative."
+            },
+            "Business Model Canvas": {
+                "prompt": "Create a Business Model Canvas based on the chat content, identifying key partners, activities, resources, value propositions, customer relationships, channels, customer segments, cost structure, and revenue streams.",
+                "tooltip": "The Business Model Canvas is a strategic management template for developing new or documenting existing business models. It allows users to describe, design, challenge, invent, and pivot their business model."
+            },
+            "Competitive Analysis": {
+                "prompt": "Conduct a Competitive Analysis on the chat content, identifying key competitors, their strengths and weaknesses, and potential strategies for differentiation.",
+                "tooltip": "Competitive Analysis is the process of evaluating your competitors' strategies, strengths, weaknesses, and market positions to identify opportunities and threats. It helps in shaping strategic responses to enhance competitive advantage."
+            },
+            "Design Thinking": {
+                "prompt": "Apply Design Thinking principles to the conversation, identifying user needs, brainstorming solutions, and proposing prototypes.",
+                "tooltip": "Design Thinking is a user-centric approach that involves empathizing with users, defining problems, ideating solutions, prototyping, and testing. It fosters innovation and solves complex problems in a user-focused way."
+            },
+            "Failure Modes Effects Analysis (FMEA)": {
+                "prompt": "Carry out a Failure Modes Effects Analysis (FMEA) on the issues discussed, ranking them by severity, occurrence, and detection.",
+                "tooltip": "Failure Modes Effects Analysis (FMEA) is a systematic technique for identifying potential failure modes within a system, classifying them according to their severity, occurrence, and detectability, to prioritize fixes and prevent future failures."
+            },
+            "Gap Analysis": {
+                "prompt": "Conduct a Gap Analysis on the current discussion, identifying the difference between the current and desired states.",
+                "tooltip": "Gap Analysis is a process of comparing the actual performance with the potential or desired performance. It helps in identifying the gaps in a system, process, or business offering to recommend steps to bridge these gaps and enhance performance."
+            },
+            "Kano Model Analysis": {
+                "prompt": "Perform a Kano Model Analysis on the needs or features discussed, categorizing them as Must-be, Performance, or Delighters.",
+                "tooltip": "Kano Model Analysis categorizes customer preferences into must-haves, performance attributes, and delighters or wow factors, helping in prioritizing features based on their impact on customer satisfaction."
+            },
+            "Market Entry Strategy": {
+                "prompt": "Develop a Market Entry Strategy based on the conversation so far, including recommended modes of entry and potential barriers.",
+                "tooltip": "Market Entry Strategy involves analyzing and selecting the most viable approach to enter a new market, considering factors like competition, barriers to entry, market demand, and strategic fit."
+            },
+            "MoSCoW Prioritisation": {
+                "prompt": "Apply MoSCoW Prioritisation to the topics discussed, categorizing them as Must have, Should have, Could have, or Won't have.",
+                "tooltip": "MoSCoW Prioritisation is a decision-making technique that helps in categorizing tasks and requirements into Must haves, Should haves, Could haves, and Won't haves, facilitating effective prioritization and resource allocation."
+            },
+            "PEST Analysis": {
+                "prompt": "Conduct a PEST Analysis on the dialogue, examining Political, Economic, Social, and Technological factors.",
+                "tooltip": "PEST Analysis is a framework for analyzing the macro-environmental factors (Political, Economic, Social, Technological) that can impact an organization's strategies and future performance. It helps in understanding the broader forces affecting the business landscape."
+            },
+            "Porters Five Forces": {
+                "prompt": "Analyze the chat content using Porter's Five Forces framework, identifying competitive rivalry, supplier power, buyer power, threat of substitution, and threat of new entry.",
+                "tooltip": "Porter's Five Forces is a model for analyzing an industry's competitive environment. It examines five forces that determine the intensity of competition and market profitability: competitive rivalry, bargaining power of suppliers, bargaining power of buyers, threat of new entrants, and threat of substitute products or services."
+            },
+            "Root Cause Analysis": {
+                "prompt": "Perform a Root Cause Analysis on the issues raised in the chat, identifying underlying causes and suggesting solutions.",
+                "tooltip": "Root Cause Analysis (RCA) is a methodical approach used to identify the fundamental causes of problems or incidents to address the root issues, preventing recurrence rather than treating symptoms."
+            },
+            "SMART Goals": {
+                "prompt": "Formulate SMART Goals based on the objectives discussed in the chat, ensuring they are Specific, Measurable, Achievable, Relevant, and Time-bound.",
+                "tooltip": "SMART Goals framework helps in setting clear, achievable goals by ensuring they are Specific, Measurable, Achievable, Relevant, and Time-bound. It provides a structured approach to goal setting for better performance and outcomes."
+            },
+            "Six Thinking Hats": {
+                "prompt": "Apply the Six Thinking Hats method to the conversation, analyzing it from different perspectives: facts, emotions, caution, benefits, creativity, and process.",
+                "tooltip": "Six Thinking Hats is a critical thinking process that helps individuals and teams discuss and solve problems more effectively by looking at the situation from six distinct perspectives (White: facts, Red: emotions, Black: caution, Yellow: optimism, Green: creativity, Blue: process), facilitating a more rounded and thorough analysis."
+            },
+            "Stakeholder Analysis": {
+                "prompt": "Conduct a Stakeholder Analysis on the chat content, identifying key stakeholders, their interests, and potential strategies for engagement.",
+                "tooltip": "Stakeholder Analysis is a technique used to identify and assess the influence and interests of key people, groups of people, or organizations that may significantly impact the success of your activity or project. It helps in developing strategies for engaging stakeholders effectively."
+            },
+            "SWOT Analysis": {
+                "prompt": "Carry out a SWOT Analysis on the chat so far, identifying Strengths, Weaknesses, Opportunities, and Threats.",
+                "tooltip": "SWOT Analysis is a strategic planning tool used to identify and understand the Strengths, Weaknesses, Opportunities, and Threats related to business competition or project planning. It helps in crafting strategies that align with the organization's capabilities and market opportunities."
+            },
+            "Value Chain Analysis": {
+                "prompt": "Perform a Value Chain Analysis on the discussion, examining activities that create value and could lead to competitive advantage.",
+                "tooltip": "Value Chain Analysis is a process of examining the steps involved in bringing a product or service from conception to distribution and beyond. It helps in identifying where value is added and how it can be enhanced to achieve a competitive advantage."
+            },
+            "VPEC-T Analysis": {
+                "prompt": "Apply VPEC-T Analysis to the chat content, examining Values, Policies, Events, Content, and Trust.",
+                "tooltip": "VPEC-T Analysis stands for Values, Policies, Events, Content, and Trust. It's a framework for analyzing complex situations by examining the critical elements that influence decisions and actions in any context, focusing on understanding stakeholders' perspectives and the foundational elements that guide interactions."
+            },
+            "Wardley Mapping": {
+                "prompt": "Create a Wardley Map based on the chat content, visualizing the landscape of the discussion and identifying areas for strategic focus.",
+                "tooltip": "Wardley Mapping is a strategy tool that helps in visualizing the structure of a business or service, mapping the components needed to serve the customer or user. It assists in understanding the current landscape, predicting future trends, and identifying strategic opportunities."
+            },
+            "What If Analysis": {
+                "prompt": "Conduct a What If Analysis on the chat, exploring alternative scenarios and their potential outcomes.",
+                "tooltip": "What If Analysis is a systematic process to explore and evaluate potential outcomes of different scenarios based on varying parameters. It helps in decision making by anticipating possible challenges and opportunities, allowing for better preparedness and strategic planning."
+            },
+            "Why-Why Analysis": {
+                "prompt": "Perform a Why-Why Analysis on the chat content, asking 'why' repeatedly to drill down to the root cause of a problem.",
+                "tooltip": "Why-Why Analysis is a problem-solving technique that involves repeatedly asking the question 'Why?' to peel away the layers of symptoms and reach the core of a problem. It's a simple yet effective method for uncovering the root cause of a problem and ensuring that solutions address this foundational issue."
+            }
+        },
+        "Creativity": {
+            "Balanced Scorecard": {
+                "prompt": "Perform a Balanced Scorecard analysis on the chat content, identifying key metrics across financial, customer, internal process, and learning & growth perspectives.",
+                "tooltip": "The Balanced Scorecard (BSC) is a strategic planning and management framework that translates an organization's vision and strategy into a coherent set of performance measures across four perspectives: financial, customer, internal processes, and learning and growth."
+            },
+            "Benefits Analysis": {
+                "prompt": "Conduct a Benefits Analysis on the topics discussed, identifying potential benefits, costs, and risks.",
+                "tooltip": "Benefits Analysis is a technique used to evaluate the potential benefits, costs, and risks associated with a decision, project, or investment. It helps in making informed decisions and assessing the value of an initiative."
+            },
+            "Business Model Canvas": {
+                "prompt": "Create a Business Model Canvas based on the chat content, identifying key partners, activities, resources, value propositions, customer relationships, channels, customer segments, cost structure, and revenue streams.",
+                "tooltip": "The Business Model Canvas is a strategic management template for developing new or documenting existing business models. It allows users to describe, design, challenge, invent, and pivot their business model."
+            },
+            "Competitive Analysis": {
+                "prompt": "Conduct a Competitive Analysis on the chat content, identifying key competitors, their strengths and weaknesses, and potential strategies for differentiation.",
+                "tooltip": "Competitive Analysis is the process of evaluating your competitors' strategies, strengths, weaknesses, and market positions to identify opportunities and threats. It helps in shaping strategic responses to enhance competitive advantage."
+            },
+            "Design Thinking": {
+                "prompt": "Apply Design Thinking principles to the conversation, identifying user needs, brainstorming solutions, and proposing prototypes.",
+                "tooltip": "Design Thinking is a user-centric approach that involves empathizing with users, defining problems, ideating solutions, prototyping, and testing. It fosters innovation and solves complex problems in a user-focused way."
+            },
+            "Failure Modes Effects Analysis (FMEA)": {
+                "prompt": "Carry out a Failure Modes Effects Analysis (FMEA) on the issues discussed, ranking them by severity, occurrence, and detection.",
+                "tooltip": "Failure Modes Effects Analysis (FMEA) is a systematic technique for identifying potential failure modes within a system, classifying them according to their severity, occurrence, and detectability, to prioritize fixes and prevent future failures."
+            },
+            "Gap Analysis": {
+                "prompt": "Conduct a Gap Analysis on the current discussion, identifying the difference between the current and desired states.",
+                "tooltip": "Gap Analysis is a process of comparing the actual performance with the potential or desired performance. It helps in identifying the gaps in a system, process, or business offering to recommend steps to bridge these gaps and enhance performance."
+            },
+            "Kano Model Analysis": {
+                "prompt": "Perform a Kano Model Analysis on the needs or features discussed, categorizing them as Must-be, Performance, or Delighters.",
+                "tooltip": "Kano Model Analysis categorizes customer preferences into must-haves, performance attributes, and delighters or wow factors, helping in prioritizing features based on their impact on customer satisfaction."
+            },
+            "Market Entry Strategy": {
+                "prompt": "Develop a Market Entry Strategy based on the conversation so far, including recommended modes of entry and potential barriers.",
+                "tooltip": "Market Entry Strategy involves analyzing and selecting the most viable approach to enter a new market, considering factors like competition, barriers to entry, market demand, and strategic fit."
+            },
+            "MoSCoW Prioritisation": {
+                "prompt": "Apply MoSCoW Prioritisation to the topics discussed, categorizing them as Must have, Should have, Could have, or Won't have.",
+                "tooltip": "MoSCoW Prioritisation is a decision-making technique that helps in categorizing tasks and requirements into Must haves, Should haves, Could haves, and Won't haves, facilitating effective prioritization and resource allocation."
+            },
+            "PEST Analysis": {
+                "prompt": "Conduct a PEST Analysis on the dialogue, examining Political, Economic, Social, and Technological factors.",
+                "tooltip": "PEST Analysis is a framework for analyzing the macro-environmental factors (Political, Economic, Social, Technological) that can impact an organization's strategies and future performance. It helps in understanding the broader forces affecting the business landscape."
+            },
+            "Porters Five Forces": {
+                "prompt": "Analyze the chat content using Porter's Five Forces framework, identifying competitive rivalry, supplier power, buyer power, threat of substitution, and threat of new entry.",
+                "tooltip": "Porter's Five Forces is a model for analyzing an industry's competitive environment. It examines five forces that determine the intensity of competition and market profitability: competitive rivalry, bargaining power of suppliers, bargaining power of buyers, threat of new entrants, and threat of substitute products or services."
+            },
+            "Root Cause Analysis": {
+                "prompt": "Perform a Root Cause Analysis on the issues raised in the chat, identifying underlying causes and suggesting solutions.",
+                "tooltip": "Root Cause Analysis (RCA) is a methodical approach used to identify the fundamental causes of problems or incidents to address the root issues, preventing recurrence rather than treating symptoms."
+            },
+            "SMART Goals": {
+                "prompt": "Formulate SMART Goals based on the objectives discussed in the chat, ensuring they are Specific, Measurable, Achievable, Relevant, and Time-bound.",
+                "tooltip": "SMART Goals framework helps in setting clear, achievable goals by ensuring they are Specific, Measurable, Achievable, Relevant, and Time-bound. It provides a structured approach to goal setting for better performance and outcomes."
+            },
+            "Six Thinking Hats": {
+                "prompt": "Apply the Six Thinking Hats method to the conversation, analyzing it from different perspectives: facts, emotions, caution, benefits, creativity, and process.",
+                "tooltip": "Six Thinking Hats is a critical thinking process that helps individuals and teams discuss and solve problems more effectively by looking at the situation from six distinct perspectives (White: facts, Red: emotions, Black: caution, Yellow: optimism, Green: creativity, Blue: process), facilitating a more rounded and thorough analysis."
+            },
+            "Stakeholder Analysis": {
+                "prompt": "Conduct a Stakeholder Analysis on the chat content, identifying key stakeholders, their interests, and potential strategies for engagement.",
+                "tooltip": "Stakeholder Analysis is a technique used to identify and assess the influence and interests of key people, groups of people, or organizations that may significantly impact the success of your activity or project. It helps in developing strategies for engaging stakeholders effectively."
+            },
+            "SWOT Analysis": {
+                "prompt": "Carry out a SWOT Analysis on the chat so far, identifying Strengths, Weaknesses, Opportunities, and Threats.",
+                "tooltip": "SWOT Analysis is a strategic planning tool used to identify and understand the Strengths, Weaknesses, Opportunities, and Threats related to business competition or project planning. It helps in crafting strategies that align with the organization's capabilities and market opportunities."
+            },
+            "Value Chain Analysis": {
+                "prompt": "Perform a Value Chain Analysis on the discussion, examining activities that create value and could lead to competitive advantage.",
+                "tooltip": "Value Chain Analysis is a process of examining the steps involved in bringing a product or service from conception to distribution and beyond. It helps in identifying where value is added and how it can be enhanced to achieve a competitive advantage."
+            },
+            "VPEC-T Analysis": {
+                "prompt": "Apply VPEC-T Analysis to the chat content, examining Values, Policies, Events, Content, and Trust.",
+                "tooltip": "VPEC-T Analysis stands for Values, Policies, Events, Content, and Trust. It's a framework for analyzing complex situations by examining the critical elements that influence decisions and actions in any context, focusing on understanding stakeholders' perspectives and the foundational elements that guide interactions."
+            },
+            "Wardley Mapping": {
+                "prompt": "Create a Wardley Map based on the chat content, visualizing the landscape of the discussion and identifying areas for strategic focus.",
+                "tooltip": "Wardley Mapping is a strategy tool that helps in visualizing the structure of a business or service, mapping the components needed to serve the customer or user. It assists in understanding the current landscape, predicting future trends, and identifying strategic opportunities."
+            },
+            "What If Analysis": {
+                "prompt": "Conduct a What If Analysis on the chat, exploring alternative scenarios and their potential outcomes.",
+                "tooltip": "What If Analysis is a systematic process to explore and evaluate potential outcomes of different scenarios based on varying parameters. It helps in decision making by anticipating possible challenges and opportunities, allowing for better preparedness and strategic planning."
+            },
+            "Why-Why Analysis": {
+                "prompt": "Perform a Why-Why Analysis on the chat content, asking 'why' repeatedly to drill down to the root cause of a problem.",
+                "tooltip": "Why-Why Analysis is a problem-solving technique that involves repeatedly asking the question 'Why?' to peel away the layers of symptoms and reach the core of a problem. It's a simple yet effective method for uncovering the root cause of a problem and ensuring that solutions address this foundational issue."
+            }
+        },
+    }
+
     const [width, setWidth] = useState(0);
     const handleResize = useCallback(
         // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
@@ -89,7 +273,7 @@ const Chat = ({
     const [id, setId] = useState("");
     const [name, setName] = useState(newChatName);
     const [previousName, setPreviousName] = useState(newChatName);
-    const defaultUserPromptReady = "Enter prompt...";
+    const defaultUserPromptReady = 'Enter prompt (or "/" for commands and prompt templates)...';
     const userPromptReady = useRef(defaultUserPromptReady);
     const userPromptWaiting = "Waiting for response...";
     const chatPromptRef = useRef(null);
@@ -111,7 +295,7 @@ const Chat = ({
     const [systemPrompt, setSystemPrompt] = useState("");
     const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady.current);
     const [menuPromptsAnchorEl, setMenuPromptsAnchorEl] = useState(null);
-    const [menuChatAnchorEl, setMenuChatAnchorEl] = useState(null);
+    const [menuPanelAnchorEl, setMenuPanelAnchorEl] = useState(null);
     const [menuMessageContext, setMenuMessageContext] = useState(null);
     const [menuCommandsAnchorEl, setMenuCommandsAnchorEl] = useState(null);
     const [menuCommandsOnSelectionAnchorEl, setMenuCommandsOnSelectionAnchorEl] = useState(null);
@@ -326,9 +510,6 @@ const Chat = ({
                 system.warning("Please wait for the current chat to finish loading before adding a prompt part.");
             } else {
                 appendToChatPrompt(newPromptPart.text);
-                let newPrompt = chatPromptRef.current.innerText.trim() + " " + newPromptPart?.text?.trim() + " ";
-                setChatPrompt(newPrompt);
-                setPromptFocus();
             }
         }
     }, [newPromptPart]);
@@ -952,12 +1133,12 @@ const Chat = ({
         setMenuMessageContext(null);
     };
 
-    const handleMenuChatOpen = (event) => {
-        setMenuChatAnchorEl(event.currentTarget);
+    const handleMenuPanelOpen = (event) => {
+        setMenuPanelAnchorEl(event.currentTarget);
     };
 
-    const handleMenuChatClose = () => {
-        setMenuChatAnchorEl(null);
+    const handleMenuPanelClose = () => {
+        setMenuPanelAnchorEl(null);
     };
 
     const handleMenuPromptsOpen = (event) => {
@@ -965,6 +1146,7 @@ const Chat = ({
     };
 
     const handleMenuPromptsClose = () => {
+        handleMenuPanelClose();
         handleMenuCommandsClose();
         handleMenuCommandsOnSelectionClose();
         handleMenuExplorationClose();
@@ -1280,7 +1462,7 @@ const Chat = ({
     const toolbar =
     <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
         <IconButton edge="start" color="inherit" aria-label="Sidekick Chat Menu"
-            onClick={handleMenuChatOpen}
+            onClick={handleMenuPanelOpen}
             disabled={promptPlaceholder === userPromptWaiting}
         >
             <CommentIcon/>
@@ -1291,7 +1473,7 @@ const Chat = ({
                 <IconButton edge="start" color="inherit" aria-label="menu"
                     disabled={ id === "" } onClick={handleNewChat}
                 >
-                    <AddCommentIcon/>
+                    <AddOutlinedIcon/>
                 </IconButton>
             </span>
         </Tooltip>
@@ -1340,9 +1522,9 @@ const Chat = ({
         </Box>
         <Menu
             id="menu-chat"
-            anchorEl={menuChatAnchorEl}
-            open={Boolean(menuChatAnchorEl)}
-            onClose={handleMenuChatClose}
+            anchorEl={menuPanelAnchorEl}
+            open={Boolean(menuPanelAnchorEl)}
+            onClose={handleMenuPanelClose}
             anchorOrigin={{
                 vertical: 'top',
                 horizontal: 'right',
@@ -1359,33 +1541,36 @@ const Chat = ({
                     <KeyboardArrowRightIcon />
                 </IconButton>
             </MenuItem>
-            <MenuItem onClick={handleNewChat}>
-                <ListItemIcon><AddCommentIcon/></ListItemIcon>
+            <MenuItem onClick={() => {handleMenuPanelClose(); handleNewChat();}}>
+                <ListItemIcon><AddOutlinedIcon/></ListItemIcon>
                 New Chat
             </MenuItem>
-            <MenuItem onClick={handleCloneChat} disabled={id === ""}>
+            <MenuItem onClick={() => {handleMenuPanelClose(); handleCloneChat();}} disabled={id === ""}>
                 <ListItemIcon><FileCopyIcon/></ListItemIcon>
                 Clone Chat
             </MenuItem>
-            <MenuItem onClick={handleDownload}>
+            <MenuItem onClick={() => {handleMenuPanelClose(); handleDownload();}}>
                 <ListItemIcon><FileDownloadIcon/></ListItemIcon>
                 Download Chat
             </MenuItem>
-            <MenuItem onClick={handleUploadRequest}>
+            <MenuItem onClick={() => {handleMenuPanelClose(); handleUploadRequest();}}>
                 <ListItemIcon><FileUploadIcon/></ListItemIcon>
                 Upload Chat
             </MenuItem>
-            <MenuItem onClick={handleToggleMarkdownRendering}>
+            <MenuItem onClick={() => {handleMenuPanelClose(); handleToggleMarkdownRendering();}}>
             <ListItemIcon>{ markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }</ListItemIcon>
                 { markdownRenderingOn ? "Turn off markdown rendering" : "Turn on markdown rendering" }</MenuItem>
-            <MenuItem onClick={handleToggleWindowMaximise}>
-                <ListItemIcon>{ windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }</ListItemIcon>
-                { windowMaximized ? "Shrink window" : "Expand window" }
-            </MenuItem>
-            <MenuItem onClick={handleDeleteChat}>
+            {
+                isMobile ? null :
+                <MenuItem onClick={() => {handleMenuPanelClose(); handleToggleWindowMaximise();}}>
+                    <ListItemIcon>{ windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }</ListItemIcon>
+                    { windowMaximized ? "Shrink window" : "Expand window" }
+                </MenuItem>
+            }
+            <MenuItem onClick={() => {handleMenuPanelClose(); handleDeleteChat();}}>
                 <ListItemIcon><DeleteIcon/></ListItemIcon>
                 Delete Chat</MenuItem>
-            <MenuItem onClick={handleClose}>
+            <MenuItem onClick={() => {handleMenuPanelClose(); handleClose();}}>
                 <ListItemIcon><CloseIcon/></ListItemIcon>
                 Close Window
             </MenuItem>

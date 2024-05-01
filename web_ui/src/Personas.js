@@ -62,9 +62,6 @@ const Personas = ({onClose, persona, setPersona, setFocusOnPrompt, personasOpen,
         return () => observer.disconnect();
     }, [handleResize]);
 
-    const setPersonasFilterFocus = () => {
-        document.getElementById("personas-filter")?.focus();
-    }
     useEffect(()=>{
         mySettingsManager.loadSettings("personas",
             (data) => {
@@ -89,9 +86,6 @@ const Personas = ({onClose, persona, setPersona, setFocusOnPrompt, personasOpen,
         // onOpen
         if (isMobile) {
             panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
-        }
-        if (personasLoaded && personasOpen) {
-            setPersonasFilterFocus();
         }
     }, [personasOpen]);
 
@@ -216,7 +210,7 @@ const Personas = ({onClose, persona, setPersona, setFocusOnPrompt, personasOpen,
         return acc;
       }, {});
 
-    const loadingRender = <Card id="personas-panel" ref={panelWindowRef}
+    const loadingRender = <Card id="personas-panel"
         sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
         flex:1, minWidth: "400px", maxWidth: "450px"}}>
         <Typography>{loadingPersonasMessage}</Typography>
@@ -313,78 +307,83 @@ const Personas = ({onClose, persona, setPersona, setFocusOnPrompt, personasOpen,
         ))}
         </StyledList>
 
-    const render = <Card sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
-    flex:1, minWidth: "400px", maxWidth: "450px"}}>
-        <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
-            <PersonIcon/>
-            <Typography sx={{mr:2}}>Personas</Typography>
-            <Tooltip title={ persona.system_prompt === "" ? "No persona selected" : "Select no persona" }>
-                <span>
-                    <IconButton edge="start" color="inherit" aria-label="Set persona to 'None'"
-                        disabled={//disable if persona already set to 'None'
-                            persona.system_prompt === ""}
-                        onClick={handleSelectNoPersona}>
-                        <CancelIcon/>
-                    </IconButton>
-                </span>
-            </Tooltip>
-            <Tooltip title={ persona?.default ? "Default persona selected" : "Select default persona" }>
-                <span>
-                    <IconButton edge="start" color="inherit" aria-label="Set default persona"
-                        disabled={//disable if there is no default persona or if the current persona is the default
-                            !Object.entries(myPersonas).some(([key, value]) => value.default) ||
-                            persona.default}
-                        onClick={handleSelectDefaultPersona}>
-                        <SettingsBackupRestoreIcon/>
-                    </IconButton>
-                </span>
-            </Tooltip>
-            <Box ml="auto">
-                <Tooltip title={ expanded ? "Hide details" : "Show details" }>
-                    <IconButton onClick={handleExpandCollapse} color="inherit" aria-label="expand">
-                        { expanded ? <CompressIcon/> : <ExpandIcon/> }
-                    </IconButton>
+    const render =
+        <Card ref={panelWindowRef}
+            sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1,
+                width: isMobile ? `${window.innerWidth}px` : null,
+                minWidth: isMobile ? `${window.innerWidth}px` : "400px",
+                maxWidth: isMobile ? `${window.innerWidth}px` : "450px",    
+                }}>
+            <StyledToolbar className={ClassNames.toolbar} sx={{ width:"100%", gap: 1 }}>
+                <PersonIcon/>
+                <Typography sx={{mr:2}}>Personas</Typography>
+                <Tooltip title={ persona.system_prompt === "" ? "No persona selected" : "Select no persona" }>
+                    <span>
+                        <IconButton edge="start" color="inherit" aria-label="Set persona to 'None'"
+                            disabled={//disable if persona already set to 'None'
+                                persona.system_prompt === ""}
+                            onClick={handleSelectNoPersona}>
+                            <CancelIcon/>
+                        </IconButton>
+                    </span>
                 </Tooltip>
-                {
-                    isMobile ? null :
-                    <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
-                        <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
-                            {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
+                <Tooltip title={ persona?.default ? "Default persona selected" : "Select default persona" }>
+                    <span>
+                        <IconButton edge="start" color="inherit" aria-label="Set default persona"
+                            disabled={//disable if there is no default persona or if the current persona is the default
+                                !Object.entries(myPersonas).some(([key, value]) => value.default) ||
+                                persona.default}
+                            onClick={handleSelectDefaultPersona}>
+                            <SettingsBackupRestoreIcon/>
+                        </IconButton>
+                    </span>
+                </Tooltip>
+                <Box ml="auto">
+                    <Tooltip title={ expanded ? "Hide details" : "Show details" }>
+                        <IconButton onClick={handleExpandCollapse} color="inherit" aria-label="expand">
+                            { expanded ? <CompressIcon/> : <ExpandIcon/> }
                         </IconButton>
                     </Tooltip>
-                }
-                <Tooltip title="Close window">
-                    <IconButton onClick={onClose}>
-                        <CloseIcon />
-                    </IconButton>
-                </Tooltip>
-            </Box>
-        </StyledToolbar>
-        {personasLoaded
-        ?
-            <Box sx={{ display: 'flex', alignItems: 'center', padding: 1 }}>
-                <TextField
-                    id="personas-filter"
-                    label="Filter"
-                    value={filterText}
-                    autoComplete='off'
-                    onChange={handleFilterTextChange}
-                    onKeyDown={handleFilterKeyDown}
-                    sx={{ mt: 2, mb: 3, flex: 1 }}
-                />
-                <Box ml="auto">{/* spacer */}
-                    <Tooltip title={filterByFavourite ? "Turn off filter by favourite" : "Filter by favourite"}>
-                        <IconButton onClick={handleToggleFavouriteFilter}>
-                            {filterByFavourite ? <FavouriteIcon /> : <FavouriteBorderIcon />}
+                    {
+                        isMobile ? null :
+                        <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
+                            <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
+                                {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
+                            </IconButton>
+                        </Tooltip>
+                    }
+                    <Tooltip title="Close window">
+                        <IconButton onClick={onClose}>
+                            <CloseIcon />
                         </IconButton>
                     </Tooltip>
                 </Box>
-            </Box>
-        :
-            null
-        }
-        {personasLoaded ? loadedRender : loadingRender}
-    </Card>
+            </StyledToolbar>
+            {personasLoaded
+            ?
+                <Box sx={{ display: 'flex', alignItems: 'center', padding: 1 }}>
+                    <TextField
+                        id="personas-filter"
+                        label="Filter"
+                        value={filterText}
+                        autoComplete='off'
+                        onChange={handleFilterTextChange}
+                        onKeyDown={handleFilterKeyDown}
+                        sx={{ mt: 2, mb: 3, flex: 1 }}
+                    />
+                    <Box ml="auto">{/* spacer */}
+                        <Tooltip title={filterByFavourite ? "Turn off filter by favourite" : "Filter by favourite"}>
+                            <IconButton onClick={handleToggleFavouriteFilter}>
+                                {filterByFavourite ? <FavouriteIcon /> : <FavouriteBorderIcon />}
+                            </IconButton>
+                        </Tooltip>
+                    </Box>
+                </Box>
+            :
+                null
+            }
+            {personasLoaded ? loadedRender : loadingRender}
+        </Card>
 
     return ( personasOpen ? render : null )
   }

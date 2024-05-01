@@ -93,7 +93,6 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
             if (isMobile) {
                 panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
             }
-            document.getElementById("model")?.focus();
         }
     }, [modelSettingsOpen]);
 
@@ -197,9 +196,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     };
 
     const handleToggleHelp = () => {
-        let newState = !showHelp;
-        setShowHelp(newState);
-        setFocusOnPrompt(true)
+        setShowHelp(x=>!x);
     };
 
     const handleToggleModelSettings = () => {
@@ -256,7 +253,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     }, [selectedProvider, selectedModel, temperature, top_p, presence_penalty, frequency_penalty, selectedModelContextTokenSize]);
 
     const loadingRender =
-        <Card id="model-settings-panel"  ref={panelWindowRef}
+        <Card id="model-settings-panel-loading"  
             sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1,
             width: isMobile ? `${window.innerWidth}px` : null,
             minWidth: isMobile ? `${window.innerWidth}px` : "400px",
@@ -267,7 +264,8 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
         </Card>;
 
     const loadedRender = modelSettingsOptionsLoaded && 
-        <Box sx = {{ display: "flex", flexDirection:"column", overflow:"auto", flex: 1 }}>
+        <Box
+            sx = {{ display: "flex", flexDirection:"column", overflow:"auto", flex: 1, padding: "6px", margin: "6px" }}>
             <Typography variant="caption" sx={{ mt: 1 }}>Change models and settings to change behaviour and capability to suite your needs.</Typography>
             {Object.keys(modelSettingsOptions.providers).length === 1 ? (
                 <TextField
@@ -427,8 +425,14 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
         </Box>
 
     const render =
-        <Card id="model-settings-panel" sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, minWidth:"400px", maxWidth: "450px" }}>
-            <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
+        <Card id="model-settings-panel" ref={panelWindowRef}
+        sx={{ display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1,
+        width: isMobile ? `${window.innerWidth}px` : null,
+        minWidth: isMobile ? `${window.innerWidth}px` : "400px",
+        maxWidth: isMobile ? `${window.innerWidth}px` : "450px",
+        }}
+        >
+            <StyledToolbar sx={{width:"100%", gap:1}} className={ClassNames.toolbar}>
                 <TuneIcon/>
                 <Typography sx={{mr:2}}>Settings</Typography>
                 <Tooltip title={ "Save settings as user defaults" }>
