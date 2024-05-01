@@ -41,6 +41,7 @@ import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
@@ -2285,38 +2286,44 @@ const Chat = ({
                     </Tooltip>
                 </Box>
             </SecondaryToolbar>
-            <div
-                // Using a div with a reference to the DOM element instead of TextField for performance reasons
-                // For large text content, TextField lag in rendering individual key strokes is unacceptable
-                id="chat-prompt"
-                ref={chatPromptRef}
-                tabIndex="-1" // To allow the div to receive focus
-                contentEditable={promptPlaceholder === userPromptWaiting ? "false" : "true"}
-                onInput={handleChatPromptInput}
-                onKeyDown={
-                    (event) => {
-                        editorEventHandlers.onKeyDown(event);
-                        handleChatPromptKeydown(event);
+            <Box position="relative">
+                <div
+                    // Using a div with a reference to the DOM element instead of TextField for performance reasons
+                    // For large text content, TextField lag in rendering individual key strokes is unacceptable
+                    id="chat-prompt"
+                    ref={chatPromptRef}
+                    tabIndex="-1" // To allow the div to receive focus
+                    contentEditable={promptPlaceholder === userPromptWaiting ? "false" : "true"}
+                    onInput={handleChatPromptInput}
+                    onKeyDown={
+                        (event) => {
+                            editorEventHandlers.onKeyDown(event);
+                            handleChatPromptKeydown(event);
+                        }
                     }
-                }
-                onKeyUp={handleChatPromptKeyup}
-                onPaste={ (event) => { editorEventHandlers.onPaste(event); setChatPromptIsEmpty(false); }}
-                data-placeholder={promptPlaceholder}
-                className={chatPromptIsEmpty ? 'empty' : ''}
-                style={{
-                    ...editorEventHandlers.style,
-                    overflow: "auto",
-                    minHeight: "56px",
-                    maxHeight: "300px",
-                    flex: 1,
-                    marginTop: "auto",
-                    padding: "18.5px 14px",
-                    backgroundColor: darkMode ? grey[900] : 'white',
-                    color: darkMode ? "rgba(255, 255, 255, 0.87)" : "rgba(0, 0, 0, 0.87)",
-                    border: darkMode ? "1px solid rgba(200, 200, 200, 0.23)" : "1px solid rgba(0, 0, 0, 0.23)",
-                }}
-            >
-            </div>
+                    onKeyUp={handleChatPromptKeyup}
+                    onPaste={ (event) => { editorEventHandlers.onPaste(event); setChatPromptIsEmpty(false); }}
+                    data-placeholder={promptPlaceholder}
+                    className={chatPromptIsEmpty ? 'empty' : ''}
+                    style={{
+                        ...editorEventHandlers.style,
+                        overflow: "auto",
+                        minHeight: "56px",
+                        maxHeight: "300px",
+                        flex: 1,
+                        marginTop: "auto",
+                        padding: "18.5px 14px",
+                        backgroundColor: darkMode ? grey[900] : 'white',
+                        color: darkMode ? "rgba(255, 255, 255, 0.87)" : "rgba(0, 0, 0, 0.87)",
+                        border: darkMode ? "1px solid rgba(200, 200, 200, 0.23)" : "1px solid rgba(0, 0, 0, 0.23)",
+                    }}
+                >
+                </div>
+                <HighlightOffIcon
+                    style={{ position: 'absolute', top: 0, right: 0 }}
+                    onClick={() => {setChatPrompt("");}}
+                    />
+            </Box>
             { aiLibraryOpen ? 
                 <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: darkMode ? grey[900] : grey[100] }}>
                     <Box sx={{ mt: 2, display: "flex", flexDirection: "column", width: "100%" }}>
