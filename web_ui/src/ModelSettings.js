@@ -79,17 +79,21 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     }
 
     useEffect(()=>{
+        // onLoad
+        mySettingsManager.loadSettings("model_settings",
+            (data) => {
+                setModelSettingsOptionsFromData(data);
+            },
+            (error) => {
+                console.log("get model_settings:", error);
+                setLoadingModelSettingsOptionsMessage("Error loading model settings options: " + error);
+            }
+        );
+    }, []);
+
+    useEffect(()=>{
         // onOpen
         if (modelSettingsOpen) {
-            mySettingsManager.loadSettings("model_settings",
-                (data) => {
-                    setModelSettingsOptionsFromData(data);
-                },
-                (error) => {
-                    console.log("get model_settings:", error);
-                    setLoadingModelSettingsOptionsMessage("Error loading model settings options: " + error);
-                }
-            );
             if (isMobile) {
                 panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
             }

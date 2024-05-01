@@ -506,7 +506,7 @@ const Chat = ({
 
     useEffect(()=>{
         if (newPromptPart?.text) {
-            if (!chatOpen) { setChatOpen(true); }
+            if (!chatOpen) { setChatOpen(Date.now()); }
             if (streamingChatResponse !== "") {
                 system.warning("Please wait for the current chat to finish loading before adding a prompt part.");
             } else {
@@ -517,7 +517,7 @@ const Chat = ({
 
     useEffect(()=>{
         if (newPromptTemplate?.id) {
-            if (!chatOpen) { setChatOpen(true); }
+            if (!chatOpen) { setChatOpen(Date.now()); }
                 if (streamingChatResponse !== "") {
                 system.warning("Please wait for the current chat to finish loading before loading a prompt template.");
             } else {
@@ -627,7 +627,7 @@ const Chat = ({
                     if (isMobile && chatOpen) {
                         panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
                     }
-                    if (!chatOpen) { setChatOpen(true); }
+                    if (!chatOpen) { setChatOpen(Date.now()); }
                 }).catch(error => {
                     system.error(`System Error loading chat.`, error, "/docdb/chat GET");
                 });
@@ -647,7 +647,7 @@ const Chat = ({
     
     const appendMessage = (message) => {
         setMessages(prevMessages => [...prevMessages, message]);
-        setChatOpen(true);
+        if (!chatOpen) { setChatOpen(Date.now()) };
         setTimeout(() => {
             chatMessagesRef.current?.scrollIntoView({ behavior: "instant", block: "end" });
         }, 0);
@@ -923,6 +923,7 @@ const Chat = ({
     }
 
     const sendPrompt = async (prompt) => {
+        console.log("FOO", prompt);
         showWaiting();
         // setup as much of the request as we can before calling appendMessage
         // as that will wait for any re-rendering and the id could change in that time
