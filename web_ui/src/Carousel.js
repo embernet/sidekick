@@ -11,8 +11,9 @@ import React, { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
 
 const Carousel = ({imageFolderName, filenamePrefix, filenameExtension, altText, 
-    transitions, cycleTime, imageHeight='100%', imageWidth='auto'}) => {
+    transitions, cycleTime, imageHeight='100%'}) => {
     const images = [];
+    const imageWidth='auto';
     const [imageIndex, setImageIndex] = useState(7);
     const [isCycling, setIsCycling] = useState(true);
     const [randomImages, setRandomImages] = useState([]);
