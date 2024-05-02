@@ -65,6 +65,8 @@ const Chat = ({
     const chatMessagesContainerRef = useRef(null);
     const chatMessagesRef = useRef(null);
     const streamingChatResponseCardRef = useRef(null);
+    const promptEditorMenuRef = useRef(null);
+    const [chatPanelKey, setChatPanelKey] = useState(Date.now()); // used to force re-renders
 
     const newChatName = "New Chat"
 
@@ -251,11 +253,17 @@ const Chat = ({
         },
     }
 
+    const reRenderChatPanel = () => {
+        // e.g. to force resize when isMobile
+        setChatPanelKey(Date.now());
+    };
+
     const [width, setWidth] = useState(0);
     const handleResize = useCallback(
         // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
         debounce((entries) => {
             entries && entries.length > 0 && setWidth(entries[0].contentRect.width);
+            if (isMobile) { reRenderChatPanel();}
         }, 100),
         []
     );
@@ -363,7 +371,9 @@ const Chat = ({
                 selection.removeAllRanges();
                 selection.addRange(range);
             }
-            chatPrompt?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            setTimeout(() => {
+                chatPrompt?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }, 100);
         } catch (error) {
             // Ignore scenarios where the cursor can't be set
         }
@@ -988,7 +998,7 @@ const Chat = ({
             event.preventDefault();
         } else if(event.key === '/' && chatPromptRef.current.innerText === "") {
             event.preventDefault();
-            handleMenuPromptsOpen(event);
+            setMenuPromptsAnchorEl(promptEditorMenuRef.current);
         }
     }
 
@@ -1158,6 +1168,8 @@ const Chat = ({
         handleMenuCreativityClose();
         handleMenuMessageContextClose();
         setMenuPromptsAnchorEl(null);
+        reRenderChatPanel();
+        setFocusOnPrompt(Date.now());
     };
     
     const handleMenuCommandsOpen = (event) => {
@@ -1747,6 +1759,7 @@ const Chat = ({
         <Menu
             id="menu-commands"
             anchorEl={menuCommandsAnchorEl}
+            sx={{ width: isMobile ? "400px" : "100%" }}
             open={Boolean(menuCommandsAnchorEl)}
             onClose={handleMenuCommandsClose}
             onKeyDown={
@@ -1758,7 +1771,7 @@ const Chat = ({
             }
             anchorOrigin={{
                 vertical: 'top',
-                horizontal: 'right',
+                horizontal: isMobile ? 'left' : 'right', // make better use of small screen space on mobile
             }}
             transformOrigin={{
                 vertical: 'top',
@@ -1804,6 +1817,7 @@ const Chat = ({
         <Menu
             id="menu-commands-on-selection"
             anchorEl={menuCommandsOnSelectionAnchorEl}
+            sx={{ width: isMobile ? "400px" : "100%" }}
             open={Boolean(menuCommandsOnSelectionAnchorEl)}
             onClose={handleMenuCommandsOnSelectionClose}
             anchorOrigin={{
@@ -1842,6 +1856,7 @@ const Chat = ({
         </Menu>
         <Menu
             id="menu-exploration"
+            sx={{ width: isMobile ? "400px" : "100%" }}
             anchorEl={menuExplorationAnchorEl}
             open={Boolean(menuExplorationAnchorEl)}
             onClose={handleMenuExplorationClose}
@@ -1854,7 +1869,7 @@ const Chat = ({
             }
             anchorOrigin={{
                 vertical: 'top',
-                horizontal: 'right',
+                horizontal: isMobile ? 'left' : 'right', // make better use of small screen space on mobile
             }}
             transformOrigin={{
                 vertical: 'top',
@@ -1903,6 +1918,7 @@ const Chat = ({
         <Menu
             id="menu-analysis"
             anchorEl={menuAnalysisAnchorEl}
+            sx={{ width: isMobile ? "400px" : "100%" }}
             open={menuAnalysisAnchorEl !== null}
             onClose={handleMenuAnalysisClose}
             onKeyDown={
@@ -1914,7 +1930,7 @@ const Chat = ({
             }
             anchorOrigin={{
                 vertical: 'top',
-                horizontal: 'right',
+                horizontal: isMobile ? 'left' : 'right', // make better use of small screen space on mobile
             }}
             transformOrigin={{
                 vertical: 'top',
@@ -1966,6 +1982,7 @@ const Chat = ({
         <Menu
             id="menu-insights"
             anchorEl={menuInsightsAnchorEl}
+            sx={{ width: isMobile ? "400px" : "100%" }}
             open={menuInsightsAnchorEl !== null}
             onClose={handleMenuInsightsClose}
             onKeyDown={
@@ -1977,7 +1994,7 @@ const Chat = ({
             }
             anchorOrigin={{
                 vertical: 'top',
-                horizontal: 'right',
+                horizontal: isMobile ? 'left' : 'right', // make better use of small screen space on mobile
             }}
             transformOrigin={{
                 vertical: 'top',
@@ -2046,7 +2063,7 @@ const Chat = ({
             }
             anchorOrigin={{
                 vertical: 'top',
-                horizontal: 'right',
+                horizontal: isMobile ? 'left' : 'right', // make better use of small screen space on mobile
             }}
             transformOrigin={{
                 vertical: 'top',
@@ -2129,7 +2146,7 @@ const Chat = ({
         }
     </Box>;
 
-    const render = <Card id="chat-panel" ref={panelWindowRef}
+    const render = <Card id="chat-panel" ref={panelWindowRef} key={chatPanelKey}
                     sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, 
                     width: isMobile ? `${window.innerWidth}px` : (windowMaximized ? "calc(100vw - 12px)" : null),
                     minWidth: isMobile ? `${window.innerWidth}px` : "500px",
@@ -2221,7 +2238,8 @@ const Chat = ({
         </StyledBox>
         <Box sx={{ display: "flex", flexDirection: "column", minHeight: "128px" }}>
             <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
-                <IconButton edge="start" color="inherit" aria-label="Slash commands" onClick={handleMenuPromptsOpen}>
+                <IconButton ref={promptEditorMenuRef} edge="start" color="inherit" aria-label="Slash commands"
+                    onClick={handleMenuPromptsOpen}>
                   <MenuIcon/>
                 </IconButton>
                 <Typography sx={{mr:2}}>Prompt Editor</Typography>
