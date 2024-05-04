@@ -64,7 +64,7 @@ import StatusBar from './StatusBar';
 import Carousel from './Carousel';
 import SidekickModalDialog from './SidekickModalDialog';
 
-const VERSION = "0.3.1";
+const VERSION = "0.3.2";
 
 const ScriptIcon = SmartDisplayOutlinedIcon;
 const ScriptsExplorerIcon = SubscriptionsOutlinedIcon;
