@@ -804,8 +804,17 @@ const App = () => {
                   open={Boolean(appMenuAnchorEl)}
                   onClose={handleAppMenuClose}
                 >
-                  <MenuItem key="menuOpenCloseSidekickAI" onClick={() => { handleAppMenuClose(); handleToggleSidekickAIOpen(); }}>
-                    <HelpIcon/><Typography  sx={{ ml: 1 }}>{ sidekickAIOpen ? "Help - Close Sidekick AI Help" : "Help - Open Sidekick AI Help" }</Typography>
+                  <MenuItem key="menuOpenCloseChats" onClick={() => { handleAppMenuClose(); handleToggleChatsOpen(); }}>
+                    <QuestionAnswerIcon/><Typography  sx={{ ml: 1 }}>{ "Chat Explorer" }</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuOpenCloseChat" onClick={() => { handleAppMenuClose(); handleToggleChatOpen(); }}>
+                    <ModeCommentIcon/><Typography  sx={{ ml: 1 }}>{ "Chat" }</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuOpenCloseNotes" onClick={() => { handleAppMenuClose(); handleToggleNotesOpen(); }}>
+                    <FolderIcon/><Typography  sx={{ ml: 1 }}>{ "Note Explorer" }</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuOpenCloseNote" onClick={() => { handleAppMenuClose(); handleToggleNoteOpen(); }}>
+                    <NotesIcon/><Typography  sx={{ ml: 1 }}>{ "Note" }</Typography>
                   </MenuItem>
                   <MenuItem key="menuOpenCloseScripts" onClick={() => { handleAppMenuClose(); handleToggleScriptsOpen(); }}>
                     <ScriptsExplorerIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Scripts Explorer" : scriptsOpen ? "Scripts Explorer" : "Scripts Explorer" }</Typography>
@@ -854,8 +863,8 @@ const App = () => {
                 </Typography>}
                 {isMobile ? null : extendedLeftToolbar}
                 <Tooltip title={ chatsOpen ? "Close Chat Explorer" : "Open Chat Explorer" }>
-                  <IconButton edge="start" color="inherit" aria-label="Open/Close Chat Explorer" onClick={handleToggleChatsOpen}>
-                    {chatsOpen ? <QuestionAnswerIcon/> : <QuestionAnswerOutlinedIcon/>}
+                  <IconButton edge="start" color="inherit" aria-label="Chat Explorer" onClick={handleToggleChatsOpen}>
+                    <QuestionAnswerIcon/>
                   </IconButton>
                 </Tooltip>
                 <Tooltip title={chatOpen ? "Close Chat" : "New Chat"}>
@@ -865,8 +874,8 @@ const App = () => {
                 </Tooltip>
               </Box>
               <Box display="flex" ml="auto" gap={2}>
-              <Tooltip title={noteOpen ? "Close Note" : "New Note"}>
-                <IconButton edge="end" color="inherit" aria-label="New note" onClick={handleToggleNoteOpen}>
+              <Tooltip title="Note">
+                <IconButton edge="end" color="inherit" aria-label="Note" onClick={handleToggleNoteOpen}>
                   { noteOpen ? <NotesIcon/> : <PlaylistAddIcon/> }
                 </IconButton>
               </Tooltip>
