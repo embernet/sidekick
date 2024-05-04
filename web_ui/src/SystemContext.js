@@ -3,7 +3,7 @@ import axios from 'axios';
 
 export const SystemContext = createContext();
 
-export const SystemProvider = ({ serverUrl, setStatusUpdates, children }) => {
+export const SystemProvider = ({ serverUrl, setStatusUpdates, setModalDialogInfo, children }) => {
   const _dateTimeString = () => {
     const now = new Date();
     const year = now.getFullYear().toString().slice(-2);
@@ -23,10 +23,10 @@ export const SystemProvider = ({ serverUrl, setStatusUpdates, children }) => {
   };
 
   const _dayOfWeek = () => {
-      const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      const now = new Date();
-      return daysOfWeek[now.getDay()];
-    }
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const now = new Date();
+    return daysOfWeek[now.getDay()];
+  }
 
   const [system, setSystem] = useState({
     serverUp: false,
@@ -56,10 +56,14 @@ export const SystemProvider = ({ serverUrl, setStatusUpdates, children }) => {
         serverPinged: true,
       }));
     },
-    error: (message, error=undefined, context="") => {
+    error: (message, error=undefined, context=undefined) => {
       // message and context are strings, error is an object
-      setStatusUpdates(prevStatusUpdates => [...prevStatusUpdates, { message: message, type: 'error', timestamp: _dateTimeString() }]);
-      console.error(message, context, error ? error : "");
+      let displayMessage = message +
+        (context ? "\nContext: " + context : "") +
+        (error ? "\nError: " + error : "");
+        setModalDialogInfo({ title: "Error", message: displayMessage });
+      setStatusUpdates(prevStatusUpdates => [...prevStatusUpdates, { message: message, type: 'error', error: error, timestamp: _dateTimeString() }]);
+      console.error(message, context ? context: context, error ? error : "");
     },
     warning: (message, context="") => {
       setStatusUpdates(prevStatusUpdates => [...prevStatusUpdates, { message: message, type: 'warning', timestamp: _dateTimeString() }]);

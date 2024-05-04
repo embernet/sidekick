@@ -18,7 +18,6 @@ import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 import CloseIcon from '@mui/icons-material/Close';
 import CommentIcon from '@mui/icons-material/Comment';
-import AddCommentIcon from '@mui/icons-material/AddComment';
 import ReplayIcon from '@mui/icons-material/Replay';
 import RedoIcon from '@mui/icons-material/Redo';
 import StopCircleIcon from '@mui/icons-material/StopCircle';
@@ -42,6 +41,8 @@ import StarBorderIcon from '@mui/icons-material/StarBorder';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import SpeakerNotesOffIcon from '@mui/icons-material/SpeakerNotesOff';
+import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
@@ -254,7 +255,7 @@ const Chat = ({
     }
 
     const reRenderChatPanel = () => {
-        // e.g. to force resize when isMobile
+        // e.g. to force resize when isMobile as some components may not resize correctly such as when a menu closes
         setChatPanelKey(Date.now());
     };
 
@@ -306,6 +307,7 @@ const Chat = ({
     const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady.current);
     const [menuPromptsAnchorEl, setMenuPromptsAnchorEl] = useState(null);
     const [menuPanelAnchorEl, setMenuPanelAnchorEl] = useState(null);
+    const [menuPromptEditorAnchorEl, setMenuPromptEditorAnchorEl] = useState(null);
     const [menuMessageContext, setMenuMessageContext] = useState(null);
     const [menuCommandsAnchorEl, setMenuCommandsAnchorEl] = useState(null);
     const [menuCommandsOnSelectionAnchorEl, setMenuCommandsOnSelectionAnchorEl] = useState(null);
@@ -934,7 +936,6 @@ const Chat = ({
     }
 
     const sendPrompt = async (prompt) => {
-        console.log("FOO", prompt);
         showWaiting();
         // setup as much of the request as we can before calling appendMessage
         // as that will wait for any re-rendering and the id could change in that time
@@ -998,7 +999,7 @@ const Chat = ({
             event.preventDefault();
         } else if(event.key === '/' && chatPromptRef.current.innerText === "") {
             event.preventDefault();
-            setMenuPromptsAnchorEl(promptEditorMenuRef.current);
+            setMenuPromptEditorAnchorEl(promptEditorMenuRef.current);
         }
     }
 
@@ -1017,7 +1018,7 @@ const Chat = ({
             system.info(`Generated name for chat: "${generatedName}".`);
             renameChat(generatedName);
         }
-    }
+    };
 
     const handleStopStreaming = (event) => {
         console.log("handleStopStreaming");
@@ -1026,18 +1027,30 @@ const Chat = ({
         setTimeout(() => {
             closeChatStream(); console.log("closeChatStream");
         }, 1000);
-    }
+    };
 
     const handleAskAgain = () => {
         if (lastPrompt) {
-            sendPrompt(lastPrompt);
+            // if the last user message is the same as the last prompt, just say "Ask again"
+            console.log(messages);
+            if (messages.length > 1 && lastPrompt === messages[messages.length - 2].content) {
+                sendPrompt("That answer wasn't quite what I was looking for. Please try again.");
+            } else {
+                sendPrompt(lastPrompt);
+            }
         }
-    }
+    };
 
     const handleReload = () => {
         setChatPrompt(lastPrompt);
         setPromptFocus();
-    }
+    };
+
+    const handleDeleteLastPromptResponse = () => {
+        if (messages.length > 1) {
+            setMessages(messages.slice(0, -2));
+        }
+    };
 
     const extractNameFromPrompt = (prompt) => {
         if (prompt.startsWith("# ")) {
@@ -1154,11 +1167,15 @@ const Chat = ({
         setMenuPanelAnchorEl(null);
     };
 
-    const handleMenuPromptsOpen = (event) => {
-        setMenuPromptsAnchorEl(event.currentTarget);
+    const handleMenuPromptEditorOpen = (event) => {
+        setMenuPromptEditorAnchorEl(event.currentTarget);
     };
 
-    const handleMenuPromptsClose = () => {
+    const handleMenuPromptEditorClose = () => {
+        setMenuPromptEditorAnchorEl(null);
+    }
+
+    const closeMenus = () => {
         handleMenuPanelClose();
         handleMenuCommandsClose();
         handleMenuCommandsOnSelectionClose();
@@ -1167,9 +1184,24 @@ const Chat = ({
         handleMenuInsightsClose();
         handleMenuCreativityClose();
         handleMenuMessageContextClose();
+        handleMenuPromptEditorClose();
+        handleMenuPromptsClose();
+    }
+
+    const runMenuAction = (functionToRun, thenFocusOnPrompt=true) => {
+        closeMenus();
+        if (thenFocusOnPrompt) {
+            setFocusOnPrompt(Date.now());
+        }
+        functionToRun && functionToRun();
+    };
+
+    const handleMenuPromptsOpen = (event) => {
+        setMenuPromptsAnchorEl(event.currentTarget);
+    };
+
+    const handleMenuPromptsClose = () => {
         setMenuPromptsAnchorEl(null);
-        reRenderChatPanel();
-        setFocusOnPrompt(Date.now());
     };
     
     const handleMenuCommandsOpen = (event) => {
@@ -1420,7 +1452,7 @@ const Chat = ({
         { hotKeyHandlers: { "save": save }, darkMode: darkMode }
     );
 
-    const ActionMenu = React.forwardRef(({name, prompt, tooltip}, ref) => {
+    const ActionMenu = React.forwardRef(({name, prompt, tooltip, onClick}, ref) => {
         const menuItem = 
             <MenuItem
                 sx={{ width: "100%", whiteSpace: 'normal' }}
@@ -1428,12 +1460,11 @@ const Chat = ({
                 onClick={
                     (event) => 
                         {
-                            handleMenuPromptsClose();
+                            onClick && onClick();
                             if (event.altKey) {
-                                setChatPrompt(prompt);
-                                setPromptFocus();
+                                runMenuAction(()=>{setChatPrompt(prompt)});
                             } else {
-                                sendPrompt(prompt);
+                                runMenuAction(()=>{sendPrompt(prompt)});
                             }
                         }
                 }
@@ -1441,7 +1472,7 @@ const Chat = ({
                     (event) => {
                         if (event.key === 'ArrowRight') {
                             setChatPrompt(prompt);
-                            handleMenuPromptsClose();
+                            onClick && onClick();
                             if (chatPromptRef.current) {
                                 chatPromptRef.current.focus();
                             }
@@ -1460,15 +1491,14 @@ const Chat = ({
         return result;
     });
     
-    const ActionOnTextMenu = ({prompt, text}) => {
+    const ActionOnTextMenu = ({prompt, text, onClick}) => {
         return (
             <MenuItem onClick={ (event) => {
-                handleMenuPromptsClose();
+                onClick && onClick();
                 if (event.altKey) {
-                    setChatPrompt(prompt + ": " + text);
-                    setPromptFocus();
+                    runMenuAction(()=>{setChatPrompt(prompt + ": " + text)});
                 } else {
-                    sendPrompt(prompt + ": " + text);
+                    runMenuAction(()=>{sendPrompt(prompt + ": " + text)});
                 }
                 }}>{prompt}</MenuItem>
         )
@@ -1550,9 +1580,17 @@ const Chat = ({
                 horizontal: 'left',
             }}
         >
-            <MenuItem onClick={handleMenuPromptsOpen}>
-                <ListItemIcon><LightbulbIcon/></ListItemIcon>
-                Prompts
+            <MenuItem onClick={handleMenuPromptsOpen}
+                onKeyDown={
+                    (event) => {
+                        if (event.key === 'ArrowRight') {
+                            handleMenuPromptsOpen(event);
+                        }
+                    }
+                }    
+            >
+                <ListItemIcon><LibraryBooksIcon/></ListItemIcon>
+                Prompt Library
                 <IconButton  edge="end" style={{ padding: 0 }}>
                     <KeyboardArrowRightIcon />
                 </IconButton>
@@ -1585,8 +1623,77 @@ const Chat = ({
             }
             <MenuItem onClick={() => {handleMenuPanelClose(); handleDeleteChat();}}>
                 <ListItemIcon><DeleteIcon/></ListItemIcon>
-                Delete Chat</MenuItem>
-            <MenuItem onClick={() => {handleMenuPanelClose(); handleClose();}}>
+                Delete Chat
+            </MenuItem>
+        </Menu>
+        <Menu
+            id="menu-prompt-editor"
+            anchorEl={menuPromptEditorAnchorEl}
+            open={Boolean(menuPromptEditorAnchorEl)}
+            onClose={closeMenus}
+            onKeyDown={
+                (event) => {
+                    if (event.key === 'ArrowLeft') {
+                        closeMenus();
+                    }
+                }
+            }
+            anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+            }}
+            transformOrigin={{
+                vertical: 'top',
+                horizontal: 'left',
+            }}
+        >
+            <MenuItem
+                onClick={handleMenuPromptsOpen}
+                onKeyDown={
+                    (event) => {
+                        if (event.key === 'ArrowRight') {
+                            handleMenuPromptsOpen(event);
+                        }
+                    }
+                }
+                >
+                <ListItemIcon><LibraryBooksIcon/></ListItemIcon>
+                Prompt Library
+                <IconButton  edge="end" style={{ padding: 0 }}>
+                    <KeyboardArrowRightIcon />
+                </IconButton>
+            </MenuItem>
+            <MenuItem onClick={() => {runMenuAction(handleReload);}}>
+                <ListItemIcon><RedoIcon/></ListItemIcon>
+                Reload last prompt for editing
+            </MenuItem>
+            <MenuItem onClick={() => {runMenuAction(handleAskAgain);}}>
+                <ListItemIcon><ReplayIcon/></ListItemIcon>
+                Ask again
+            </MenuItem>
+            <MenuItem onClick={() => {runMenuAction(handleDeleteLastPromptResponse);}}>
+                <ListItemIcon><SpeakerNotesOffIcon/></ListItemIcon>
+                Delete last prompt/response
+            </MenuItem>
+            <MenuItem onClick={() => {runMenuAction(togglePromptEngineerOpen);}}>
+                <ListItemIcon><BuildIcon/></ListItemIcon>
+                Prompt Engineer
+            </MenuItem>
+            <MenuItem onClick={() => {runMenuAction(handleNewChat);}}>
+                <ListItemIcon><AddOutlinedIcon/></ListItemIcon>
+                New Chat
+            </MenuItem>
+            <MenuItem onClick={() => {runMenuAction(); handleToggleMarkdownRendering();}}>
+            <ListItemIcon>{ markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }</ListItemIcon>
+                { markdownRenderingOn ? "Turn off markdown rendering" : "Turn on markdown rendering" }</MenuItem>
+            {
+                isMobile ? null :
+                <MenuItem onClick={() => {runMenuAction(); handleToggleWindowMaximise();}}>
+                    <ListItemIcon>{ windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }</ListItemIcon>
+                    { windowMaximized ? "Shrink window" : "Expand window" }
+                </MenuItem>
+            }
+            <MenuItem onClick={() => {runMenuAction(); handleClose();}}>
                 <ListItemIcon><CloseIcon/></ListItemIcon>
                 Close Window
             </MenuItem>
@@ -1594,6 +1701,7 @@ const Chat = ({
         <Menu
             id="chat-context-menu"
             open={menuMessageContext !== null}
+            sx={{ width: isMobile ? "400px" : "100%" }}
             onClose={handleMenuMessageContextClose}
             anchorReference="anchorPosition"
             anchorPosition={
@@ -1608,14 +1716,16 @@ const Chat = ({
             }
         > 
             <MenuItem
+                style={{ minHeight: '30px' }}
                 disabled={!window.getSelection().toString() || promptPlaceholder === userPromptWaiting}
                 onClick={handleMenuCommandsOnSelectionOpen}>
                 <ListItemText>Commands on selection</ListItemText>
                 <IconButton  edge="end" style={{ padding: 0 }}>
                     <KeyboardArrowRightIcon />
-                </IconButton>              
+                </IconButton>
             </MenuItem>
             <MenuItem
+                style={{ minHeight: '30px' }} 
                 disabled={messages.length === 0 || !!window.getSelection().toString() || promptPlaceholder === userPromptWaiting}
                 onClick={handleMenuPromptsOpen}
             >
@@ -1625,24 +1735,25 @@ const Chat = ({
                 </IconButton>
             </MenuItem>
             <MenuItem
+                style={{ height: '30px' }} 
                 disabled={!window.getSelection().toString()}
                 onClick={handleCopyHighlightedText}>
                 Copy highlighted text
             </MenuItem>
-            <MenuItem onClick={handleCopyMessageAsText}>Copy message as text</MenuItem>
-            <MenuItem onClick={handleCopyAllAsText}>Copy all as text</MenuItem>
-            <MenuItem onClick={handleCopyMessageAsHTML}>Copy message as html</MenuItem>
-            <MenuItem onClick={handleCopyAllAsHTML}>Copy all as html</MenuItem>
-            <MenuItem divider />
-            <MenuItem onClick={handleAppendToChatInput}>Append message to chat input</MenuItem>
-            <MenuItem onClick={handleUseAsChatInput}>Use message as chat input</MenuItem>
-            <MenuItem divider />
-            <MenuItem disabled={!noteOpen} onClick={handleAppendToNote}>Append message to note</MenuItem>
-            <MenuItem disabled={!noteOpen} onClick={handleAppendAllToNote}>Append all to note</MenuItem>
-            <MenuItem divider />
-            <MenuItem onClick={handleDeleteThisMessage}>Delete this message</MenuItem>
-            <MenuItem onClick={handleDeleteThisAndPreviousMessage}>Delete this and previous message</MenuItem>
-            <MenuItem onClick={handleDeleteAllMessages}>Delete all messages</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleCopyMessageAsText}>Copy message as text</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleCopyAllAsText}>Copy all as text</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleCopyMessageAsHTML}>Copy message as html</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleCopyAllAsHTML}>Copy all as html</MenuItem>
+            <MenuItem divider style={{ minHeight: '10px' }} />
+            <MenuItem style={{ height: '30px' }} onClick={handleAppendToChatInput}>Append message to chat input</MenuItem>
+            <MenuItem style={{ minHeight: '10px' }} onClick={handleUseAsChatInput}>Use message as chat input</MenuItem>
+            <MenuItem divider style={{ minHeight: '10px' }} />
+            <MenuItem style={{ minHeight: '30px' }} disabled={!noteOpen} onClick={handleAppendToNote}>Append message to note</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} disabled={!noteOpen} onClick={handleAppendAllToNote}>Append all to note</MenuItem>
+            <MenuItem divider style={{ minHeight: '10px' }} />
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteThisMessage}>Delete this message</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteThisAndPreviousMessage}>Delete this and previous message</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteAllMessages}>Delete all messages</MenuItem>
         </Menu>
         <Menu 
             id="menu-prompts"
@@ -1840,6 +1951,7 @@ const Chat = ({
                 </MenuItem>
             </Tooltip>
             <ActionOnTextMenu prompt="Define" text={window.getSelection().toString()}/>
+            <ActionOnTextMenu prompt="Expand on" text={window.getSelection().toString()}/>
             <ActionOnTextMenu prompt="Explain in simple terms" text={window.getSelection().toString()}/>
             <ActionOnTextMenu prompt="Explain in detail" text={window.getSelection().toString()}/>
             <ActionOnTextMenu prompt="Provide synonyms for" text={window.getSelection().toString()}/>
@@ -2200,13 +2312,18 @@ const Chat = ({
             <List id="message-list" ref={chatMessagesRef}>
                 {messages && messages.map((message, index) => (
                     <ListItem sx={{ paddingLeft: 0 }} key={index}>
-                        <Box style={{width:'100%'}} onContextMenu={(event) => { handleMenuMessageContextOpen(event, message, index); }} onClick={(event) => { handleMenuMessageContextOpen(event, message, index); }}>
+                        <Box
+                            position="relative"
+                            style={{width:'100%'}}
+                            onContextMenu={(event) => { handleMenuMessageContextOpen(event, message, index); }}
+                            onClick={(event) => { isMobile && handleMenuMessageContextOpen(event, message, index); }}
+                        >
                             <Card sx={{ 
                                 padding: 2, 
                                 width: "100%", 
                                 backgroundColor: message.role === "user" ? (darkMode ? blueGrey[800] : "lightblue") : (darkMode ? lightBlue[900] : "lightyellow"),
                             }}
-                        >
+                            >
                                 {
                                     markdownRenderingOn
                                     ?
@@ -2217,6 +2334,17 @@ const Chat = ({
                                         </Typography>
                                 }
                             </Card>
+                            <HighlightOffIcon
+                                style={{ position: 'absolute', top: 0, right: 0,
+                                    color: darkMode ? 'lightgrey' : 'darkgrey' }}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    // delete this message
+                                    const newMessages = [...messages];
+                                    newMessages.splice(index, 1);
+                                    setMessages(newMessages);
+                                }}
+                                />
                         </Box>
                     </ListItem>
                 ))}
@@ -2239,15 +2367,10 @@ const Chat = ({
         <Box sx={{ display: "flex", flexDirection: "column", minHeight: "128px" }}>
             <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
                 <IconButton ref={promptEditorMenuRef} edge="start" color="inherit" aria-label="Slash commands"
-                    onClick={handleMenuPromptsOpen}>
+                    onClick={handleMenuPromptEditorOpen}>
                   <MenuIcon/>
                 </IconButton>
                 <Typography sx={{mr:2}}>Prompt Editor</Typography>
-                <Tooltip title={ promptEngineerOpen ? "Hide Prompt Engineer" : "Show Prompt Engineer"}>
-                    <IconButton edge="start" color="inherit" aria-label="prompt engineer" onClick={togglePromptEngineerOpen}>
-                        <BuildIcon/>
-                    </IconButton>
-                </Tooltip>
                 <Tooltip title={ "Save prompt as template" }>
                     <span>
                         <IconButton edge="start" color="inherit" aria-label="save prompt as template"
@@ -2338,8 +2461,9 @@ const Chat = ({
                 >
                 </div>
                 <HighlightOffIcon
-                    style={{ position: 'absolute', top: 0, right: 0 }}
-                    onClick={() => {setChatPrompt("");}}
+                    style={{ position: 'absolute', top: 0, right: 0,
+                        color: darkMode ? 'lightgrey' : 'darkgrey' }}
+                    onClick={(event) => {event.stopPropagation(); setChatPrompt("");}}
                     />
             </Box>
             { aiLibraryOpen ? 

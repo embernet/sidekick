@@ -295,7 +295,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         if (AIResponse !== "") {
             setContent( noteContentRef.current.innerText + "\n" + AIResponse + "\n");
             considerAutoNaming(noteContentRef.current.innerText);
-            _save();
+            save();
             focusOnContent();
         }
         setContentDisabled(false);

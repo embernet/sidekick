@@ -62,6 +62,7 @@ import Admin from './Admin';
 import SidekickAI from './SidekickAI';
 import StatusBar from './StatusBar';
 import Carousel from './Carousel';
+import SidekickModalDialog from './SidekickModalDialog';
 
 const VERSION = "0.3.1";
 
@@ -135,6 +136,9 @@ const App = () => {
   const [scriptWindowMaximized, setScriptWindowMaximized] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
+  const [modalDialogInfo, setModalDialogInfo] = useState(undefined);
+  const [modalDialogVisual, setModalDialogVisual] = useState(null);
+  const [modalDialogMessage, setModalDialogMessage] = useState("");
   
   const theme = createTheme({
     palette: {
@@ -783,7 +787,8 @@ const App = () => {
 
   const appRender =
   <BrowserRouter>
-    <SystemProvider serverUrl={serverUrl}  setStatusUpdates={setStatusUpdates}>
+    <SystemProvider serverUrl={serverUrl}  setStatusUpdates={setStatusUpdates} setModalDialogInfo={setModalDialogInfo}
+    >
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Box sx={{display:"flex", height:"100vh", flexDirection:"column", overflow:"hidden"}}>
@@ -879,6 +884,7 @@ const App = () => {
               </Box>
             </Toolbar>
           </AppBar>
+          <SidekickModalDialog modalDialogInfo={modalDialogInfo} setModalDialogInfo={setModalDialogInfo} />
           <Popover
             open={aboutWindowOpen}
             anchorOrigin={{
@@ -896,49 +902,49 @@ const App = () => {
               },
             }}
             onClose={() => {setAboutWindowOpen(false);}}
-          >
+            >
             <StyledToolbar sx={{ gap: 1 }}>
               <InfoOutlinedIcon/><Typography variant="h6" align="center">About Sidekick</Typography>
             </StyledToolbar>
             <Grid container spacing={2} alignItems="center">
-            <Grid item xs={6}>
-              <Carousel imageFolderName="./images/logo/" filenamePrefix="sidekick_" 
-                filenameExtension=".png" altText="Sidekick logo"
-                transitions="8" cycleTime="250" imageWidth="200px" imageHeight='200px'/>
+              <Grid item xs={6}>
+                <Carousel imageFolderName="./images/logo/" filenamePrefix="sidekick_" 
+                  filenameExtension=".png" altText="Sidekick logo"
+                  transitions="8" cycleTime="250" imageWidth="200px" imageHeight='200px'/>
+              </Grid>
+              <Grid item xs={6}>
+                <Box display="flex" alignItems="center" sx={{mt:2}}>
+                  <Typography style={{ fontWeight: 'bold' }}>Version:</Typography>
+                  <Typography style={{ marginLeft: '5px' }}>{VERSION}</Typography>
+                </Box>
+                { appInstanceName !== "" ? 
+                    <Box display="flex" alignItems="center">
+                      <Typography style={{ fontWeight: 'bold' }}>Instance:</Typography>
+                      <Typography style={{ marginLeft: '5px' }}>{appInstanceName}</Typography>
+                    </Box>
+                  : null
+                }
+                { instanceUsage !== "" ? 
+                    <Box display="flex" alignItems="center">
+                      <Typography style={{ fontWeight: 'bold' }}>Usage:</Typography>
+                      <Typography style={{ marginLeft: '5px' }}>{instanceUsage}</Typography>
+                    </Box>
+                  : null
+                }
+                <Box display="flex" alignItems="center">
+                  <Typography style={{ fontWeight: 'bold' }}>Logged in as:</Typography>
+                  <Typography multiline style={{ marginLeft: '5px', fontSize: '0.8rem', wordWrap: 'break-word', overflowWrap: 'break-word',
+                    maxWidth: '100px' }}>
+                    { user?.name ? user.name : user?.id }
+                  </Typography>
+                </Box>
+                <Typography sx={{mt:1}} style={{ fontSize: '0.8rem' }}>Sidekick is an open-source AI powered tool for creativity, thinking, learning, exploring ideas, problem-solving, and getting things done.</Typography>
+                <Typography sx={{mt:1}} style={{ fontSize: '0.8rem' }}>You can find the project here: <a href="https://github.com/embernet/sidekick" target="_blank" rel="noreferrer">github.com/embernet/sidekick</a></Typography>
+              </Grid>
             </Grid>
-            <Grid item xs={6}>
-              <Box display="flex" alignItems="center" sx={{mt:2}}>
-                <Typography style={{ fontWeight: 'bold' }}>Version:</Typography>
-                <Typography style={{ marginLeft: '5px' }}>{VERSION}</Typography>
-              </Box>
-              { appInstanceName !== "" ? 
-                  <Box display="flex" alignItems="center">
-                    <Typography style={{ fontWeight: 'bold' }}>Instance:</Typography>
-                    <Typography style={{ marginLeft: '5px' }}>{appInstanceName}</Typography>
-                  </Box>
-                : null
-              }
-              { instanceUsage !== "" ? 
-                  <Box display="flex" alignItems="center">
-                    <Typography style={{ fontWeight: 'bold' }}>Usage:</Typography>
-                    <Typography style={{ marginLeft: '5px' }}>{instanceUsage}</Typography>
-                  </Box>
-                : null
-              }
-              <Box display="flex" alignItems="center">
-                <Typography style={{ fontWeight: 'bold' }}>Logged in as:</Typography>
-                <Typography multiline style={{ marginLeft: '5px', fontSize: '0.8rem', wordWrap: 'break-word', overflowWrap: 'break-word',
-                  maxWidth: '100px' }}>
-                  { user?.name ? user.name : user?.id }
-                </Typography>
-              </Box>
-              <Typography sx={{mt:1}} style={{ fontSize: '0.8rem' }}>Sidekick is an open-source AI powered tool for creativity, thinking, learning, exploring ideas, problem-solving, and getting things done.</Typography>
-              <Typography sx={{mt:1}} style={{ fontSize: '0.8rem' }}>You can find the project here: <a href="https://github.com/embernet/sidekick" target="_blank" rel="noreferrer">github.com/embernet/sidekick</a></Typography>
-            </Grid>
-          </Grid>
-          <Box display="flex" justifyContent="flex-end">
-            <Button onClick={()=>{setAboutWindowOpen(false);}}>Close</Button>
-          </Box>
+            <Box display="flex" justifyContent="flex-end">
+              <Button onClick={()=>{setAboutWindowOpen(false);}}>Close</Button>
+            </Box>
           </Popover>
           <Box id="app-workspace" display="flex" height="100%" flexDirection="row" flex="1" 
             overflow-y="hidden" overflow="auto" width="100%">
@@ -1180,7 +1186,7 @@ const App = () => {
 </BrowserRouter>
 
 const loginRender = 
-  <SystemProvider serverUrl={serverUrl} setStatusUpdates={setStatusUpdates}>
+  <SystemProvider serverUrl={serverUrl} setStatusUpdates={setStatusUpdates} setModalDialogInfo={setModalDialogInfo}>
     <BrowserRouter>
       <ThemeProvider theme={theme}>
         <CssBaseline />
