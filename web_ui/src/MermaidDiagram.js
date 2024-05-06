@@ -32,7 +32,7 @@ const MermaidDiagram = memo(({ markdown }) => {
           console.error(error);
         });
     }
-  }, [mermaidId, markdown]);
+  }, [markdown]);
 
   return (
     <div className="mermaid-diagram" id={'id-'+mermaidId} key={'key-'+mermaidId} ref={mermaidRef}>
