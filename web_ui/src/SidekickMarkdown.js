@@ -8,6 +8,8 @@ import { Card, Toolbar, Typography, Box, IconButton } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { SystemContext } from './SystemContext';
 import { memo } from 'react';
+import MermaidDiagram from './MermaidDiagram';
+import { v4 as uuidv4 } from 'uuid';
 
 const SidekickMarkdown = memo(({ markdown }) => {
     const system = useContext(SystemContext);
@@ -28,7 +30,7 @@ const SidekickMarkdown = memo(({ markdown }) => {
                 const after = markdown.slice(endIndex);
                 renderedMarkdown.push(<ReactMarkdown key={lastIndex} sx={{ width: "100%", whiteSpace: 'pre-wrap' }}>{before}</ReactMarkdown>);
                 renderedMarkdown.push(
-                <Card key={startIndex} sx={{ width: "100%", height: "fit-content" }}>
+                <Card key={uuidv4()} sx={{ width: "100%", height: "fit-content" }}>
                     <Toolbar className={ClassNames.toolbar}>
                         <Typography sx={{ mr: 2 }}>{language}</Typography>
                         <Box sx={{ display: "flex", width: "100%", flexDirection: "row", ml: "auto" }}>
@@ -38,9 +40,13 @@ const SidekickMarkdown = memo(({ markdown }) => {
                             </IconButton>
                         </Box>
                     </Toolbar>
-                    <SyntaxHighlighter sx={{ width: "100%" }} lineProps={{style: {wordBreak: 'break-all', whiteSpace: 'pre-wrap'}}} language={language} wrapLines={true} style={docco}>
-                    {code}
-                    </SyntaxHighlighter>
+                    {(language === "mermaid") ?
+                        <MermaidDiagram markdown={code}/>
+                    :
+                        <SyntaxHighlighter sx={{ width: "100%" }} lineProps={{style: {wordBreak: 'break-all', whiteSpace: 'pre-wrap'}}} language={language} wrapLines={true} style={docco}>
+                        {code}
+                        </SyntaxHighlighter>
+                    }
                 </Card>
                 );
                 lastIndex = codeRegex.lastIndex;
