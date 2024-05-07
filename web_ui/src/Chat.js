@@ -13,11 +13,11 @@ import { lightBlue,grey, blueGrey } from '@mui/material/colors';
 import { MuiFileInput } from 'mui-file-input';
 
 // Icons
+import MenuIcon from '@mui/icons-material/Menu';
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 import CloseIcon from '@mui/icons-material/Close';
 import CommentIcon from '@mui/icons-material/Comment';
-import AddCommentIcon from '@mui/icons-material/AddComment';
 import ReplayIcon from '@mui/icons-material/Replay';
 import RedoIcon from '@mui/icons-material/Redo';
 import StopCircleIcon from '@mui/icons-material/StopCircle';
@@ -39,6 +39,10 @@ import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
+import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import SpeakerNotesOffIcon from '@mui/icons-material/SpeakerNotesOff';
+import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
@@ -62,14 +66,205 @@ const Chat = ({
     const chatMessagesContainerRef = useRef(null);
     const chatMessagesRef = useRef(null);
     const streamingChatResponseCardRef = useRef(null);
+    const promptEditorMenuRef = useRef(null);
+    const [chatPanelKey, setChatPanelKey] = useState(Date.now()); // used to force re-renders
 
     const newChatName = "New Chat"
+
+    const promptTemplates = {
+        "Analysis": {
+            "Balanced Scorecard": {
+                "prompt": "Perform a Balanced Scorecard analysis on the chat content, identifying key metrics across financial, customer, internal process, and learning & growth perspectives.",
+                "tooltip": "The Balanced Scorecard (BSC) is a strategic planning and management framework that translates an organization's vision and strategy into a coherent set of performance measures across four perspectives: financial, customer, internal processes, and learning and growth."
+            },
+            "Benefits Analysis": {
+                "prompt": "Conduct a Benefits Analysis on the topics discussed, identifying potential benefits, costs, and risks.",
+                "tooltip": "Benefits Analysis is a technique used to evaluate the potential benefits, costs, and risks associated with a decision, project, or investment. It helps in making informed decisions and assessing the value of an initiative."
+            },
+            "Business Model Canvas": {
+                "prompt": "Create a Business Model Canvas based on the chat content, identifying key partners, activities, resources, value propositions, customer relationships, channels, customer segments, cost structure, and revenue streams.",
+                "tooltip": "The Business Model Canvas is a strategic management template for developing new or documenting existing business models. It allows users to describe, design, challenge, invent, and pivot their business model."
+            },
+            "Competitive Analysis": {
+                "prompt": "Conduct a Competitive Analysis on the chat content, identifying key competitors, their strengths and weaknesses, and potential strategies for differentiation.",
+                "tooltip": "Competitive Analysis is the process of evaluating your competitors' strategies, strengths, weaknesses, and market positions to identify opportunities and threats. It helps in shaping strategic responses to enhance competitive advantage."
+            },
+            "Design Thinking": {
+                "prompt": "Apply Design Thinking principles to the conversation, identifying user needs, brainstorming solutions, and proposing prototypes.",
+                "tooltip": "Design Thinking is a user-centric approach that involves empathizing with users, defining problems, ideating solutions, prototyping, and testing. It fosters innovation and solves complex problems in a user-focused way."
+            },
+            "Failure Modes Effects Analysis (FMEA)": {
+                "prompt": "Carry out a Failure Modes Effects Analysis (FMEA) on the issues discussed, ranking them by severity, occurrence, and detection.",
+                "tooltip": "Failure Modes Effects Analysis (FMEA) is a systematic technique for identifying potential failure modes within a system, classifying them according to their severity, occurrence, and detectability, to prioritize fixes and prevent future failures."
+            },
+            "Gap Analysis": {
+                "prompt": "Conduct a Gap Analysis on the current discussion, identifying the difference between the current and desired states.",
+                "tooltip": "Gap Analysis is a process of comparing the actual performance with the potential or desired performance. It helps in identifying the gaps in a system, process, or business offering to recommend steps to bridge these gaps and enhance performance."
+            },
+            "Kano Model Analysis": {
+                "prompt": "Perform a Kano Model Analysis on the needs or features discussed, categorizing them as Must-be, Performance, or Delighters.",
+                "tooltip": "Kano Model Analysis categorizes customer preferences into must-haves, performance attributes, and delighters or wow factors, helping in prioritizing features based on their impact on customer satisfaction."
+            },
+            "Market Entry Strategy": {
+                "prompt": "Develop a Market Entry Strategy based on the conversation so far, including recommended modes of entry and potential barriers.",
+                "tooltip": "Market Entry Strategy involves analyzing and selecting the most viable approach to enter a new market, considering factors like competition, barriers to entry, market demand, and strategic fit."
+            },
+            "MoSCoW Prioritisation": {
+                "prompt": "Apply MoSCoW Prioritisation to the topics discussed, categorizing them as Must have, Should have, Could have, or Won't have.",
+                "tooltip": "MoSCoW Prioritisation is a decision-making technique that helps in categorizing tasks and requirements into Must haves, Should haves, Could haves, and Won't haves, facilitating effective prioritization and resource allocation."
+            },
+            "PEST Analysis": {
+                "prompt": "Conduct a PEST Analysis on the dialogue, examining Political, Economic, Social, and Technological factors.",
+                "tooltip": "PEST Analysis is a framework for analyzing the macro-environmental factors (Political, Economic, Social, Technological) that can impact an organization's strategies and future performance. It helps in understanding the broader forces affecting the business landscape."
+            },
+            "Porters Five Forces": {
+                "prompt": "Analyze the chat content using Porter's Five Forces framework, identifying competitive rivalry, supplier power, buyer power, threat of substitution, and threat of new entry.",
+                "tooltip": "Porter's Five Forces is a model for analyzing an industry's competitive environment. It examines five forces that determine the intensity of competition and market profitability: competitive rivalry, bargaining power of suppliers, bargaining power of buyers, threat of new entrants, and threat of substitute products or services."
+            },
+            "Root Cause Analysis": {
+                "prompt": "Perform a Root Cause Analysis on the issues raised in the chat, identifying underlying causes and suggesting solutions.",
+                "tooltip": "Root Cause Analysis (RCA) is a methodical approach used to identify the fundamental causes of problems or incidents to address the root issues, preventing recurrence rather than treating symptoms."
+            },
+            "SMART Goals": {
+                "prompt": "Formulate SMART Goals based on the objectives discussed in the chat, ensuring they are Specific, Measurable, Achievable, Relevant, and Time-bound.",
+                "tooltip": "SMART Goals framework helps in setting clear, achievable goals by ensuring they are Specific, Measurable, Achievable, Relevant, and Time-bound. It provides a structured approach to goal setting for better performance and outcomes."
+            },
+            "Six Thinking Hats": {
+                "prompt": "Apply the Six Thinking Hats method to the conversation, analyzing it from different perspectives: facts, emotions, caution, benefits, creativity, and process.",
+                "tooltip": "Six Thinking Hats is a critical thinking process that helps individuals and teams discuss and solve problems more effectively by looking at the situation from six distinct perspectives (White: facts, Red: emotions, Black: caution, Yellow: optimism, Green: creativity, Blue: process), facilitating a more rounded and thorough analysis."
+            },
+            "Stakeholder Analysis": {
+                "prompt": "Conduct a Stakeholder Analysis on the chat content, identifying key stakeholders, their interests, and potential strategies for engagement.",
+                "tooltip": "Stakeholder Analysis is a technique used to identify and assess the influence and interests of key people, groups of people, or organizations that may significantly impact the success of your activity or project. It helps in developing strategies for engaging stakeholders effectively."
+            },
+            "SWOT Analysis": {
+                "prompt": "Carry out a SWOT Analysis on the chat so far, identifying Strengths, Weaknesses, Opportunities, and Threats.",
+                "tooltip": "SWOT Analysis is a strategic planning tool used to identify and understand the Strengths, Weaknesses, Opportunities, and Threats related to business competition or project planning. It helps in crafting strategies that align with the organization's capabilities and market opportunities."
+            },
+            "Value Chain Analysis": {
+                "prompt": "Perform a Value Chain Analysis on the discussion, examining activities that create value and could lead to competitive advantage.",
+                "tooltip": "Value Chain Analysis is a process of examining the steps involved in bringing a product or service from conception to distribution and beyond. It helps in identifying where value is added and how it can be enhanced to achieve a competitive advantage."
+            },
+            "VPEC-T Analysis": {
+                "prompt": "Apply VPEC-T Analysis to the chat content, examining Values, Policies, Events, Content, and Trust.",
+                "tooltip": "VPEC-T Analysis stands for Values, Policies, Events, Content, and Trust. It's a framework for analyzing complex situations by examining the critical elements that influence decisions and actions in any context, focusing on understanding stakeholders' perspectives and the foundational elements that guide interactions."
+            },
+            "Wardley Mapping": {
+                "prompt": "Create a Wardley Map based on the chat content, visualizing the landscape of the discussion and identifying areas for strategic focus.",
+                "tooltip": "Wardley Mapping is a strategy tool that helps in visualizing the structure of a business or service, mapping the components needed to serve the customer or user. It assists in understanding the current landscape, predicting future trends, and identifying strategic opportunities."
+            },
+            "What If Analysis": {
+                "prompt": "Conduct a What If Analysis on the chat, exploring alternative scenarios and their potential outcomes.",
+                "tooltip": "What If Analysis is a systematic process to explore and evaluate potential outcomes of different scenarios based on varying parameters. It helps in decision making by anticipating possible challenges and opportunities, allowing for better preparedness and strategic planning."
+            },
+            "Why-Why Analysis": {
+                "prompt": "Perform a Why-Why Analysis on the chat content, asking 'why' repeatedly to drill down to the root cause of a problem.",
+                "tooltip": "Why-Why Analysis is a problem-solving technique that involves repeatedly asking the question 'Why?' to peel away the layers of symptoms and reach the core of a problem. It's a simple yet effective method for uncovering the root cause of a problem and ensuring that solutions address this foundational issue."
+            }
+        },
+        "Creativity": {
+            "Balanced Scorecard": {
+                "prompt": "Perform a Balanced Scorecard analysis on the chat content, identifying key metrics across financial, customer, internal process, and learning & growth perspectives.",
+                "tooltip": "The Balanced Scorecard (BSC) is a strategic planning and management framework that translates an organization's vision and strategy into a coherent set of performance measures across four perspectives: financial, customer, internal processes, and learning and growth."
+            },
+            "Benefits Analysis": {
+                "prompt": "Conduct a Benefits Analysis on the topics discussed, identifying potential benefits, costs, and risks.",
+                "tooltip": "Benefits Analysis is a technique used to evaluate the potential benefits, costs, and risks associated with a decision, project, or investment. It helps in making informed decisions and assessing the value of an initiative."
+            },
+            "Business Model Canvas": {
+                "prompt": "Create a Business Model Canvas based on the chat content, identifying key partners, activities, resources, value propositions, customer relationships, channels, customer segments, cost structure, and revenue streams.",
+                "tooltip": "The Business Model Canvas is a strategic management template for developing new or documenting existing business models. It allows users to describe, design, challenge, invent, and pivot their business model."
+            },
+            "Competitive Analysis": {
+                "prompt": "Conduct a Competitive Analysis on the chat content, identifying key competitors, their strengths and weaknesses, and potential strategies for differentiation.",
+                "tooltip": "Competitive Analysis is the process of evaluating your competitors' strategies, strengths, weaknesses, and market positions to identify opportunities and threats. It helps in shaping strategic responses to enhance competitive advantage."
+            },
+            "Design Thinking": {
+                "prompt": "Apply Design Thinking principles to the conversation, identifying user needs, brainstorming solutions, and proposing prototypes.",
+                "tooltip": "Design Thinking is a user-centric approach that involves empathizing with users, defining problems, ideating solutions, prototyping, and testing. It fosters innovation and solves complex problems in a user-focused way."
+            },
+            "Failure Modes Effects Analysis (FMEA)": {
+                "prompt": "Carry out a Failure Modes Effects Analysis (FMEA) on the issues discussed, ranking them by severity, occurrence, and detection.",
+                "tooltip": "Failure Modes Effects Analysis (FMEA) is a systematic technique for identifying potential failure modes within a system, classifying them according to their severity, occurrence, and detectability, to prioritize fixes and prevent future failures."
+            },
+            "Gap Analysis": {
+                "prompt": "Conduct a Gap Analysis on the current discussion, identifying the difference between the current and desired states.",
+                "tooltip": "Gap Analysis is a process of comparing the actual performance with the potential or desired performance. It helps in identifying the gaps in a system, process, or business offering to recommend steps to bridge these gaps and enhance performance."
+            },
+            "Kano Model Analysis": {
+                "prompt": "Perform a Kano Model Analysis on the needs or features discussed, categorizing them as Must-be, Performance, or Delighters.",
+                "tooltip": "Kano Model Analysis categorizes customer preferences into must-haves, performance attributes, and delighters or wow factors, helping in prioritizing features based on their impact on customer satisfaction."
+            },
+            "Market Entry Strategy": {
+                "prompt": "Develop a Market Entry Strategy based on the conversation so far, including recommended modes of entry and potential barriers.",
+                "tooltip": "Market Entry Strategy involves analyzing and selecting the most viable approach to enter a new market, considering factors like competition, barriers to entry, market demand, and strategic fit."
+            },
+            "MoSCoW Prioritisation": {
+                "prompt": "Apply MoSCoW Prioritisation to the topics discussed, categorizing them as Must have, Should have, Could have, or Won't have.",
+                "tooltip": "MoSCoW Prioritisation is a decision-making technique that helps in categorizing tasks and requirements into Must haves, Should haves, Could haves, and Won't haves, facilitating effective prioritization and resource allocation."
+            },
+            "PEST Analysis": {
+                "prompt": "Conduct a PEST Analysis on the dialogue, examining Political, Economic, Social, and Technological factors.",
+                "tooltip": "PEST Analysis is a framework for analyzing the macro-environmental factors (Political, Economic, Social, Technological) that can impact an organization's strategies and future performance. It helps in understanding the broader forces affecting the business landscape."
+            },
+            "Porters Five Forces": {
+                "prompt": "Analyze the chat content using Porter's Five Forces framework, identifying competitive rivalry, supplier power, buyer power, threat of substitution, and threat of new entry.",
+                "tooltip": "Porter's Five Forces is a model for analyzing an industry's competitive environment. It examines five forces that determine the intensity of competition and market profitability: competitive rivalry, bargaining power of suppliers, bargaining power of buyers, threat of new entrants, and threat of substitute products or services."
+            },
+            "Root Cause Analysis": {
+                "prompt": "Perform a Root Cause Analysis on the issues raised in the chat, identifying underlying causes and suggesting solutions.",
+                "tooltip": "Root Cause Analysis (RCA) is a methodical approach used to identify the fundamental causes of problems or incidents to address the root issues, preventing recurrence rather than treating symptoms."
+            },
+            "SMART Goals": {
+                "prompt": "Formulate SMART Goals based on the objectives discussed in the chat, ensuring they are Specific, Measurable, Achievable, Relevant, and Time-bound.",
+                "tooltip": "SMART Goals framework helps in setting clear, achievable goals by ensuring they are Specific, Measurable, Achievable, Relevant, and Time-bound. It provides a structured approach to goal setting for better performance and outcomes."
+            },
+            "Six Thinking Hats": {
+                "prompt": "Apply the Six Thinking Hats method to the conversation, analyzing it from different perspectives: facts, emotions, caution, benefits, creativity, and process.",
+                "tooltip": "Six Thinking Hats is a critical thinking process that helps individuals and teams discuss and solve problems more effectively by looking at the situation from six distinct perspectives (White: facts, Red: emotions, Black: caution, Yellow: optimism, Green: creativity, Blue: process), facilitating a more rounded and thorough analysis."
+            },
+            "Stakeholder Analysis": {
+                "prompt": "Conduct a Stakeholder Analysis on the chat content, identifying key stakeholders, their interests, and potential strategies for engagement.",
+                "tooltip": "Stakeholder Analysis is a technique used to identify and assess the influence and interests of key people, groups of people, or organizations that may significantly impact the success of your activity or project. It helps in developing strategies for engaging stakeholders effectively."
+            },
+            "SWOT Analysis": {
+                "prompt": "Carry out a SWOT Analysis on the chat so far, identifying Strengths, Weaknesses, Opportunities, and Threats.",
+                "tooltip": "SWOT Analysis is a strategic planning tool used to identify and understand the Strengths, Weaknesses, Opportunities, and Threats related to business competition or project planning. It helps in crafting strategies that align with the organization's capabilities and market opportunities."
+            },
+            "Value Chain Analysis": {
+                "prompt": "Perform a Value Chain Analysis on the discussion, examining activities that create value and could lead to competitive advantage.",
+                "tooltip": "Value Chain Analysis is a process of examining the steps involved in bringing a product or service from conception to distribution and beyond. It helps in identifying where value is added and how it can be enhanced to achieve a competitive advantage."
+            },
+            "VPEC-T Analysis": {
+                "prompt": "Apply VPEC-T Analysis to the chat content, examining Values, Policies, Events, Content, and Trust.",
+                "tooltip": "VPEC-T Analysis stands for Values, Policies, Events, Content, and Trust. It's a framework for analyzing complex situations by examining the critical elements that influence decisions and actions in any context, focusing on understanding stakeholders' perspectives and the foundational elements that guide interactions."
+            },
+            "Wardley Mapping": {
+                "prompt": "Create a Wardley Map based on the chat content, visualizing the landscape of the discussion and identifying areas for strategic focus.",
+                "tooltip": "Wardley Mapping is a strategy tool that helps in visualizing the structure of a business or service, mapping the components needed to serve the customer or user. It assists in understanding the current landscape, predicting future trends, and identifying strategic opportunities."
+            },
+            "What If Analysis": {
+                "prompt": "Conduct a What If Analysis on the chat, exploring alternative scenarios and their potential outcomes.",
+                "tooltip": "What If Analysis is a systematic process to explore and evaluate potential outcomes of different scenarios based on varying parameters. It helps in decision making by anticipating possible challenges and opportunities, allowing for better preparedness and strategic planning."
+            },
+            "Why-Why Analysis": {
+                "prompt": "Perform a Why-Why Analysis on the chat content, asking 'why' repeatedly to drill down to the root cause of a problem.",
+                "tooltip": "Why-Why Analysis is a problem-solving technique that involves repeatedly asking the question 'Why?' to peel away the layers of symptoms and reach the core of a problem. It's a simple yet effective method for uncovering the root cause of a problem and ensuring that solutions address this foundational issue."
+            }
+        },
+    }
+
+    const reRenderChatPanel = () => {
+        // e.g. to force resize when isMobile as some components may not resize correctly such as when a menu closes
+        setChatPanelKey(Date.now());
+    };
 
     const [width, setWidth] = useState(0);
     const handleResize = useCallback(
         // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
         debounce((entries) => {
             entries && entries.length > 0 && setWidth(entries[0].contentRect.width);
+            if (isMobile) { reRenderChatPanel();}
         }, 100),
         []
     );
@@ -89,7 +284,7 @@ const Chat = ({
     const [id, setId] = useState("");
     const [name, setName] = useState(newChatName);
     const [previousName, setPreviousName] = useState(newChatName);
-    const defaultUserPromptReady = "Enter prompt...";
+    const defaultUserPromptReady = 'Enter prompt (or "/" for commands and prompt templates)...';
     const userPromptReady = useRef(defaultUserPromptReady);
     const userPromptWaiting = "Waiting for response...";
     const chatPromptRef = useRef(null);
@@ -111,7 +306,8 @@ const Chat = ({
     const [systemPrompt, setSystemPrompt] = useState("");
     const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady.current);
     const [menuPromptsAnchorEl, setMenuPromptsAnchorEl] = useState(null);
-    const [menuChatAnchorEl, setMenuChatAnchorEl] = useState(null);
+    const [menuPanelAnchorEl, setMenuPanelAnchorEl] = useState(null);
+    const [menuPromptEditorAnchorEl, setMenuPromptEditorAnchorEl] = useState(null);
     const [menuMessageContext, setMenuMessageContext] = useState(null);
     const [menuCommandsAnchorEl, setMenuCommandsAnchorEl] = useState(null);
     const [menuCommandsOnSelectionAnchorEl, setMenuCommandsOnSelectionAnchorEl] = useState(null);
@@ -177,7 +373,9 @@ const Chat = ({
                 selection.removeAllRanges();
                 selection.addRange(range);
             }
-            chatPrompt?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            setTimeout(() => {
+                chatPrompt?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }, 100);
         } catch (error) {
             // Ignore scenarios where the cursor can't be set
         }
@@ -321,21 +519,18 @@ const Chat = ({
 
     useEffect(()=>{
         if (newPromptPart?.text) {
-            if (!chatOpen) { setChatOpen(true); }
+            if (!chatOpen) { setChatOpen(Date.now()); }
             if (streamingChatResponse !== "") {
                 system.warning("Please wait for the current chat to finish loading before adding a prompt part.");
             } else {
                 appendToChatPrompt(newPromptPart.text);
-                let newPrompt = chatPromptRef.current.innerText.trim() + " " + newPromptPart?.text?.trim() + " ";
-                setChatPrompt(newPrompt);
-                setPromptFocus();
             }
         }
     }, [newPromptPart]);
 
     useEffect(()=>{
         if (newPromptTemplate?.id) {
-            if (!chatOpen) { setChatOpen(true); }
+            if (!chatOpen) { setChatOpen(Date.now()); }
                 if (streamingChatResponse !== "") {
                 system.warning("Please wait for the current chat to finish loading before loading a prompt template.");
             } else {
@@ -445,7 +640,7 @@ const Chat = ({
                     if (isMobile && chatOpen) {
                         panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
                     }
-                    if (!chatOpen) { setChatOpen(true); }
+                    if (!chatOpen) { setChatOpen(Date.now()); }
                 }).catch(error => {
                     system.error(`System Error loading chat.`, error, "/docdb/chat GET");
                 });
@@ -465,7 +660,7 @@ const Chat = ({
     
     const appendMessage = (message) => {
         setMessages(prevMessages => [...prevMessages, message]);
-        setChatOpen(true);
+        if (!chatOpen) { setChatOpen(Date.now()) };
         setTimeout(() => {
             chatMessagesRef.current?.scrollIntoView({ behavior: "instant", block: "end" });
         }, 0);
@@ -804,7 +999,7 @@ const Chat = ({
             event.preventDefault();
         } else if(event.key === '/' && chatPromptRef.current.innerText === "") {
             event.preventDefault();
-            handleMenuPromptsOpen(event);
+            setMenuPromptEditorAnchorEl(promptEditorMenuRef.current);
         }
     }
 
@@ -823,7 +1018,7 @@ const Chat = ({
             system.info(`Generated name for chat: "${generatedName}".`);
             renameChat(generatedName);
         }
-    }
+    };
 
     const handleStopStreaming = (event) => {
         console.log("handleStopStreaming");
@@ -832,18 +1027,30 @@ const Chat = ({
         setTimeout(() => {
             closeChatStream(); console.log("closeChatStream");
         }, 1000);
-    }
+    };
 
     const handleAskAgain = () => {
         if (lastPrompt) {
-            sendPrompt(lastPrompt);
+            // if the last user message is the same as the last prompt, just say "Ask again"
+            console.log(messages);
+            if (messages.length > 1 && lastPrompt === messages[messages.length - 2].content) {
+                sendPrompt("That answer wasn't quite what I was looking for. Please try again.");
+            } else {
+                sendPrompt(lastPrompt);
+            }
         }
-    }
+    };
 
     const handleReload = () => {
         setChatPrompt(lastPrompt);
         setPromptFocus();
-    }
+    };
+
+    const handleDeleteLastPromptResponse = () => {
+        if (messages.length > 1) {
+            setMessages(messages.slice(0, -2));
+        }
+    };
 
     const extractNameFromPrompt = (prompt) => {
         if (prompt.startsWith("# ")) {
@@ -952,19 +1159,24 @@ const Chat = ({
         setMenuMessageContext(null);
     };
 
-    const handleMenuChatOpen = (event) => {
-        setMenuChatAnchorEl(event.currentTarget);
+    const handleMenuPanelOpen = (event) => {
+        setMenuPanelAnchorEl(event.currentTarget);
     };
 
-    const handleMenuChatClose = () => {
-        setMenuChatAnchorEl(null);
+    const handleMenuPanelClose = () => {
+        setMenuPanelAnchorEl(null);
     };
 
-    const handleMenuPromptsOpen = (event) => {
-        setMenuPromptsAnchorEl(event.currentTarget);
+    const handleMenuPromptEditorOpen = (event) => {
+        setMenuPromptEditorAnchorEl(event.currentTarget);
     };
 
-    const handleMenuPromptsClose = () => {
+    const handleMenuPromptEditorClose = () => {
+        setMenuPromptEditorAnchorEl(null);
+    }
+
+    const closeMenus = () => {
+        handleMenuPanelClose();
         handleMenuCommandsClose();
         handleMenuCommandsOnSelectionClose();
         handleMenuExplorationClose();
@@ -972,6 +1184,23 @@ const Chat = ({
         handleMenuInsightsClose();
         handleMenuCreativityClose();
         handleMenuMessageContextClose();
+        handleMenuPromptEditorClose();
+        handleMenuPromptsClose();
+    }
+
+    const runMenuAction = (functionToRun, thenFocusOnPrompt=true) => {
+        closeMenus();
+        if (thenFocusOnPrompt) {
+            setFocusOnPrompt(Date.now());
+        }
+        functionToRun && functionToRun();
+    };
+
+    const handleMenuPromptsOpen = (event) => {
+        setMenuPromptsAnchorEl(event.currentTarget);
+    };
+
+    const handleMenuPromptsClose = () => {
         setMenuPromptsAnchorEl(null);
     };
     
@@ -1223,19 +1452,19 @@ const Chat = ({
         { hotKeyHandlers: { "save": save }, darkMode: darkMode }
     );
 
-    const ActionMenu = React.forwardRef(({name, prompt, tooltip}, ref) => {
+    const ActionMenu = React.forwardRef(({name, prompt, tooltip, onClick}, ref) => {
         const menuItem = 
             <MenuItem
+                sx={{ width: "100%", whiteSpace: 'normal' }}
                 ref={ref}
                 onClick={
                     (event) => 
                         {
-                            handleMenuPromptsClose();
+                            onClick && onClick();
                             if (event.altKey) {
-                                setChatPrompt(prompt);
-                                setPromptFocus();
+                                runMenuAction(()=>{setChatPrompt(prompt)});
                             } else {
-                                sendPrompt(prompt);
+                                runMenuAction(()=>{sendPrompt(prompt)});
                             }
                         }
                 }
@@ -1243,7 +1472,7 @@ const Chat = ({
                     (event) => {
                         if (event.key === 'ArrowRight') {
                             setChatPrompt(prompt);
-                            handleMenuPromptsClose();
+                            onClick && onClick();
                             if (chatPromptRef.current) {
                                 chatPromptRef.current.focus();
                             }
@@ -1262,15 +1491,14 @@ const Chat = ({
         return result;
     });
     
-    const ActionOnTextMenu = ({prompt, text}) => {
+    const ActionOnTextMenu = ({prompt, text, onClick}) => {
         return (
             <MenuItem onClick={ (event) => {
-                handleMenuPromptsClose();
+                onClick && onClick();
                 if (event.altKey) {
-                    setChatPrompt(prompt + ": " + text);
-                    setPromptFocus();
+                    runMenuAction(()=>{setChatPrompt(prompt + ": " + text)});
                 } else {
-                    sendPrompt(prompt + ": " + text);
+                    runMenuAction(()=>{sendPrompt(prompt + ": " + text)});
                 }
                 }}>{prompt}</MenuItem>
         )
@@ -1280,7 +1508,7 @@ const Chat = ({
     const toolbar =
     <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
         <IconButton edge="start" color="inherit" aria-label="Sidekick Chat Menu"
-            onClick={handleMenuChatOpen}
+            onClick={handleMenuPanelOpen}
             disabled={promptPlaceholder === userPromptWaiting}
         >
             <CommentIcon/>
@@ -1291,7 +1519,7 @@ const Chat = ({
                 <IconButton edge="start" color="inherit" aria-label="menu"
                     disabled={ id === "" } onClick={handleNewChat}
                 >
-                    <AddCommentIcon/>
+                    <AddOutlinedIcon/>
                 </IconButton>
             </span>
         </Tooltip>
@@ -1340,9 +1568,9 @@ const Chat = ({
         </Box>
         <Menu
             id="menu-chat"
-            anchorEl={menuChatAnchorEl}
-            open={Boolean(menuChatAnchorEl)}
-            onClose={handleMenuChatClose}
+            anchorEl={menuPanelAnchorEl}
+            open={Boolean(menuPanelAnchorEl)}
+            onClose={handleMenuPanelClose}
             anchorOrigin={{
                 vertical: 'top',
                 horizontal: 'right',
@@ -1352,40 +1580,120 @@ const Chat = ({
                 horizontal: 'left',
             }}
         >
-            <MenuItem onClick={handleMenuPromptsOpen}>
-                <ListItemIcon><LightbulbIcon/></ListItemIcon>
-                Prompts
+            <MenuItem onClick={handleMenuPromptsOpen}
+                onKeyDown={
+                    (event) => {
+                        if (event.key === 'ArrowRight') {
+                            handleMenuPromptsOpen(event);
+                        }
+                    }
+                }    
+            >
+                <ListItemIcon><LibraryBooksIcon/></ListItemIcon>
+                Prompt Library
                 <IconButton  edge="end" style={{ padding: 0 }}>
                     <KeyboardArrowRightIcon />
                 </IconButton>
             </MenuItem>
-            <MenuItem onClick={handleNewChat}>
-                <ListItemIcon><AddCommentIcon/></ListItemIcon>
+            <MenuItem onClick={() => {handleMenuPanelClose(); handleNewChat();}}>
+                <ListItemIcon><AddOutlinedIcon/></ListItemIcon>
                 New Chat
             </MenuItem>
-            <MenuItem onClick={handleCloneChat} disabled={id === ""}>
+            <MenuItem onClick={() => {handleMenuPanelClose(); handleCloneChat();}} disabled={id === ""}>
                 <ListItemIcon><FileCopyIcon/></ListItemIcon>
                 Clone Chat
             </MenuItem>
-            <MenuItem onClick={handleDownload}>
+            <MenuItem onClick={() => {handleMenuPanelClose(); handleDownload();}}>
                 <ListItemIcon><FileDownloadIcon/></ListItemIcon>
                 Download Chat
             </MenuItem>
-            <MenuItem onClick={handleUploadRequest}>
+            <MenuItem onClick={() => {handleMenuPanelClose(); handleUploadRequest();}}>
                 <ListItemIcon><FileUploadIcon/></ListItemIcon>
                 Upload Chat
             </MenuItem>
-            <MenuItem onClick={handleToggleMarkdownRendering}>
+            <MenuItem onClick={() => {handleMenuPanelClose(); handleToggleMarkdownRendering();}}>
             <ListItemIcon>{ markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }</ListItemIcon>
                 { markdownRenderingOn ? "Turn off markdown rendering" : "Turn on markdown rendering" }</MenuItem>
-            <MenuItem onClick={handleToggleWindowMaximise}>
-                <ListItemIcon>{ windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }</ListItemIcon>
-                { windowMaximized ? "Shrink window" : "Expand window" }
-            </MenuItem>
-            <MenuItem onClick={handleDeleteChat}>
+            {
+                isMobile ? null :
+                <MenuItem onClick={() => {handleMenuPanelClose(); handleToggleWindowMaximise();}}>
+                    <ListItemIcon>{ windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }</ListItemIcon>
+                    { windowMaximized ? "Shrink window" : "Expand window" }
+                </MenuItem>
+            }
+            <MenuItem onClick={() => {handleMenuPanelClose(); handleDeleteChat();}}>
                 <ListItemIcon><DeleteIcon/></ListItemIcon>
-                Delete Chat</MenuItem>
-            <MenuItem onClick={handleClose}>
+                Delete Chat
+            </MenuItem>
+        </Menu>
+        <Menu
+            id="menu-prompt-editor"
+            anchorEl={menuPromptEditorAnchorEl}
+            open={Boolean(menuPromptEditorAnchorEl)}
+            onClose={closeMenus}
+            onKeyDown={
+                (event) => {
+                    if (event.key === 'ArrowLeft') {
+                        closeMenus();
+                    }
+                }
+            }
+            anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+            }}
+            transformOrigin={{
+                vertical: 'top',
+                horizontal: 'left',
+            }}
+        >
+            <MenuItem
+                onClick={handleMenuPromptsOpen}
+                onKeyDown={
+                    (event) => {
+                        if (event.key === 'ArrowRight') {
+                            handleMenuPromptsOpen(event);
+                        }
+                    }
+                }
+                >
+                <ListItemIcon><LibraryBooksIcon/></ListItemIcon>
+                Prompt Library
+                <IconButton  edge="end" style={{ padding: 0 }}>
+                    <KeyboardArrowRightIcon />
+                </IconButton>
+            </MenuItem>
+            <MenuItem onClick={() => {runMenuAction(handleReload);}}>
+                <ListItemIcon><RedoIcon/></ListItemIcon>
+                Reload last prompt for editing
+            </MenuItem>
+            <MenuItem onClick={() => {runMenuAction(handleAskAgain);}}>
+                <ListItemIcon><ReplayIcon/></ListItemIcon>
+                Ask again
+            </MenuItem>
+            <MenuItem onClick={() => {runMenuAction(handleDeleteLastPromptResponse);}}>
+                <ListItemIcon><SpeakerNotesOffIcon/></ListItemIcon>
+                Delete last prompt/response
+            </MenuItem>
+            <MenuItem onClick={() => {runMenuAction(togglePromptEngineerOpen);}}>
+                <ListItemIcon><BuildIcon/></ListItemIcon>
+                Prompt Engineer
+            </MenuItem>
+            <MenuItem onClick={() => {runMenuAction(handleNewChat);}}>
+                <ListItemIcon><AddOutlinedIcon/></ListItemIcon>
+                New Chat
+            </MenuItem>
+            <MenuItem onClick={() => {runMenuAction(); handleToggleMarkdownRendering();}}>
+            <ListItemIcon>{ markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }</ListItemIcon>
+                { markdownRenderingOn ? "Turn off markdown rendering" : "Turn on markdown rendering" }</MenuItem>
+            {
+                isMobile ? null :
+                <MenuItem onClick={() => {runMenuAction(); handleToggleWindowMaximise();}}>
+                    <ListItemIcon>{ windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }</ListItemIcon>
+                    { windowMaximized ? "Shrink window" : "Expand window" }
+                </MenuItem>
+            }
+            <MenuItem onClick={() => {runMenuAction(); handleClose();}}>
                 <ListItemIcon><CloseIcon/></ListItemIcon>
                 Close Window
             </MenuItem>
@@ -1393,6 +1701,7 @@ const Chat = ({
         <Menu
             id="chat-context-menu"
             open={menuMessageContext !== null}
+            sx={{ width: isMobile ? "400px" : "100%" }}
             onClose={handleMenuMessageContextClose}
             anchorReference="anchorPosition"
             anchorPosition={
@@ -1407,14 +1716,16 @@ const Chat = ({
             }
         > 
             <MenuItem
+                style={{ minHeight: '30px' }}
                 disabled={!window.getSelection().toString() || promptPlaceholder === userPromptWaiting}
                 onClick={handleMenuCommandsOnSelectionOpen}>
                 <ListItemText>Commands on selection</ListItemText>
                 <IconButton  edge="end" style={{ padding: 0 }}>
                     <KeyboardArrowRightIcon />
-                </IconButton>              
+                </IconButton>
             </MenuItem>
             <MenuItem
+                style={{ minHeight: '30px' }} 
                 disabled={messages.length === 0 || !!window.getSelection().toString() || promptPlaceholder === userPromptWaiting}
                 onClick={handleMenuPromptsOpen}
             >
@@ -1424,24 +1735,25 @@ const Chat = ({
                 </IconButton>
             </MenuItem>
             <MenuItem
+                style={{ height: '30px' }} 
                 disabled={!window.getSelection().toString()}
                 onClick={handleCopyHighlightedText}>
                 Copy highlighted text
             </MenuItem>
-            <MenuItem onClick={handleCopyMessageAsText}>Copy message as text</MenuItem>
-            <MenuItem onClick={handleCopyAllAsText}>Copy all as text</MenuItem>
-            <MenuItem onClick={handleCopyMessageAsHTML}>Copy message as html</MenuItem>
-            <MenuItem onClick={handleCopyAllAsHTML}>Copy all as html</MenuItem>
-            <MenuItem divider />
-            <MenuItem onClick={handleAppendToChatInput}>Append message to chat input</MenuItem>
-            <MenuItem onClick={handleUseAsChatInput}>Use message as chat input</MenuItem>
-            <MenuItem divider />
-            <MenuItem disabled={!noteOpen} onClick={handleAppendToNote}>Append message to note</MenuItem>
-            <MenuItem disabled={!noteOpen} onClick={handleAppendAllToNote}>Append all to note</MenuItem>
-            <MenuItem divider />
-            <MenuItem onClick={handleDeleteThisMessage}>Delete this message</MenuItem>
-            <MenuItem onClick={handleDeleteThisAndPreviousMessage}>Delete this and previous message</MenuItem>
-            <MenuItem onClick={handleDeleteAllMessages}>Delete all messages</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleCopyMessageAsText}>Copy message as text</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleCopyAllAsText}>Copy all as text</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleCopyMessageAsHTML}>Copy message as html</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleCopyAllAsHTML}>Copy all as html</MenuItem>
+            <MenuItem divider style={{ minHeight: '10px' }} />
+            <MenuItem style={{ height: '30px' }} onClick={handleAppendToChatInput}>Append message to chat input</MenuItem>
+            <MenuItem style={{ minHeight: '10px' }} onClick={handleUseAsChatInput}>Use message as chat input</MenuItem>
+            <MenuItem divider style={{ minHeight: '10px' }} />
+            <MenuItem style={{ minHeight: '30px' }} disabled={!noteOpen} onClick={handleAppendToNote}>Append message to note</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} disabled={!noteOpen} onClick={handleAppendAllToNote}>Append all to note</MenuItem>
+            <MenuItem divider style={{ minHeight: '10px' }} />
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteThisMessage}>Delete this message</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteThisAndPreviousMessage}>Delete this and previous message</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteAllMessages}>Delete all messages</MenuItem>
         </Menu>
         <Menu 
             id="menu-prompts"
@@ -1558,6 +1870,7 @@ const Chat = ({
         <Menu
             id="menu-commands"
             anchorEl={menuCommandsAnchorEl}
+            sx={{ width: isMobile ? "400px" : "100%" }}
             open={Boolean(menuCommandsAnchorEl)}
             onClose={handleMenuCommandsClose}
             onKeyDown={
@@ -1569,7 +1882,7 @@ const Chat = ({
             }
             anchorOrigin={{
                 vertical: 'top',
-                horizontal: 'right',
+                horizontal: isMobile ? 'left' : 'right', // make better use of small screen space on mobile
             }}
             transformOrigin={{
                 vertical: 'top',
@@ -1615,6 +1928,7 @@ const Chat = ({
         <Menu
             id="menu-commands-on-selection"
             anchorEl={menuCommandsOnSelectionAnchorEl}
+            sx={{ width: isMobile ? "400px" : "100%" }}
             open={Boolean(menuCommandsOnSelectionAnchorEl)}
             onClose={handleMenuCommandsOnSelectionClose}
             anchorOrigin={{
@@ -1637,6 +1951,7 @@ const Chat = ({
                 </MenuItem>
             </Tooltip>
             <ActionOnTextMenu prompt="Define" text={window.getSelection().toString()}/>
+            <ActionOnTextMenu prompt="Expand on" text={window.getSelection().toString()}/>
             <ActionOnTextMenu prompt="Explain in simple terms" text={window.getSelection().toString()}/>
             <ActionOnTextMenu prompt="Explain in detail" text={window.getSelection().toString()}/>
             <ActionOnTextMenu prompt="Provide synonyms for" text={window.getSelection().toString()}/>
@@ -1653,6 +1968,7 @@ const Chat = ({
         </Menu>
         <Menu
             id="menu-exploration"
+            sx={{ width: isMobile ? "400px" : "100%" }}
             anchorEl={menuExplorationAnchorEl}
             open={Boolean(menuExplorationAnchorEl)}
             onClose={handleMenuExplorationClose}
@@ -1665,7 +1981,7 @@ const Chat = ({
             }
             anchorOrigin={{
                 vertical: 'top',
-                horizontal: 'right',
+                horizontal: isMobile ? 'left' : 'right', // make better use of small screen space on mobile
             }}
             transformOrigin={{
                 vertical: 'top',
@@ -1714,6 +2030,7 @@ const Chat = ({
         <Menu
             id="menu-analysis"
             anchorEl={menuAnalysisAnchorEl}
+            sx={{ width: isMobile ? "400px" : "100%" }}
             open={menuAnalysisAnchorEl !== null}
             onClose={handleMenuAnalysisClose}
             onKeyDown={
@@ -1725,7 +2042,7 @@ const Chat = ({
             }
             anchorOrigin={{
                 vertical: 'top',
-                horizontal: 'right',
+                horizontal: isMobile ? 'left' : 'right', // make better use of small screen space on mobile
             }}
             transformOrigin={{
                 vertical: 'top',
@@ -1777,6 +2094,7 @@ const Chat = ({
         <Menu
             id="menu-insights"
             anchorEl={menuInsightsAnchorEl}
+            sx={{ width: isMobile ? "400px" : "100%" }}
             open={menuInsightsAnchorEl !== null}
             onClose={handleMenuInsightsClose}
             onKeyDown={
@@ -1788,7 +2106,7 @@ const Chat = ({
             }
             anchorOrigin={{
                 vertical: 'top',
-                horizontal: 'right',
+                horizontal: isMobile ? 'left' : 'right', // make better use of small screen space on mobile
             }}
             transformOrigin={{
                 vertical: 'top',
@@ -1857,7 +2175,7 @@ const Chat = ({
             }
             anchorOrigin={{
                 vertical: 'top',
-                horizontal: 'right',
+                horizontal: isMobile ? 'left' : 'right', // make better use of small screen space on mobile
             }}
             transformOrigin={{
                 vertical: 'top',
@@ -1940,7 +2258,7 @@ const Chat = ({
         }
     </Box>;
 
-    const render = <Card id="chat-panel" ref={panelWindowRef}
+    const render = <Card id="chat-panel" ref={panelWindowRef} key={chatPanelKey}
                     sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1, 
                     width: isMobile ? `${window.innerWidth}px` : (windowMaximized ? "calc(100vw - 12px)" : null),
                     minWidth: isMobile ? `${window.innerWidth}px` : "500px",
@@ -1994,13 +2312,18 @@ const Chat = ({
             <List id="message-list" ref={chatMessagesRef}>
                 {messages && messages.map((message, index) => (
                     <ListItem sx={{ paddingLeft: 0 }} key={index}>
-                        <Box style={{width:'100%'}} onContextMenu={(event) => { handleMenuMessageContextOpen(event, message, index); }} onClick={(event) => { handleMenuMessageContextOpen(event, message, index); }}>
+                        <Box
+                            position="relative"
+                            style={{width:'100%'}}
+                            onContextMenu={(event) => { handleMenuMessageContextOpen(event, message, index); }}
+                            onClick={(event) => { isMobile && handleMenuMessageContextOpen(event, message, index); }}
+                        >
                             <Card sx={{ 
                                 padding: 2, 
                                 width: "100%", 
                                 backgroundColor: message.role === "user" ? (darkMode ? blueGrey[800] : "lightblue") : (darkMode ? lightBlue[900] : "lightyellow"),
                             }}
-                        >
+                            >
                                 {
                                     markdownRenderingOn
                                     ?
@@ -2011,6 +2334,17 @@ const Chat = ({
                                         </Typography>
                                 }
                             </Card>
+                            <HighlightOffIcon
+                                style={{ position: 'absolute', top: 0, right: 0,
+                                    color: darkMode ? 'lightgrey' : 'darkgrey' }}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    // delete this message
+                                    const newMessages = [...messages];
+                                    newMessages.splice(index, 1);
+                                    setMessages(newMessages);
+                                }}
+                                />
                         </Box>
                     </ListItem>
                 ))}
@@ -2032,12 +2366,11 @@ const Chat = ({
         </StyledBox>
         <Box sx={{ display: "flex", flexDirection: "column", minHeight: "128px" }}>
             <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
+                <IconButton ref={promptEditorMenuRef} edge="start" color="inherit" aria-label="Slash commands"
+                    onClick={handleMenuPromptEditorOpen}>
+                  <MenuIcon/>
+                </IconButton>
                 <Typography sx={{mr:2}}>Prompt Editor</Typography>
-                <Tooltip title={ promptEngineerOpen ? "Hide Prompt Engineer" : "Show Prompt Engineer"}>
-                    <IconButton edge="start" color="inherit" aria-label="prompt engineer" onClick={togglePromptEngineerOpen}>
-                        <BuildIcon/>
-                    </IconButton>
-                </Tooltip>
                 <Tooltip title={ "Save prompt as template" }>
                     <span>
                         <IconButton edge="start" color="inherit" aria-label="save prompt as template"
@@ -2094,38 +2427,45 @@ const Chat = ({
                     </Tooltip>
                 </Box>
             </SecondaryToolbar>
-            <div
-                // Using a div with a reference to the DOM element instead of TextField for performance reasons
-                // For large text content, TextField lag in rendering individual key strokes is unacceptable
-                id="chat-prompt"
-                ref={chatPromptRef}
-                tabIndex="-1" // To allow the div to receive focus
-                contentEditable={promptPlaceholder === userPromptWaiting ? "false" : "true"}
-                onInput={handleChatPromptInput}
-                onKeyDown={
-                    (event) => {
-                        editorEventHandlers.onKeyDown(event);
-                        handleChatPromptKeydown(event);
+            <Box position="relative">
+                <div
+                    // Using a div with a reference to the DOM element instead of TextField for performance reasons
+                    // For large text content, TextField lag in rendering individual key strokes is unacceptable
+                    id="chat-prompt"
+                    ref={chatPromptRef}
+                    tabIndex="-1" // To allow the div to receive focus
+                    contentEditable={promptPlaceholder === userPromptWaiting ? "false" : "true"}
+                    onInput={handleChatPromptInput}
+                    onKeyDown={
+                        (event) => {
+                            editorEventHandlers.onKeyDown(event);
+                            handleChatPromptKeydown(event);
+                        }
                     }
-                }
-                onKeyUp={handleChatPromptKeyup}
-                onPaste={ (event) => { editorEventHandlers.onPaste(event); setChatPromptIsEmpty(false); }}
-                data-placeholder={promptPlaceholder}
-                className={chatPromptIsEmpty ? 'empty' : ''}
-                style={{
-                    ...editorEventHandlers.style,
-                    overflow: "auto",
-                    minHeight: "56px",
-                    maxHeight: "300px",
-                    flex: 1,
-                    marginTop: "auto",
-                    padding: "18.5px 14px",
-                    backgroundColor: darkMode ? grey[900] : 'white',
-                    color: darkMode ? "rgba(255, 255, 255, 0.87)" : "rgba(0, 0, 0, 0.87)",
-                    border: darkMode ? "1px solid rgba(200, 200, 200, 0.23)" : "1px solid rgba(0, 0, 0, 0.23)",
-                }}
-            >
-            </div>
+                    onKeyUp={handleChatPromptKeyup}
+                    onPaste={ (event) => { editorEventHandlers.onPaste(event); setChatPromptIsEmpty(false); }}
+                    data-placeholder={promptPlaceholder}
+                    className={chatPromptIsEmpty ? 'empty' : ''}
+                    style={{
+                        ...editorEventHandlers.style,
+                        overflow: "auto",
+                        minHeight: "56px",
+                        maxHeight: "300px",
+                        flex: 1,
+                        marginTop: "auto",
+                        padding: "18.5px 14px",
+                        backgroundColor: darkMode ? grey[900] : 'white',
+                        color: darkMode ? "rgba(255, 255, 255, 0.87)" : "rgba(0, 0, 0, 0.87)",
+                        border: darkMode ? "1px solid rgba(200, 200, 200, 0.23)" : "1px solid rgba(0, 0, 0, 0.23)",
+                    }}
+                >
+                </div>
+                <HighlightOffIcon
+                    style={{ position: 'absolute', top: 0, right: 0,
+                        color: darkMode ? 'lightgrey' : 'darkgrey' }}
+                    onClick={(event) => {event.stopPropagation(); setChatPrompt("");}}
+                    />
+            </Box>
             { aiLibraryOpen ? 
                 <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: darkMode ? grey[900] : grey[100] }}>
                     <Box sx={{ mt: 2, display: "flex", flexDirection: "column", width: "100%" }}>

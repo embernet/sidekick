@@ -17,7 +17,6 @@ import CodeIcon from '@mui/icons-material/Code';
 import CodeOffIcon from '@mui/icons-material/CodeOff';
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
-import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
@@ -27,6 +26,7 @@ import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
+import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 
 import { MuiFileInput } from 'mui-file-input';
 import SidekickMarkdown from './SidekickMarkdown';
@@ -85,7 +85,6 @@ You always do your best to generate text in the same style as the context text p
 
     useEffect(() => {
         applySystemSettings();
-        focusOnContent();
         showReady();
         const handleVisibilityChange = () => {
             if (document.hidden) {
@@ -124,7 +123,7 @@ You always do your best to generate text in the same style as the context text p
     const [contentDisabled, setContentDisabled] = useState(false);
     const [promptDisabled, setPromptDisabled] = useState(false);
     const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady.current);
-    const [menuNoteAnchorEl, setMenuNoteAnchorEl] = useState(null);
+    const [menuPanelAnchorEl, setMenuPanelAnchorEl] = useState(null);
     const [noteContextMenu, setNoteContextMenu] = useState(null);
     const [prompt, setPrompt] = useState("");
     const [folder, setFolder] = useState("notes");
@@ -296,7 +295,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         if (AIResponse !== "") {
             setContent( noteContentRef.current.innerText + "\n" + AIResponse + "\n");
             considerAutoNaming(noteContentRef.current.innerText);
-            _save();
+            save();
             focusOnContent();
         }
         setContentDisabled(false);
@@ -569,12 +568,12 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         generateNoteName(text);
     }
 
-    const handleMenuNoteOpen = (event) => {
-        setMenuNoteAnchorEl(event.currentTarget);
+    const handleMenuPanelOpen = (event) => {
+        setMenuPanelAnchorEl(event.currentTarget);
     };
 
-    const handleMenuNoteClose = () => {
-        setMenuNoteAnchorEl(null);
+    const handleMenuPanelClose = () => {
+        setMenuPanelAnchorEl(null);
     };
 
     const handleNoteContextMenu = (event, note, title) => {
@@ -684,7 +683,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     const toolbar = (
     <StyledToolbar className={ClassNames.toolbar} sx={{ width: "100%", gap: 1 }} >
         <IconButton edge="start" color="inherit" aria-label="Sidekick Note Menu"
-            onClick={handleMenuNoteOpen}
+            onClick={handleMenuPanelOpen}
             disabled={promptPlaceholder === userPromptWaiting}
         >
             <EditNoteIcon/>
@@ -695,7 +694,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 <IconButton edge="start" color="inherit" aria-label="New note"
                     disabled={id === ""} onClick={handleNewNote}
                 >
-                    <PlaylistAddIcon/>
+                    <AddOutlinedIcon/>
                 </IconButton>
             </span>
         </Tooltip>
@@ -750,9 +749,9 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         </Box>
         <Menu
             id="menu-note"
-            anchorEl={menuNoteAnchorEl}
-            open={Boolean(menuNoteAnchorEl)}
-            onClose={handleMenuNoteClose}
+            anchorEl={menuPanelAnchorEl}
+            open={Boolean(menuPanelAnchorEl)}
+            onClose={handleMenuPanelClose}
             anchorOrigin={{
                 vertical: 'top',
                 horizontal: 'right',
@@ -762,30 +761,33 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 horizontal: 'left',
             }}
         >
-            <MenuItem onClick={handleNewNote}>
-                <ListItemIcon><PlaylistAddIcon/></ListItemIcon>
+            <MenuItem onClick={() => { handleMenuPanelClose(); handleNewNote();}}>
+                <ListItemIcon><AddOutlinedIcon/></ListItemIcon>
                 New Note
             </MenuItem>
-            <MenuItem onClick={handleDownload}>
+            <MenuItem onClick={() => { handleMenuPanelClose(); handleDownload();}}>
                 <ListItemIcon><FileDownloadIcon/></ListItemIcon>
                 Download Note
             </MenuItem>
-            <MenuItem onClick={handleUploadRequest}>
+            <MenuItem onClick={() => { handleMenuPanelClose(); handleUploadRequest();}}>
                 <ListItemIcon><FileUploadIcon/></ListItemIcon>
                 Upload Note
             </MenuItem>
-            <MenuItem onClick={handleToggleMarkdownRendering}>
+            <MenuItem onClick={() => { handleMenuPanelClose(); handleToggleMarkdownRendering();}}>
                 <ListItemIcon>{ markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }</ListItemIcon>
                 { markdownRenderingOn ? "Turn off markdown rendering" : "Turn on markdown rendering" }
             </MenuItem>
-            <MenuItem onClick={handleToggleWindowMaximise}>
-                <ListItemIcon>{ windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }</ListItemIcon>
-                { windowMaximized ? "Shrink window" : "Expand window" }
-            </MenuItem>
-            <MenuItem onClick={handleDeleteNote}>
+            {
+                isMobile ?  null :
+                <MenuItem onClick={() => { handleMenuPanelClose(); handleToggleWindowMaximise();}}>
+                    <ListItemIcon>{ windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }</ListItemIcon>
+                    { windowMaximized ? "Shrink window" : "Expand window" }
+                </MenuItem>
+            }
+            <MenuItem onClick={() => { handleMenuPanelClose(); handleDeleteNote();}}>
                 <ListItemIcon><DeleteIcon/></ListItemIcon>
                 Delete Note</MenuItem>
-            <MenuItem onClick={handleClose}>
+            <MenuItem onClick={() => { handleMenuPanelClose(); handleClose();}}>
                 <ListItemIcon><CloseIcon/></ListItemIcon>
                 Close Window
             </MenuItem>

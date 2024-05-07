@@ -1,7 +1,7 @@
 import { debounce } from "lodash";
 import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Box, Toolbar, IconButton, Typography, TextField, List, ListItem, ListItemText,
-    Tooltip, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+    Tooltip, FormControl, InputLabel, Select, MenuItem, ListItemIcon } from '@mui/material';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
 import CloseIcon from '@mui/icons-material/Close';
@@ -23,6 +23,7 @@ import axios from 'axios';
 
 import { SystemContext } from './SystemContext';
 import SettingsManager from './SettingsManager';
+import { Book } from "@mui/icons-material";
 
 const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, folder, openItemId, setLoadDoc,
      docNameChanged, refresh, setRefresh, itemOpen, hidePrimaryToolbar, deleteEnabled, darkMode,
@@ -322,26 +323,35 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
            <List>
                {Object.values(filteredDocs).map(doc => (
                    <ListItem sx={{ padding: 0, pl: 1, cursor: "pointer", backgroundColor: doc.id === openItemId && itemOpen ? (darkMode ? grey[600] : grey[300]) : "transparent" }} key={doc.id}>
-                       <ListItemText primary={doc.name}
-                         secondary={
-                           showItemDetails ? (
-                             <Typography
-                               sx={{
-                                 fontSize: '12px',
-                                 color: 'text.secondary',
-                                 whiteSpace: 'pre-wrap',
-                                 overflow: 'hidden',
-                                 textOverflow: 'ellipsis',
-                               }}
-                             >
-                               {`Created: ${doc.created_date.substring(0, 19)}\n${doc.updated_date ? 'Updated: ' + doc.updated_date.substring(0, 19) : ''}`}
-                             </Typography>
-                           ) : null
-                         }                            
-                       selected={openItemId === doc.id}
-                       onClick={() => handleLoadDoc(doc.id)}
-                       primaryTypographyProps={{ typography: 'body2' }}
-                       sx={{ fontSize: '14px' }} />
+                        {
+                            showItemDetails ?
+                            <>
+                            { doc?.properties?.bookmarked ? <BookmarkIcon/> : <Box width={24} /> }
+                            { doc?.properties?.starred ? <StarIcon/> : <Box width={24} /> }
+                            </>
+                            : null
+                        }
+                        <ListItemText primary={doc.name}
+                            secondary={
+                            showItemDetails ? (
+                                <Typography
+                                sx={{
+                                    fontSize: '12px',
+                                    color: 'text.secondary',
+                                    whiteSpace: 'pre-wrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                }}
+                                >
+                                {`Created: ${doc.created_date.substring(0, 19)}\n${doc.updated_date ? 'Updated: ' + doc.updated_date.substring(0, 19) : ''}`}
+                                </Typography>
+                            ) : null
+                            }                            
+                            selected={openItemId === doc.id}
+                            onClick={() => { handleLoadDoc(doc.id); }}
+                            primaryTypographyProps={{ typography: 'body2' }}
+                            sx={{ fontSize: '14px' }}
+                        />
                    </ListItem>
                ))}
            </List>

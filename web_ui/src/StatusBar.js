@@ -5,7 +5,7 @@ import { SystemContext } from './SystemContext';
 
 import { grey, red, orange, blue } from '@mui/material/colors';
 
-const StatusBar = ({ statusUpdates, persona, modelSettings,
+const StatusBar = ({ statusUpdates, darkMode, persona, modelSettings,
 modelSettingsOpen, toggleModelSettingsOpen,
 personasOpen, togglePersonasOpen, isMobile }) => {
     const system = useContext(SystemContext);
@@ -69,7 +69,8 @@ personasOpen, togglePersonasOpen, isMobile }) => {
     };
 
     return (
-        <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: grey[100] }}>
+        <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1,
+            backgroundColor: darkMode ? grey[900] : grey[100] }}>
             <Button id="status-button-log" variant={statusUpdates.length > 0 ? "outlined" : "text"}
                 size="small" color="primary"
                 sx={{ fontSize: "0.8em", textTransform: 'none', width: isMobile ? "100%" : "auto" }} onClick={handleStatusClick}>

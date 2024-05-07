@@ -12,7 +12,9 @@ import { SystemContext } from './SystemContext';
 import { BrowserRouter } from 'react-router-dom';
 import useToken from './useToken';
 import { useEffect, useState } from 'react';
-import { CssBaseline, Box, AppBar, Toolbar, IconButton, Typography, Tooltip } from '@mui/material';
+import { CssBaseline, Box, AppBar, Toolbar, IconButton, Typography,
+  Tooltip, Popover,
+   Button, Grid, ListItemIcon } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { styled } from '@mui/system';
 
@@ -42,7 +44,7 @@ import RateReviewIcon from '@mui/icons-material/RateReview';
 import HelpIcon from '@mui/icons-material/Help';
 import SmartDisplayOutlinedIcon from '@mui/icons-material/SmartDisplayOutlined';
 import SubscriptionsOutlinedIcon from '@mui/icons-material/SubscriptionsOutlined';
-import { red, pink, purple, deepPurple, indigo, blue, lightBlue, cyan, teal, green, lightGreen, lime, yellow, amber, orange, deepOrange, brown, grey, blueGrey } from '@mui/material/colors';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 
 import Chat from './Chat';
@@ -59,8 +61,10 @@ import AppSettings from './AppSettings';
 import Admin from './Admin';
 import SidekickAI from './SidekickAI';
 import StatusBar from './StatusBar';
+import Carousel from './Carousel';
+import SidekickModalDialog from './SidekickModalDialog';
 
-const VERSION = "0.3.1";
+const VERSION = "0.3.2";
 
 const ScriptIcon = SmartDisplayOutlinedIcon;
 const ScriptsExplorerIcon = SubscriptionsOutlinedIcon;
@@ -68,6 +72,7 @@ const ScriptsExplorerIcon = SubscriptionsOutlinedIcon;
 const App = () => {
   const system = useContext(SystemContext);
   const { token, removeToken, setToken } = useToken();
+  const [aboutWindowOpen, setAboutWindowOpen] = useState(false);
   const [sidekickAIOpen, setSidekickAIOpen] = useState(false);
   const [sidekickAIPinned, setSidekickAIPinned] = useState(false);
   const [appSettingsOpen, setAppSettingsOpen] = useState(false);
@@ -131,6 +136,9 @@ const App = () => {
   const [scriptWindowMaximized, setScriptWindowMaximized] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
+  const [modalDialogInfo, setModalDialogInfo] = useState(undefined);
+  const [modalDialogVisual, setModalDialogVisual] = useState(null);
+  const [modalDialogMessage, setModalDialogMessage] = useState("");
   
   const theme = createTheme({
     palette: {
@@ -318,7 +326,7 @@ const App = () => {
     if (!appSettingsOpen) {
         closeUnpinnedLeftSideWindows(event);
       }
-    setAppSettingsOpen(state => !state);
+    setAppSettingsOpen(Date.now());
   }
 
   const handleToggleAdminOpen = (event) => {
@@ -326,7 +334,7 @@ const App = () => {
     if (!adminOpen) {
       closeUnpinnedLeftSideWindows(event);
     }
-    setAdminOpen(state => !state);
+    setAdminOpen(Date.now());
   }
 
   const handleLogout = () => {
@@ -403,7 +411,7 @@ const App = () => {
       if (chatsOpen) {
         setRefreshChatsExplorer({ reason: "showExplorer", timestamp: Date.now() }); // Force a re-render so it scrolls into view
       } else {
-        setChatsOpen(true);
+        setChatsOpen(Date.now());
       }
     } else {
       if (chatsOpen) {
@@ -411,7 +419,7 @@ const App = () => {
         setChatsOpen(false);
       } else {
         closeUnpinnedLeftSideWindows(event);
-        setChatsOpen(true);
+        setChatsOpen(Date.now());
       }
     }
   }
@@ -422,7 +430,7 @@ const App = () => {
       if (scriptsOpen) {
         setRefreshScriptsExplorer({ reason: "showExplorer", timestamp: Date.now() }); // Force a re-render so it scrolls into view
       } else {
-        setScriptsOpen(true);
+        setScriptsOpen(Date.now());
       }
     } else {
       if (scriptsOpen) {
@@ -430,7 +438,7 @@ const App = () => {
         setScriptsOpen(false);
       } else {
         closeUnpinnedLeftSideWindows(event);
-        setScriptsOpen(true);
+        setScriptsOpen(Date.now());
       }
     }
   }
@@ -445,7 +453,7 @@ const App = () => {
         setSidekickAIOpen(false);
       } else {
         closeUnpinnedLeftSideWindows(event);
-        setSidekickAIOpen(true);
+        setSidekickAIOpen(Date.now());
       }
     }
   }
@@ -460,7 +468,7 @@ const App = () => {
         setPromptEngineerOpen(false);
       } else {
         closeUnpinnedLeftSideWindows(event);
-        setPromptEngineerOpen(true);
+        setPromptEngineerOpen(Date.now());
       }
     }
   }
@@ -475,7 +483,7 @@ const App = () => {
         setPersonasOpen(false);
       } else {
         closeUnpinnedLeftSideWindows(event);
-        setPersonasOpen(true);
+        setPersonasOpen(Date.now());
       }
     }
   }
@@ -490,7 +498,7 @@ const App = () => {
         setModelSettingsOpen(false);
       } else {
         closeUnpinnedLeftSideWindows(event);
-        setModelSettingsOpen(true);
+        setModelSettingsOpen(Date.now());
       }
     }
   }
@@ -528,7 +536,7 @@ const App = () => {
       if (notesOpen) {
         setRefreshNotesExplorer({ reason: "showExplorer", timestamp: Date.now() }); // Force a re-render so it scrolls into view
       } else {
-        setNotesOpen(true);
+        setNotesOpen(Date.now());
       }
     } else {
       if (notesOpen) {
@@ -536,7 +544,7 @@ const App = () => {
         setNotesOpen(false);
       } else {
         closeUnpinnedRightSideWindows(event);
-        setNotesOpen(true);
+        setNotesOpen(Date.now());
       }
     }
   }
@@ -713,9 +721,9 @@ const App = () => {
     </Typography>
 
   const appInfo =
-    <Box sx={{ display: "flex" }}>
-      <Typography sx={{ mr: 1, display: "inline-flex", alignItems: "center", justifyContent: "center" }} variant="h6">Sidekick</Typography>
-      {isMobile ? null : <Box>{versionInfo}</Box>}
+    <Box sx={{ display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+      <Typography sx={{ mr: 1}} variant="h6">Sidekick</Typography>
+      {isMobile ? null : <Typography variant="subtitle2">{versionInfo}</Typography>}
     </Box>
 
   const extendedLeftToolbar =
@@ -779,7 +787,8 @@ const App = () => {
 
   const appRender =
   <BrowserRouter>
-    <SystemProvider serverUrl={serverUrl}  setStatusUpdates={setStatusUpdates}>
+    <SystemProvider serverUrl={serverUrl}  setStatusUpdates={setStatusUpdates} setModalDialogInfo={setModalDialogInfo}
+    >
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Box sx={{display:"flex", height:"100vh", flexDirection:"column", overflow:"hidden"}}>
@@ -795,18 +804,23 @@ const App = () => {
                   open={Boolean(appMenuAnchorEl)}
                   onClose={handleAppMenuClose}
                 >
-                  <MenuItem key="menuOpenCloseSidekickAI" onClick={() => { handleAppMenuClose(); handleToggleSidekickAIOpen(); }}>
-                    <HelpIcon/><Typography  sx={{ ml: 1 }}>{ sidekickAIOpen ? "Help - Close Sidekick AI Help" : "Help - Open Sidekick AI Help" }</Typography>
+                  <MenuItem key="menuOpenCloseChats" onClick={() => { handleAppMenuClose(); handleToggleChatsOpen(); }}>
+                    <QuestionAnswerIcon/><Typography  sx={{ ml: 1 }}>{ "Chat Explorer" }</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuOpenCloseChat" onClick={() => { handleAppMenuClose(); handleToggleChatOpen(); }}>
+                    <ModeCommentIcon/><Typography  sx={{ ml: 1 }}>{ "Chat" }</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuOpenCloseNotes" onClick={() => { handleAppMenuClose(); handleToggleNotesOpen(); }}>
+                    <FolderIcon/><Typography  sx={{ ml: 1 }}>{ "Note Explorer" }</Typography>
+                  </MenuItem>
+                  <MenuItem key="menuOpenCloseNote" onClick={() => { handleAppMenuClose(); handleToggleNoteOpen(); }}>
+                    <NotesIcon/><Typography  sx={{ ml: 1 }}>{ "Note" }</Typography>
                   </MenuItem>
                   <MenuItem key="menuOpenCloseScripts" onClick={() => { handleAppMenuClose(); handleToggleScriptsOpen(); }}>
-                    <ScriptsExplorerIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Scripts Explorer" : scriptsOpen ? "Scripts - Close Scripts Explorer" : "Scripts - Open Scripts Explorer" }</Typography>
+                    <ScriptsExplorerIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Scripts Explorer" : scriptsOpen ? "Scripts Explorer" : "Scripts Explorer" }</Typography>
                   </MenuItem>
                   <MenuItem key="menuOpenCloseScript" onClick={() => { handleAppMenuClose(); handleToggleScriptOpen(); }}>
                     <ScriptIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Script" : scriptOpen ? "Script - Close" : "Script - Open" }</Typography>
-                  </MenuItem>
-                  <MenuItem key="menuOpenCloseChats" onClick={() => { handleAppMenuClose(); handleToggleChatsOpen(); }}>
-                    {chatsOpen ? <QuestionAnswerIcon/> : <QuestionAnswerOutlinedIcon/>}
-                    <Typography  sx={{ ml: 1 }}>{ isMobile ? "Chat Explorer" : chatsOpen ? "Chat Explorer - Close Chat Explorer" : "Chat Explorer - Open Chat Explorer" }</Typography>
                   </MenuItem>
                   <MenuItem key="menuOpenCloseModelSettings" onClick={() => { handleAppMenuClose(); handleToggleModelSettingsOpen(); }}>
                     <TuneIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Model Settings" : modelSettingsOpen ? "Model Settings - Close" : "Model Settings - Open" }</Typography>
@@ -817,18 +831,8 @@ const App = () => {
                   <MenuItem key="menuOpenClosePromptEngineer" onClick={() => { handleAppMenuClose(); handleTogglePromptEngineerOpen(); }}>
                     <BuildIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Prompt Engineer" : promptEngineerOpen ? "Prompt Engineer - Close" : "Prompt Engineer - Open" }</Typography>
                   </MenuItem>
-                  <MenuItem key="menuOpenCloseChat" onClick={() => { handleAppMenuClose(); handleToggleChatOpen(); }}>
-                    { chatOpen ? <ModeCommentIcon/> : <AddCommentIcon/> }<Typography  sx={{ ml: 1 }}>{ isMobile ? "Chat" : chatOpen ? "Chat - Close" : "Chat - Open" }</Typography>
-                  </MenuItem>
                   <MenuItem key="menuMinimiseWindows" onClick={() => { handleAppMenuClose(); minimiseWindows(); }}>
                     <MinimizeIcon/><Typography  sx={{ ml: 1 }}>Minimise Windows</Typography>
-                  </MenuItem>
-                  <MenuItem key="menuOpenCloseNote" onClick={() => { handleAppMenuClose(); handleToggleNoteOpen(); }}>
-                    { noteOpen ? <NotesIcon/> : <PlaylistAddIcon/> }<Typography  sx={{ ml: 1 }}>{isMobile ? "Note" : noteOpen ? "Note - Close Note" : "Note - New Note"}</Typography>
-                  </MenuItem>
-                  <MenuItem key="menuOpenCloseNotes" onClick={() => { handleAppMenuClose(); handleToggleNotesOpen(); }}>
-                    {notesOpen ? <FolderIcon/> : <FolderOutlinedIcon/>}
-                    <Typography  sx={{ ml: 1 }}>{isMobile ? "Notes Explorer" : notesOpen ? "Notes Explorer - Close" : "Notes Explorer - Open"}</Typography>
                   </MenuItem>
                   <MenuItem key="menuDarkMode" onClick={() => { handleAppMenuClose(); handleToggleDarkMode(); }}>
                     { darkMode ? <LightModeIcon/> : <DarkModeIcon/> }<Typography  sx={{ ml: 1 }}>{ darkMode ? "Switch to Light Mode" : "Switch to Dark Mode" }</Typography>
@@ -843,6 +847,12 @@ const App = () => {
                       <AdminPanelSettingsIcon/><Typography sx={{ ml: 1 }}>Admin</Typography>
                     </MenuItem>
                   }
+                  <MenuItem key="menuOpenCloseSidekickAI" onClick={() => { handleAppMenuClose(); handleToggleSidekickAIOpen(); }}>
+                    <HelpIcon/><Typography sx={{ ml: 1 }}>{ sidekickAIOpen ? "Help - Close Sidekick AI Help" : "Help - Open Sidekick AI Help" }</Typography>
+                  </MenuItem>
+                  <MenuItem onClick={ () => { handleAppMenuClose(); setAboutWindowOpen(Date.now());}}>
+                    <InfoOutlinedIcon/><Typography sx={{ ml: 1 }}>About Sidekick</Typography>
+                  </MenuItem>
                   <MenuItem key="menuLogout" onClick={() => { handleAppMenuClose(); handleLogout(); }}>
                     <LogoutIcon/><Typography sx={{ ml: 1 }}>Logout</Typography>
                   </MenuItem>
@@ -853,8 +863,8 @@ const App = () => {
                 </Typography>}
                 {isMobile ? null : extendedLeftToolbar}
                 <Tooltip title={ chatsOpen ? "Close Chat Explorer" : "Open Chat Explorer" }>
-                  <IconButton edge="start" color="inherit" aria-label="Open/Close Chat Explorer" onClick={handleToggleChatsOpen}>
-                    {chatsOpen ? <QuestionAnswerIcon/> : <QuestionAnswerOutlinedIcon/>}
+                  <IconButton edge="start" color="inherit" aria-label="Chat Explorer" onClick={handleToggleChatsOpen}>
+                    <QuestionAnswerIcon/>
                   </IconButton>
                 </Tooltip>
                 <Tooltip title={chatOpen ? "Close Chat" : "New Chat"}>
@@ -864,8 +874,8 @@ const App = () => {
                 </Tooltip>
               </Box>
               <Box display="flex" ml="auto" gap={2}>
-              <Tooltip title={noteOpen ? "Close Note" : "New Note"}>
-                <IconButton edge="end" color="inherit" aria-label="New note" onClick={handleToggleNoteOpen}>
+              <Tooltip title="Note">
+                <IconButton edge="end" color="inherit" aria-label="Note" onClick={handleToggleNoteOpen}>
                   { noteOpen ? <NotesIcon/> : <PlaylistAddIcon/> }
                 </IconButton>
               </Tooltip>
@@ -883,6 +893,68 @@ const App = () => {
               </Box>
             </Toolbar>
           </AppBar>
+          <SidekickModalDialog modalDialogInfo={modalDialogInfo} setModalDialogInfo={setModalDialogInfo} />
+          <Popover
+            open={aboutWindowOpen}
+            anchorOrigin={{
+              vertical: 'center',
+              horizontal: 'center',
+            }}
+            transformOrigin={{
+              vertical: 'center',
+              horizontal: 'center',
+            }}
+            PaperProps={{
+              style: {
+                maxWidth: '400px',
+                padding: '4px',
+              },
+            }}
+            onClose={() => {setAboutWindowOpen(false);}}
+            >
+            <StyledToolbar sx={{ gap: 1 }}>
+              <InfoOutlinedIcon/><Typography variant="h6" align="center">About Sidekick</Typography>
+            </StyledToolbar>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={6}>
+                <Carousel imageFolderName="./images/logo/" filenamePrefix="sidekick_" 
+                  filenameExtension=".png" altText="Sidekick logo"
+                  transitions="8" cycleTime="250" imageWidth="200px" imageHeight='200px'/>
+              </Grid>
+              <Grid item xs={6}>
+                <Box display="flex" alignItems="center" sx={{mt:2}}>
+                  <Typography style={{ fontWeight: 'bold' }}>Version:</Typography>
+                  <Typography style={{ marginLeft: '5px' }}>{VERSION}</Typography>
+                </Box>
+                { appInstanceName !== "" ? 
+                    <Box display="flex" alignItems="center">
+                      <Typography style={{ fontWeight: 'bold' }}>Instance:</Typography>
+                      <Typography style={{ marginLeft: '5px' }}>{appInstanceName}</Typography>
+                    </Box>
+                  : null
+                }
+                { instanceUsage !== "" ? 
+                    <Box display="flex" alignItems="center">
+                      <Typography style={{ fontWeight: 'bold' }}>Usage:</Typography>
+                      <Typography style={{ marginLeft: '5px' }}>{instanceUsage}</Typography>
+                    </Box>
+                  : null
+                }
+                <Box display="flex" alignItems="center">
+                  <Typography style={{ fontWeight: 'bold' }}>Logged in as:</Typography>
+                  <Typography multiline style={{ marginLeft: '5px', fontSize: '0.8rem', wordWrap: 'break-word', overflowWrap: 'break-word',
+                    maxWidth: '100px' }}>
+                    { user?.name ? user.name : user?.id }
+                  </Typography>
+                </Box>
+                <Typography sx={{mt:1}} style={{ fontSize: '0.8rem' }}>Sidekick is an open-source AI powered tool for creativity, thinking, learning, exploring ideas, problem-solving, and getting things done.</Typography>
+                <Typography sx={{mt:1}} style={{ fontSize: '0.8rem' }}>You can find the project here: <a href="https://github.com/embernet/sidekick" target="_blank" rel="noreferrer">github.com/embernet/sidekick</a></Typography>
+              </Grid>
+            </Grid>
+            <Box display="flex" justifyContent="flex-end">
+              <Button onClick={()=>{setAboutWindowOpen(false);}}>Close</Button>
+            </Box>
+          </Popover>
           <Box id="app-workspace" display="flex" height="100%" flexDirection="row" flex="1" 
             overflow-y="hidden" overflow="auto" width="100%">
             <SidekickAI
@@ -910,6 +982,7 @@ const App = () => {
               setUser={setUser}
               serverUrl={serverUrl} token={token} setToken={setToken}
               darkMode={darkMode}
+              isMobile={isMobile}
             />
             { chatsOpen ? <Explorer
               onClose={()=>{setChatsOpen(false)}}
@@ -1107,6 +1180,7 @@ const App = () => {
           </Box>
         <StatusBar
           statusUpdates={statusUpdates}
+          darkMode={darkMode}
           modelSettings={modelSettings}
           persona={persona}
           modelSettingsOpen={modelSettingsOpen}
@@ -1121,7 +1195,7 @@ const App = () => {
 </BrowserRouter>
 
 const loginRender = 
-  <SystemProvider serverUrl={serverUrl} setStatusUpdates={setStatusUpdates}>
+  <SystemProvider serverUrl={serverUrl} setStatusUpdates={setStatusUpdates} setModalDialogInfo={setModalDialogInfo}>
     <BrowserRouter>
       <ThemeProvider theme={theme}>
         <CssBaseline />
