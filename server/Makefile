@@ -13,8 +13,7 @@ run-dev-locally: init
 	pipenv run python run.py
 
 run-prod-locally: init
-	pipenv run python init.py
-	gunicorn -c gunicorn_config.py --worker-class gevent -b --timeout 120 --workers 4 --threads 4 0.0.0.0:5000 app:app
+	pipenv run gunicorn -w 4 -b 0.0.0.0:5003 app:app
 
 stop-container:
 	docker stop sidekick-server; \
