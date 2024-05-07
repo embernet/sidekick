@@ -35,7 +35,11 @@ const MermaidDiagram = memo(({ markdown }) => {
   }, [markdown]);
 
   return (
-    <div className="mermaid-diagram" id={'id-'+mermaidId} key={'key-'+mermaidId} ref={mermaidRef}>
+    <div
+      className="mermaid-diagram"
+      id={'id-'+mermaidId} key={'key-'+mermaidId} ref={mermaidRef}
+      style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+      >
     </div>
   );
 });
