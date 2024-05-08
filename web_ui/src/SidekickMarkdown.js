@@ -24,6 +24,7 @@ const SidekickMarkdown = memo(({ markdown }) => {
                 let language = match[1];
                 if (language === "" || !language) { language = "code"; } // provide a default if ``` used wuthout specifying a language
                 const code = match[2];
+                const codeMarkdown = `\`\`\`${language}\n${code.trim()}\n\`\`\`\n`;
                 const startIndex = match.index;
                 const endIndex = codeRegex.lastIndex;
                 const before = markdown.slice(lastIndex, startIndex);
@@ -35,7 +36,7 @@ const SidekickMarkdown = memo(({ markdown }) => {
                         <Typography sx={{ mr: 2 }}>{language}</Typography>
                         <Box sx={{ display: "flex", width: "100%", flexDirection: "row", ml: "auto" }}>
                             <IconButton edge="start" color="inherit" aria-label="menu"
-                            onClick={(event) => { navigator.clipboard.writeText(code); event.stopPropagation(); }}>
+                            onClick={(event) => { navigator.clipboard.writeText(codeMarkdown); event.stopPropagation(); }}>
                             <ContentCopyIcon/>
                             </IconButton>
                         </Box>
