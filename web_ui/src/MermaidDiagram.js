@@ -27,21 +27,33 @@ const MermaidDiagram = memo(({ markdown }) => {
   }, [svg]);
 
   useEffect(() => {
+    let isCancelled = false;
+
     if (mermaidRef.current && markdown !== "") {
       mermaid.render(mermaidId, markdown)
       .then(({svg}) => {
-        setSvg(svg);
+        if (!isCancelled) {
+          setSvg(svg);
+        }
       })
       .catch((error) => {
-        console.error("Error rendering mermaid diagram", mermaidId, error);
-        setError({ message: 'Error rendering mermaid diagram.', error: error});
-        const mermaidInjectedErrorElement = document.getElementById(mermaidId);
-        if (mermaidInjectedErrorElement) {
-          // Hide the mermaid 'Syntax error in text' bomb message
-          mermaidInjectedErrorElement.style.display = 'none';
+        if (!isCancelled) {
+          setError({ message: 'Error rendering mermaid diagram.', error: error});
+          const mermaidInjectedErrorElement = document.getElementById(mermaidId);
+          if (mermaidInjectedErrorElement) {
+            // Hide the mermaid 'Syntax error in text' bomb message
+            mermaidInjectedErrorElement.style.display = 'none';
+          }
         }
       });
     }
+
+    // This cleanup function is called when the component unmounts or when the markdown prop changes.
+    // It sets isCancelled to true, to prevent the .then and .catch callbacks from updating the state
+    // to avoid race conditions due to the asynchronous nature of the mermaid.render() function.
+    return () => {
+      isCancelled = true;
+    };
   }, [markdown]);
 
   return (
@@ -58,7 +70,7 @@ const MermaidDiagram = memo(({ markdown }) => {
         :
         <Box>
           <Button onClick={() => setShowError(!showError)} aria-expanded={showError} aria-label="show more" style={{ color: 'red' }}>
-            {error.message}
+            {error.message + " Click for details."}
           </Button>
           <Collapse in={showError}>
             <Box>
@@ -66,7 +78,7 @@ const MermaidDiagram = memo(({ markdown }) => {
             </Box>
           </Collapse>
           <Box sx={{ whiteSpace: 'pre-wrap', padding:4 }}>
-            <Typography style={{ fontWeight: 'bold' }}> Here's the markdown the generated the error:</Typography>
+            <Typography style={{ fontWeight: 'bold' }}> Here's the markdown that generated the error:</Typography>
             {markdown}
           </Box>
         </Box>      
