@@ -1381,7 +1381,7 @@ const Chat = ({
 
     const handleDeleteAllMessagesFromHere = () => {
         if (menuMessageContext.index > 0) {
-            const updatedMessages = messages.slice(0, menuMessageContext.index - 1);
+            const updatedMessages = messages.slice(0, menuMessageContext.index);
             setMessages(updatedMessages);
             setMenuMessageContext(null);
         }
