@@ -1793,9 +1793,9 @@ const Chat = ({
             <MenuItem divider style={{ minHeight: '10px' }} />
             <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteThisMessage}>Delete this message</MenuItem>
             <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteThisAndPreviousMessage}>Delete this and previous message</MenuItem>
-            <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteAllMessages}>Delete all messages</MenuItem>
             <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteAllMessagesUpToHere}>Delete this and all previous messages</MenuItem>
             <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteAllMessagesFromHere}>Delete this and all subseqeunt messages</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteAllMessages}>Delete all messages</MenuItem>
         </Menu>
         <Menu 
             id="menu-prompts"
