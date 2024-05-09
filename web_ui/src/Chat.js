@@ -1373,6 +1373,20 @@ const Chat = ({
         setMenuMessageContext(null);
     };
 
+    const handleDeleteAllMessagesUpToHere = () => {
+        const updatedMessages = messages.slice(menuMessageContext.index + 1);
+        setMessages(updatedMessages);
+        setMenuMessageContext(null);
+    };
+
+    const handleDeleteAllMessagesFromHere = () => {
+        if (menuMessageContext.index > 0) {
+            const updatedMessages = messages.slice(0, menuMessageContext.index - 1);
+            setMessages(updatedMessages);
+            setMenuMessageContext(null);
+        }
+    };
+
     const handleUseAsChatInput = () => {
         setChatPrompt(menuMessageContext.message.content);
         setPromptFocus();
@@ -1472,7 +1486,7 @@ const Chat = ({
                     (event) => 
                         {
                             onClick && onClick();
-                            if (event.altKey) {
+                            if (event.altKey || messages.length === 0) {
                                 runMenuAction(()=>{setChatPrompt(prompt)});
                             } else {
                                 runMenuAction(()=>{sendPrompt(prompt)});
@@ -1780,6 +1794,8 @@ const Chat = ({
             <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteThisMessage}>Delete this message</MenuItem>
             <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteThisAndPreviousMessage}>Delete this and previous message</MenuItem>
             <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteAllMessages}>Delete all messages</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteAllMessagesUpToHere}>Delete this and all previous messages</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteAllMessagesFromHere}>Delete this and all subseqeunt messages</MenuItem>
         </Menu>
         <Menu 
             id="menu-prompts"
@@ -1926,6 +1942,7 @@ const Chat = ({
             </Tooltip>
             <ActionMenu name="Flowchart" prompt="Provide mermaid markdown for a flowchart for this"/>
             <ActionMenu name="Mind Map" prompt="Provide mermaid markdown for a mind map for this"/>
+            <ActionMenu name="Use Case Diagram" prompt="Provide mermaid markdown for a use case diagram based on a left to right flowchart diagram that uses stadium-shaped nodes by wrapping the node names in round and square brackets ([node name]) for this"/>
             <ActionMenu name="Sequence Diagram" prompt="Provide mermaid markdown for a sequence diagram for this"/>
             <ActionMenu name="Class Diagram" prompt="Provide mermaid markdown for a class diagram for this"/>
             <ActionMenu name="Entity Relationship Diagram" prompt="Provide mermaid markdown for an entity relationship diagram for this"/>
