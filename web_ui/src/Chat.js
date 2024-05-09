@@ -43,6 +43,7 @@ import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import SpeakerNotesOffIcon from '@mui/icons-material/SpeakerNotesOff';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
+import SchemaIcon from '@mui/icons-material/Schema';
 
 import { SystemContext } from './SystemContext';
 import ContentFormatter from './ContentFormatter';
@@ -306,6 +307,7 @@ const Chat = ({
     const [systemPrompt, setSystemPrompt] = useState("");
     const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady.current);
     const [menuPromptsAnchorEl, setMenuPromptsAnchorEl] = useState(null);
+    const [menuDiagramsAnchorEl, setMenuDiagramsAnchorEl] = useState(null);
     const [menuPanelAnchorEl, setMenuPanelAnchorEl] = useState(null);
     const [menuPromptEditorAnchorEl, setMenuPromptEditorAnchorEl] = useState(null);
     const [menuMessageContext, setMenuMessageContext] = useState(null);
@@ -1186,6 +1188,7 @@ const Chat = ({
         handleMenuMessageContextClose();
         handleMenuPromptEditorClose();
         handleMenuPromptsClose();
+        handleMenuDiagramsClose();
     }
 
     const runMenuAction = (functionToRun, thenFocusOnPrompt=true) => {
@@ -1204,6 +1207,14 @@ const Chat = ({
         setMenuPromptsAnchorEl(null);
     };
     
+    const handleMenuDiagramsOpen = (event) => {
+        setMenuDiagramsAnchorEl(event.currentTarget);
+    };
+
+    const handleMenuDiagramsClose = () => {
+        setMenuDiagramsAnchorEl(null);
+    };
+
     const handleMenuCommandsOpen = (event) => {
         setMenuCommandsAnchorEl(event.currentTarget);
     };
@@ -1362,6 +1373,20 @@ const Chat = ({
         setMenuMessageContext(null);
     };
 
+    const handleDeleteAllMessagesUpToHere = () => {
+        const updatedMessages = messages.slice(menuMessageContext.index + 1);
+        setMessages(updatedMessages);
+        setMenuMessageContext(null);
+    };
+
+    const handleDeleteAllMessagesFromHere = () => {
+        if (menuMessageContext.index > 0) {
+            const updatedMessages = messages.slice(0, menuMessageContext.index);
+            setMessages(updatedMessages);
+            setMenuMessageContext(null);
+        }
+    };
+
     const handleUseAsChatInput = () => {
         setChatPrompt(menuMessageContext.message.content);
         setPromptFocus();
@@ -1461,7 +1486,7 @@ const Chat = ({
                     (event) => 
                         {
                             onClick && onClick();
-                            if (event.altKey) {
+                            if (event.altKey || messages.length === 0) {
                                 runMenuAction(()=>{setChatPrompt(prompt)});
                             } else {
                                 runMenuAction(()=>{sendPrompt(prompt)});
@@ -1471,11 +1496,8 @@ const Chat = ({
                 onKeyDown={
                     (event) => {
                         if (event.key === 'ArrowRight') {
-                            setChatPrompt(prompt);
                             onClick && onClick();
-                            if (chatPromptRef.current) {
-                                chatPromptRef.current.focus();
-                            }
+                            runMenuAction(()=>{setChatPrompt(prompt)});
                         }
                     }
                 }
@@ -1505,6 +1527,7 @@ const Chat = ({
     }
 
     const promptSelectionInstructions = "Click on a prompt to run it, ALT+Click (or Right-Arrow when using via slash command) to place in prompt editor so you can edit it";
+    const diagramSelectionInstructions = "Click on a diagram (or press enter) to generate it based on context, ALT+Click (or Right-Arrow when using via slash command) to place in prompt editor so you can edit it and describe what you want";
     const toolbar =
     <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
         <IconButton edge="start" color="inherit" aria-label="Sidekick Chat Menu"
@@ -1663,6 +1686,26 @@ const Chat = ({
                     <KeyboardArrowRightIcon />
                 </IconButton>
             </MenuItem>
+            <MenuItem
+                onClick={handleMenuDiagramsOpen}
+                onKeyDown={
+                    (event) => {
+                        if (event.key === 'ArrowRight') {
+                            handleMenuDiagramsOpen(event);
+                        }
+                    }
+                }
+                >
+                <ListItemIcon><SchemaIcon/></ListItemIcon>
+                Diagrams
+                <IconButton  edge="end" style={{ padding: 0 }}>
+                    <KeyboardArrowRightIcon />
+                </IconButton>
+            </MenuItem>
+            <MenuItem onClick={() => {runMenuAction(togglePromptEngineerOpen, false);}}>
+                <ListItemIcon><BuildIcon/></ListItemIcon>
+                Prompt Engineer
+            </MenuItem>
             <MenuItem onClick={() => {runMenuAction(handleReload);}}>
                 <ListItemIcon><RedoIcon/></ListItemIcon>
                 Reload last prompt for editing
@@ -1675,25 +1718,22 @@ const Chat = ({
                 <ListItemIcon><SpeakerNotesOffIcon/></ListItemIcon>
                 Delete last prompt/response
             </MenuItem>
-            <MenuItem onClick={() => {runMenuAction(togglePromptEngineerOpen);}}>
-                <ListItemIcon><BuildIcon/></ListItemIcon>
-                Prompt Engineer
-            </MenuItem>
             <MenuItem onClick={() => {runMenuAction(handleNewChat);}}>
                 <ListItemIcon><AddOutlinedIcon/></ListItemIcon>
                 New Chat
             </MenuItem>
-            <MenuItem onClick={() => {runMenuAction(); handleToggleMarkdownRendering();}}>
-            <ListItemIcon>{ markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }</ListItemIcon>
-                { markdownRenderingOn ? "Turn off markdown rendering" : "Turn on markdown rendering" }</MenuItem>
+            <MenuItem onClick={() => {runMenuAction(handleToggleMarkdownRendering);}}>
+                <ListItemIcon>{ markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }</ListItemIcon>
+                { markdownRenderingOn ? "Turn off markdown rendering" : "Turn on markdown rendering" }
+            </MenuItem>
             {
                 isMobile ? null :
-                <MenuItem onClick={() => {runMenuAction(); handleToggleWindowMaximise();}}>
+                <MenuItem onClick={() => {runMenuAction(handleToggleWindowMaximise);}}>
                     <ListItemIcon>{ windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }</ListItemIcon>
                     { windowMaximized ? "Shrink window" : "Expand window" }
                 </MenuItem>
             }
-            <MenuItem onClick={() => {runMenuAction(); handleClose();}}>
+            <MenuItem onClick={() => {runMenuAction(handleClose, false);}}>
                 <ListItemIcon><CloseIcon/></ListItemIcon>
                 Close Window
             </MenuItem>
@@ -1754,6 +1794,8 @@ const Chat = ({
             <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteThisMessage}>Delete this message</MenuItem>
             <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteThisAndPreviousMessage}>Delete this and previous message</MenuItem>
             <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteAllMessages}>Delete all messages</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteAllMessagesUpToHere}>Delete this and all previous messages</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteAllMessagesFromHere}>Delete this and all subseqeunt messages</MenuItem>
         </Menu>
         <Menu 
             id="menu-prompts"
@@ -1775,7 +1817,7 @@ const Chat = ({
                 vertical: 'top',
                 horizontal: 'left',
             }}
-        >
+            >
             <Tooltip title={promptSelectionInstructions} placement="right">
                 <MenuItem onClick={handleMenuPromptsClose}>
                     <Typography variant="subtitle1" component="div" style={{ flexGrow: 1, fontWeight: 'bold' }}>
@@ -1866,6 +1908,47 @@ const Chat = ({
                     </IconButton>
                 </MenuItem>
             </Tooltip>
+        </Menu>
+        <Menu 
+            id="menu-diagrams"
+            anchorEl={menuDiagramsAnchorEl}
+            open={Boolean(menuDiagramsAnchorEl)}
+            onClose={handleMenuDiagramsClose}
+            onKeyDown={
+                (event) => {
+                    if (event.key === 'ArrowLeft') {
+                        handleMenuDiagramsClose(event);
+                    }
+                }
+            }
+            anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+            }}
+            transformOrigin={{
+                vertical: 'top',
+                horizontal: 'left',
+            }}
+        >
+            <Tooltip title={diagramSelectionInstructions} placement="right">
+                <MenuItem onClick={handleMenuDiagramsClose}>
+                    <Typography variant="subtitle1" component="div" style={{ flexGrow: 1, fontWeight: 'bold' }}>
+                    Diagrams
+                    </Typography>
+                    <IconButton edge="end" color="inherit" onClick={handleMenuDiagramsClose}>
+                    <CloseIcon />
+                    </IconButton>
+                </MenuItem>
+            </Tooltip>
+            <ActionMenu name="Flowchart" prompt="Provide mermaid markdown for a flowchart for this"/>
+            <ActionMenu name="Mind Map" prompt="Provide mermaid markdown for a mind map for this"/>
+            <ActionMenu name="Use Case Diagram" prompt="Provide mermaid markdown for a use case diagram based on a left to right flowchart diagram that uses stadium-shaped nodes by wrapping the node names in round and square brackets ([node name]) for this"/>
+            <ActionMenu name="Sequence Diagram" prompt="Provide mermaid markdown for a sequence diagram for this"/>
+            <ActionMenu name="Class Diagram" prompt="Provide mermaid markdown for a class diagram for this"/>
+            <ActionMenu name="Entity Relationship Diagram" prompt="Provide mermaid markdown for an entity relationship diagram for this"/>
+            <ActionMenu name="State Diagram" prompt="Provide mermaid markdown for a state diagram for this"/>
+            <ActionMenu name="Timeline" prompt="Provide mermaid markdown for a timeline for this"/>
+            <ActionMenu name="Gantt Chart" prompt="Provide mermaid markdown for a Gantt chart breaking it down into phases as appropriate for this"/>
         </Menu>
         <Menu
             id="menu-commands"
