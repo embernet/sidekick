@@ -101,7 +101,7 @@ def test_ai():
     with RequestLogger(request) as rl:
         increment_server_stat(category="requests", stat_name="healthAi")
         try:
-            url = 'https://api.openai.com/v1/chat/completions'
+            url = f"{app.config['OPENAI_BASE_URL']}/chat/completions"
             headers = {
                 'content-type': 'application/json; charset=utf-8',
                 'Authorization': f"Bearer {app.config['OPENAI_API_KEY']}"
@@ -337,7 +337,7 @@ def name_topic():
             return ai_request
 
         try:
-            url = 'https://api.openai.com/v1/chat/completions'
+            url = f"{app.config['OPENAI_BASE_URL']}/chat/completions"
             headers = {
                 'content-type': 'application/json; charset=utf-8',
                 'Authorization': f"Bearer {app.config['OPENAI_API_KEY']}"
@@ -416,7 +416,7 @@ def query_ai():
             promptCharacters = num_characters_from_messages(ai_request["messages"])
             increment_server_stat(category="usage", stat_name="promptCharacters", increment=promptCharacters)
             increment_server_stat(category="usage", stat_name="totalCharacters", increment=promptCharacters)
-            url = 'https://api.openai.com/v1/chat/completions'
+            url = f"{app.config['OPENAI_BASE_URL']}/chat/completions"
             headers = {
                 'content-type': 'application/json; charset=utf-8',
                 'Authorization': f"Bearer {app.config['OPENAI_API_KEY']}"
@@ -473,7 +473,7 @@ def chat_v2():
         increment_server_stat(category="requests", stat_name="chatV2")
 
         def generate():
-            url = 'https://api.openai.com/v1/chat/completions'
+            url = f"{app.config['OPENAI_BASE_URL']}/chat/completions"
             headers = {
                 'content-type': 'application/json; charset=utf-8',
                 'Authorization': f"Bearer {app.config['OPENAI_API_KEY']}"
