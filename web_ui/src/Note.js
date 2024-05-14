@@ -214,7 +214,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
 
     useEffect(()=>{
         if(pageLoaded && appendNoteContent.content !== "" && noteContentRef?.current) {
-            setNoteOpen({id: id, timestamp: Date.now()});
+            setNoteOpen({id: id, timestamp: Date.now()}); // to scroll the note into view if its off the screen
             let newNotePart = appendNoteContent.content.trim();
             if(typeof newNotePart === "string") {
                 let newNote = noteContentRef.current.innerText;
@@ -721,7 +721,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 { markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }
             </IconButton>
         </Tooltip>
-        <Tooltip title={ inAILibrary ? "Remove from AI Library" : "Add to AI library" }>
+        <Tooltip title={ inAILibrary ? "Remove from AI Library" : "Add to AI library. When you click the same library icon in the Chat Prompt Editor it will give you the option of adding notes to the context of your chat. These notes do not appear in the chat transcript but are sent to the AI every time you prompt it so it has them as context." }>
             <IconButton edge="start" color="inherit" aria-label={ inAILibrary ? "Remove from AI Library" : "Add to AI library" } onClick={handleToggleInAILibrary}>
                 { inAILibrary ? <LocalLibraryIcon/> : <LocalLibraryOutlinedIcon/> }
             </IconButton>
