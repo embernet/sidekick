@@ -1793,9 +1793,9 @@ const Chat = ({
             <MenuItem divider style={{ minHeight: '10px' }} />
             <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteThisMessage}>Delete this message</MenuItem>
             <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteThisAndPreviousMessage}>Delete this and previous message</MenuItem>
-            <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteAllMessages}>Delete all messages</MenuItem>
             <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteAllMessagesUpToHere}>Delete this and all previous messages</MenuItem>
             <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteAllMessagesFromHere}>Delete this and all subseqeunt messages</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteAllMessages}>Delete all messages</MenuItem>
         </Menu>
         <Menu 
             id="menu-prompts"
@@ -2462,8 +2462,10 @@ const Chat = ({
                         </IconButton>
                     </span>
                 </Tooltip>
-                <Tooltip title={ aiLibraryOpen ? "Hide AI Library" : `Show AI Library (${Object.keys(selectedAiLibraryNotes).length} knowledge notes loaded)`}>
-                    <IconButton edge="start" color="inherit" aria-label={ aiLibraryOpen ? "Hide AI Library" : "Show AI Library"}
+                <Tooltip title={ aiLibraryOpen ? "Hide AI Library" : `Show AI Library. You can then select notes to add to the chat context.
+                You can add individual notes to the AI library by opening them in the Note editor and clicking on the 'Add to AI Library' button. 
+                (${Object.keys(selectedAiLibraryNotes).length} knowledge notes currently loaded)`}>
+                    <IconButton edge="start" color="inherit" aria-label={ aiLibraryOpen ? "Hide AI Library" : "Show AI Library."}
                         onClick={handleToggleAILibraryOpen}>
                         { Object.keys(selectedAiLibraryNotes).length === 0 ? <LocalLibraryOutlinedIcon/> : <LocalLibraryIcon/> }
                     </IconButton>
@@ -2552,11 +2554,17 @@ const Chat = ({
             { aiLibraryOpen ? 
                 <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: darkMode ? grey[900] : grey[100] }}>
                     <Box sx={{ mt: 2, display: "flex", flexDirection: "column", width: "100%" }}>
-                        <FormLabel>
-                            Loaded knowledge: { Object.keys(selectedAiLibraryNotes).length === 0 ? "None" : ""} 
+                        <SecondaryToolbar sx={{gap:1}} className={ClassNames.toolbar}>
+                            <Typography fontWeight="bold">AI Library</Typography>
+                            <Typography sx={{mr:1}}>Loaded notes: {Object.keys(selectedAiLibraryNotes).length}</Typography>
                             <TextStatsDisplay name="AI Library" sizeInCharacters={selectedAiLibraryFullTextSize} 
                                 maxTokenSize={myModelSettings.contextTokenSize}/>
-                        </FormLabel>
+                            <Tooltip title='Close AI library'>
+                                <IconButton sx={{ml:'auto'}} onClick={()=>{setAiLibraryOpen(false)}}>
+                                    <CloseIcon />
+                                </IconButton>
+                            </Tooltip>
+                        </SecondaryToolbar>
                         <List dense sx={{ width: "100%", overflow: "auto", maxHeight: "100px" }}>
                             {Object.values(selectedAiLibraryNotes).map(note =>(
                                 <ListItem 
