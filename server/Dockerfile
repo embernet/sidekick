@@ -13,6 +13,7 @@ RUN pip install --upgrade pip && \
     pip install --no-cache-dir --upgrade -r requirements.txt
 
 COPY init.py app.py models.py routes.py utils.py docker-entrypoint.sh ./
+COPY custom_utils ./custom_utils
 COPY default_documents ./default_documents
 COPY default_settings ./default_settings
 COPY system_settings ./system_settings

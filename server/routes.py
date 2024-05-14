@@ -2,7 +2,6 @@ import os
 import json
 import requests
 import socket
-import uuid
 import sseclient
 
 from collections import OrderedDict
@@ -10,6 +9,7 @@ from datetime import datetime
 from utils import DBUtils, construct_ai_request, RequestLogger,\
     server_stats, increment_server_stat, openai_num_tokens_from_messages, \
     get_random_string, num_characters_from_messages, update_default_settings
+from custom_utils.get_openai_token import get_openai_token
 
 from flask import request, jsonify, Response, stream_with_context, redirect, session, url_for
 from flask_jwt_extended import get_jwt_identity, jwt_required, \
@@ -104,7 +104,7 @@ def test_ai():
             url = f"{app.config['OPENAI_BASE_URL']}/chat/completions"
             headers = {
                 'content-type': 'application/json; charset=utf-8',
-                'Authorization': f"Bearer {app.config['OPENAI_API_KEY']}"
+                'Authorization': f"Bearer {get_openai_token()}"
             }
             ai_request = {
                 "model": "gpt-3.5-turbo",
@@ -340,7 +340,7 @@ def name_topic():
             url = f"{app.config['OPENAI_BASE_URL']}/chat/completions"
             headers = {
                 'content-type': 'application/json; charset=utf-8',
-                'Authorization': f"Bearer {app.config['OPENAI_API_KEY']}"
+                'Authorization': f"Bearer {get_openai_token()}"
             }
             ai_request = construct_name_topic_request(request)
             promptCharacters = num_characters_from_messages(ai_request["messages"])
@@ -419,7 +419,7 @@ def query_ai():
             url = f"{app.config['OPENAI_BASE_URL']}/chat/completions"
             headers = {
                 'content-type': 'application/json; charset=utf-8',
-                'Authorization': f"Bearer {app.config['OPENAI_API_KEY']}"
+                'Authorization': f"Bearer {get_openai_token()}"
             }
             message_usage["prompt_characters"] = num_characters_from_messages(
                 ai_request["messages"])
@@ -476,7 +476,7 @@ def chat_v2():
             url = f"{app.config['OPENAI_BASE_URL']}/chat/completions"
             headers = {
                 'content-type': 'application/json; charset=utf-8',
-                'Authorization': f"Bearer {app.config['OPENAI_API_KEY']}"
+                'Authorization': f"Bearer {get_openai_token()}"
             }
             ai_request = construct_ai_request(request)
             ai_request["stream"] = True
