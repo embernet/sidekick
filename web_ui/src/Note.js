@@ -145,7 +145,7 @@ You always do your best to generate text in the same style as the context text p
     const noteInstantiated = useRef(false);
     const [renameInProcess, setRenameInProcess] = useState(false);
     const [timeToSave, setTimeToSave] = useState(false);
-    const [noteContentBuffer, setNoteContentBuffer] = useState("");
+    const [noteMarkdownRenderBuffer, setNoteMarkdownRenderBuffer] = useState("");
 
 
     useEffect(() => {
@@ -158,7 +158,7 @@ You always do your best to generate text in the same style as the context text p
     const setContent = (text) => {
         if (noteContentRef.current) {
             noteContentRef.current.innerText = text;
-            setNoteContentBuffer(text);
+            setNoteMarkdownRenderBuffer(text);
             noteInstantiated.current = true;
             if (saveStatus.current === "saved") {
                 saveStatus.current = "changed";
@@ -656,6 +656,9 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     }
 
     const handleToggleMarkdownRendering = () => {
+        if (!markdownRenderingOn) {
+            setNoteMarkdownRenderBuffer(noteContentRef.current.innerText);
+        }
         setMarkdownRenderingOn(x => !x);
     };
 
@@ -875,7 +878,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         >
             { markdownRenderingOn &&
                     <Box sx={{ height: "fit-content", padding: "6px" }}>
-                        <SidekickMarkdown markdown={noteContentBuffer}/>
+                        <SidekickMarkdown markdown={noteMarkdownRenderBuffer}/>
                     </Box>
             }
             <div
