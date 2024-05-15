@@ -154,16 +154,6 @@ const AIPromptResponse = ({modelSettings, serverUrl, token, setToken, customUser
         }
     }, [newStreamDelta]);
 
-    const extractNameFromPrompt = (prompt) => {
-        if (prompt.startsWith("# ")) {
-          const newlineIndex = prompt.indexOf("\n");
-          if (newlineIndex !== -1 && newlineIndex > 2 && newlineIndex < 50) {
-            return prompt.substring(2, newlineIndex).trim();
-          }
-        }
-        return null;
-    };
-
     const handleUserPromptEntered = (event) => {
         event.preventDefault();
         setLastPrompt(prompt);

@@ -4,7 +4,7 @@ import React from 'react';
 
 import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Box, Paper, Toolbar, IconButton, Typography, TextField,
-    List, ListItem, ListSubheader, Menu, MenuItem, Tooltip, FormLabel, Popover,
+    List, ListItem, ListSubheader, Menu, MenuItem, Tooltip, Popover,
     ListItemText, ListItemIcon
      } from '@mui/material';
 import { ClassNames } from "@emotion/react";
@@ -38,7 +38,6 @@ import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
-import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import SpeakerNotesOffIcon from '@mui/icons-material/SpeakerNotesOff';
@@ -72,6 +71,7 @@ const Chat = ({
 
     const newChatName = "New Chat"
 
+    // TODO - refactor <ActionMenu> to be generated from this JSON object and move it into its own component so it can be used from Note as well
     const promptTemplates = {
         "Analysis": {
             "Balanced Scorecard": {

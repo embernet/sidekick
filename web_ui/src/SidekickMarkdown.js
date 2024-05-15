@@ -10,7 +10,6 @@ import { SystemContext } from './SystemContext';
 import { memo } from 'react';
 import MermaidDiagram from './MermaidDiagram';
 import { v4 as uuidv4 } from 'uuid';
-import { use } from 'marked';
 
 const SidekickMarkdown = memo(({ markdown }) => {
     const system = useContext(SystemContext);

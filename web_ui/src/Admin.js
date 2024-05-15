@@ -47,21 +47,14 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
     }));
         
     const system = useContext(SystemContext);
-    const [currentPassword, setCurrentPassword] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [reEnteredNewPassword, setReEnteredNewPassword] = useState('');
     const [confirmUser, setConfirmUserId] = useState('');
-    const [showChangePassword, setShowChangePassword] = useState(false);
-    const [showDeleteAccount, setShowDeleteAccount] = useState(false);
     const [tabIndex, setTabIndex] = useState(0);
 
     // System settings
-    const [appSystemSettingsLoaded, setAppSystemSettingsLoaded] = useState(false);
     const [appSystemSettings, setAppSystemSettings] = useState({});
     const [loginSystemSettings, setLoginSystemSettings] = useState({});
     const [appSettingsSystemSettings, setAppSettingsSystemSettings] = useState({});
     const [chatSystemSettings, setChatSystemSettings] = useState({});
-    const [noteSystemSettingsLoaded, setNoteSystemSettingsLoaded] = useState(false);
     const [noteSystemSettings, setNoteSystemSettings] = useState({});
 
     // Functionality settings

@@ -123,11 +123,9 @@ You always do your best to generate text in the same style as the context text p
     const userPromptWaiting = "Waiting for response...";
     const noteContentRef = useRef(null);
     const [contentDisabled, setContentDisabled] = useState(false);
-    const [promptDisabled, setPromptDisabled] = useState(false);
     const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady.current);
     const [menuPanelAnchorEl, setMenuPanelAnchorEl] = useState(null);
     const [noteContextMenu, setNoteContextMenu] = useState(null);
-    const [prompt, setPrompt] = useState("");
     const [folder, setFolder] = useState("notes");
     const [tags, setTags] = useState([]);
     const [bookmarked, setBookmarked] = useState(false);
@@ -313,14 +311,11 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     }, [windowMaximized]);
 
     const showReady = () => {
-        setPromptDisabled(false);
         setPromptPlaceholder(userPromptReady.current);
     }
 
     const showWaiting = () => {
-        setPromptDisabled(true);
         setPromptPlaceholder(userPromptWaiting);
-        setPrompt('');
     }
 
     const _save = () => {

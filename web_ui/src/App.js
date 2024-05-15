@@ -14,7 +14,7 @@ import useToken from './useToken';
 import { useEffect, useState } from 'react';
 import { CssBaseline, Box, AppBar, Toolbar, IconButton, Typography,
   Tooltip, Popover,
-   Button, Grid, ListItemIcon } from '@mui/material';
+   Button, Grid } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { styled } from '@mui/system';
 
@@ -28,7 +28,6 @@ import AddCommentIcon from '@mui/icons-material/AddComment';
 import PersonIcon from '@mui/icons-material/Person';
 import TuneIcon from '@mui/icons-material/Tune';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
-import QuestionAnswerOutlinedIcon from '@mui/icons-material/QuestionAnswerOutlined';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -81,7 +80,6 @@ const App = () => {
   const [scriptsOpen, setScriptsOpen] = useState(true);
   const [chatsPinned, setChatsPinned] = useState(false);
   const [scriptsPinned, setScriptsPinned] = useState(false);
-  const [promptTemplatesPinned, setPromptTemplatesPinned] = useState(false);
   const [personasOpen, setPersonasOpen] = useState(false);
   const [personasPinned, setPersonasPinned] = useState(false);
   const [modelSettingsOpen, setModelSettingsOpen] = useState(false);
