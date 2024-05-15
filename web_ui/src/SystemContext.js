@@ -22,6 +22,12 @@ export const SystemProvider = ({ serverUrl, setStatusUpdates, setModalDialogInfo
     return dateTimeString;
   };
 
+  const _userTimeString = () => {
+    const now = new Date();
+    const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    return timeString;
+  }
+
   const _dayOfWeek = () => {
     const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const now = new Date();
@@ -85,6 +91,7 @@ export const SystemProvider = ({ serverUrl, setStatusUpdates, setModalDialogInfo
     },
     dateTimeString: _dateTimeString,
     userDateTimeString: _userDateTimeString,
+    userTimeString: _userTimeString,
     dayOfWeek: _dayOfWeek
   });
 

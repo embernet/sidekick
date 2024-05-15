@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect, Fragment } from 'react';
-import { Tooltip, Paper, Typography, Popover, Button, List, ListItem, ListItemText } from '@mui/material';
+import { Tooltip, Paper,IconButton, Typography, Popover, Button, List, ListItem, ListItemText } from '@mui/material';
 import { useContext } from 'react';
 import { SystemContext } from './SystemContext';
 
 import { grey, red, orange, blue } from '@mui/material/colors';
+import HistoryIcon from '@mui/icons-material/History';
 
 const StatusBar = ({ statusUpdates, darkMode, persona, modelSettings,
 modelSettingsOpen, toggleModelSettingsOpen,
@@ -13,6 +14,7 @@ personasOpen, togglePersonasOpen, isMobile }) => {
     const [dateTimeString, setDateTimeString] = useState('');
     const [popoverOpen, setPopoverOpen] = useState(false);
     const statusRef = useRef();
+    const messageRef = useRef();
 
     const statusColor = (status) => {
         switch (status) {
@@ -38,26 +40,35 @@ personasOpen, togglePersonasOpen, isMobile }) => {
           return () => clearTimeout(timer);
         }
       }, [statusUpdates]);
-    
+
+    const displayDateTimeString = () => {
+        return isMobile ? system.userTimeString() : system.userDateTimeString();
+    };
+
     useEffect(() => {
     if (!displayMessage) {
-        setDateTimeString(system.userDateTimeString());
+        setDateTimeString(displayDateTimeString());
         const timer = setInterval(() => {
-            setDateTimeString(system.userDateTimeString());
+            setDateTimeString(displayDateTimeString());
         }, 10000); // Update every 10 seconds
 
         return () => clearInterval(timer);
     }
     }, [displayMessage]);
 
-    const handleClose = () => {
+    const handleCloseLogPopover = () => {
         setPopoverOpen(false);
         document.removeEventListener('keydown', handleEscape);
       };
       
+      const handleCloseMessagePopover = () => {
+        setDisplayMessage('');
+      };
+      
     const handleEscape = (event) => {
     if (event.key === 'Escape') {
-        handleClose();
+        handleCloseLogPopover();
+        handleCloseMessagePopover();
     }
     };
 
@@ -71,25 +82,28 @@ personasOpen, togglePersonasOpen, isMobile }) => {
     return (
         <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1,
             backgroundColor: darkMode ? grey[900] : grey[100] }}>
+            {
+                statusUpdates.length ?
+                    <Button ref={statusRef} onClick={handleStatusClick} variant="outlined" size="small" color="primary" sx={{ padding: 0, minWidth: 26 }}>
+                        <HistoryIcon fontSize="small" style={{ color: statusColor(statusUpdates.length && statusUpdates[statusUpdates.length - 1].type) }} />
+                    </Button>
+                : null
+            }
             <Button id="status-button-log" variant={statusUpdates.length > 0 ? "outlined" : "text"}
                 size="small" color="primary"
-                sx={{ fontSize: "0.8em", textTransform: 'none', width: isMobile ? "100%" : "auto" }} onClick={handleStatusClick}>
+                sx={{ fontSize: "0.8em", textTransform: 'none', width: isMobile ? "40px" : "auto", minWidth: 40 }}>
                 <Typography variant="caption" component="span"
-                    sx={{ cursor: statusUpdates.length > 0 ? 'pointer' : 'default', margin: '2px', padding: '2px', borderRadius: '4px', width: '100%' }}
-                    ref={statusRef}
-                    style={{ color: displayMessage !== ''
-                            ? statusColor(statusUpdates.length && statusUpdates[statusUpdates.length - 1].type)
-                            : "primary"
-                    }}
+                    ref={messageRef}
+                    style={{ color: "primary" }}
                 >
-                    {displayMessage !== '' ? displayMessage : dateTimeString}
+                    {dateTimeString}
                 </Typography>
             </Button>
             <Popover
                 open={popoverOpen}
                 anchorEl={statusRef.current}
-                onClose={handleClose}
-                onClick={handleClose}
+                onClose={handleCloseLogPopover}
+                onClick={handleCloseLogPopover}
                 anchorOrigin={{
                 vertical: 'top',
                 horizontal: 'left',
@@ -99,7 +113,7 @@ personasOpen, togglePersonasOpen, isMobile }) => {
                 horizontal: 'left',
                 }}
                 sx={{width: isMobile ? "100%" : "auto"}}
-            >
+                >
                 <List dense>
                 {statusUpdates.map((msg, index) => (
                     <ListItem key={index}>
@@ -110,19 +124,45 @@ personasOpen, togglePersonasOpen, isMobile }) => {
                 ))}
                 </List>
             </Popover>
-            { !isMobile && persona && 
+            <Popover
+                open={displayMessage !== ''}
+                anchorEl={messageRef.current}
+                onClose={handleCloseMessagePopover}
+                onClick={handleCloseMessagePopover}
+                anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'left',
+                }}
+                transformOrigin={{
+                vertical: 'bottom',
+                horizontal: 'left',
+                }}
+                sx={{width: isMobile ? "100%" : "auto"}}
+                >
+                <Typography variant="caption" component="span"
+                    sx={{ cursor: statusUpdates.length > 0 ? 'pointer' : 'default', margin: '2px', padding: '2px', borderRadius: '4px', width: '100%' }}
+                    ref={messageRef}
+                    style={{ color: displayMessage !== ''
+                            ? statusColor(statusUpdates.length && statusUpdates[statusUpdates.length - 1].type)
+                            : "primary"
+                    }}
+                >
+                    {displayMessage}
+                </Typography>
+            </Popover>
+            { persona && 
                 <Tooltip title={
                         "Selected AI persona" + (personasOpen ? " (click to hide Persona Explorer)" : " (click to show Persona Explorer)")
                 }>
                     <Button id="status-button-personas" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={togglePersonasOpen}>
                         <Typography variant="caption" component="span"
-                            sx={{ margin: '2px', padding: '2px', borderRadius: '4px', whiteSpace: 'nowrap', display: 'inline-block' }}>
+                            sx={{ margin: '2px', padding: '2px', borderRadius: '4px', whiteSpace: 'nowrap', display: 'inline-block', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {persona.name}
                         </Typography>
                     </Button>
                 </Tooltip>
             }
-            {  !isMobile && modelSettings?.request && modelSettings?.request?.model &&
+            {  modelSettings?.request && modelSettings?.request?.model &&
                 <Tooltip title={ 
                     <Fragment>
                         <pre>
@@ -134,7 +174,7 @@ personasOpen, togglePersonasOpen, isMobile }) => {
                     }>
                     <Button id="status-button-model-settings" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={toggleModelSettingsOpen}>
                         <Typography variant="caption" component="span"
-                            sx={{ margin: '2px', padding: '2px', borderRadius: '4px', whiteSpace: 'nowrap', display: 'inline-block' }}>
+                            sx={{ margin: '2px', padding: '2px', borderRadius: '4px', whiteSpace: 'nowrap', display: 'inline-block', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {modelSettings.asShortText}
                         </Typography>
                     </Button>
