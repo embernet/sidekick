@@ -6,7 +6,7 @@ name = "pypi"
 [packages]
 bcrypt = "==4.0.1"
 flask = "==2.3.3"
-flask-cors = "==4.0.0"
+flask-cors = "==4.0.1"
 flask-jwt-extended = "==4.5.3"
 flask-migrate = "==4.0.5"
 flask-oidc = "==2.1.0"
