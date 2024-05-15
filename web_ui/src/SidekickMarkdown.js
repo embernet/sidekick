@@ -3,16 +3,29 @@ import SyntaxHighlighter from 'react-syntax-highlighter';
 import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import ReactMarkdown from 'react-markdown';
 import { ClassNames } from "@emotion/react";
-import { useContext } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { Card, Toolbar, Typography, Box, IconButton } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { SystemContext } from './SystemContext';
 import { memo } from 'react';
 import MermaidDiagram from './MermaidDiagram';
 import { v4 as uuidv4 } from 'uuid';
+import { use } from 'marked';
 
 const SidekickMarkdown = memo(({ markdown }) => {
     const system = useContext(SystemContext);
+    const [myMarkdown, setMyMarkdown] = useState(null);
+    const [myRenderedMarkdown, setMyRenderedMarkdown] = useState(null);
+
+    useEffect(() => {
+        setMyMarkdown(markdown);
+    }, [markdown]);
+
+    useEffect(() => {
+        if (myMarkdown) {
+            setMyRenderedMarkdown(renderMarkdown(myMarkdown));
+        }
+    }, [myMarkdown]);
 
     const renderMarkdown = (markdown) => {
         try {
@@ -64,10 +77,7 @@ const SidekickMarkdown = memo(({ markdown }) => {
             return <Typography sx={{ width: "100%", whiteSpace: 'pre-wrap' }}>{markdown}</Typography>;
         }
     };
-    if (!markdown) {
-        return null;
-    }
-    const result = renderMarkdown(markdown);
+    const result = myRenderedMarkdown ? myRenderedMarkdown : null;
     return (result);
 });
 

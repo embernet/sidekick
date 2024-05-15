@@ -43,12 +43,14 @@ const Note = ({noteOpen, setNoteOpen, appendNoteContent, loadNote, createNote, d
     setNewPromptPart, setNewPrompt, setChatRequest, onChange, setOpenNoteId, 
     modelSettings, persona, serverUrl, token, setToken, maxWidth, isMobile}) => {
 
+    const panelWindowRef = useRef(null);
+    const [notePanelKey, setNotePanelKey] = useState(Date.now()); // used to force re-renders
+
     const StyledToolbar = styled(Toolbar)(({ theme }) => ({
         backgroundColor: darkMode ? green[900] : green[300],
         marginRight: theme.spacing(2),
     }));
     
-    const panelWindowRef = useRef(null);
     const newNoteName = "New Note";
     const systemPrompt = `You are DocumentGPT.
 You take CONTEXT_TEXT from a document along with a REQUEST to generate more text to include in the document.
@@ -143,6 +145,7 @@ You always do your best to generate text in the same style as the context text p
     const noteInstantiated = useRef(false);
     const [renameInProcess, setRenameInProcess] = useState(false);
     const [timeToSave, setTimeToSave] = useState(false);
+    const [noteContentBuffer, setNoteContentBuffer] = useState("");
 
 
     useEffect(() => {
@@ -155,6 +158,7 @@ You always do your best to generate text in the same style as the context text p
     const setContent = (text) => {
         if (noteContentRef.current) {
             noteContentRef.current.innerText = text;
+            setNoteContentBuffer(text);
             noteInstantiated.current = true;
             if (saveStatus.current === "saved") {
                 saveStatus.current = "changed";
@@ -213,7 +217,9 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     };
 
     useEffect(()=>{
-        if(pageLoaded && appendNoteContent.content !== "" && noteContentRef?.current) {
+        if (markdownRenderingOn) {
+            system.warning("Note is now in markdown rendering mode. To enable edit, turn this off by clicking the markdown icon in the toolbar.");
+        } else if (pageLoaded && appendNoteContent.content !== "" && noteContentRef?.current) {
             setNoteOpen({id: id, timestamp: Date.now()}); // to scroll the note into view if its off the screen
             let newNotePart = appendNoteContent.content.trim();
             if(typeof newNotePart === "string") {
@@ -814,7 +820,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         </Box>
     );
 
-    const render = <Card id="note-panel" ref={panelWindowRef}
+    const render = <Card id="note-panel" ref={panelWindowRef} key={notePanelKey}
                     sx={{display: "flex", flexDirection: "column", padding: "6px", margin: "6px", height: "calc(100%-64px)", 
                         width: isMobile ? `${window.innerWidth}px` : (windowMaximized ? "calc(100vw - 12px)" : null),
                         minWidth: isMobile ? `${window.innerWidth}px` : "500px",
@@ -869,7 +875,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         >
             { markdownRenderingOn &&
                     <Box sx={{ height: "fit-content", padding: "6px" }}>
-                        <SidekickMarkdown markdown={noteContentRef.current.innerText}/>
+                        <SidekickMarkdown markdown={noteContentBuffer}/>
                     </Box>
             }
             <div
