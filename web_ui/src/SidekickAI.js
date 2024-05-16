@@ -125,7 +125,7 @@ const SidekickAI = ({
             setSidekickManual(manualData);
             setSidekickPromptEngineeringGuide(guideData);
             setSideKickAIGuide(aiData);
-            setSystemPrompt(sidekickAISystemPrompt + "\nHere is the sidekick manual:\n" + sideKickAIGuide);
+            setSystemPrompt(sidekickAISystemPrompt + "\nHere is the sidekick manual:\n" + aiData);
           }).catch(error => console.error(error));
         setMessages([]);
         setSidekickAIPrompt("");
