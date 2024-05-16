@@ -95,24 +95,85 @@ The Chat Prompt Editor lets you edit the prompt before sending it to the AI. You
 
 When clicking on the prompt editor menu and selecting a prompt, you can press and hold the Alt key to put the prompt into the editor without running it so you can update it. When navigating the menus from the keyboard after pressing "/" in an empty prompt to open the menu, using right arrow on a template will place it in the editor. Clicking or pressing enter will run the template immediately, hence applying it to the content of the chat.
 
-<img src="docs/images/Sidekick_Chat_Prompt_Editor_Menu.png" alt="Sidekick Chat prompt editor menu" width="418"/>
+## Prompts for methodologies and techniques
 
-This includes built-in prompts for a wide range of creativity and analysis methodologies and techniques along with questions to help with exploration of ideas and generating insights.
+Clicking on the menu in the Prompt Editor, or pressing "/" in an empty prompt will open a menu of commands, tools, and templates.
 
-Creativity methods:
+Prompt Library (providing prompts or various methodologies and techniques) includes the following:
 
-![alt text](docs/images/Sidekick_Chat_Prompts_Creativity_Menu.png)
-<img src="docs/images/Sidekick_Chat_Prompts_Creativity_Menu.png" alt="Sidekick Chat prompt creativity methods menu" width="418"/>
+- Exploration
+  - A list of questions designed to help you explore a topic
+- Analysis methods
+  - Balanced Scorecard
+  - Benefits Analysis
+  - Business Model Canvas
+  - Competitive Analysis
+  - Design Thinking
+  - Failure Mode Effects Analyusis (FMEA)
+  - Gap Analysis
+  - Kano Model Analysis
+  - Market Entry Strategy
+  - MoSCoW Prioritisation
+  - PEST Analysis
+  - Porters Five Forces
+  - Root Cause Analysiss
+  - SMART Goals
+  - Six Thinking Hats
+  - Stakeholder Analysis
+  - SWOT Analysis
+  - Value Chain Analysis
+  - VPEC-T Analysis
+  - Wardley Mapping
+  - What If Analysis
+  - Why-Why Analysis
+- Creativity methods
+  - Ansoff Matrix
+  - SCAMPER
+  - Mind Mapping
+  - Brainwriting
+  - Six Thinking Hats
+  - Five Whys
+  - Storyboarding
+  - Analogical Thinking
+  - Attribute Listing
+  - TRIZ
+  - Random Input
+  - Forced Association
+  - Lotus Blossom
+  - Reverse Thinking
+  - Future Scenarios
+  - Provocation
+  - Role Storming
+  - Wishful Thinking
+  - Checklists
+  - Morphological Analysis
+  - Boundary Relaxation
+- Insights
+  - A list of questions designed to help you gain insights into a topic
 
-Analysis methods:
+You can access the prompt library methods and commands from the prompt editor menu or by pressing "/" in an empty prompt.
 
-<img src="doc/images/Sidekick_Chat_Prompts_Analysis_Menu.png" alt="Sidekick Chat prompt analysis methods menu" width="418"/>
+## Diagrams
 
-## Mermaid diagrams
+The diagram prompts instruct the AI to create mermaid markdown diagrams that Sidekick then renders. You can develop these diagrams further conversationally by saying how you want them modified.
 
-Mermaid diagrams can be created in the Chat Prompt Editor from the Prompts, Diagrams menu.  command followed by the mermaid diagram definition. The diagram will be rendered in the chat window.
+Diagrams include:
 
-<img src="docs/images/Sidekick_Chat_Diagrams_Menu.png" alt="Sidekick Diagrams Menu" width="418"/>
+- Flowchart
+- Mind Map
+- Use Case Diagram
+- Functional Decomposition Diagram
+- Sequence Diagram
+- Class Diagram
+- Perimeter Diagram
+- Entity Relationship Diagram
+- State Diagram
+- Timeline
+- Gantt Chart
+
+You can also use these as a basis for describing your own dirgam types within the limitations of what mermaid supports.
+You can access diagram prompts from the prompt editor menu or by pressing "/" in an empty prompt.
+
 
 ## Pick from different AI personas
 
