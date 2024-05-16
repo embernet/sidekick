@@ -99,8 +99,14 @@ When clicking on the prompt editor menu and selecting a prompt, you can press an
 
 This includes built-in prompts for a wide range of creativity and analysis methodologies and techniques along with questions to help with exploration of ideas and generating insights.
 
+Creativity methods:
+
 ![alt text](docs/images/Sidekick_Chat_Prompts_Creativity_Menu.png)
 <img src="docs/images/Sidekick_Chat_Prompts_Creativity_Menu.png" alt="Sidekick Chat prompt creativity methods menu" width="418"/>
+
+Analysis methods:
+
+<img src="doc/images/Sidekick_Chat_Prompts_Analysis_Menu.png" alt="Sidekick Chat prompt analysis methods menu" width="418"/>
 
 ## Mermaid diagrams
 

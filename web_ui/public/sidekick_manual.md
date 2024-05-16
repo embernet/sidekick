@@ -123,6 +123,85 @@ Return to [Sidekick Tools](#sidekick-tools)
   - Delete a message
   - Delete all messages in the chat
 - The chat history is saved in the Sidekick database
+- Prompt Editor
+  - Methodologies and techniques
+  - Diagrams (to create mermaid diagrams)
+
+### Chat Prompt Editor
+
+The prompt editor has a menu to access chat commands, a prompt library, diagrams and more. You can access this by clicking on the menu icon in the prompt editoror you can press "/" in an empty prompt. Clicking or pressing enter on a template will run it against the chat. Alt clicking or pressing right cursor on a template will place it in the prompt editor for you to edit.
+
+#### Prompts for methodologies and techniques
+
+- Clicking on the menu in the Prompt Editor, or pressing "/" in an empty prompt will open a menu of commands, tools, and templates
+  - Prompt Library (providing prompts or various methodologies and techniques)
+    - Exploration
+    - Analysis methods
+      - Balanced Scorecard
+      - Benefits Analysis
+      - Business Model Canvas
+      - Competitive Analysis
+      - Design Thinking
+      - Failure Mode Effects Analyusis (FMEA)
+      - Gap Analysis
+      - Kano Model Analysis
+      - Market Entry Strategy
+      - MoSCoW Prioritisation
+      - PEST Analysis
+      - Porters Five Forces
+      - Root Cause Analysiss
+      - SMART Goals
+      - Six Thinking Hats
+      - Stakeholder Analysis
+      - SWOT Analysis
+      - Value Chain Analysis
+      - VPEC-T Analysis
+      - Wardley Mapping
+      - What If Analysis
+      - Why-Why Analysis
+    - Creativity methods
+      - Ansoff Matrix
+      - SCAMPER
+      - Mind Mapping
+      - Brainwriting
+      - Six Thinking Hats
+      - Five Whys
+      - Storyboarding
+      - Analogical Thinking
+      - Attribute Listing
+      - TRIZ
+      - Random Input
+      - Forced Association
+      - Lotus Blossom
+      - Reverse Thinking
+      - Future Scenarios
+      - Provocation
+      - Role Storming
+      - Wishful Thinking
+      - Checklists
+      - Morphological Analysis
+      - Boundary Relaxation
+    - Insights
+
+#### Diagrams
+
+The diagram prompts instruct the AI to create mermaid markdown diagrams that Sidekick then renders. You can develop these diagrams further conversationally by saying how you want them modified.
+
+Diagrams include:
+
+- Flowchart
+- Mind Map
+- Use Case Diagram
+- Functional Decomposition Diagram
+- Sequence Diagram
+- Class Diagram
+- Perimeter Diagram
+- Entity Relationship Diagram
+- State Diagram
+- Timeline
+- Gantt Chart
+
+You can also use these as a basis for describing your own dirgam types within the limitations of what mermaid supports.
 
 ### Chat Tips, Questions and Answers
 
