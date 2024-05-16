@@ -276,7 +276,7 @@ const SidekickAI = ({
             model_settings: {
                 provider: "OpenAI",
                 request: {
-                    model: "gpt-4",
+                    model: "gpt-4o",
                     temperature: 0.3,
                     top_p: 1,
                     presence_penalty: 0,
