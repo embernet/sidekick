@@ -12,6 +12,8 @@
   - [Chat with OpenAI GPT-4 or GPT-3.5-turbo](#chat-with-openai-gpt-4-or-gpt-35-turbo)
   - [Chat Prompt Templates](#chat-prompt-templates)
   - [Chat context menu](#chat-context-menu)
+  - [Chat Prompt Editor](#chat-prompt-editor)
+  - [Mermaid diagrams](#mermaid-diagrams)
   - [Pick from different AI personas](#pick-from-different-ai-personas)
   - [Ask again with different personas](#ask-again-with-different-personas)
   - [Syntax highlighting of code](#syntax-highlighting-of-code)
@@ -81,11 +83,30 @@ Right clicking on a message in the chat lets you copy it to the clipboard, copy 
 
 When text is selected, you can submit prompts provided in the **Selection Actions sub-menu** applied to that selection.
 
-![Sidekick chat selection actions context menu](docs/images/Sidekick_Chat_Selection_Actions_Context_Menu.png)
+![Sidekick chat selection actions context menu](docs/images/Sidekick_Chat_Context_Selection_Actions_Menu.png)
 
 The **Chat Actions sub-menu** provides actions that can be applied to the whole chat.
 
-![Sidekick chat actions context menu](docs/images/Sidekick_Chat_Actions_Context_Menu.png)
+![Sidekick chat actions context menu](docs/images/Sidekick_Chat_Context_Chat_Actions_Menu.png)
+
+## Chat Prompt Editor
+
+The Chat Prompt Editor lets you edit the prompt before sending it to the AI. You can use the prompt composer to build your prompt from a library of fragments, or you can use the prompt templates to get you started. The Prompt Editor has various commands and prompt templates available in its menu, which can also be accessed from the keyboard by pressing "/" when the prompt is empty.
+
+When clicking on the prompt editor menu and selecting a prompt, you can press and hold the Alt key to put the prompt into the editor without running it so you can update it. When navigating the menus from the keyboard after pressing "/" in an empty prompt to open the menu, using right arrow on a template will place it in the editor. Clicking or pressing enter will run the template immediately, hence applying it to the content of the chat.
+
+<img src="docs/images/Sidekick_Chat_Prompt_Editor_Menu.png" alt="Sidekick Chat prompt editor menu" width="418"/>
+
+This includes built-in prompts for a wide range of creativity and analysis methodologies and techniques along with questions to help with exploration of ideas and generating insights.
+
+![alt text](docs/images/Sidekick_Chat_Prompts_Creativity_Menu.png)
+<img src="docs/images/Sidekick_Chat_Prompts_Creativity_Menu.png" alt="Sidekick Chat prompt creativity methods menu" width="418"/>
+
+## Mermaid diagrams
+
+Mermaid diagrams can be created in the Chat Prompt Editor from the Prompts, Diagrams menu.  command followed by the mermaid diagram definition. The diagram will be rendered in the chat window.
+
+<img src="docs/images/Sidekick_Chat_Diagrams_Menu.png" alt="Sidekick Diagrams Menu" width="418"/>
 
 ## Pick from different AI personas
 

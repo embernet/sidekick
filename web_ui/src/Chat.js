@@ -1943,8 +1943,10 @@ const Chat = ({
             <ActionMenu name="Flowchart" prompt="Provide mermaid markdown for a flowchart for this"/>
             <ActionMenu name="Mind Map" prompt="Provide mermaid markdown for a mind map for this"/>
             <ActionMenu name="Use Case Diagram" prompt="Provide mermaid markdown for a use case diagram based on a left to right flowchart diagram that uses stadium-shaped nodes by wrapping the node names in round and square brackets ([node name]) for this"/>
+            <ActionMenu name="Functional Decomposition Diagram" prompt="Provide mermaid markdown for a functional decomposition diagram showing functions as boxes. Sub-functions  of each function should be shown as subgraphs in their own boxes inside the box for the function they belong to for this"/>
             <ActionMenu name="Sequence Diagram" prompt="Provide mermaid markdown for a sequence diagram for this"/>
             <ActionMenu name="Class Diagram" prompt="Provide mermaid markdown for a class diagram for this"/>
+            <ActionMenu name="Perimeter Diagram" prompt="Provide mermaid markdown for a perimeter diagram showing the perimeter as a box with a dashed line and the components of the system inside connected via firewall to systems outside the perimeter for this"/>
             <ActionMenu name="Entity Relationship Diagram" prompt="Provide mermaid markdown for an entity relationship diagram for this"/>
             <ActionMenu name="State Diagram" prompt="Provide mermaid markdown for a state diagram for this"/>
             <ActionMenu name="Timeline" prompt="Provide mermaid markdown for a timeline for this"/>
