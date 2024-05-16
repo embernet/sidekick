@@ -38,6 +38,8 @@ Sidekick provides a chat interface to OpenAI's GPT models along with pre-canned 
 - To clear the prompt box: When in the prompt box, press the Escape key
 - To create a new chat: Click the New Chat icon in the Chat main Toolbar
 - To turn code syntax highlighting on or off: Click the Code Highlighting icon in the Chat main Toolbar
+- Bookmark a chat with the bookmark button on the toolbar
+- Star a chat with the star button on the toolbar
 - Prompt Editor
   - Methodologies and techniques
   - Diagrams (to create mermaid diagrams)
@@ -93,6 +95,7 @@ The prompt editor has a menu to access chat commands, a prompt library, diagrams
 - Clicking on the menu in the Prompt Editor, or pressing "/" in an empty prompt will open a menu of commands, tools, and templates
   - Prompt Library (providing prompts or various methodologies and techniques)
     - Exploration
+      - A list of questions designed to help you explore a topic
     - Analysis methods
       - Balanced Scorecard
       - Benefits Analysis
@@ -139,6 +142,10 @@ The prompt editor has a menu to access chat commands, a prompt library, diagrams
       - Morphological Analysis
       - Boundary Relaxation
     - Insights
+      - A list of questions designed to help you gain insights into a topic
+
+You can access the prompt library methods and commands from the prompt editor menu or by pressing "/" in an empty prompt.
+
 
 #### Diagrams
 
@@ -159,6 +166,7 @@ Diagrams include:
 - Gantt Chart
 
 You can also use these as a basis for describing your own dirgam types within the limitations of what mermaid supports.
+You can access diagram prompts from the prompt editor menu or by pressing "/" in an empty prompt.
 
 ### Chat Tips, Questions and Answers
 
@@ -174,7 +182,7 @@ You can also use these as a basis for describing your own dirgam types within th
 ### Chat Explorer Features
 
 - Lists the chats you have created
-- Filter chats by name
+- Filter chats by name, bookmarked, or starred
 - Click on a chat to open it
 - Bulk delete chats by filtering and clicking the trashcan button next to the filter text
 
@@ -283,6 +291,8 @@ To favorite or unfavorite an AI Persona, click the heart icon next to the person
 - Create and edit notes
 - Collect the best parts of your chats by right clicking on a message in the chat and selecting "Append message to note"
 - Copy your entire chat to a note by right clicking on a message in the chat and selecting "Append all to note"
+- Bookmark a note by clicking the bookmark button in the toolbar
+- Star a note by clicking the star button in the toolbar
 - Right click on a note in the Notes window to copy the note to the clipboard, or use in chat input
 - The primary toolbar at the top of the note provides the following functions:
   - "New Note" 
@@ -312,7 +322,7 @@ To favorite or unfavorite an AI Persona, click the heart icon next to the person
 ### Notes Explorer Features
 
 - Lists the notes you have created
-- Filter notes by name
+- Filter notes by name, bookmarked, or starred
 - Click on a note to open it
 - Bulk delete notes by filtering and clicking the trashcan button next to the filter text
 

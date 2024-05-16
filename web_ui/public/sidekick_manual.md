@@ -123,9 +123,45 @@ Return to [Sidekick Tools](#sidekick-tools)
   - Delete a message
   - Delete all messages in the chat
 - The chat history is saved in the Sidekick database
+- Bookmark a chat with the bookmark button on the toolbar
+- Star a chat with the star button on the toolbar
 - Prompt Editor
   - Methodologies and techniques
   - Diagrams (to create mermaid diagrams)
+- Right clicking on a message in the chat lets you:
+  - Copy the message to the clipboard as text
+  - Copy the message to the clipboard as HTML
+  - Run Actions against the whole Chat
+    - Continue
+    - Summarise
+    - Summarise key points as bullets
+    - Provide more detail
+    - Explain in simple terms
+    - Explain in detail
+    - Give the background and history
+    - Predict future outcomes or scenarios this could lead to
+    - Answer What are the implications of this?
+    - Answer What questions does this give rise to?
+    - Answer What are the pros and cons of this?
+    - List related topics
+    - List related trends
+    - Answer How can this help me?
+    - Answer How might this hinder me
+  - Run Actions against the selected text
+    - Define
+    - Explain in simple terms
+    - Explain in detail
+    - Provide synonyms for
+    - Provide antonyms for
+    - Give examples of
+    - Give counter-examples of
+    - Give arguments for
+    - Give counter-arugments for
+    - Provide history for
+    - List related topics to
+    - List trends related to
+    - Answer How can this help me?
+    - Answer How might this hinder me?
 
 ### Chat Prompt Editor
 
@@ -136,6 +172,7 @@ The prompt editor has a menu to access chat commands, a prompt library, diagrams
 - Clicking on the menu in the Prompt Editor, or pressing "/" in an empty prompt will open a menu of commands, tools, and templates
   - Prompt Library (providing prompts or various methodologies and techniques)
     - Exploration
+      - A list of questions designed to help you explore a topic
     - Analysis methods
       - Balanced Scorecard
       - Benefits Analysis
@@ -182,6 +219,10 @@ The prompt editor has a menu to access chat commands, a prompt library, diagrams
       - Morphological Analysis
       - Boundary Relaxation
     - Insights
+      - A list of questions designed to help you gain insights into a topic
+
+You can access the prompt library methods and commands from the prompt editor menu or by pressing "/" in an empty prompt.
+
 
 #### Diagrams
 
@@ -202,6 +243,8 @@ Diagrams include:
 - Gantt Chart
 
 You can also use these as a basis for describing your own dirgam types within the limitations of what mermaid supports.
+You can access diagram prompts from the prompt editor menu or by pressing "/" in an empty prompt.
+
 
 ### Chat Tips, Questions and Answers
 
@@ -336,6 +379,8 @@ Return to [Sidekick Tools](#sidekick-tools)
 - Create and edit notes
 - Collect the best parts of your chats by right clicking on a message in the chat and selecting "Append message to note"
 - Copy your entire chat to a note by right clicking on a message in the chat and selecting "Append all to note"
+- Bookmark a note by clicking the bookmark button in the toolbar
+- Star a note by clicking the star button in the toolbar
 - Right click on a note in the Notes window to:
   - "Copy" - Copy the note to the clipboard as text
   - "Copy as HTML" - Copy the note to the clipboard as HTML
