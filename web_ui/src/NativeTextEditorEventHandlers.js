@@ -5,8 +5,6 @@
 // NativeTextEditor is a simple editable div with its own event handling.
 // It can support much larger input sizes without introducing unacceptable lag to the UX.
 
-import { grey } from '@mui/material/colors';
-
 export default class NativeTextEditorEventHandlers {
     constructor({hotkeyHandlers}) {
         this.hotkeyHandlers = hotkeyHandlers;

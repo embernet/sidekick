@@ -10,7 +10,7 @@ Function:
     Cell types are: Text (ScriptText component), List (ScriptList component), Prompt (ScriptPrompt component)
     When a cell type is selected, the corresponding component is rendered.
 */
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { memo } from 'react';
 import { debounce } from "lodash";
 import { Card, Box, FormControl, Select, InputLabel, Tooltip, IconButton, MenuItem } from '@mui/material';
