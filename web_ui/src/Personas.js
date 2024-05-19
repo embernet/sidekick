@@ -65,7 +65,11 @@ const Personas = ({onClose, persona, setPersona, setFocusOnPrompt, personasOpen,
     useEffect(()=>{
         mySettingsManager.loadSettings("personas",
             (data) => {
-                setMyPersonas(data.personas);
+                const sortedPersonas = Object.entries(data.personas)
+                .map(([key, value]) => ({ name: key, ...value }))
+                .sort((a, b) => a.name.localeCompare(b.name));
+                setMyPersonas(sortedPersonas);
+                
                 const defaultPersona = Object.entries(data.personas).reduce((acc, [key, value]) => {
                     if (value.default) {
                         acc = { name: key, ...value };
