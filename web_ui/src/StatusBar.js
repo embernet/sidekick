@@ -14,7 +14,6 @@ personasOpen, togglePersonasOpen, isMobile }) => {
     const [dateTimeString, setDateTimeString] = useState('');
     const [popoverOpen, setPopoverOpen] = useState(false);
     const statusRef = useRef();
-    const messageRef = useRef();
 
     const statusColor = (status) => {
         switch (status) {
@@ -93,7 +92,6 @@ personasOpen, togglePersonasOpen, isMobile }) => {
                 size="small" color="primary"
                 sx={{ fontSize: "0.8em", textTransform: 'none', width: isMobile ? "40px" : "auto", minWidth: 40 }}>
                 <Typography variant="caption" component="span"
-                    ref={messageRef}
                     style={{ color: "primary" }}
                 >
                     {dateTimeString}
@@ -126,7 +124,7 @@ personasOpen, togglePersonasOpen, isMobile }) => {
             </Popover>
             <Popover
                 open={displayMessage !== ''}
-                anchorEl={messageRef.current}
+                anchorEl={statusRef.current}
                 onClose={handleCloseMessagePopover}
                 onClick={handleCloseMessagePopover}
                 anchorOrigin={{
@@ -141,7 +139,6 @@ personasOpen, togglePersonasOpen, isMobile }) => {
                 >
                 <Typography variant="caption" component="span"
                     sx={{ cursor: statusUpdates.length > 0 ? 'pointer' : 'default', margin: '2px', padding: '2px', borderRadius: '4px', width: '100%' }}
-                    ref={messageRef}
                     style={{ color: displayMessage !== ''
                             ? statusColor(statusUpdates.length && statusUpdates[statusUpdates.length - 1].type)
                             : "primary"
