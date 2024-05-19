@@ -68,7 +68,14 @@ const Personas = ({onClose, persona, setPersona, setFocusOnPrompt, personasOpen,
                 const sortedPersonas = Object.entries(data.personas)
                 .map(([key, value]) => ({ name: key, ...value }))
                 .sort((a, b) => a.name.localeCompare(b.name));
-                setMyPersonas(sortedPersonas);
+                
+                const sortedPersonasObject = sortedPersonas.reduce((obj, persona) => {
+                    obj[persona.name] = persona;
+                    delete obj[persona.name].name;
+                    return obj;
+                }, {});
+                
+                setMyPersonas(sortedPersonasObject);
                 
                 const defaultPersona = Object.entries(data.personas).reduce((acc, [key, value]) => {
                     if (value.default) {
