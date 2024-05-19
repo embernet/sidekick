@@ -363,19 +363,39 @@ const SidekickAI = ({
         return text;
     }
 
+    const handleCopyAll = () => {
+        let markdown = messagesAs("markdown");
+        sidekickClipboard.write({
+            html: new ContentFormatter(markdown).asHtml(),
+            sidekickObject: { markdown: markdown },
+        })
+        setMessageContextMenu(null);
+    };
+
+    const handleCopyMessage = () => {
+        sidekickClipboard.write({
+            html: new ContentFormatter(messageContextMenu.message.content).asHtml(),
+            sidekickObject: { markdown: messageContextMenu.message.content },
+        })
+        setMessageContextMenu(null);
+    };
+
     const handleCopyAllAsText = () => {
         sidekickClipboard.writeText(messagesAs("text"));
         setMessageContextMenu(null);
     };
 
     const handleCopyMessageAsHTML = () => {
-        new ContentFormatter(messageContextMenu.message.content).copyAsHtml();
+        sidekickClipboard.writeText(
+            new ContentFormatter(messageContextMenu.message.content).asHtml()
+        );
         setMessageContextMenu(null);
     };
 
     const handleCopyAllAsHTML = () => {
-        let html = messagesAs("markdown");
-        new ContentFormatter(html).copyAsHtml();
+        let markdown = messagesAs("markdown");
+        let html = new ContentFormatter(markdown).asHtml();
+        sidekickClipboard.writeText(html);
         setMessageContextMenu(null);
     };
 
@@ -549,6 +569,8 @@ const SidekickAI = ({
                                                 : undefined
                                             }
                                         >
+                                            <MenuItem onClick={handleCopyMessage}>Copy message</MenuItem>
+                                            <MenuItem onClick={handleCopyAll}>Copy all messages</MenuItem>
                                             <MenuItem onClick={handleCopyMessageAsText}>Copy message as text</MenuItem>
                                             <MenuItem onClick={handleCopyAllAsText}>Copy all as text</MenuItem>
                                             <MenuItem onClick={handleCopyMessageAsHTML}>Copy message as html</MenuItem>

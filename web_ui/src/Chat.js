@@ -524,7 +524,10 @@ const Chat = ({
 
     useEffect(()=>{
         if (newPromptPart?.text) {
-            if (!chatOpen) { setChatOpen(Date.now()); }
+            if (!chatOpen) {
+                system.warning("Please open a chat to add to its prompt.");
+                return;
+             }
             if (streamingChatResponse !== "") {
                 system.warning("Please wait for the current chat to finish loading before adding a prompt part.");
             } else {
@@ -557,6 +560,10 @@ const Chat = ({
     }, [newPromptTemplate]);
 
     useEffect(()=>{
+        if (!chatOpen) {
+            system.warning("Please open a chat to set its prompt.");
+            return;
+        }
         if (newPrompt?.text) {
             setChatPrompt(newPrompt.text);
             setPromptFocus();
@@ -1304,14 +1311,34 @@ const Chat = ({
         setMenuMessageContext(null);
     };
 
+    const handleCopyAll = () => {
+        let markdown = messagesAs("markdown");
+        sidekickClipboard.write({
+            html: new ContentFormatter(markdown).asHtml(),
+            sidekickObject: { markdown: markdown },
+        });
+        setMenuMessageContext(null);
+    };
+
+    const handleCopyMessage = () => {
+        sidekickClipboard.write({
+            html: new ContentFormatter(menuMessageContext.message.content).asHtml(),
+            sidekickObject: { markdown: menuMessageContext.message.content },
+        });
+        setMenuMessageContext(null);
+    };
+
     const handleCopyMessageAsHTML = () => {
-        new ContentFormatter(menuMessageContext.message.content).copyAsHtml();
+        sidekickClipboard.writeText(
+            new ContentFormatter(menuMessageContext.message.content).asHtml()
+        );
         setMenuMessageContext(null);
     };
 
     const handleCopyAllAsHTML = () => {
-        let html = messagesAs("markdown");
-        new ContentFormatter(html).copyAsHtml();
+        let markdown = messagesAs("markdown");
+        let html = new ContentFormatter(markdown).asHtml();
+        sidekickClipboard.writeText(html);
         setMenuMessageContext(null);
     };
 
@@ -1783,10 +1810,12 @@ const Chat = ({
                 onClick={handleCopyHighlightedText}>
                 Copy highlighted text
             </MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleCopyMessage}>Copy message</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleCopyAll}>Copy all messages</MenuItem>
             <MenuItem style={{ minHeight: '30px' }} onClick={handleCopyMessageAsText}>Copy message as text</MenuItem>
-            <MenuItem style={{ minHeight: '30px' }} onClick={handleCopyAllAsText}>Copy all as text</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleCopyAllAsText}>Copy all messages as text</MenuItem>
             <MenuItem style={{ minHeight: '30px' }} onClick={handleCopyMessageAsHTML}>Copy message as html</MenuItem>
-            <MenuItem style={{ minHeight: '30px' }} onClick={handleCopyAllAsHTML}>Copy all as html</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} onClick={handleCopyAllAsHTML}>Copy all messages as html</MenuItem>
             <MenuItem divider style={{ minHeight: '10px' }} />
             <MenuItem style={{ height: '30px' }} onClick={handleAppendToChatInput}>Append message to chat input</MenuItem>
             <MenuItem style={{ minHeight: '10px' }} onClick={handleUseAsChatInput}>Use message as chat input</MenuItem>

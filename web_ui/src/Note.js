@@ -611,7 +611,16 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         setNoteContextMenu(null);
     };
 
-    const handleCopySelectedText = () => {
+    const handleCopySelection = () => {
+        const markdown = noteContextMenu.selectedText;
+        sidekickClipboard.write({
+            html: new ContentFormatter(markdown).asHtml(),
+            sidekickObject: { markdown: markdown },
+        });
+        setNoteContextMenu(null);
+    };
+
+    const handleCopySelectionAsText = () => {
         const text = noteContextMenu.selectedText;
         sidekickClipboard.writeText(text);
         setNoteContextMenu(null);
@@ -624,13 +633,24 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     };
 
     const handleCopyNote = () => {
+        const markdown = noteContextMenu.note;
+        sidekickClipboard.write({
+            html: new ContentFormatter(markdown).asHtml(),
+            sidekickObject: { markdown: markdown },
+        });
+        setNoteContextMenu(null);
+    };
+
+    const handleCopyNoteAsText = () => {
         const selectedText = noteContextMenu.note;
         sidekickClipboard.writeText(selectedText);
         setNoteContextMenu(null);
     };
 
     const handleCopyNoteAsHTML = () => {
-        new ContentFormatter(noteContextMenu.note).copyAsHtml();
+        sidekickClipboard.writeText(
+            new ContentFormatter(noteContextMenu.note).asHtml()
+        );
         setNoteContextMenu(null);
     }
 
@@ -923,9 +943,11 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     : undefined
                 }
             >
-                <MenuItem disabled={!window.getSelection().toString()} onClick={handleCopySelectedText}>Copy selected text</MenuItem>
+                <MenuItem disabled={!window.getSelection().toString()} onClick={handleCopySelection}>Copy selection</MenuItem>
+                <MenuItem disabled={!window.getSelection().toString()} onClick={handleCopySelectionAsText}>Copy selection as text</MenuItem>
                 <MenuItem disabled={!window.getSelection().toString()} onClick={handleAppendSelectedTextToChatInput}>Append selected text to chat input</MenuItem>
                 <MenuItem onClick={handleCopyNote}>Copy note</MenuItem>
+                <MenuItem onClick={handleCopyNoteAsText}>Copy note as text</MenuItem>
                 <MenuItem onClick={handleCopyNoteAsHTML}>Copy note as html</MenuItem>
                 <MenuItem onClick={handleAppendNoteToChatInput}>Append note to chat input</MenuItem>
                 <MenuItem onClick={handleUseNoteAsChatInput}>Use note as chat input</MenuItem>

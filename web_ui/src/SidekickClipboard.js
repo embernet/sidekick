@@ -1,3 +1,17 @@
+// SidekickClipboard
+// This class is a wrapper around the Clipboard API that provides a way to copy and paste data to and from the clipboard.
+// It also maintains an internal clipboard for Sidekick objects.
+//
+// When copying to the system clipboard to provide another representation,
+// you can also provide a sideKickObject to provide an internal markdown represenattion, e.g.
+// sidekickClipboard.write({
+//     html: new ContentFormatter(menuMessageContext.message.content).asHtml(),
+//     sidekickObject: { markdown: menuMessageContext.message.content },
+// })
+//
+// When copying internal objects to be able to paste with semantic awareness,
+// you can also add a text or html representation to go into the system clipboard
+
 export default class SidekickClipboard {
     constructor() {
         // store the checksum of copy data to detect if the clipboard has been changed outside of the application
@@ -32,13 +46,29 @@ export default class SidekickClipboard {
     }
 
     //TODO make this an sidekickClipboardItem object that is passed in rather than a dictionary
-    write = async ({text, sidekickObject}) => {
+    write = async (sidekickClipboardItems) => {
+        // sidekickClipboardItems is a dictionary of the data to be copied to the clipboard
+        // Each item is a different representation of the same content
+        // It must include:
+        //   text
+        // It may include:
+        //   sidekickObject
+        //   html
         return new Promise((resolve, reject) => {
             try {
-                navigator.clipboard.writeText(text).then(() => {
-                    this._calculateChecksum(text).then((checksum) => {
+                let item;
+                if (sidekickClipboardItems?.html) {
+                    const htmlBlob = new Blob([sidekickClipboardItems.html], { type: 'text/html' });
+                    item = new ClipboardItem({ 'text/html': htmlBlob });
+                } else if (sidekickClipboardItems?.text) {
+                    const textBlob = new Blob([sidekickClipboardItems.text], { type: 'text/plain' });
+                    item = new ClipboardItem({ 'text/plain': textBlob });
+                }
+
+                navigator.clipboard.write([item]).then(() => {
+                    this._calculateChecksum(sidekickClipboardItems.text).then((checksum) => {
                         this.clipboardChecksum = checksum;
-                        this.sidekickClipboardObject = sidekickObject;
+                        this.sidekickClipboardObject = sidekickClipboardItems?.sidekickObject;
                         resolve();
                     }
                     ).catch(err => {
@@ -70,9 +100,7 @@ export default class SidekickClipboard {
         return new Promise((resolve, reject) => {
             navigator.clipboard.readText().then(text => {
                 this._calculateChecksum(text).then((systemClipboardChecksum) => {
-                    console.log("fubar", "Checksums", systemClipboardChecksum, this.clipboardChecksum, this.sidekickClipboardObject, text)
                     if (systemClipboardChecksum !== this.clipboardChecksum) {
-                        console.log("fubar", "Clipboard has changed outside of the application")
                         this.sidekickClipboardObject = undefined;
                         this.clipboardChecksum = undefined;
                     }
