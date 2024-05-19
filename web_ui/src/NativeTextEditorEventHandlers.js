@@ -6,7 +6,8 @@
 // It can support much larger input sizes without introducing unacceptable lag to the UX.
 
 export default class NativeTextEditorEventHandlers {
-    constructor({hotkeyHandlers}) {
+    constructor({sidekickClipboard, hotkeyHandlers}) {
+        this.sidekickClipboard = sidekickClipboard;
         this.hotkeyHandlers = hotkeyHandlers;
         this.markdownHotkeys = {
             'b': { insertBeforeSelection: '**', insertAfterSelection: '**' }, // bold
@@ -17,14 +18,18 @@ export default class NativeTextEditorEventHandlers {
         };
     }
     
-    onPaste = (event) => {
+    onPaste = async (event) => {
         event.preventDefault();
-        const text = event.clipboardData.getData('text/plain');
+        const clipboard = await this.sidekickClipboard.read();
         const selection = window.getSelection();
         if (!selection.rangeCount) return false;
         selection.deleteFromDocument();
         const range = selection.getRangeAt(0);
-        range.insertNode(document.createTextNode(text));
+        if (clipboard?.sidekickObject?.markdown) {
+            range.insertNode(document.createTextNode(clipboard.sidekickObject.markdown));
+        } else {
+            range.insertNode(document.createTextNode(clipboard?.text || ""));
+        }
         range.collapse(false);
     }
 

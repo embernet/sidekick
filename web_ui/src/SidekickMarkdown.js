@@ -6,13 +6,18 @@ import { ClassNames } from "@emotion/react";
 import { useContext, useState, useEffect } from 'react';
 import { Card, Toolbar, Typography, Box, IconButton } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+
 import { SystemContext } from './SystemContext';
+import { SidekickClipboardContext } from './SidekickClipboardContext';
+
 import { memo } from 'react';
 import MermaidDiagram from './MermaidDiagram';
 import { v4 as uuidv4 } from 'uuid';
 
 const SidekickMarkdown = memo(({ markdown }) => {
     const system = useContext(SystemContext);
+    const sidekickClipboard = useContext(SidekickClipboardContext);
+
     const [myMarkdown, setMyMarkdown] = useState(null);
     const [myRenderedMarkdown, setMyRenderedMarkdown] = useState(null);
 
@@ -47,8 +52,10 @@ const SidekickMarkdown = memo(({ markdown }) => {
                     <Toolbar className={ClassNames.toolbar}>
                         <Typography sx={{ mr: 2 }}>{language}</Typography>
                         <Box sx={{ display: "flex", width: "100%", flexDirection: "row", ml: "auto" }}>
-                            <IconButton edge="start" color="inherit" aria-label="menu"
-                            onClick={(event) => { navigator.clipboard.writeText(codeMarkdown); event.stopPropagation(); }}>
+                            <IconButton edge="start" color="inherit" aria-label="copy to clipboard"
+                            onClick={(event) => { (async () => {
+                                await sidekickClipboard.write({text: code, sidekickObject: { markdown: codeMarkdown }});
+                              })(); event.stopPropagation(); }}>
                             <ContentCopyIcon/>
                             </IconButton>
                         </Box>

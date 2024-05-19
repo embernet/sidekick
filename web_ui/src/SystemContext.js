@@ -4,6 +4,7 @@ import axios from 'axios';
 export const SystemContext = createContext();
 
 export const SystemProvider = ({ serverUrl, setStatusUpdates, setModalDialogInfo, children }) => {
+
   const _dateTimeString = () => {
     const now = new Date();
     const year = now.getFullYear().toString().slice(-2);
@@ -92,7 +93,7 @@ export const SystemProvider = ({ serverUrl, setStatusUpdates, setModalDialogInfo
     dateTimeString: _dateTimeString,
     userDateTimeString: _userDateTimeString,
     userTimeString: _userTimeString,
-    dayOfWeek: _dayOfWeek
+    dayOfWeek: _dayOfWeek,
   });
 
   return <SystemContext.Provider value={system}>{children}</SystemContext.Provider>;

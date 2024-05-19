@@ -20,6 +20,8 @@ import PushPinIcon from '@mui/icons-material/PushPin';
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 
 import { SystemContext } from './SystemContext';
+import { SidekickClipboardContext } from './SidekickClipboardContext';
+
 import ContentFormatter from './ContentFormatter';
 
 import { lightBlue, grey, blueGrey } from '@mui/material/colors';
@@ -29,6 +31,8 @@ const SidekickAI = ({
     windowPinnedOpen, setWindowPinnedOpen, darkMode,
     isMobile
     }) => {
+
+    const sidekickClipboard = useContext(SidekickClipboardContext);
 
     const panelWindowRef = useRef(null);
     const myId= uuidv4();
@@ -341,7 +345,7 @@ const SidekickAI = ({
     
     const handleCopyMessageAsText = () => {
         const selectedText = messageContextMenu.message.content;
-        navigator.clipboard.writeText(selectedText);
+        sidekickClipboard.writeText(selectedText);
         setMessageContextMenu(null);
     };
 
@@ -360,7 +364,7 @@ const SidekickAI = ({
     }
 
     const handleCopyAllAsText = () => {
-        navigator.clipboard.writeText(messagesAs("text"));
+        sidekickClipboard.writeText(messagesAs("text"));
         setMessageContextMenu(null);
     };
 

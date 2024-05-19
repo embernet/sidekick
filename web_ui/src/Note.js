@@ -34,6 +34,8 @@ import NativeTextEditorEventHandlers from './NativeTextEditorEventHandlers';
 
 
 import { SystemContext } from './SystemContext';
+import { SidekickClipboardContext } from './SidekickClipboardContext';
+
 import ContentFormatter from './ContentFormatter';
 import AI from './AI';
 import AIPromptResponse from './AIPromptResponse';
@@ -43,6 +45,7 @@ const Note = ({noteOpen, setNoteOpen, appendNoteContent, loadNote, createNote, d
     setNewPromptPart, setNewPrompt, setChatRequest, onChange, setOpenNoteId, 
     modelSettings, persona, serverUrl, token, setToken, maxWidth, isMobile}) => {
 
+    const sidekickClipboard = useContext(SidekickClipboardContext);
     const panelWindowRef = useRef(null);
     const [notePanelKey, setNotePanelKey] = useState(Date.now()); // used to force re-renders
 
@@ -145,6 +148,26 @@ You always do your best to generate text in the same style as the context text p
     const [timeToSave, setTimeToSave] = useState(false);
     const [noteMarkdownRenderBuffer, setNoteMarkdownRenderBuffer] = useState("");
 
+    const save = () => {
+        if (["loading", "saving", "creating"].includes(saveStatus.current)) {
+            return;
+        }
+        console.log("save", id, name);
+        if (id === "") {
+            // only save if there is content or the name has been changed
+            if (name !== newNoteName || (noteContentRef?.current && noteContentRef.current.innerText !== "")) {
+                create({name: name, content: noteContentRef.current.innerText});
+            }
+        } else {
+            if (saveStatus.current === "changed") {
+                _save();
+            }
+        }
+    }
+
+    const editorEventHandlers = new NativeTextEditorEventHandlers(
+        { sidekickClipboard: sidekickClipboard, hotKeyHandlers: { "save": save }, darkMode: darkMode }
+    );
 
     useEffect(() => {
         if (timeToSave) {
@@ -350,23 +373,6 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
             system.error(`System Error saving note.`, error, url + " PUT");
             saveStatus.current = "changed";
         });
-    }
-
-    const save = () => {
-        if (["loading", "saving", "creating"].includes(saveStatus.current)) {
-            return;
-        }
-        console.log("save", id, name);
-        if (id === "") {
-            // only save if there is content or the name has been changed
-            if (name !== newNoteName || (noteContentRef?.current && noteContentRef.current.innerText !== "")) {
-                create({name: name, content: noteContentRef.current.innerText});
-            }
-        } else {
-            if (saveStatus.current === "changed") {
-                _save();
-            }
-        }
     }
 
     const downloadFile = (filename, content) => {
@@ -607,7 +613,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
 
     const handleCopySelectedText = () => {
         const text = noteContextMenu.selectedText;
-        navigator.clipboard.writeText(text);
+        sidekickClipboard.writeText(text);
         setNoteContextMenu(null);
     };
 
@@ -619,7 +625,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
 
     const handleCopyNote = () => {
         const selectedText = noteContextMenu.note;
-        navigator.clipboard.writeText(selectedText);
+        sidekickClipboard.writeText(selectedText);
         setNoteContextMenu(null);
     };
 
@@ -679,10 +685,6 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         save();
         setNoteOpen(false);
     }
-
-    const editorEventHandlers = new NativeTextEditorEventHandlers(
-        { hotKeyHandlers: { "save": save }, darkMode: darkMode }
-    );
 
     const toolbar = (
     <StyledToolbar className={ClassNames.toolbar} sx={{ width: "100%", gap: 1 }} >

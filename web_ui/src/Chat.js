@@ -45,6 +45,8 @@ import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import SchemaIcon from '@mui/icons-material/Schema';
 
 import { SystemContext } from './SystemContext';
+import { SidekickClipboardContext } from './SidekickClipboardContext';
+
 import ContentFormatter from './ContentFormatter';
 import TextStatsDisplay from './TextStatsDisplay';
 import AI from './AI';
@@ -54,7 +56,7 @@ import SidekickMarkdown from './SidekickMarkdown';
 import NativeTextEditorEventHandlers from './NativeTextEditorEventHandlers';
 
 const Chat = ({
-    provider, modelSettings, persona, 
+    provider, modelSettings, persona,
     closeOtherPanels, restoreOtherPanels, windowMaximized, setWindowMaximized,
     newPromptPart, newPrompt, newPromptTemplate, loadChat, setAppendNoteContent,
     focusOnPrompt, setFocusOnPrompt, chatRequest, chatOpen, noteOpen, setChatOpen, darkMode,
@@ -62,6 +64,7 @@ const Chat = ({
     onChange, personasOpen, promptEngineerOpen, togglePromptEngineerOpen, setOpenChatId, shouldAskAgainWithPersona, serverUrl, token, setToken,
     streamingChatResponse, setStreamingChatResponse, chatStreamingOn, maxWidth, isMobile }) => {
     
+    const sidekickClipboard = useContext(SidekickClipboardContext);
     const panelWindowRef = useRef(null);
     const chatMessagesContainerRef = useRef(null);
     const chatMessagesRef = useRef(null);
@@ -1267,13 +1270,13 @@ const Chat = ({
         const selection = window.getSelection();
         const range = selection.getRangeAt(0);
         const text = range.toString();
-        navigator.clipboard.writeText(text);
+        sidekickClipboard.writeText(text);
         setMenuMessageContext(null);
     };
     
     const handleCopyMessageAsText = () => {
         const selectedText = menuMessageContext.message.content;
-        navigator.clipboard.writeText(selectedText);
+        sidekickClipboard.writeText(selectedText);
         setMenuMessageContext(null);
     };
 
@@ -1297,7 +1300,7 @@ const Chat = ({
     }
 
     const handleCopyAllAsText = () => {
-        navigator.clipboard.writeText(messagesAs("text"));
+        sidekickClipboard.writeText(messagesAs("text"));
         setMenuMessageContext(null);
     };
 
@@ -1474,7 +1477,7 @@ const Chat = ({
     }
     
     const editorEventHandlers = new NativeTextEditorEventHandlers(
-        { hotKeyHandlers: { "save": save }, darkMode: darkMode }
+        { sidekickClipboard: sidekickClipboard, hotKeyHandlers: { "save": save }, darkMode: darkMode }
     );
 
     const ActionMenu = React.forwardRef(({name, prompt, tooltip, onClick}, ref) => {
@@ -2412,7 +2415,7 @@ const Chat = ({
                                 {
                                     markdownRenderingOn
                                     ?
-                                        <SidekickMarkdown  markdown={message.content}/>
+                                        <SidekickMarkdown markdown={message.content}/>
                                     :
                                         <Typography sx={{ whiteSpace: 'pre-wrap' }}>
                                             {message.content}

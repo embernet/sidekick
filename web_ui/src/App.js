@@ -7,9 +7,11 @@
 import './App.css';
 import axios from 'axios';
 import { SystemProvider } from './SystemContext';
-import { useContext, useRef } from 'react';
+import { useContext, createContext, useRef } from 'react';
 import { SystemContext } from './SystemContext';
 import { BrowserRouter } from 'react-router-dom';
+import { SidekickClipboardContext, sidekickClipboard } from './SidekickClipboardContext';
+
 import useToken from './useToken';
 import { useEffect, useState } from 'react';
 import { CssBaseline, Box, AppBar, Toolbar, IconButton, Typography,
@@ -787,408 +789,410 @@ const App = () => {
   <BrowserRouter>
     <SystemProvider serverUrl={serverUrl}  setStatusUpdates={setStatusUpdates} setModalDialogInfo={setModalDialogInfo}
     >
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Box sx={{display:"flex", height:"100vh", flexDirection:"column", overflow:"hidden"}}>
-          <AppBar position="sticky">
-            <Toolbar>
-              <Box display="flex" gap={2}>
-                <IconButton edge="start" color="inherit" aria-label="Sidekick App Menu" onClick={handleAppMenuOpen}>
-                  <MenuIcon/>
-                </IconButton>
-                <Menu
-                  id="app-menu"
-                  anchorEl={appMenuAnchorEl}
-                  open={Boolean(appMenuAnchorEl)}
-                  onClose={handleAppMenuClose}
-                >
-                  <MenuItem key="menuOpenCloseChats" onClick={() => { handleAppMenuClose(); handleToggleChatsOpen(); }}>
-                    <QuestionAnswerIcon/><Typography  sx={{ ml: 1 }}>{ "Chat Explorer" }</Typography>
-                  </MenuItem>
-                  <MenuItem key="menuOpenCloseChat" onClick={() => { handleAppMenuClose(); handleToggleChatOpen(); }}>
-                    <ModeCommentIcon/><Typography  sx={{ ml: 1 }}>{ "Chat" }</Typography>
-                  </MenuItem>
-                  <MenuItem key="menuOpenCloseNotes" onClick={() => { handleAppMenuClose(); handleToggleNotesOpen(); }}>
-                    <FolderIcon/><Typography  sx={{ ml: 1 }}>{ "Note Explorer" }</Typography>
-                  </MenuItem>
-                  <MenuItem key="menuOpenCloseNote" onClick={() => { handleAppMenuClose(); handleToggleNoteOpen(); }}>
-                    <NotesIcon/><Typography  sx={{ ml: 1 }}>{ "Note" }</Typography>
-                  </MenuItem>
-                  <MenuItem key="menuOpenCloseScripts" onClick={() => { handleAppMenuClose(); handleToggleScriptsOpen(); }}>
-                    <ScriptsExplorerIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Scripts Explorer" : scriptsOpen ? "Scripts Explorer" : "Scripts Explorer" }</Typography>
-                  </MenuItem>
-                  <MenuItem key="menuOpenCloseScript" onClick={() => { handleAppMenuClose(); handleToggleScriptOpen(); }}>
-                    <ScriptIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Script" : scriptOpen ? "Script - Close" : "Script - Open" }</Typography>
-                  </MenuItem>
-                  <MenuItem key="menuOpenCloseModelSettings" onClick={() => { handleAppMenuClose(); handleToggleModelSettingsOpen(); }}>
-                    <TuneIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Model Settings" : modelSettingsOpen ? "Model Settings - Close" : "Model Settings - Open" }</Typography>
-                  </MenuItem>
-                  <MenuItem key="menuOpenCloseAIPersonas" onClick={() => { handleAppMenuClose(); handleTogglePersonasOpen(); }}>
-                    <PersonIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Personas" : personasOpen ? "Personas - Close AI Personas" : "Personas - Open AI Personas" }</Typography>
-                  </MenuItem>
-                  <MenuItem key="menuOpenClosePromptEngineer" onClick={() => { handleAppMenuClose(); handleTogglePromptEngineerOpen(); }}>
-                    <BuildIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Prompt Engineer" : promptEngineerOpen ? "Prompt Engineer - Close" : "Prompt Engineer - Open" }</Typography>
-                  </MenuItem>
-                  <MenuItem key="menuMinimiseWindows" onClick={() => { handleAppMenuClose(); minimiseWindows(); }}>
-                    <MinimizeIcon/><Typography  sx={{ ml: 1 }}>Minimise Windows</Typography>
-                  </MenuItem>
-                  <MenuItem key="menuDarkMode" onClick={() => { handleAppMenuClose(); handleToggleDarkMode(); }}>
-                    { darkMode ? <LightModeIcon/> : <DarkModeIcon/> }<Typography  sx={{ ml: 1 }}>{ darkMode ? "Switch to Light Mode" : "Switch to Dark Mode" }</Typography>
-                  </MenuItem>
-                  { user?.is_oidc ? null :
-                      <MenuItem key="menuAppSettings" onClick={() => { handleAppMenuClose(); handleToggleAppSettingsOpen(); }}>
-                        <SettingsIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Settings" : appSettingsOpen ? "Settings - Close App Settings" : "Settings - Open App Setings" }</Typography>
-                      </MenuItem>
-                  }
-                  { user?.properties?.roles?.admin && 
-                    <MenuItem key="menuAdmin" onClick={() => { handleAppMenuClose(); handleToggleAdminOpen(); }}>
-                      <AdminPanelSettingsIcon/><Typography sx={{ ml: 1 }}>Admin</Typography>
+      <SidekickClipboardContext.Provider value={sidekickClipboard}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Box sx={{display:"flex", height:"100vh", flexDirection:"column", overflow:"hidden"}}>
+            <AppBar position="sticky">
+              <Toolbar>
+                <Box display="flex" gap={2}>
+                  <IconButton edge="start" color="inherit" aria-label="Sidekick App Menu" onClick={handleAppMenuOpen}>
+                    <MenuIcon/>
+                  </IconButton>
+                  <Menu
+                    id="app-menu"
+                    anchorEl={appMenuAnchorEl}
+                    open={Boolean(appMenuAnchorEl)}
+                    onClose={handleAppMenuClose}
+                  >
+                    <MenuItem key="menuOpenCloseChats" onClick={() => { handleAppMenuClose(); handleToggleChatsOpen(); }}>
+                      <QuestionAnswerIcon/><Typography  sx={{ ml: 1 }}>{ "Chat Explorer" }</Typography>
                     </MenuItem>
+                    <MenuItem key="menuOpenCloseChat" onClick={() => { handleAppMenuClose(); handleToggleChatOpen(); }}>
+                      <ModeCommentIcon/><Typography  sx={{ ml: 1 }}>{ "Chat" }</Typography>
+                    </MenuItem>
+                    <MenuItem key="menuOpenCloseNotes" onClick={() => { handleAppMenuClose(); handleToggleNotesOpen(); }}>
+                      <FolderIcon/><Typography  sx={{ ml: 1 }}>{ "Note Explorer" }</Typography>
+                    </MenuItem>
+                    <MenuItem key="menuOpenCloseNote" onClick={() => { handleAppMenuClose(); handleToggleNoteOpen(); }}>
+                      <NotesIcon/><Typography  sx={{ ml: 1 }}>{ "Note" }</Typography>
+                    </MenuItem>
+                    <MenuItem key="menuOpenCloseScripts" onClick={() => { handleAppMenuClose(); handleToggleScriptsOpen(); }}>
+                      <ScriptsExplorerIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Scripts Explorer" : scriptsOpen ? "Scripts Explorer" : "Scripts Explorer" }</Typography>
+                    </MenuItem>
+                    <MenuItem key="menuOpenCloseScript" onClick={() => { handleAppMenuClose(); handleToggleScriptOpen(); }}>
+                      <ScriptIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Script" : scriptOpen ? "Script - Close" : "Script - Open" }</Typography>
+                    </MenuItem>
+                    <MenuItem key="menuOpenCloseModelSettings" onClick={() => { handleAppMenuClose(); handleToggleModelSettingsOpen(); }}>
+                      <TuneIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Model Settings" : modelSettingsOpen ? "Model Settings - Close" : "Model Settings - Open" }</Typography>
+                    </MenuItem>
+                    <MenuItem key="menuOpenCloseAIPersonas" onClick={() => { handleAppMenuClose(); handleTogglePersonasOpen(); }}>
+                      <PersonIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Personas" : personasOpen ? "Personas - Close AI Personas" : "Personas - Open AI Personas" }</Typography>
+                    </MenuItem>
+                    <MenuItem key="menuOpenClosePromptEngineer" onClick={() => { handleAppMenuClose(); handleTogglePromptEngineerOpen(); }}>
+                      <BuildIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Prompt Engineer" : promptEngineerOpen ? "Prompt Engineer - Close" : "Prompt Engineer - Open" }</Typography>
+                    </MenuItem>
+                    <MenuItem key="menuMinimiseWindows" onClick={() => { handleAppMenuClose(); minimiseWindows(); }}>
+                      <MinimizeIcon/><Typography  sx={{ ml: 1 }}>Minimise Windows</Typography>
+                    </MenuItem>
+                    <MenuItem key="menuDarkMode" onClick={() => { handleAppMenuClose(); handleToggleDarkMode(); }}>
+                      { darkMode ? <LightModeIcon/> : <DarkModeIcon/> }<Typography  sx={{ ml: 1 }}>{ darkMode ? "Switch to Light Mode" : "Switch to Dark Mode" }</Typography>
+                    </MenuItem>
+                    { user?.is_oidc ? null :
+                        <MenuItem key="menuAppSettings" onClick={() => { handleAppMenuClose(); handleToggleAppSettingsOpen(); }}>
+                          <SettingsIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Settings" : appSettingsOpen ? "Settings - Close App Settings" : "Settings - Open App Setings" }</Typography>
+                        </MenuItem>
+                    }
+                    { user?.properties?.roles?.admin && 
+                      <MenuItem key="menuAdmin" onClick={() => { handleAppMenuClose(); handleToggleAdminOpen(); }}>
+                        <AdminPanelSettingsIcon/><Typography sx={{ ml: 1 }}>Admin</Typography>
+                      </MenuItem>
+                    }
+                    <MenuItem key="menuOpenCloseSidekickAI" onClick={() => { handleAppMenuClose(); handleToggleSidekickAIOpen(); }}>
+                      <HelpIcon/><Typography sx={{ ml: 1 }}>{ sidekickAIOpen ? "Help - Close Sidekick AI Help" : "Help - Open Sidekick AI Help" }</Typography>
+                    </MenuItem>
+                    <MenuItem onClick={ () => { handleAppMenuClose(); setAboutWindowOpen(Date.now());}}>
+                      <InfoOutlinedIcon/><Typography sx={{ ml: 1 }}>About Sidekick</Typography>
+                    </MenuItem>
+                    <MenuItem key="menuLogout" onClick={() => { handleAppMenuClose(); handleLogout(); }}>
+                      <LogoutIcon/><Typography sx={{ ml: 1 }}>Logout</Typography>
+                    </MenuItem>
+                  </Menu>          
+                  {appInfo}
+                  {isMobile ? null : <Typography sx={{ mr: 2, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
+                    ({ user?.name ? user.name : user?.id })
+                  </Typography>}
+                  {isMobile ? null : extendedLeftToolbar}
+                  <Tooltip title={ chatsOpen ? "Close Chat Explorer" : "Open Chat Explorer" }>
+                    <IconButton edge="start" color="inherit" aria-label="Chat Explorer" onClick={handleToggleChatsOpen}>
+                      <QuestionAnswerIcon/>
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title={chatOpen ? "Close Chat" : "New Chat"}>
+                    <IconButton edge="start" color="inherit" aria-label={ chatOpen ? "Close Chat" : "Open chat" } onClick={handleToggleChatOpen}>
+                      { chatOpen ? <ModeCommentIcon/> : <AddCommentIcon/> }
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+                <Box display="flex" ml="auto" gap={2}>
+                <Tooltip title="Note">
+                  <IconButton edge="end" color="inherit" aria-label="Note" onClick={handleToggleNoteOpen}>
+                    { noteOpen ? <NotesIcon/> : <PlaylistAddIcon/> }
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title={ notesOpen ? "Close Notes" : "Open Notes" }>
+                  <IconButton edge="end" color="inherit" aria-label="Hide/Show notes" onClick={handleToggleNotesOpen}>
+                    {notesOpen ? <FolderIcon/> : <FolderOutlinedIcon/>}
+                  </IconButton>
+                </Tooltip>
+                  {isMobile ? null : extendedRightToolbar}
+                  <Tooltip title="Logout">
+                    <IconButton edge="end" color="inherit" aria-label="Logout" onClick={handleLogout}>
+                      <LogoutIcon/>
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Toolbar>
+            </AppBar>
+            <SidekickModalDialog modalDialogInfo={modalDialogInfo} setModalDialogInfo={setModalDialogInfo} />
+            <Popover
+              open={aboutWindowOpen}
+              anchorOrigin={{
+                vertical: 'center',
+                horizontal: 'center',
+              }}
+              transformOrigin={{
+                vertical: 'center',
+                horizontal: 'center',
+              }}
+              PaperProps={{
+                style: {
+                  maxWidth: '400px',
+                  padding: '4px',
+                },
+              }}
+              onClose={() => {setAboutWindowOpen(false);}}
+              >
+              <StyledToolbar sx={{ gap: 1 }}>
+                <InfoOutlinedIcon/><Typography variant="h6" align="center">About Sidekick</Typography>
+              </StyledToolbar>
+              <Grid container spacing={2} alignItems="center">
+                <Grid item xs={6}>
+                  <Carousel imageFolderName="./images/logo/" filenamePrefix="sidekick_" 
+                    filenameExtension=".png" altText="Sidekick logo"
+                    transitions="8" cycleTime="250" imageWidth="200px" imageHeight='200px'/>
+                </Grid>
+                <Grid item xs={6}>
+                  <Box display="flex" alignItems="center" sx={{mt:2}}>
+                    <Typography style={{ fontWeight: 'bold' }}>Version:</Typography>
+                    <Typography style={{ marginLeft: '5px' }}>{VERSION}</Typography>
+                  </Box>
+                  { appInstanceName !== "" ? 
+                      <Box display="flex" alignItems="center">
+                        <Typography style={{ fontWeight: 'bold' }}>Instance:</Typography>
+                        <Typography style={{ marginLeft: '5px' }}>{appInstanceName}</Typography>
+                      </Box>
+                    : null
                   }
-                  <MenuItem key="menuOpenCloseSidekickAI" onClick={() => { handleAppMenuClose(); handleToggleSidekickAIOpen(); }}>
-                    <HelpIcon/><Typography sx={{ ml: 1 }}>{ sidekickAIOpen ? "Help - Close Sidekick AI Help" : "Help - Open Sidekick AI Help" }</Typography>
-                  </MenuItem>
-                  <MenuItem onClick={ () => { handleAppMenuClose(); setAboutWindowOpen(Date.now());}}>
-                    <InfoOutlinedIcon/><Typography sx={{ ml: 1 }}>About Sidekick</Typography>
-                  </MenuItem>
-                  <MenuItem key="menuLogout" onClick={() => { handleAppMenuClose(); handleLogout(); }}>
-                    <LogoutIcon/><Typography sx={{ ml: 1 }}>Logout</Typography>
-                  </MenuItem>
-                </Menu>          
-                {appInfo}
-                {isMobile ? null : <Typography sx={{ mr: 2, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
-                  ({ user?.name ? user.name : user?.id })
-                </Typography>}
-                {isMobile ? null : extendedLeftToolbar}
-                <Tooltip title={ chatsOpen ? "Close Chat Explorer" : "Open Chat Explorer" }>
-                  <IconButton edge="start" color="inherit" aria-label="Chat Explorer" onClick={handleToggleChatsOpen}>
-                    <QuestionAnswerIcon/>
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title={chatOpen ? "Close Chat" : "New Chat"}>
-                  <IconButton edge="start" color="inherit" aria-label={ chatOpen ? "Close Chat" : "Open chat" } onClick={handleToggleChatOpen}>
-                    { chatOpen ? <ModeCommentIcon/> : <AddCommentIcon/> }
-                  </IconButton>
-                </Tooltip>
-              </Box>
-              <Box display="flex" ml="auto" gap={2}>
-              <Tooltip title="Note">
-                <IconButton edge="end" color="inherit" aria-label="Note" onClick={handleToggleNoteOpen}>
-                  { noteOpen ? <NotesIcon/> : <PlaylistAddIcon/> }
-                </IconButton>
-              </Tooltip>
-              <Tooltip title={ notesOpen ? "Close Notes" : "Open Notes" }>
-                <IconButton edge="end" color="inherit" aria-label="Hide/Show notes" onClick={handleToggleNotesOpen}>
-                  {notesOpen ? <FolderIcon/> : <FolderOutlinedIcon/>}
-                </IconButton>
-              </Tooltip>
-                {isMobile ? null : extendedRightToolbar}
-                <Tooltip title="Logout">
-                  <IconButton edge="end" color="inherit" aria-label="Logout" onClick={handleLogout}>
-                    <LogoutIcon/>
-                  </IconButton>
-                </Tooltip>
-              </Box>
-            </Toolbar>
-          </AppBar>
-          <SidekickModalDialog modalDialogInfo={modalDialogInfo} setModalDialogInfo={setModalDialogInfo} />
-          <Popover
-            open={aboutWindowOpen}
-            anchorOrigin={{
-              vertical: 'center',
-              horizontal: 'center',
-            }}
-            transformOrigin={{
-              vertical: 'center',
-              horizontal: 'center',
-            }}
-            PaperProps={{
-              style: {
-                maxWidth: '400px',
-                padding: '4px',
-              },
-            }}
-            onClose={() => {setAboutWindowOpen(false);}}
-            >
-            <StyledToolbar sx={{ gap: 1 }}>
-              <InfoOutlinedIcon/><Typography variant="h6" align="center">About Sidekick</Typography>
-            </StyledToolbar>
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={6}>
-                <Carousel imageFolderName="./images/logo/" filenamePrefix="sidekick_" 
-                  filenameExtension=".png" altText="Sidekick logo"
-                  transitions="8" cycleTime="250" imageWidth="200px" imageHeight='200px'/>
+                  { instanceUsage !== "" ? 
+                      <Box display="flex" alignItems="center">
+                        <Typography style={{ fontWeight: 'bold' }}>Usage:</Typography>
+                        <Typography style={{ marginLeft: '5px' }}>{instanceUsage}</Typography>
+                      </Box>
+                    : null
+                  }
+                  <Box display="flex" alignItems="center">
+                    <Typography style={{ fontWeight: 'bold' }}>Logged in as:</Typography>
+                    <Typography multiline style={{ marginLeft: '5px', fontSize: '0.8rem', wordWrap: 'break-word', overflowWrap: 'break-word',
+                      maxWidth: '100px' }}>
+                      { user?.name ? user.name : user?.id }
+                    </Typography>
+                  </Box>
+                  <Typography sx={{mt:1}} style={{ fontSize: '0.8rem' }}>Sidekick is an open-source AI powered tool for creativity, thinking, learning, exploring ideas, problem-solving, and getting things done.</Typography>
+                  <Typography sx={{mt:1}} style={{ fontSize: '0.8rem' }}>You can find the project here: <a href="https://github.com/embernet/sidekick" target="_blank" rel="noreferrer">github.com/embernet/sidekick</a></Typography>
+                </Grid>
               </Grid>
-              <Grid item xs={6}>
-                <Box display="flex" alignItems="center" sx={{mt:2}}>
-                  <Typography style={{ fontWeight: 'bold' }}>Version:</Typography>
-                  <Typography style={{ marginLeft: '5px' }}>{VERSION}</Typography>
-                </Box>
-                { appInstanceName !== "" ? 
-                    <Box display="flex" alignItems="center">
-                      <Typography style={{ fontWeight: 'bold' }}>Instance:</Typography>
-                      <Typography style={{ marginLeft: '5px' }}>{appInstanceName}</Typography>
-                    </Box>
-                  : null
-                }
-                { instanceUsage !== "" ? 
-                    <Box display="flex" alignItems="center">
-                      <Typography style={{ fontWeight: 'bold' }}>Usage:</Typography>
-                      <Typography style={{ marginLeft: '5px' }}>{instanceUsage}</Typography>
-                    </Box>
-                  : null
-                }
-                <Box display="flex" alignItems="center">
-                  <Typography style={{ fontWeight: 'bold' }}>Logged in as:</Typography>
-                  <Typography multiline style={{ marginLeft: '5px', fontSize: '0.8rem', wordWrap: 'break-word', overflowWrap: 'break-word',
-                    maxWidth: '100px' }}>
-                    { user?.name ? user.name : user?.id }
-                  </Typography>
-                </Box>
-                <Typography sx={{mt:1}} style={{ fontSize: '0.8rem' }}>Sidekick is an open-source AI powered tool for creativity, thinking, learning, exploring ideas, problem-solving, and getting things done.</Typography>
-                <Typography sx={{mt:1}} style={{ fontSize: '0.8rem' }}>You can find the project here: <a href="https://github.com/embernet/sidekick" target="_blank" rel="noreferrer">github.com/embernet/sidekick</a></Typography>
-              </Grid>
-            </Grid>
-            <Box display="flex" justifyContent="flex-end">
-              <Button onClick={()=>{setAboutWindowOpen(false);}}>Close</Button>
-            </Box>
-          </Popover>
-          <Box id="app-workspace" display="flex" height="100%" flexDirection="row" flex="1" 
-            overflow-y="hidden" overflow="auto" width="100%">
-            <SidekickAI
-              sidekickAIOpen={sidekickAIOpen}
-              setSidekickAIOpen={setSidekickAIOpen}
-              windowPinnedOpen = {sidekickAIPinned}
-              setWindowPinnedOpen = {setSidekickAIPinned}
-              chatStreamingOn={chatStreamingOn} 
-              serverUrl={serverUrl} token={token} setToken={setToken}
-              darkMode={darkMode}
-              isMobile={isMobile}
-            />
-            { user?.properties?.roles?.admin && adminOpen ? <Admin 
-              adminOpen={adminOpen}
-              setAdminOpen={setAdminOpen}
-              user={user}
-              setUser={setUser}
-              serverUrl={serverUrl} token={token} setToken={setToken}
-              darkMode={darkMode}
-            /> : null }
-            <AppSettings 
-              appSettingsOpen={appSettingsOpen}
-              setAppSettingsOpen={setAppSettingsOpen}
-              user={user}
-              setUser={setUser}
-              serverUrl={serverUrl} token={token} setToken={setToken}
-              darkMode={darkMode}
-              isMobile={isMobile}
-            />
-            { chatsOpen ? <Explorer
-              onClose={()=>{setChatsOpen(false)}}
-              name="Chats"
-              icon={<QuestionAnswerIcon />}
-              folder="chats"
-              openItemId={openChatId}
-              setLoadDoc={setLoadChat}
-              docNameChanged={chatNameChanged}
-              refresh={refreshChatsExplorer}
-              setRefresh={setRefreshChatsExplorer}
-              itemOpen={chatOpen}
-              setItemOpen={setChatOpen}
-              windowPinnedOpen = {chatsPinned}
-              setWindowPinnedOpen = {setChatsPinned}
-              deleteEnabled={true}
-              darkMode={darkMode}
-              serverUrl={serverUrl} token={token} setToken={setToken}
-              isMobile={isMobile}
-            /> : null }
-            <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "center", flex: 1 }}>
-              <Chat 
-                provider = {provider}
-                modelSettings={modelSettings} 
-                persona={persona} 
-                closeOtherPanels={closePanelsOtherThanChat}
-                restoreOtherPanels={restoreWindowStates}
-                newPromptPart={newPromptPart}
-                newPrompt={newPrompt} 
-                newPromptTemplate={newPromptTemplate}
-                loadChat={loadChat} 
-                setAppendNoteContent={setAppendNoteContent}
-                focusOnPrompt={focusOnPrompt}
-                setFocusOnPrompt={setFocusOnPrompt}
-                chatRequest={chatRequest}
-                chatOpen={chatOpen}
-                noteOpen={noteOpen}
-                windowMaximized={chatWindowMaximized}
-                setWindowMaximized={setChatWindowMaximized}
-                setChatOpen={setChatOpen}
-                darkMode={darkMode}
-                temperatureText={temperatureText}
-                setTemperatureText={setTemperatureText}
-                modelSettingsOpen={modelSettingsOpen}
-                toggleModelSettingsOpen={handleToggleModelSettingsOpen}
-                personasOpen={personasOpen}
-                togglePersonasOpen={handleTogglePersonasOpen}
-                promptEngineerOpen={promptEngineerOpen}
-                togglePromptEngineerOpen={handleTogglePromptEngineerOpen}
-                onChange={onChange(handleChatChange)}
-                setOpenChatId={setOpenChatId}
-                shouldAskAgainWithPersona={shouldAskAgainWithPersona}
+              <Box display="flex" justifyContent="flex-end">
+                <Button onClick={()=>{setAboutWindowOpen(false);}}>Close</Button>
+              </Box>
+            </Popover>
+            <Box id="app-workspace" display="flex" height="100%" flexDirection="row" flex="1" 
+              overflow-y="hidden" overflow="auto" width="100%">
+              <SidekickAI
+                sidekickAIOpen={sidekickAIOpen}
+                setSidekickAIOpen={setSidekickAIOpen}
+                windowPinnedOpen = {sidekickAIPinned}
+                setWindowPinnedOpen = {setSidekickAIPinned}
+                chatStreamingOn={chatStreamingOn} 
                 serverUrl={serverUrl} token={token} setToken={setToken}
-                streamingChatResponse={streamingChatResponse}
-                setStreamingChatResponse={setStreamingChatResponse}
-                chatStreamingOn={chatStreamingOn}
-                maxWidth={appSettings.maxPanelWidth}
-                isMobile={isMobile}
-              />
-              <ModelSettings 
-                setModelSettings={setModelSettings}
-                setFocusOnPrompt={setFocusOnPrompt}
-                modelSettingsOpen={modelSettingsOpen}
-                setModelSettingsOpen={setModelSettingsOpen}
-                windowPinnedOpen = {modelSettingsPinned}
-                setWindowPinnedOpen = {setModelSettingsPinned}
-                temperatureText={temperatureText}
-                setTemperatureText={setTemperatureText}
-                settingsManager={new SettingsManager(serverUrl, token, setToken)}
-                serverUrl={serverUrl} token={token} setToken={setToken}
-                chatStreamingOn={chatStreamingOn}
-                setChatStreamingOn={setChatStreamingOn}
                 darkMode={darkMode}
                 isMobile={isMobile}
               />
-              <Personas 
-                onClose={() => {setPersonasOpen(false)}} 
-                persona={persona} 
-                setPersona={setPersona}
-                setFocusOnPrompt={setFocusOnPrompt}
-                personasOpen={personasOpen}
-                windowPinnedOpen = {personasPinned}
-                setWindowPinnedOpen = {setPersonasPinned}
-                settingsManager={new SettingsManager(serverUrl, token, setToken)}
-                setShouldAskAgainWithPersona={setShouldAskAgainWithPersona}
+              { user?.properties?.roles?.admin && adminOpen ? <Admin 
+                adminOpen={adminOpen}
+                setAdminOpen={setAdminOpen}
+                user={user}
+                setUser={setUser}
                 serverUrl={serverUrl} token={token} setToken={setToken}
-                streamingChatResponse={streamingChatResponse}
+                darkMode={darkMode}
+              /> : null }
+              <AppSettings 
+                appSettingsOpen={appSettingsOpen}
+                setAppSettingsOpen={setAppSettingsOpen}
+                user={user}
+                setUser={setUser}
+                serverUrl={serverUrl} token={token} setToken={setToken}
                 darkMode={darkMode}
                 isMobile={isMobile}
               />
-              { promptEngineerOpen ? 
-                <PromptEngineer
-                  promptEngineerOpen={promptEngineerOpen}
-                  onClose={() => {setPromptEngineerOpen(false)}} 
-                  windowPinnedOpen={promptEngineerPinned}
-                  setWindowPinnedOpen={setPromptEngineerPinned}
-                  setNewPromptPart={setNewPromptPart}
-                  setNewPrompt={setNewPrompt}
-                  setNewPromptTemplate={setNewPromptTemplate}
-                  openPromptTemplateId={openPromptTemplateId}
-                  promptTemplateNameChanged={promptTemplateNameChanged}
-                  refreshPromptTemplateExplorer={refreshPromptTemplateExplorer}
-                  setRefreshPromptTemplateExplorer={setRefreshPromptTemplateExplorer}
-                  setPromptTemplateOpen={setPromptTemplateOpen}
-                  promptTemplateOpen={promptTemplateOpen}
-                  settingsManager={new SettingsManager(serverUrl, token, setToken)}
-                  serverUrl={serverUrl} token={token} setToken={setToken}
-                  darkMode={darkMode}
-                  isMobile={isMobile}
-                />
-                : null }
-              { scriptsOpen ? <Explorer
-                onClose={()=>{setScriptsOpen(false)}}
-                name="Scripts"
-                icon={<ScriptsExplorerIcon />}
-                folder="scripts"
-                openItemId={openScriptId}
-                setLoadDoc={setLoadScript}
-                docNameChanged={scriptNameChanged}
-                refresh={refreshScriptsExplorer}
-                setRefresh={setRefreshScriptsExplorer}
-                itemOpen={scriptOpen}
-                setItemOpen={setScriptOpen}
-                windowPinnedOpen = {scriptsPinned}
-                setWindowPinnedOpen = {setScriptsPinned}
+              { chatsOpen ? <Explorer
+                onClose={()=>{setChatsOpen(false)}}
+                name="Chats"
+                icon={<QuestionAnswerIcon />}
+                folder="chats"
+                openItemId={openChatId}
+                setLoadDoc={setLoadChat}
+                docNameChanged={chatNameChanged}
+                refresh={refreshChatsExplorer}
+                setRefresh={setRefreshChatsExplorer}
+                itemOpen={chatOpen}
+                setItemOpen={setChatOpen}
+                windowPinnedOpen = {chatsPinned}
+                setWindowPinnedOpen = {setChatsPinned}
                 deleteEnabled={true}
                 darkMode={darkMode}
                 serverUrl={serverUrl} token={token} setToken={setToken}
                 isMobile={isMobile}
               /> : null }
-              <Script
-                scriptOpen={scriptOpen}
-                setScriptOpen={setScriptOpen} 
-                ScriptIcon={ScriptIcon}
+              <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "center", flex: 1 }}>
+                <Chat 
+                  provider = {provider}
+                  modelSettings={modelSettings} 
+                  persona={persona} 
+                  closeOtherPanels={closePanelsOtherThanChat}
+                  restoreOtherPanels={restoreWindowStates}
+                  newPromptPart={newPromptPart}
+                  newPrompt={newPrompt} 
+                  newPromptTemplate={newPromptTemplate}
+                  loadChat={loadChat} 
+                  setAppendNoteContent={setAppendNoteContent}
+                  focusOnPrompt={focusOnPrompt}
+                  setFocusOnPrompt={setFocusOnPrompt}
+                  chatRequest={chatRequest}
+                  chatOpen={chatOpen}
+                  noteOpen={noteOpen}
+                  windowMaximized={chatWindowMaximized}
+                  setWindowMaximized={setChatWindowMaximized}
+                  setChatOpen={setChatOpen}
+                  darkMode={darkMode}
+                  temperatureText={temperatureText}
+                  setTemperatureText={setTemperatureText}
+                  modelSettingsOpen={modelSettingsOpen}
+                  toggleModelSettingsOpen={handleToggleModelSettingsOpen}
+                  personasOpen={personasOpen}
+                  togglePersonasOpen={handleTogglePersonasOpen}
+                  promptEngineerOpen={promptEngineerOpen}
+                  togglePromptEngineerOpen={handleTogglePromptEngineerOpen}
+                  onChange={onChange(handleChatChange)}
+                  setOpenChatId={setOpenChatId}
+                  shouldAskAgainWithPersona={shouldAskAgainWithPersona}
+                  serverUrl={serverUrl} token={token} setToken={setToken}
+                  streamingChatResponse={streamingChatResponse}
+                  setStreamingChatResponse={setStreamingChatResponse}
+                  chatStreamingOn={chatStreamingOn}
+                  maxWidth={appSettings.maxPanelWidth}
+                  isMobile={isMobile}
+                />
+                <ModelSettings 
+                  setModelSettings={setModelSettings}
+                  setFocusOnPrompt={setFocusOnPrompt}
+                  modelSettingsOpen={modelSettingsOpen}
+                  setModelSettingsOpen={setModelSettingsOpen}
+                  windowPinnedOpen = {modelSettingsPinned}
+                  setWindowPinnedOpen = {setModelSettingsPinned}
+                  temperatureText={temperatureText}
+                  setTemperatureText={setTemperatureText}
+                  settingsManager={new SettingsManager(serverUrl, token, setToken)}
+                  serverUrl={serverUrl} token={token} setToken={setToken}
+                  chatStreamingOn={chatStreamingOn}
+                  setChatStreamingOn={setChatStreamingOn}
+                  darkMode={darkMode}
+                  isMobile={isMobile}
+                />
+                <Personas 
+                  onClose={() => {setPersonasOpen(false)}} 
+                  persona={persona} 
+                  setPersona={setPersona}
+                  setFocusOnPrompt={setFocusOnPrompt}
+                  personasOpen={personasOpen}
+                  windowPinnedOpen = {personasPinned}
+                  setWindowPinnedOpen = {setPersonasPinned}
+                  settingsManager={new SettingsManager(serverUrl, token, setToken)}
+                  setShouldAskAgainWithPersona={setShouldAskAgainWithPersona}
+                  serverUrl={serverUrl} token={token} setToken={setToken}
+                  streamingChatResponse={streamingChatResponse}
+                  darkMode={darkMode}
+                  isMobile={isMobile}
+                />
+                { promptEngineerOpen ? 
+                  <PromptEngineer
+                    promptEngineerOpen={promptEngineerOpen}
+                    onClose={() => {setPromptEngineerOpen(false)}}
+                    windowPinnedOpen={promptEngineerPinned}
+                    setWindowPinnedOpen={setPromptEngineerPinned}
+                    setNewPromptPart={setNewPromptPart}
+                    setNewPrompt={setNewPrompt}
+                    setNewPromptTemplate={setNewPromptTemplate}
+                    openPromptTemplateId={openPromptTemplateId}
+                    promptTemplateNameChanged={promptTemplateNameChanged}
+                    refreshPromptTemplateExplorer={refreshPromptTemplateExplorer}
+                    setRefreshPromptTemplateExplorer={setRefreshPromptTemplateExplorer}
+                    setPromptTemplateOpen={setPromptTemplateOpen}
+                    promptTemplateOpen={promptTemplateOpen}
+                    settingsManager={new SettingsManager(serverUrl, token, setToken)}
+                    serverUrl={serverUrl} token={token} setToken={setToken}
+                    darkMode={darkMode}
+                    isMobile={isMobile}
+                  />
+                  : null }
+                { scriptsOpen ? <Explorer
+                  onClose={()=>{setScriptsOpen(false)}}
+                  name="Scripts"
+                  icon={<ScriptsExplorerIcon />}
+                  folder="scripts"
+                  openItemId={openScriptId}
+                  setLoadDoc={setLoadScript}
+                  docNameChanged={scriptNameChanged}
+                  refresh={refreshScriptsExplorer}
+                  setRefresh={setRefreshScriptsExplorer}
+                  itemOpen={scriptOpen}
+                  setItemOpen={setScriptOpen}
+                  windowPinnedOpen = {scriptsPinned}
+                  setWindowPinnedOpen = {setScriptsPinned}
+                  deleteEnabled={true}
+                  darkMode={darkMode}
+                  serverUrl={serverUrl} token={token} setToken={setToken}
+                  isMobile={isMobile}
+                /> : null }
+                <Script
+                  scriptOpen={scriptOpen}
+                  setScriptOpen={setScriptOpen} 
+                  ScriptIcon={ScriptIcon}
+                  darkMode={darkMode}
+                  maxWidth={appSettings.maxPanelWidth}
+                  windowMaximized={scriptWindowMaximized}
+                  setWindowMaximized={setScriptWindowMaximized}
+                  provider = {provider}
+                  modelSettings={modelSettings} 
+                  persona={persona} 
+                  loadScript={loadScript} 
+                  closeOtherPanels={closePanelsOtherThanScript}
+                  restoreOtherPanels={restoreWindowStates}
+                  setNewPromptPart={setNewPromptPart}
+                  setNewPrompt={setNewPrompt}
+                  setChatRequest={setChatRequest}
+                  onChange={onChange(handleScriptChange)}
+                  setOpenScriptId={setOpenScriptId}
+                  serverUrl={serverUrl} token={token} setToken={setToken}
+                  isMobile={isMobile}
+                />
+                <Note 
+                  noteOpen={noteOpen}
+                  windowMaximized={noteWindowMaximized}
+                  setWindowMaximized={setNoteWindowMaximized}
+                  setNoteOpen={setNoteOpen} 
+                  appendNoteContent={appendNoteContent} 
+                  loadNote={loadNote} 
+                  createNote={createNote}
+                  darkMode={darkMode}
+                  closeOtherPanels={closePanelsOtherThanNote}
+                  restoreOtherPanels={restoreWindowStates}
+                  setNewPromptPart={setNewPromptPart}
+                  setNewPrompt={setNewPrompt}
+                  setChatRequest={setChatRequest}
+                  onChange={onChange(handleNoteChange)}
+                  setOpenNoteId={setOpenNoteId}
+                  modelSettings={modelSettings}
+                  persona={persona}
+                  serverUrl={serverUrl} token={token} setToken={setToken}
+                  maxWidth={appSettings.maxPanelWidth}
+                  isMobile={isMobile}
+                />
+              </Box>
+              { notesOpen ? <Explorer
+                onClose={()=>{setNotesOpen(false)}}
+                windowPinnedOpen = {notesPinned}
+                setWindowPinnedOpen = {setNotesPinned}
+                name="Notes"
+                icon={<FolderIcon />}
+                folder="notes"
+                openItemId={openNoteId}
+                setLoadDoc={setLoadNote}
+                docNameChanged={noteNameChanged}
+                refresh={refreshNotesExplorer}
+                setRefresh={setRefreshNotesExplorer}
+                itemOpen={openNoteId} // tell the explorer which note is open
+                setItemOpen={setNoteOpen}
+                deleteEnabled={true}
                 darkMode={darkMode}
-                maxWidth={appSettings.maxPanelWidth}
-                windowMaximized={scriptWindowMaximized}
-                setWindowMaximized={setScriptWindowMaximized}
-                provider = {provider}
-                modelSettings={modelSettings} 
-                persona={persona} 
-                loadScript={loadScript} 
-                closeOtherPanels={closePanelsOtherThanScript}
-                restoreOtherPanels={restoreWindowStates}
-                setNewPromptPart={setNewPromptPart}
-                setNewPrompt={setNewPrompt}
-                setChatRequest={setChatRequest}
-                onChange={onChange(handleScriptChange)}
-                setOpenScriptId={setOpenScriptId}
                 serverUrl={serverUrl} token={token} setToken={setToken}
                 isMobile={isMobile}
-              />
-              <Note 
-                noteOpen={noteOpen}
-                windowMaximized={noteWindowMaximized}
-                setWindowMaximized={setNoteWindowMaximized}
-                setNoteOpen={setNoteOpen} 
-                appendNoteContent={appendNoteContent} 
-                loadNote={loadNote} 
-                createNote={createNote}
-                darkMode={darkMode}
-                closeOtherPanels={closePanelsOtherThanNote}
-                restoreOtherPanels={restoreWindowStates}
-                setNewPromptPart={setNewPromptPart}
-                setNewPrompt={setNewPrompt}
-                setChatRequest={setChatRequest}
-                onChange={onChange(handleNoteChange)}
-                setOpenNoteId={setOpenNoteId}
-                modelSettings={modelSettings}
-                persona={persona}
-                serverUrl={serverUrl} token={token} setToken={setToken}
-                maxWidth={appSettings.maxPanelWidth}
-                isMobile={isMobile}
-              />
+              /> : null}
             </Box>
-            { notesOpen ? <Explorer
-              onClose={()=>{setNotesOpen(false)}}
-              windowPinnedOpen = {notesPinned}
-              setWindowPinnedOpen = {setNotesPinned}
-              name="Notes"
-              icon={<FolderIcon />}
-              folder="notes"
-              openItemId={openNoteId}
-              setLoadDoc={setLoadNote}
-              docNameChanged={noteNameChanged}
-              refresh={refreshNotesExplorer}
-              setRefresh={setRefreshNotesExplorer}
-              itemOpen={openNoteId} // tell the explorer which note is open
-              setItemOpen={setNoteOpen}
-              deleteEnabled={true}
-              darkMode={darkMode}
-              serverUrl={serverUrl} token={token} setToken={setToken}
-              isMobile={isMobile}
-            /> : null}
-          </Box>
-        <StatusBar
-          statusUpdates={statusUpdates}
-          darkMode={darkMode}
-          modelSettings={modelSettings}
-          persona={persona}
-          modelSettingsOpen={modelSettingsOpen}
-          toggleModelSettingsOpen={handleToggleModelSettingsOpen}
-          personasOpen={personasOpen}
-          togglePersonasOpen={handleTogglePersonasOpen}
-          isMobile={isMobile}
-        />
-      </Box>
-    </ThemeProvider>
+          <StatusBar
+            statusUpdates={statusUpdates}
+            darkMode={darkMode}
+            modelSettings={modelSettings}
+            persona={persona}
+            modelSettingsOpen={modelSettingsOpen}
+            toggleModelSettingsOpen={handleToggleModelSettingsOpen}
+            personasOpen={personasOpen}
+            togglePersonasOpen={handleTogglePersonasOpen}
+            isMobile={isMobile}
+          />
+        </Box>
+      </ThemeProvider>
+    </SidekickClipboardContext.Provider>
   </SystemProvider>
 </BrowserRouter>
 
