@@ -74,7 +74,6 @@ export const SystemProvider = ({ serverUrl, setStatusUpdates, setModalDialogInfo
     },
     warning: (message, context="") => {
       setModalDialogInfo({ title: "Warning", message: message });
-      setStatusUpdates(prevStatusUpdates => [...prevStatusUpdates, { message: message, type: 'warning', timestamp: _dateTimeString() }]);
       console.log(message, context);
     },
     info: (message, context="") => {
