@@ -4,10 +4,12 @@ import mermaid from "mermaid";
 import { v4 as uuidv4 } from 'uuid';
 import { memo } from 'react';
 
+import { SystemContext } from './SystemContext';
 import { SidekickClipboardContext } from './SidekickClipboardContext';
 import CollectionsOutlinedIcon from '@mui/icons-material/CollectionsOutlined';
 
 const MermaidDiagram = memo(({ markdown, escapedMarkdown }) => {
+  const system = useContext(SystemContext);
   const mermaidRef = useRef(null);
   const mermaidId = `mermaid-diagram-${uuidv4()}`;
   const [svg, setSvg] = useState(null);
@@ -33,33 +35,36 @@ const MermaidDiagram = memo(({ markdown, escapedMarkdown }) => {
   const handleCopyImage = (event) => {
     event.stopPropagation();
     if (mermaidRef.current) {
-      const svgElement = mermaidRef.current.querySelector('svg');
-      const scaleFactor = 2;
-      const rect = svgElement.getBoundingClientRect();
-      const width = rect.width;
-      const height = rect.height;
+      try {
+        const svgElement = mermaidRef.current.querySelector('svg');
+        const scaleFactor = 2;
+        const rect = svgElement.getBoundingClientRect();
+        const width = rect.width;
+        const height = rect.height;
 
-      const svgElementClone = svgElement.cloneNode(true);
-      svgElementClone.setAttribute('width', width * scaleFactor);
-      svgElementClone.setAttribute('height', height * scaleFactor);
-      const svgData = new XMLSerializer().serializeToString(svgElementClone);
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const image = new Image();
-      image.onload = () => {
-        canvas.width = image.width;
-        canvas.height = image.height;
-        ctx.drawImage(image, 0, 0);
-        canvas.toBlob(blob => {
-          (async () => {
-            await sidekickClipboard.write({
-              png: blob,
-              sidekickObject: { markdown: escapedMarkdown }
-            });
-            })();
-        });
+        const svgElementClone = svgElement.cloneNode(true);
+        svgElementClone.setAttribute('width', width * scaleFactor);
+        svgElementClone.setAttribute('height', height * scaleFactor);
+        const svgData = new XMLSerializer().serializeToString(svgElementClone);
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const image = new Image();
+        image.onload = () => {
+          canvas.width = image.width;
+          canvas.height = image.height;
+          ctx.drawImage(image, 0, 0);
+          canvas.toBlob(blob => {
+            (async () => {
+              await sidekickClipboard.write({
+                png: blob,
+                sidekickObject: { markdown: escapedMarkdown }
+              });
+              })();
+          });
       };
       image.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
+    } catch (error) {
+      system.error('Error copying image to clipboard', error);
     }
   };
 
