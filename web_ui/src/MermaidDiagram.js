@@ -61,10 +61,11 @@ const MermaidDiagram = memo(({ markdown, escapedMarkdown }) => {
               });
               })();
           });
-      };
-      image.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
-    } catch (error) {
-      system.error('Error copying image to clipboard', error);
+        };
+        image.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
+      } catch (error) {
+        system.error('Error copying image to clipboard', error);
+      }
     }
   };
 
