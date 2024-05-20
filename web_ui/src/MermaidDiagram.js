@@ -1,15 +1,19 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Box, Collapse, Button, Typography } from "@mui/material";
+import React, { useEffect, useRef, useState, useContext } from "react";
+import { Box, Collapse, Button, Typography, IconButton, Toolbar, Tooltip } from "@mui/material";
 import mermaid from "mermaid";
 import { v4 as uuidv4 } from 'uuid';
 import { memo } from 'react';
 
-const MermaidDiagram = memo(({ markdown }) => {
+import { SidekickClipboardContext } from './SidekickClipboardContext';
+import CollectionsOutlinedIcon from '@mui/icons-material/CollectionsOutlined';
+
+const MermaidDiagram = memo(({ markdown, escapedMarkdown }) => {
   const mermaidRef = useRef(null);
   const mermaidId = `mermaid-diagram-${uuidv4()}`;
   const [svg, setSvg] = useState(null);
   const [error, setError] = useState(null);
   const [showError, setShowError] = useState(false);
+  const sidekickClipboard = useContext(SidekickClipboardContext);
 
   useEffect(() => {
     mermaid.initialize({
@@ -25,6 +29,39 @@ const MermaidDiagram = memo(({ markdown }) => {
       mermaidRef.current.innerHTML = svg;
     }
   }, [svg]);
+
+  const handleCopyImage = (event) => {
+    event.stopPropagation();
+    if (mermaidRef.current) {
+      const svgElement = mermaidRef.current.querySelector('svg');
+      const scaleFactor = 2;
+      const rect = svgElement.getBoundingClientRect();
+      const width = rect.width;
+      const height = rect.height;
+
+      const svgElementClone = svgElement.cloneNode(true);
+      svgElementClone.setAttribute('width', width * scaleFactor);
+      svgElementClone.setAttribute('height', height * scaleFactor);
+      const svgData = new XMLSerializer().serializeToString(svgElementClone);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const image = new Image();
+      image.onload = () => {
+        canvas.width = image.width;
+        canvas.height = image.height;
+        ctx.drawImage(image, 0, 0);
+        canvas.toBlob(blob => {
+          (async () => {
+            await sidekickClipboard.write({
+              png: blob,
+              sidekickObject: { markdown: escapedMarkdown }
+            });
+            })();
+        });
+      };
+      image.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
+    }
+  };
 
   useEffect(() => {
     let isCancelled = false;
@@ -61,12 +98,23 @@ const MermaidDiagram = memo(({ markdown }) => {
       {
         !error
         ?
+        <Box>
+          <Toolbar>
+            <Tooltip title="Copy image as PNG to clipboard for external use (markdown will be placed in the internal clipboard)" arrow>
+              <IconButton edge="start" color="inherit"
+                aria-label="copy image to clipboard"
+                onClick={handleCopyImage}>
+                <CollectionsOutlinedIcon/>
+              </IconButton>
+            </Tooltip>
+          </Toolbar>
           <div
             className="mermaid-diagram"
             id={'id-'+mermaidId} key={'key-'+mermaidId} ref={mermaidRef}
             style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
             >
           </div>
+        </Box>
         :
         <Box>
           <Button onClick={() => setShowError(!showError)} aria-expanded={showError} aria-label="show more" style={{ color: 'red' }}>

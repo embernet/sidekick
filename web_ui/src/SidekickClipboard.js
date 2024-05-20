@@ -57,7 +57,9 @@ export default class SidekickClipboard {
         return new Promise((resolve, reject) => {
             try {
                 let item;
-                if (sidekickClipboardItems?.html) {
+                if (sidekickClipboardItems?.png) {
+                    item = new ClipboardItem({ 'image/png': sidekickClipboardItems.png });
+                } else if (sidekickClipboardItems?.html) {
                     const htmlBlob = new Blob([sidekickClipboardItems.html], { type: 'text/html' });
                     item = new ClipboardItem({ 'text/html': htmlBlob });
                 } else if (sidekickClipboardItems?.text) {

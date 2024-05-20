@@ -4,7 +4,9 @@ import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import ReactMarkdown from 'react-markdown';
 import { ClassNames } from "@emotion/react";
 import { useContext, useState, useEffect } from 'react';
-import { Card, Toolbar, Typography, Box, IconButton } from '@mui/material';
+import { Card, Toolbar, Typography, Box, IconButton, Tooltip } from '@mui/material';
+
+// Icons
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 import { SystemContext } from './SystemContext';
@@ -52,16 +54,19 @@ const SidekickMarkdown = memo(({ markdown }) => {
                     <Toolbar className={ClassNames.toolbar}>
                         <Typography sx={{ mr: 2 }}>{language}</Typography>
                         <Box sx={{ display: "flex", width: "100%", flexDirection: "row", ml: "auto" }}>
-                            <IconButton edge="start" color="inherit" aria-label="copy to clipboard"
-                            onClick={(event) => { (async () => {
-                                await sidekickClipboard.write({text: code, sidekickObject: { markdown: codeMarkdown }});
-                              })(); event.stopPropagation(); }}>
-                            <ContentCopyIcon/>
-                            </IconButton>
+                            <Tooltip title="Copy markdown to clipboard" arrow>
+                                <IconButton edge="start" color="inherit" aria-label="copy to clipboard"
+                                onClick={(event) => { (async () => {
+                                    await sidekickClipboard.write({text: code, sidekickObject: { markdown: codeMarkdown }});
+                                })(); event.stopPropagation(); }}>
+                                <ContentCopyIcon/>
+                                </IconButton>
+                            </Tooltip>
                         </Box>
+                        
                     </Toolbar>
                     {(language === "mermaid") ?
-                        <MermaidDiagram markdown={code}/>
+                        <MermaidDiagram markdown={code} escapedMarkdown={codeMarkdown}/>
                     :
                         <SyntaxHighlighter sx={{ width: "100%" }} lineProps={{style: {wordBreak: 'break-all', whiteSpace: 'pre-wrap'}}} language={language} wrapLines={true} style={docco}>
                         {code}
