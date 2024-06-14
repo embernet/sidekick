@@ -209,6 +209,22 @@ const App = () => {
   }
 
   useEffect(() => {
+    // Workaround for the bug in the ResizeObserver that results in loop limit exceeded error
+    const originalConsoleError = console.error;
+    const originalConsoleWarning = console.warning;
+    console.error = (...args) => {
+        if (args[0].includes('ResizeObserver loop')) {
+            return;
+        }
+        originalConsoleError(...args);
+    };
+    console.warning = (...args) => {
+      if (args[0].includes('ResizeObserver loop')) {
+          return;
+      }
+      originalConsoleWarning(...args);
+    };
+
     const handleResize = () => {
       setIsMobile(window.innerWidth < 600);
     };
