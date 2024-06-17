@@ -9,6 +9,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { lightBlue } from '@mui/material/colors';
 import AccountDelete from "./AccountDelete";
+import AccountRename from "./AccountRename";
 
 const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
      onClose, serverUrl, token, setToken, darkMode, isMobile }) => {
@@ -111,9 +112,13 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
     setTabIndex(0);
   };
 
+  const handleCancelRenameAccount = () => {
+    setTabIndex(0);
+  };
+
   const handleCancelDeleteAccount = () => {
     setTabIndex(0);
-  }
+  };
 
   const handleChangePassword = async () => {
     if (newPassword !== reEnteredNewPassword) {
@@ -181,6 +186,7 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
                   <Tab label="About" />
                   {appSettingsSystemSettings?.functionality?.changePassword &&
                   !user?.is_oidc ? <Tab label="Change Password" /> : null}
+                  {!user?.is_oidc ? <Tab label="Rename Account" /> : null}
                   {appSettingsSystemSettings?.functionality?.deleteAccount &&
                   !user?.is_oidc ? <Tab label="Delete Account" /> : null}
               </Tabs>
@@ -207,6 +213,16 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
                   </Box>
               )}
               {tabIndex === 2 && (
+                <AccountRename
+                    user = {user}
+                    warningMessage = {<Typography>Warning: This will rename your account. If successful, you will be logged out.<br/><br/>You will no longer be able to login with your previous account name.</Typography>}
+                    serverUrl={serverUrl} token={token} setToken={setToken}
+                    onAccountRenamed={() => {setUser('');}
+                    }
+                    onCancel={handleCancelRenameAccount}
+                />
+              )}
+              {tabIndex === 3 && (
                 <AccountDelete
                     warningMessage = {<Typography>Warning: This will delete your account and all your data.<br/><br/>Make sure you have copies of anything you need before proceeding.</Typography>}
                     serverUrl={serverUrl} token={token} setToken={setToken}

@@ -896,6 +896,38 @@ def reset_password():
             )
 
 
+@app.route('/rename_user_id', methods=['POST'])
+@jwt_required()
+def rename_user_id():
+    with RequestLogger(request) as rl:
+        increment_server_stat(category="requests", stat_name="renameUser")
+        data = request.get_json()
+        user_id_to_rename = data['user_id']
+        new_user_id = data['new_user_id']
+        user_name = data['user_name']
+        password = data['password']
+        acting_user_id = get_jwt_identity()
+        rl.info("request to rename userid", acting_user_id=acting_user_id, new_user_id=new_user_id)
+        if acting_user_id != user_id_to_rename and not DBUtils.user_isadmin(acting_user_id):
+            rl.warning("SECURITY_ALERT: Unauthorized attempt to rename userid", acting_user_id=acting_user_id, user_id_to_rename=user_id_to_rename, new_user_id=new_user_id)
+            return app.response_class(
+                response=json.dumps({"success": False, "message": "Only admins can rename other users"}),
+                status=403,
+                mimetype='application/json'
+            )
+        try:
+            if DBUtils.login(acting_user_id, password)['success']:
+                result = DBUtils.rename_user_id(acting_user_id, new_user_id, user_name)
+                rl.info("rename user success", acting_user_id=acting_user_id, new_user_id=new_user_id)
+                return jsonify(result)
+            else:
+                rl.info("rename user failed - invalid password", acting_user_id=acting_user_id)
+                return jsonify({'success': False, 'message': 'Invalid password'})
+        except Exception as e:
+            rl.exception(e)
+            return jsonify({'success': False, 'message': str(e)})
+
+
 @app.route('/delete_user', methods=['POST'])
 @jwt_required()
 def delete_user():
@@ -924,6 +956,7 @@ def delete_user():
         except Exception as e:
             rl.exception(e)
             return jsonify({'success': False, 'message': str(e)})
+
 
 @app.route('/web_ui_log', methods=['POST'])
 @jwt_required()

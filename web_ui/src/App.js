@@ -860,7 +860,7 @@ const App = () => {
                   </Menu>          
                   {appInfo}
                   {isMobile ? null : <Typography sx={{ mr: 2, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
-                    ({ user?.name ? user.name : user?.id })
+                    ({ user?.is_oidc && user?.name ? user.name : user?.id })
                   </Typography>}
                   {isMobile ? null : extendedLeftToolbar}
                   <Tooltip title={ chatsOpen ? "Close Chat Explorer" : "Open Chat Explorer" }>
@@ -945,7 +945,7 @@ const App = () => {
                     <Typography style={{ fontWeight: 'bold' }}>Logged in as:</Typography>
                     <Typography multiline style={{ marginLeft: '5px', fontSize: '0.8rem', wordWrap: 'break-word', overflowWrap: 'break-word',
                       maxWidth: '100px' }}>
-                      { user?.name ? user.name : user?.id }
+                      { user?.is_oidc && user?.name ? user.name : user?.id }
                     </Typography>
                   </Box>
                   <Typography sx={{mt:1}} style={{ fontSize: '0.8rem' }}>Sidekick is an open-source AI powered tool for creativity, thinking, learning, exploring ideas, problem-solving, and getting things done.</Typography>

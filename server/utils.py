@@ -356,6 +356,8 @@ class DBUtils:
                 return { 
                     'user': {
                         'id': user.id, 
+                        'name': user.name,
+                        'is_oidc': user.is_oidc,
                         'properties': json.loads(user.properties)
                     },
                     'success': True
@@ -401,6 +403,39 @@ class DBUtils:
         user.password_hash = new_password_hash
         db.session.commit()
         return {'success': True}
+    
+    @staticmethod
+    def rename_user_id(user_id, new_user_id, user_name):
+        try:
+            user = User.query.filter_by(id=user_id).one()
+        except NoResultFound:
+            return {'success': False, 'message': 'User ID not found'}
+        # Check if user is an OIDC user as they cannot be renamed
+        if user.is_oidc:
+            return {'success': False, 'message': 'OIDC users cannot be renamed'}
+        # Check if the new user_id already exists
+        try:
+            User.query.filter_by(id=new_user_id).one()
+            return {'success': False, 'message': 'User ID already exists'}
+        except NoResultFound:
+            pass
+        # create a new user with the new user_id
+        new_user = User(id=new_user_id, password_hash=user.password_hash,
+                        name=user_name, is_oidc=user.is_oidc,
+                        properties=json.loads(user.properties))
+        db.session.add(new_user)
+        # Update user_id in all documents
+        documents = Document.query.filter_by(user_id=user_id).all()
+        for document in documents:
+            document.user_id = new_user_id
+        # Update user_id in all user tags
+        user_tags = UserTag.query.filter_by(user_id=user_id).all()
+        for user_tag in user_tags:
+            user_tag.user_id = new_user_id
+        # Delete the old user
+        db.session.delete(user)
+        db.session.commit()
+        return {'success': True, 'message': 'User ID renamed'}
 
     @staticmethod
     def delete_user(user_id):
