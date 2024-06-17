@@ -57,6 +57,7 @@ import { StyledBox, StyledToolbar, SecondaryToolbar } from './theme';
 import SidekickMarkdown from './SidekickMarkdown';
 import NativeTextEditorEventHandlers from './NativeTextEditorEventHandlers';
 import Toolbox from './Toolbox';
+import ContentElement from './ContentElement';
 
 const Chat = ({
     provider, modelSettings, persona,
@@ -299,6 +300,8 @@ const Chat = ({
     const [lastPrompt, setLastPrompt] = useState("");
     const [promptToSend, setPromptToSend] = useState(false);
     const [messages, setMessages] = useState([]);
+    const [chatContext, setChatContext] = useState("");
+    const [chatGoal, setChatGoal] = useState("");
     const [promptCount, setPromptCount] = useState(0);
     const [responseCount, setResponseCount] = useState(0);
     const [messagesSize, setMessagesSize] = useState(0);
@@ -2863,6 +2866,8 @@ const Chat = ({
         let promptCount = 0;
         let responseCount = 0;
         let messagesSize = 0;
+        messagesSize += chatContext?.length || 0;
+        messagesSize += chatGoal?.length || 0;
         messages.forEach((message) => {
             messagesSize += (message?.role?.length || 0) + (message?.content?.length || 0);
             if (message.role === "user") {
@@ -2874,7 +2879,7 @@ const Chat = ({
         setPromptCount(promptCount);
         setResponseCount(responseCount);
         setMessagesSize(messagesSize);
-    }, [messages, starred, bookmarked, tags]);
+    }, [chatContext, chatGoal, messages, starred, bookmarked, tags]);
 
     useEffect(()=>{
         settings["rendered"] = markdownRenderingOn;
@@ -3002,7 +3007,9 @@ const Chat = ({
         if(promptToSend) {
             showWaiting();
             setLastPrompt(promptToSend.prompt);
-            sendPrompt(promptToSend.prompt);
+            let prompt = promptToSend.prompt;
+            setPromptToSend("");
+            sendPrompt(prompt);
         }
     }, [promptToSend]);
 
@@ -3059,6 +3066,12 @@ const Chat = ({
                     setId(response.data.metadata.id);
                     setName(response.data.metadata.name);
                     setPreviousName(response.data.metadata.name);
+                    if (response.data.content.context) {
+                        setChatContext(response.data.content.context);
+                    }
+                    if (response.data.content.goal) {
+                        setChatGoal(response.data.content.goal);
+                    }
                     setMessages(response.data.content.chat);
                     setTags(response.data.metadata?.tags || []);
                     setStarred(response.data.metadata?.properties?.starred || false);
@@ -3116,17 +3129,7 @@ const Chat = ({
     }
 
     const create = () => {
-        let newChatObject = {
-            name: name,
-            tags: tags,
-            properties: {
-                starred: starred,
-                bookmarked: bookmarked,
-            },
-            content: {
-                chat: messages,
-            }
-        };
+        let newChatObject = chatAsObject();
         const url = `${serverUrl}/docdb/${folder}/documents`;
         axios.post(url, newChatObject, {
             headers: {
@@ -3162,6 +3165,8 @@ const Chat = ({
             name: name + " clone",
             tags: tags,
             content: {
+                context: chatContext,
+                goal: chatGoal,
                 chat: messages,
             }
         };
@@ -3196,6 +3201,12 @@ const Chat = ({
                 chat: messages,
             }
         };
+        if (chatContext && chatContext !== "") {
+            chat.content.context = chatContext;
+        }
+        if (chatGoal && chatGoal !== "") {
+            chat.content.goal = chatGoal;
+        }
         return chat;
     }
 
@@ -3385,9 +3396,11 @@ const Chat = ({
             `\n\nRespond to the following prompt (if there is not enough information in the knowledge articles to
             respond then say so and give your best response):\n\n`;
         }
+        let context = chatContext ? "\n\nContext:\n\n" + chatContext : "";
+        let goal = chatGoal ? "\n\nGoal:\n\n" + chatGoal : "";
         let requestData = {
             model_settings: myModelSettings,
-            system_prompt: systemPrompt,
+            system_prompt: systemPrompt + context + goal,
             prompt: knowledgePrompt + prompt,
             id: id,
             name: name,
@@ -3782,6 +3795,8 @@ const Chat = ({
         setBookmarked(false);
         setChatPrompt("");
         setLastPrompt("");
+        setChatContext("");
+        setChatGoal("");
         chatLoading.current = chatLoadingState;
     }
 
@@ -4838,7 +4853,7 @@ const Chat = ({
             <Box sx={{ display:"flex", flexDirection: "column", width: "100%"}}>
                 <Box sx={{ display:"flex", flexDirection: "row" }}>
                     <TextField
-                        sx={{ mt: 2, flexGrow: 1, paddingBottom: "6px" }}
+                        sx={{ mt: 2,  ml: 1,flexGrow: 1, paddingBottom: "6px" }}
                         id="chat-name"
                         autoComplete='off'
                         label="Chat name"
@@ -4876,10 +4891,26 @@ const Chat = ({
                         </Tooltip>
                     </Toolbar>
                 </Box>
+                <Box sx={{ display:"flex", flexDirection: "row", width: "100%" }}>
+                    <ContentElement
+                        name="Chat Context"
+                        placeholder="Provide some context for the chat to give the AI more to go on"
+                        setName={undefined}
+                        content={chatContext}
+                        setContent={setChatContext}
+                    />
+                    <ContentElement
+                        name="Chat Goal"
+                        placeholder="Provide a goal for the chat to help focus the conversation"
+                        setName={undefined}
+                        content={chatGoal}
+                        setContent={setChatGoal}
+                    />
+                </Box>
                 <StyledBox sx={{ overflow: 'auto', flex: 1, minHeight: "300px" }} ref={chatMessagesContainerRef}>
                     <List id="message-list" ref={chatMessagesRef}>
                         {messages && messages.map((message, index) => (
-                            <ListItem sx={{ paddingLeft: 0 }} key={index}>
+                            <ListItem sx={{ ml: 1, paddingLeft: 0 }} key={index}>
                                 <Box
                                     position="relative"
                                     style={{width:'100%'}}
