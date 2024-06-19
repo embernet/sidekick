@@ -788,13 +788,14 @@ def handle_authenticated_oidc_user(user_id, name):
 @app.route('/oidc_login')
 def oidc_login():
     with RequestLogger(request) as rl:
+        rl.info(f"oidc login request received")
         if not oidc:
             return "OIDC is not configured.", 500
-
+        rl.info(f"oidc configured")
         # Attempt to retrieve and validate the existing session token
         token_dict = session.get("oidc_auth_token")
+        rl.info(f"token_dict={token_dict}")
         if token_dict:
-            rl.info(f"token_dict={token_dict}")
             token = OAuth2Token.from_dict(token_dict)
             rl.info(f"token={token}")
             rl.info(f"active_token={oidc.ensure_active_token(token)}")
