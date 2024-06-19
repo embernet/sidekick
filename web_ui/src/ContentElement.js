@@ -13,7 +13,8 @@ Parameters:
     setContent: a function to update the content of the element
 */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
+import { SystemContext } from './SystemContext';
 import { debounce } from "lodash";
 
 import { Card, Button, TextField, Box } from '@mui/material';
@@ -21,8 +22,10 @@ import { memo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { use } from 'marked';
 
-const ContentElement = memo(({ name, setName, placeholder, content, setContent, rows }) => {
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 
+const ContentElement = memo(({ name, setName, placeholder, content, setContent }) => {
+    const system = useContext(SystemContext);
     const [myName, setMyname] = useState(name || "");
     const [myPlaceholder, setMyPlaceholder] = useState(placeholder || name || "Enter content here");
     const [mycontent, setMyContent] = useState( typeof content === "string" ? content : "");
@@ -82,7 +85,7 @@ const ContentElement = memo(({ name, setName, placeholder, content, setContent, 
     const memoizedValue = React.useMemo(() => mycontent, [mycontent]);
 
     return (
-        <Box sx={{ width: "100%", ml: 1, mr: 1 }} id={`content-element-${myId}`}>
+        <Box sx={{ width: "100%", ml: 1, mr: 1, mt: 2 }} id={`content-element-${myId}`}>
 
             {
                 setName ?
@@ -96,10 +99,22 @@ const ContentElement = memo(({ name, setName, placeholder, content, setContent, 
                     + {myName}
                 </Button>
             ) : (
-                <TextField label={myName} placeholder={myPlaceholder}
-                    variant="outlined" sx={{ mt: 2, width: "100%" }} multiline
-                    rows={rows ? rows : 1} value={memoizedValue} onChange={handleContentChange} disabled={!setContent}
-                />
+                <Box position="relative"
+                style={{width:'100%'}}>
+                    <TextField label={myName} placeholder={myPlaceholder}
+                        variant="outlined" sx={{ width: "100%" }} multiline minRows={1} maxRows={3}
+                        value={memoizedValue} onChange={handleContentChange} disabled={!setContent}
+                    />
+                    <HighlightOffIcon
+                    sx={{ position: 'absolute', top: 0, right: 0,
+                    color: false ? 'lightgrey' : 'darkgrey', cursor: "pointer" }}
+                    onClick={(event) => {
+                        event.stopPropagation();
+                        setContent("");
+                    }}
+                    />
+                </Box>
+
             )}
         </Box>
     );
