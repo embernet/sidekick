@@ -19,6 +19,7 @@ app.logger.setLevel(logging.getLevelName(
 app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = False
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["SQLALCHEMY_DATABASE_URI"]
+app.config["SIDEKICK_WEBUI_BASE_URL"] = os.environ["SIDEKICK_WEBUI_BASE_URL"]
 app.config["OPENAI_API_KEY"] = os.environ["OPENAI_API_KEY"]
 app.config["OPENAI_BASE_URL"] = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
 app.config["OPENAI_PROXY"] = os.environ.get("OPENAI_PROXY")

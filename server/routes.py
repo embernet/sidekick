@@ -15,6 +15,8 @@ from flask import request, jsonify, Response, stream_with_context, redirect, ses
 from flask_jwt_extended import get_jwt_identity, jwt_required, \
     create_access_token, unset_jwt_cookies
 
+from authlib.oauth2.rfc6749 import OAuth2Token
+
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.exc import IntegrityError
 
@@ -779,36 +781,54 @@ def oidc_login_get_user():
         return jsonify(result)
 
 
+def handle_authenticated_oidc_user(user_id):
+    """
+    Handle an authenticated user
+    """
+    try:
+        user = DBUtils.get_user(user_id)
+        if user["name"] != name:
+            DBUtils.update_user(user_id, name=name)
+    except NoResultFound:
+        user = DBUtils.create_user(user_id=user_id, name=name, is_oidc=True,
+                                   password=get_random_string(), properties={})
+
+    update_default_settings(user_id)
+    access_token = create_access_token(user_id, additional_claims=user)
+    return access_token
+
 @app.route('/oidc_login')
 def oidc_login():
-    """
-    Login via OIDC,
-    Create the user if they don't exist,
-    and redirect to the web_ui with the user's JWT access_token
-    """
+    if not oidc:
+        return "OIDC is not configured.", 500
+
+    # Attempt to retrieve and validate the existing session token
+    token_dict = session.get("oidc_auth_token")
+    if token_dict:
+        token = OAuth2Token.from_dict(token_dict)
+        if oidc.ensure_active_token(token) is None:
+            # Token is expired or invalid; initiate a new login flow
+            return redirect(url_for("oidc_auth.login"))
+
+    if not oidc.user_loggedin:
+        # User is not logged in; initiate login flow
+        return redirect(url_for('oidc_auth.login'))
+
+    # The user is authenticated; proceed with the login success logic
     with RequestLogger(request) as rl:
-        if oidc:
-            @oidc.require_login
-            def protected_route():
-                user_id = oidc.user_getfield("sub")
-                name = oidc.user_getfield("name")
-                name = user_id if name is None else name
-                redirect_uri = request.args.get("redirect_uri")
-                rl.info("successful login", user_id=user_id, name=name)
-                try:
-                    user = DBUtils.get_user(user_id)
-                    # If the user exists and their name in the OIDC provider has changed, update their name
-                    if user["name"] != name:
-                        DBUtils.update_user(user_id, name=name)
+        user_id = oidc.user_getfield("sub")
+        name = oidc.user_getfield("name")
+        access_token = handle_authenticated_oidc_user(user_id)
+        rl.info("successful login", user_id=user_id, name=name)
+        return redirect(f"{app.config['SIDEKICK_WEBUI_BASE_URL']}?access_token={access_token}")
 
-                except NoResultFound:
-                    user = DBUtils.create_user(user_id=user_id, name=name, is_oidc=True,
-                                            password=get_random_string(), properties={})
-
-                update_default_settings(user_id)
-                access_token = create_access_token(user_id, additional_claims=user)
-                return redirect(f"{redirect_uri}?access_token={access_token}")
-        return protected_route()
+@app.route('/oidc_callback')
+def oidc_callback():
+    with RequestLogger(request) as rl:
+        user_id = oidc.user_getfield("sub")
+        access_token = handle_authenticated_oidc_user(user_id)
+        rl.info("successful login", user_id=user_id, name=name)
+        return redirect(f"{app.config['SIDEKICK_WEBUI_BASE_URL']}?access_token={access_token}")
 
 
 @app.route('/logout', methods=['POST'])
