@@ -769,7 +769,7 @@ def oidc_login_get_user():
         return jsonify(result)
 
 
-def handle_authenticated_oidc_user(user_id):
+def handle_authenticated_oidc_user(user_id, name):
     """
     Handle an authenticated user
     """
@@ -815,7 +815,7 @@ def oidc_login():
         # The user is authenticated; proceed with the login success logic
         user_id = oidc.user_getfield("sub")
         name = oidc.user_getfield("name")
-        access_token = handle_authenticated_oidc_user(user_id)
+        access_token = handle_authenticated_oidc_user(user_id, name)
         rl.info("successful login", user_id=user_id, name=name)
         return redirect(f"{app.config['SIDEKICK_WEBUI_BASE_URL']}?access_token={access_token}")
 
@@ -824,7 +824,8 @@ def oidc_callback():
     with RequestLogger(request) as rl:
         rl.info("oidc callback triggered")
         user_id = oidc.user_getfield("sub")
-        access_token = handle_authenticated_oidc_user(user_id)
+        name = oidc.user_getfield("name")
+        access_token = handle_authenticated_oidc_user(user_id, name)
         rl.info("successful login", user_id=user_id, name=name)
         return redirect(f"{app.config['SIDEKICK_WEBUI_BASE_URL']}?access_token={access_token}")
 
