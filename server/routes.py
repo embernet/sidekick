@@ -118,10 +118,7 @@ def test_ai():
                     "content": "Give me an update on your status. "
                                 "Do not ask any questions or offer any help."}]
                 }
-            proxy_url = app.config["OPENAI_PROXY"]
-            proxies = {"http": proxy_url,
-                    "https": proxy_url} if proxy_url else None
-            response = requests.post(url, headers=headers, proxies=proxies,
+            response = requests.post(url, headers=headers,
                                     data=json.dumps(ai_request))
             openai_health = {
                 "success": True,
@@ -349,10 +346,7 @@ def name_topic():
             message_usage["prompt_characters"] = promptCharacters
             increment_server_stat(category="usage", stat_name="promptCharacters", increment=promptCharacters)
             increment_server_stat(category="usage", stat_name="totalCharacters", increment=promptCharacters)
-            proxy_url = app.config["OPENAI_PROXY"]
-            proxies = {"http": proxy_url,
-                    "https": proxy_url} if proxy_url else None
-            response = requests.post(url, headers=headers, proxies=proxies,
+            response = requests.post(url, headers=headers,
                                     data=json.dumps(ai_request))
             topic_name = response.json()["choices"][0]["message"]["content"]
             message_usage["completion_characters"] = len(topic_name)
@@ -425,10 +419,7 @@ def query_ai():
             }
             message_usage["prompt_characters"] = num_characters_from_messages(
                 ai_request["messages"])
-            proxy_url = app.config["OPENAI_PROXY"]
-            proxies = {"http": proxy_url,
-                    "https": proxy_url} if proxy_url else None
-            response = requests.post(url, headers=headers, proxies=proxies,
+            response = requests.post(url, headers=headers,
                                     data=json.dumps(ai_request))
             generated_text = response.json()["choices"][0]["message"]["content"]
             increment_server_stat(category="usage", stat_name="completionCharacters", increment=len(generated_text))
@@ -491,10 +482,7 @@ def chat_v2():
                     increment_server_stat(category="usage", stat_name="promptTokens", increment=prompt_tokens)
                 except Exception as e:
                     rl.exception(e, "Error calculating prompt tokens")
-            proxy_url = app.config["OPENAI_PROXY"]
-            proxies = {"http": proxy_url,
-                    "https": proxy_url} if proxy_url else None
-            response = requests.post(url, headers=headers, proxies=proxies,
+            response = requests.post(url, headers=headers,
                                     data=json.dumps(ai_request), stream=True)
             if response.status_code != 200:
                 error_message = f"Error - OpenAI API returned status code {response.status_code}"
