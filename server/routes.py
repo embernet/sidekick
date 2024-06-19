@@ -787,23 +787,32 @@ def handle_authenticated_oidc_user(user_id):
 
 @app.route('/oidc_login')
 def oidc_login():
-    if not oidc:
-        return "OIDC is not configured.", 500
-
-    # Attempt to retrieve and validate the existing session token
-    token_dict = session.get("oidc_auth_token")
-    if token_dict:
-        token = OAuth2Token.from_dict(token_dict)
-        if oidc.ensure_active_token(token) is None:
-            # Token is expired or invalid; initiate a new login flow
-            return redirect(url_for("oidc_auth.login"))
-
-    if not oidc.user_loggedin:
-        # User is not logged in; initiate login flow
-        return redirect(url_for('oidc_auth.login'))
-
-    # The user is authenticated; proceed with the login success logic
     with RequestLogger(request) as rl:
+        if not oidc:
+            return "OIDC is not configured.", 500
+
+        # Attempt to retrieve and validate the existing session token
+        token_dict = session.get("oidc_auth_token")
+        if token_dict:
+            rl.info(f"token_dict={token_dict}")
+            token = OAuth2Token.from_dict(token_dict)
+            rl.info(f"token={token}")
+            rl.info(f"active_token={oidc.ensure_active_token(token)}")
+            try:
+                # Check if the token is active
+                oidc.ensure_active_token(token)
+            except InvalidTokenError:
+                # Token is expired or invalid; initiate a new login flow
+                rl.info("invalid token")
+                return redirect(url_for("oidc_auth.login"))
+
+        rl.info(f"user_loggedin={oidc.user_loggedin}")
+        if not oidc.user_loggedin:
+            # User is not logged in; initiate login flow
+            rl.info("user not logged in")
+            return redirect(url_for('oidc_auth.login'))
+
+        # The user is authenticated; proceed with the login success logic
         user_id = oidc.user_getfield("sub")
         name = oidc.user_getfield("name")
         access_token = handle_authenticated_oidc_user(user_id)
@@ -813,6 +822,7 @@ def oidc_login():
 @app.route('/oidc_callback')
 def oidc_callback():
     with RequestLogger(request) as rl:
+        rl.info("oidc callback triggered")
         user_id = oidc.user_getfield("sub")
         access_token = handle_authenticated_oidc_user(user_id)
         rl.info("successful login", user_id=user_id, name=name)
