@@ -3097,12 +3097,16 @@ const Chat = ({
         }
     }, [loadChat]);
 
-    useEffect(()=>{
-        // Auto-scroll during chat streaming unless the user scrolls
+    const isScrolledOffBottom = () => {
         const chatMessagesBottom = chatMessagesContainerRef.current.scrollTop + chatMessagesContainerRef.current.clientHeight;
         const streamingChatResponseCardBottom = chatMessagesRef.current.offsetTop + chatMessagesRef.current.clientHeight;        
         const isScrolledOffBottom = streamingChatResponseCardBottom - chatMessagesBottom > 300;
-        if (!isScrolledOffBottom) {
+        return isScrolledOffBottom;
+    }
+
+    useEffect(()=>{
+        // Auto-scroll during chat streaming unless the user scrolls
+        if (!isScrolledOffBottom()) {
             streamingChatResponseCardRef.current?.scrollIntoView({ behavior: 'instant', block: 'end' });
         }
     }, [streamingChatResponse]);
@@ -3110,9 +3114,11 @@ const Chat = ({
     const appendMessage = (message) => {
         setMessages(prevMessages => [...prevMessages, message]);
         if (!chatOpen) { setChatOpen(Date.now()) };
-        setTimeout(() => {
-            chatMessagesRef.current?.scrollIntoView({ behavior: "instant", block: "end" });
-        }, 0);
+        if (!isScrolledOffBottom()) {
+            setTimeout(() => {
+                chatMessagesRef.current?.scrollIntoView({ behavior: "instant", block: "end" });
+            }, 0);
+        }
     }
 
     const showReady = () => {
