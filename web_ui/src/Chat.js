@@ -3066,12 +3066,8 @@ const Chat = ({
                     setId(response.data.metadata.id);
                     setName(response.data.metadata.name);
                     setPreviousName(response.data.metadata.name);
-                    if (response.data.content.context) {
-                        setChatContext(response.data.content.context);
-                    }
-                    if (response.data.content.goal) {
-                        setChatGoal(response.data.content.goal);
-                    }
+                    setChatContext(response.data.content?.context || "");
+                    setChatGoal(response.data.content?.goal || "");
                     setMessages(response.data.content.chat);
                     setTags(response.data.metadata?.tags || []);
                     setStarred(response.data.metadata?.properties?.starred || false);
@@ -3101,12 +3097,16 @@ const Chat = ({
         }
     }, [loadChat]);
 
-    useEffect(()=>{
-        // Auto-scroll during chat streaming unless the user scrolls
+    const isScrolledOffBottom = () => {
         const chatMessagesBottom = chatMessagesContainerRef.current.scrollTop + chatMessagesContainerRef.current.clientHeight;
         const streamingChatResponseCardBottom = chatMessagesRef.current.offsetTop + chatMessagesRef.current.clientHeight;        
         const isScrolledOffBottom = streamingChatResponseCardBottom - chatMessagesBottom > 300;
-        if (!isScrolledOffBottom) {
+        return isScrolledOffBottom;
+    }
+
+    useEffect(()=>{
+        // Auto-scroll during chat streaming unless the user scrolls
+        if (!isScrolledOffBottom()) {
             streamingChatResponseCardRef.current?.scrollIntoView({ behavior: 'instant', block: 'end' });
         }
     }, [streamingChatResponse]);
@@ -3114,9 +3114,11 @@ const Chat = ({
     const appendMessage = (message) => {
         setMessages(prevMessages => [...prevMessages, message]);
         if (!chatOpen) { setChatOpen(Date.now()) };
-        setTimeout(() => {
-            chatMessagesRef.current?.scrollIntoView({ behavior: "instant", block: "end" });
-        }, 0);
+        if (!isScrolledOffBottom()) {
+            setTimeout(() => {
+                chatMessagesRef.current?.scrollIntoView({ behavior: "instant", block: "end" });
+            }, 0);
+        }
     }
 
     const showReady = () => {
@@ -3198,15 +3200,11 @@ const Chat = ({
                 },
             },
             content: {
+                context: chatContext || "",
+                goal: chatGoal || "",
                 chat: messages,
             }
         };
-        if (chatContext && chatContext !== "") {
-            chat.content.context = chatContext;
-        }
-        if (chatGoal && chatGoal !== "") {
-            chat.content.goal = chatGoal;
-        }
         return chat;
     }
 
@@ -4894,14 +4892,14 @@ const Chat = ({
                 <Box sx={{ display:"flex", flexDirection: "row", width: "100%" }}>
                     <ContentElement
                         name="Chat Context"
-                        placeholder="Provide some context for the chat to give the AI more to go on"
+                        placeholder="Give the AI more to go on"
                         setName={undefined}
                         content={chatContext}
                         setContent={setChatContext}
                     />
                     <ContentElement
                         name="Chat Goal"
-                        placeholder="Provide a goal for the chat to help focus the conversation"
+                        placeholder="Focus the conversation"
                         setName={undefined}
                         content={chatGoal}
                         setContent={setChatGoal}
@@ -4943,7 +4941,7 @@ const Chat = ({
                                             newMessages.splice(index, 1);
                                             setMessages(newMessages);
                                         }}
-                                        />
+                                    />
                                 </Box>
                             </ListItem>
                         ))}
