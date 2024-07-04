@@ -131,6 +131,8 @@ const App = () => {
   const [appSettings, setAppSettings] = useState({});
   const [appMenuAnchorEl, setAppMenuAnchorEl] = useState(null);
   const [statusUpdates, setStatusUpdates] = useState([]);
+  const [languageSettings, setLanguageSettings] = useState({});
+  const [language, setLanguage] = useState(undefined);
   const [noteWindowMaximized, setNoteWindowMaximized] = useState(false);
   const [chatWindowMaximized, setChatWindowMaximized] = useState(false);
   const [scriptWindowMaximized, setScriptWindowMaximized] = useState(false);
@@ -193,6 +195,7 @@ const App = () => {
   };
 
   const mySettingsManager = useRef(null);
+  const myLanguageSettingsManager = useRef(null);
 
   const applyCustomSettings = () => {
     axios.get(`${serverUrl}/system_settings/app`).then(response => {
@@ -213,7 +216,7 @@ const App = () => {
     const originalConsoleError = console.error;
     const originalConsoleWarning = console.warning;
     console.error = (...args) => {
-        if (args[0].includes('ResizeObserver loop')) {
+        if (typeof args[0] === 'string' && args[0].includes('ResizeObserver loop')) {
             return;
         }
         originalConsoleError(...args);
@@ -276,8 +279,42 @@ const App = () => {
           setStatusUpdates( prev => [ ...prev, { message: "Error loading app settings. Using defaults."}]);
       }
       );
+
+      myLanguageSettingsManager.current = new SettingsManager(serverUrl, token, setToken);
+      myLanguageSettingsManager.current.loadSettings(`languages`,
+      (languageData) => {
+        setLanguageSettings(languageData);
+        return true;
+      },
+      (error) => {
+          console.log(`load languages:`, error);
+          return false;
+      }
+  )
+
     }
   }, [user]);
+
+  useEffect(() => {
+    if (myLanguageSettingsManager.current) {
+      myLanguageSettingsManager.current.setAll(languageSettings,
+        (data) => {
+          console.log("Saved language settings:", data);
+        },
+        (error) => {
+            system.error("System Error saving language settings.", error);
+        }
+        );
+      }
+  }, [languageSettings])
+
+  useEffect(() => {
+    if (language !== undefined && myLanguageSettingsManager.current && language !== languageSettings.default) {
+      let newLanguageSettings = {...languageSettings};
+      newLanguageSettings.default = language;
+      setLanguageSettings(newLanguageSettings);
+    }
+  }, [language]);
 
   useEffect(() => {
     if (appLoaded && mySettingsManager.current) {
@@ -983,6 +1020,7 @@ const App = () => {
                 serverUrl={serverUrl} token={token} setToken={setToken}
                 darkMode={darkMode}
                 isMobile={isMobile}
+                language={language}
               />
               { user?.properties?.roles?.admin && adminOpen ? <Admin 
                 adminOpen={adminOpen}
@@ -1058,6 +1096,7 @@ const App = () => {
                   chatStreamingOn={chatStreamingOn}
                   maxWidth={appSettings.maxPanelWidth}
                   isMobile={isMobile}
+                  language={language}
                 />
                 <ModelSettings 
                   setModelSettings={setModelSettings}
@@ -1151,6 +1190,7 @@ const App = () => {
                   setOpenScriptId={setOpenScriptId}
                   serverUrl={serverUrl} token={token} setToken={setToken}
                   isMobile={isMobile}
+                  language={language}
                 />
                 <Note 
                   noteOpen={noteOpen}
@@ -1173,6 +1213,7 @@ const App = () => {
                   serverUrl={serverUrl} token={token} setToken={setToken}
                   maxWidth={appSettings.maxPanelWidth}
                   isMobile={isMobile}
+                  language={language}
                 />
               </Box>
               { notesOpen ? <Explorer
@@ -1205,6 +1246,9 @@ const App = () => {
             personasOpen={personasOpen}
             togglePersonasOpen={handleTogglePersonasOpen}
             isMobile={isMobile}
+            languageSettings={languageSettings}
+            setLanguageSettings={setLanguageSettings}
+            language={language} setLanguage={setLanguage}
           />
         </Box>
       </ThemeProvider>

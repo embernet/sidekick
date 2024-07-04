@@ -102,7 +102,7 @@ const ContentElement = memo(({ name, setName, placeholder, content, setContent }
                 <Box position="relative"
                 style={{width:'100%'}}>
                     <TextField label={myName} placeholder={myPlaceholder}
-                        variant="outlined" sx={{ width: "100%" }} multiline minRows={1} maxRows={3}
+                        variant="outlined" sx={{ width: "100%" }} multiline rows={3}
                         value={memoizedValue} onChange={handleContentChange} disabled={!setContent}
                     />
                     <HighlightOffIcon

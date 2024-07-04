@@ -14,7 +14,7 @@ const ScriptPrompt = memo(({ cells,
     cellName, setCellName,
     cellParameters, setCellParameters,
     cellValue, setCellValue,
-    modelSettings, persona, serverUrl, token, setToken, darkMode, markdownRenderingOn, system }) => {
+    modelSettings, persona, serverUrl, token, setToken, darkMode, markdownRenderingOn, system, language }) => {
     // Set the initial state of the cell
     // taking into account the user may switch between cell types in the UI
     const [myCellName, setMyCellName] = useState(cellName || "");
@@ -124,6 +124,7 @@ const ScriptPrompt = memo(({ cells,
                 sendButtonTooltip=""
                 onBlur={null}
                 darkMode={darkMode}
+                language={language}
             />
             { !streamingChatResponse &&
                 <Card id="response" label="Response" variant="outlined"

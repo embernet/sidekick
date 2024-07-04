@@ -1,6 +1,6 @@
 
 {
-    "default": "British English",
+    "default": "",
     "languages": {
       "American English": { "show": true },
       "Arabic": { "show": true },

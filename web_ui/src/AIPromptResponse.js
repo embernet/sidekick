@@ -5,6 +5,7 @@ import { useEffect, useCallback, useRef, useState, useContext } from 'react';
 import { Box, TextField, Typography, Toolbar, Tooltip, IconButton } from '@mui/material';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
+import { MODEL_DEFAULT_LANGUAGE } from './LanguageSelector';
 
 import RedoIcon from '@mui/icons-material/Redo';
 import ReplayIcon from '@mui/icons-material/Replay';
@@ -50,7 +51,7 @@ const AIPromptResponse = ({modelSettings, serverUrl, token, setToken, customUser
     streamingOn, streamingChatResponseRef, streamingChatResponse,
     setStreamingChatResponse, setAIResponse, onChange, focusOnPrompt,
     setUserPromptEntered, userPromptToSend, setUserPromptToSend, darkMode,
-    controlName, toolbarButtons, sendButtonTooltip, interactiveMode=true, showPrompt=true, passiveUserPromptToSend=null}) => {
+    controlName, toolbarButtons, sendButtonTooltip, language, interactiveMode=true, showPrompt=true, passiveUserPromptToSend=null}) => {
 
     const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
         backgroundColor: darkMode ? grey[900] : grey[300],
@@ -235,9 +236,10 @@ const AIPromptResponse = ({modelSettings, serverUrl, token, setToken, customUser
     const sendPrompt = async (prompt) => {        
         // Send the chat history and prompt using the streaming/non-streaming API
         // based on what the user selected in ModelSettings
+        let promptForLanguage = language && language !== MODEL_DEFAULT_LANGUAGE ? "\n\nProvide the response in the following language: " + language + "\n\n" : "";
         let requestData = {
             model_settings: modelSettings,
-            system_prompt: systemPrompt,
+            system_prompt: systemPrompt + promptForLanguage,
             prompt: prompt
         };
         showWaiting();
