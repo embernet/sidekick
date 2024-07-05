@@ -27,7 +27,8 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 const ScriptCell = memo(({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
     cellType, setCellType,
     cellName, setCellName, cellParameters, setCellParameters, cellValue, setCellValue, cellKey, darkMode,
-    modelSettings, persona, serverUrl, token, setToken, markdownRenderingOn, system}) => {
+    modelSettings, persona, serverUrl, token, setToken, markdownRenderingOn, system,
+    language}) => {
     const [myId, setMyId] = useState(id);
     const [myCellType, setMyCellType] = useState(cellType);
     const [myCellName, setMyCellName] = useState(cellName);
@@ -115,6 +116,7 @@ const ScriptCell = memo(({ id, cells, onDelete, onMoveCellUp, onMoveCellDown,
                     modelSettings={modelSettings} persona={persona}
                     serverUrl={serverUrl} token={token} setToken={setToken}
                     darkMode={darkMode} markdownRenderingOn={markdownRenderingOn} system={system}
+                    language={language}
                 />;
             // case "xyq":
             //     return <ScriptXYQ cells={cells}

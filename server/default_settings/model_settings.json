@@ -59,7 +59,7 @@
                         "notes": "Training data up to Sep 2021"
                     }
                 },
-                "default": "gpt-3.5-turbo"
+                "default": "gpt-4o"
             }
         },
         "default": "OpenAI"

@@ -11,6 +11,7 @@ import { ClassNames } from "@emotion/react";
 import { InputLabel, FormHelperText, FormControl, Select } from '@mui/material';
 import { lightBlue, grey, blueGrey } from '@mui/material/colors';
 import { MuiFileInput } from 'mui-file-input';
+import { MODEL_DEFAULT_LANGUAGE } from './LanguageSelector';
 
 // Icons
 import MenuIcon from '@mui/icons-material/Menu';
@@ -66,7 +67,7 @@ const Chat = ({
     focusOnPrompt, setFocusOnPrompt, chatRequest, chatOpen, noteOpen, setChatOpen, darkMode,
     temperatureText, setTemperatureText, modelSettingsOpen, toggleModelSettingsOpen, togglePersonasOpen,
     onChange, personasOpen, promptEngineerOpen, togglePromptEngineerOpen, setOpenChatId, shouldAskAgainWithPersona, serverUrl, token, setToken,
-    streamingChatResponse, setStreamingChatResponse, chatStreamingOn, maxWidth, isMobile }) => {
+    streamingChatResponse, setStreamingChatResponse, chatStreamingOn, maxWidth, isMobile, language }) => {
     
     const sidekickClipboard = useContext(SidekickClipboardContext);
     const panelWindowRef = useRef(null);
@@ -3396,9 +3397,10 @@ const Chat = ({
         }
         let context = chatContext ? "\n\nContext:\n\n" + chatContext : "";
         let goal = chatGoal ? "\n\nGoal:\n\n" + chatGoal : "";
+        let promptForLanguage = language && language !== MODEL_DEFAULT_LANGUAGE ? "\n\nProvide the response in the following language: " + language + "\n\n" : "";
         let requestData = {
             model_settings: myModelSettings,
-            system_prompt: systemPrompt + context + goal,
+            system_prompt: systemPrompt + context + goal + promptForLanguage,
             prompt: knowledgePrompt + prompt,
             id: id,
             name: name,

@@ -7,6 +7,8 @@ import { useTheme } from '@mui/material/styles';
 import { StyledBox } from './theme';
 import { ClassNames } from "@emotion/react";
 import ReactMarkdown from 'react-markdown';
+import { MODEL_DEFAULT_LANGUAGE } from './LanguageSelector';
+
 import { Link } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -29,7 +31,7 @@ import { lightBlue, grey, blueGrey } from '@mui/material/colors';
 const SidekickAI = ({
     sidekickAIOpen, setSidekickAIOpen, serverUrl, token, 
     windowPinnedOpen, setWindowPinnedOpen, darkMode,
-    isMobile
+    isMobile, language
     }) => {
 
     const sidekickClipboard = useContext(SidekickClipboardContext);
@@ -278,6 +280,7 @@ const SidekickAI = ({
         setTabIndex(TABS.SIDEKICK_AI);
         // setup as much of the request as we can before calling appendMessage
         // as that will wait for any re-rendering and the id could change in that time
+        let promptForLanguage = language && language !== MODEL_DEFAULT_LANGUAGE ? "\n\nProvide the response in the following language: " + language + "\n\n" : "";
         let requestData = {
             model_settings: {
                 provider: "OpenAI",
@@ -289,7 +292,7 @@ const SidekickAI = ({
                     frequency_penalty: 0
                 }
             },
-            system_prompt: systemPrompt,
+            system_prompt: systemPrompt + promptForLanguage,
             prompt: sidekickAIPromptDirective + prompt,
         }
 

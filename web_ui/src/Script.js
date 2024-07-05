@@ -32,7 +32,7 @@ import { StyledBox, StyledToolbar } from './theme';
 const Script = memo(({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth, windowMaximized, setWindowMaximized,
     provider, modelSettings, persona, loadScript,
     closeOtherPanels, restoreOtherPanels,
-    onChange, setOpenScriptId, serverUrl, token, setToken, isMobile,
+    onChange, setOpenScriptId, serverUrl, token, setToken, isMobile, language
 }) => {
     
     const panelWindowRef = useRef(null);
@@ -702,6 +702,7 @@ const scriptName =
                                                 onMoveCellUp={ index > 0 ? () => { handleMoveCellUp(index) } : null }
                                                 onMoveCellDown={ index < cells.length - 1 ? () => { handleMoveCellDown(index) } : null }
                                                 system={system}
+                                                language={language}
                                     />
                                 </Box>
                             </ListItem>
