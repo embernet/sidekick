@@ -64,8 +64,12 @@ const LanguageSelector = memo(({ languageSettings, language, setLanguage }) => {
         }
     }, [languageSettings]);
 
+    useEffect(() => {
+        setInputValue(language);
+    }, [language]);
+
     const handleInputChange = (event, newInputValue, reason) => {
-        // Update local state only, do not call setLanguage here
+        // Update local state only, do not call setLanguage until they have finished editing
         if (reason === 'input') {
             setInputValue(newInputValue);
         }
@@ -74,7 +78,6 @@ const LanguageSelector = memo(({ languageSettings, language, setLanguage }) => {
     const handleBlur = () => {
         // Call setLanguage only if the input value is different from the current language
         // and not empty, indicating the user has finished typing and clicked away
-        console.log("inputValue", inputValue, "language", language)
         if (!inputValue) {
             setLanguage(MODEL_DEFAULT_LANGUAGE);
         } else if (inputValue && inputValue !== language) {
@@ -83,7 +86,6 @@ const LanguageSelector = memo(({ languageSettings, language, setLanguage }) => {
     };
 
     const handleLanguageChange = (event, newValue) => {
-        setInputValue(newValue);
         setLanguage(newValue);
         event.target.blur();
     }
