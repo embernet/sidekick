@@ -24,11 +24,12 @@ import { use } from 'marked';
 
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 
-const ContentElement = memo(({ name, setName, placeholder, content, setContent }) => {
+const ContentElement = memo(({ name, setName, placeholder, content, setContent, rows }) => {
     const system = useContext(SystemContext);
     const [myName, setMyname] = useState(name || "");
     const [myPlaceholder, setMyPlaceholder] = useState(placeholder || name || "Enter content here");
     const [mycontent, setMyContent] = useState( typeof content === "string" ? content : "");
+    const [myrows, setMyRows] = useState(rows || 3);
     const myId= uuidv4();
 
     // UI state
@@ -74,6 +75,11 @@ const ContentElement = memo(({ name, setName, placeholder, content, setContent }
     }
     , [mycontent]);
 
+    useEffect(() => {
+        rows !== myrows && setMyRows(rows);
+    }
+    , [myrows]);
+
     const handleNameChange = (event) => {
         setMyname(event.target.value);
     }
@@ -85,7 +91,7 @@ const ContentElement = memo(({ name, setName, placeholder, content, setContent }
     const memoizedValue = React.useMemo(() => mycontent, [mycontent]);
 
     return (
-        <Box sx={{ width: "100%", ml: 1, mr: 1, mt: 2 }} id={`content-element-${myId}`}>
+        <Box sx={{ display: "flex", width: "100%", height: '100%', ml: 1, mr: 1, mt: 2 }} id={`content-element-${myId}`}>
 
             {
                 setName ?
@@ -100,9 +106,25 @@ const ContentElement = memo(({ name, setName, placeholder, content, setContent }
                 </Button>
             ) : (
                 <Box position="relative"
-                style={{width:'100%'}}>
+                    sx={{
+                        display: "flex", width:'100%', 
+                        flexGrow: 1,
+                        
+                    }}>
                     <TextField label={myName} placeholder={myPlaceholder}
-                        variant="outlined" sx={{ width: "100%" }} multiline rows={3}
+                        variant="outlined"
+                        sx={{
+                                flexGrow: 1,
+                                resize: 'none',
+                                "& .MuiInputBase-root": {
+                                    height: "100%",
+                                    width: "100%",
+                                    alignItems: 'flex-start',
+                                    overflowY: 'auto',
+
+                                }
+                            }}
+                        multiline {...(myrows > 0 ? { rows: myrows } : {})}
                         value={memoizedValue} onChange={handleContentChange} disabled={!setContent}
                     />
                     <HighlightOffIcon
