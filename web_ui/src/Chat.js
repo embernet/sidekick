@@ -3091,6 +3091,11 @@ const Chat = ({
                     } catch (err) {
                         console.log(err);
                     }
+
+                    // if the chat has a goal or context, open the chat context panel
+                    if (response.data.content?.goal || response.data.content?.context) {
+                        setChatContextOpen(true);
+                    }
                     if (isMobile && chatOpen) {
                         panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
                     }
