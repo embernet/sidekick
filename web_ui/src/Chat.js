@@ -4972,10 +4972,12 @@ const Chat = ({
                         </Box>
                     : null
                 }
-                <StyledBox sx={{ overflow: 'auto', flex: 1, minHeight: "300px", mt: 1 }} ref={chatMessagesContainerRef}>
+                <StyledBox 
+                    sx={{ overflowY: 'auto', flex: 1, minHeight: "300px", mt: 1 }}
+                    ref={chatMessagesContainerRef}>
                     <List id="message-list" ref={chatMessagesRef}>
                         {messages && messages.map((message, index) => (
-                            <ListItem sx={{ ml: 1, paddingLeft: 0 }} key={index}>
+                            <ListItem sx={{ ml: 1, paddingLeft: 0, width: "calc(100% - 8px)" }} key={index}>
                                 <Box
                                     position="relative"
                                     style={{width:'100%'}}
