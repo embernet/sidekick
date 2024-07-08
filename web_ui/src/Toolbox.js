@@ -79,6 +79,9 @@ const Toolbox = memo(({ toolboxOpen, setToolboxOpen, toolboxes, setToolboxes, on
     };
 
     const handleToolboxChange = (event, value) => {
+        if (value === null) {
+            return;
+        }
         setSelectedToolbox(value);
     }
 
