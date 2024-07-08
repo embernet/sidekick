@@ -5235,16 +5235,18 @@ const Chat = ({
                             padding: "2px", margin: "6px", }}>
                         <SecondaryToolbar sx={{gap:1}} className={ClassNames.toolbar}>
                             <Typography>Chat Context</Typography>
-                            <Tooltip title='The chat context and goal will be added to the system prompt each time you prompt the AI. Enter these before you start your chat to give the AI more to go on. They will be saved with the chat and applied if you continue the chat later.'>
-                                <IconButton sx={{ml:'auto'}}>
-                                    <HelpOutlineIcon />
-                                </IconButton>
-                            </Tooltip>
-                            <Tooltip title='Close Chat context'>
-                                <IconButton onClick={()=>{setChatContextOpen(0)}}>
-                                    <CloseIcon />
-                                </IconButton>
-                            </Tooltip>
+                            <Box sx={{ display: "flex", flexDirection: "row", ml: "auto" }}>
+                                <Tooltip edge="end" title='The chat context and goal will be added to the system prompt each time you prompt the AI. Enter these before you start your chat to give the AI more to go on. They will be saved with the chat and applied if you continue the chat later.'>
+                                    <IconButton>
+                                        <HelpOutlineIcon />
+                                    </IconButton>
+                                </Tooltip>
+                                <Tooltip edge="end" title='Close Chat context'>
+                                    <IconButton onClick={()=>{setChatContextOpen(0)}}>
+                                        <CloseIcon />
+                                    </IconButton>
+                                </Tooltip>
+                            </Box>
                         </SecondaryToolbar>
                         <Box sx={{
                                 display:"flex",
