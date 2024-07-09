@@ -55,7 +55,7 @@ function AccountRename({user, warningMessage, serverUrl, token, setToken, onAcco
     
     return (
         <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px',position: 'relative', gap:2}} component="form">
-            <Typography margin={6}>{warningMessage}</Typography>
+            <Box margin={6}>{warningMessage}</Box>
             <TextField label="Confirm userid to rename" value={userIdToRename} autoComplete="off"
                 onChange={(event) => {setUserIdToRename(event.target.value);}}
                 sx={{ width: "90%" }} />
