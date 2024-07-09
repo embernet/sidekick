@@ -54,7 +54,7 @@ function AccountDelete({warningMessage, serverUrl, token, setToken, onAccountDel
     
     return (
         <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px',position: 'relative', gap:2}} component="form">
-            <Typography margin={6}>{warningMessage}</Typography>
+            <Box margin={6}>{warningMessage}</Box>
             <TextField label="Enter userid to delete" value={userToDelete} autoComplete="off"
                 onChange={(event) => {setUserToDelete(event.target.value);}}
                 sx={{ width: "90%" }} />
