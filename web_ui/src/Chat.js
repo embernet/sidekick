@@ -4954,13 +4954,13 @@ const Chat = ({
                         ? `${window.innerWidth}px`
                         :
                         (
-                            toolboxOpen && !(chatContextOpen && !isMobile) ? `${500 + parseInt(toolboxWidth)}px` 
+                            toolboxOpen && !chatContextOpen ? `${500 + parseInt(toolboxWidth)}px` 
                             :
                             (
-                                !toolboxOpen && (chatContextOpen && !isMobile) ? `${500 + parseInt(chatContextWidth)}px`
+                                !toolboxOpen && chatContextOpen ? `${500 + parseInt(chatContextWidth)}px`
                                 :
                                 (
-                                    (toolboxOpen && (chatContextOpen && !isMobile) ? `${500 + parseInt(toolboxWidth) + parseInt(chatContextWidth)}px`
+                                    (toolboxOpen && chatContextOpen ? `${500 + parseInt(toolboxWidth) + parseInt(chatContextWidth)}px`
                                     : "500px")
                                 )
                             )
@@ -4971,13 +4971,13 @@ const Chat = ({
                         : (windowMaximized
                             ? null
                             : (
-                                toolboxOpen && !(chatContextOpen && !isMobile) ? `${500 + parseInt(toolboxWidth)}px` 
+                                toolboxOpen && !chatContextOpen ? `${parseInt(maxWidth) + parseInt(toolboxWidth)}px` 
                                 :
                                 (
-                                    !toolboxOpen && (chatContextOpen && !isMobile) ? `${500 + parseInt(chatContextWidth)}px`
+                                    !toolboxOpen && chatContextOpen ? `${parseInt(maxWidth) + parseInt(chatContextWidth)}px`
                                     :
                                     (
-                                        (toolboxOpen && (chatContextOpen && !isMobile) ? `${500 + parseInt(toolboxWidth) + parseInt(chatContextWidth)}px`
+                                        (toolboxOpen && chatContextOpen ? `${parseInt(maxWidth) + parseInt(toolboxWidth) + parseInt(chatContextWidth)}px`
                                         : maxWidth)
                                     )
                                 )
