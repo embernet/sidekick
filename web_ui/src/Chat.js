@@ -48,6 +48,8 @@ import HomeRepairServiceIcon from '@mui/icons-material/HomeRepairService';
 import HomeRepairServiceOutlinedIcon from '@mui/icons-material/HomeRepairServiceOutlined';
 import ControlCameraIcon from '@mui/icons-material/ControlCamera';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 import { SystemContext } from './SystemContext';
 import { SidekickClipboardContext } from './SidekickClipboardContext';
@@ -3609,6 +3611,65 @@ const Chat = ({
         setPromptFocus();
     }
 
+    const expandMessage = (index) => {
+        if (messages[index]?.metadata?.expandLess) {
+            const newMessages = [...messages];
+            delete newMessages[index].metadata.expandLess;
+            setMessages(newMessages);
+        }
+    }
+
+    const handleExpandMessage = (event, index) => {
+        event.stopPropagation();
+        expandMessage(index);
+        closeMenus();
+    }
+
+    const expandAllMessages = () => {
+        const newMessages = [...messages];
+        newMessages.forEach((message, index) => {
+            expandMessage(index);
+        });
+        setMessages(newMessages);
+    }
+
+    const handleExpandAllMessages = (event) => {
+        event.stopPropagation();
+        expandAllMessages();
+        closeMenus();
+    }
+
+    const contractMessage = (index) => {
+        if (!messages[index]?.metadata?.expandLess) {
+            const newMessages = [...messages];
+            if (!newMessages[index].metadata) {
+                newMessages[index].metadata = {};
+            }
+            newMessages[index].metadata['expandLess'] = true;
+            setMessages(newMessages);
+        }
+    }
+
+    const handleContractMessage = (event, index) => {
+        event.stopPropagation();
+        contractMessage(index);
+        closeMenus();
+    }
+
+    const contractAllMessages = () => {
+        const newMessages = [...messages];
+        newMessages.forEach((message, index) => {
+            contractMessage(index);
+        });
+        setMessages(newMessages);
+    }
+
+    const handleContractAllMessages = (event) => {
+        event.stopPropagation();
+        contractAllMessages();
+        closeMenus();
+    }
+
     const handleMenuMessageContextOpen = (event, message, index) => {
         // to handle right-click and click on a message
         event.preventDefault();
@@ -4262,6 +4323,37 @@ const Chat = ({
                 : { top: 0, left: 0 } // Default position
             }
         > 
+            { 
+                typeof menuMessageContext?.index !== 'undefined'
+                ?
+                    <MenuItem
+                        style={{ minHeight: '30px' }}
+                        onClick={
+                            (event) => {
+                                messages[menuMessageContext.index]?.metadata?.expandLess
+                                ? handleExpandMessage(event, menuMessageContext.index)
+                                : handleContractMessage(event, menuMessageContext.index)
+                            }}>
+                        <ListItemText>{messages[menuMessageContext.index]?.metadata?.expandLess ? "Expand this message" : "Contract this message"}</ListItemText>
+                    </MenuItem>
+                : null
+            }
+            <MenuItem
+                style={{ height: '30px' }} 
+                onClick={handleContractAllMessages}>
+                Contract all messages
+            </MenuItem>
+            <MenuItem
+                style={{ height: '30px' }} 
+                onClick={handleExpandAllMessages}>
+                Expand all messages
+            </MenuItem>
+            { 
+                typeof menuMessageContext?.index !== 'undefined'
+                ?
+                    <MenuItem divider style={{ minHeight: '10px' }} />
+                : null
+            }
             <MenuItem
                 style={{ minHeight: '30px' }}
                 disabled={!window.getSelection().toString() || promptPlaceholder === userPromptWaiting}
@@ -4281,6 +4373,7 @@ const Chat = ({
                     <KeyboardArrowRightIcon />
                 </IconButton>
             </MenuItem>
+            <MenuItem divider style={{ minHeight: '10px' }} />
             <MenuItem
                 style={{ height: '30px' }} 
                 disabled={!window.getSelection().toString()}
@@ -4985,8 +5078,8 @@ const Chat = ({
                                     onClick={(event) => { isMobile && handleMenuMessageContextOpen(event, message, index); }}
                                 >
                                     <Card sx={{ 
-                                        padding: 2, 
-                                        width: "100%", 
+                                        padding: 2,
+                                        width: "100%", height: messages[index]?.metadata?.expandLess ? "100px" : "auto",
                                         backgroundColor: message.role === "user" ? (darkMode ? blueGrey[800] : "lightblue") : (darkMode ? lightBlue[900] : "lightyellow"),
                                     }}
                                     >
@@ -4995,22 +5088,45 @@ const Chat = ({
                                             ?
                                                 <SidekickMarkdown markdown={message.content}/>
                                             :
-                                                <Typography sx={{ whiteSpace: 'pre-wrap' }}>
+                                                <Typography sx={{ whiteSpace: 'pre-wrap', mt: 2 }}>
                                                     {message.content}
                                                 </Typography>
                                         }
                                     </Card>
-                                    <HighlightOffIcon
-                                        style={{ position: 'absolute', top: 0, right: 0,
-                                            color: darkMode ? 'lightgrey' : 'darkgrey' }}
-                                        onClick={(event) => {
-                                            event.stopPropagation();
-                                            // delete this message
-                                            const newMessages = [...messages];
-                                            newMessages.splice(index, 1);
-                                            setMessages(newMessages);
-                                        }}
-                                    />
+                                    {
+                                        messages[index]?.metadata?.expandLess
+                                        ?
+                                            <Tooltip title="Expand this message so you can see the whole thing">
+                                                <IconButton
+                                                    sx={{ position: 'absolute', top: 0, left: 0,
+                                                         }}
+                                                    onClick={(event) => { handleExpandMessage(event, index); }}>
+                                                    <ExpandMoreIcon sx={{color: 'firebrick'}}/>
+                                                </IconButton>
+                                            </Tooltip>
+                                        :
+                                            <Tooltip title="Contract this message. You can expand it again when needed. The full message will still be included in the chat history sent to the AI.">
+                                                <IconButton
+                                                    sx={{ position: 'absolute', top: 0, left: 0 }}
+                                                    onClick={(event) => { handleContractMessage(event, index); }}>
+                                                    <ExpandLessIcon sx={{ color: darkMode ? 'lightgrey' : 'grey' }}/>
+                                                </IconButton>
+                                            </Tooltip>
+                                    }
+                                    <Tooltip title="Delete this message">
+                                        <IconButton
+                                            style={{ position: 'absolute', top: 0, right: 0,
+                                                color: darkMode ? 'lightgrey' : 'darkgrey' }}
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                // delete this message
+                                                const newMessages = [...messages];
+                                                newMessages.splice(index, 1);
+                                                setMessages(newMessages);
+                                            }}>
+                                            <HighlightOffIcon/>
+                                        </IconButton>
+                                    </Tooltip>
                                 </Box>
                             </ListItem>
                         ))}
