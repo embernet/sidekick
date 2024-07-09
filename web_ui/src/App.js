@@ -272,7 +272,7 @@ const App = () => {
         setNotesPinned(data?.notesPinned || false);
         setDarkMode(data?.darkMode || false);
         setAppSettingsOpen(false);
-        setAdminOpen(false);
+        setAdminOpen(user?.properties?.roles?.admin ? true : false);
       },
       (error) => {
           console.log("get app settings:", error);
