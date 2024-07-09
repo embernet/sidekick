@@ -59,6 +59,7 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
 
     // Functionality settings
     const [createAccountEnabled, setCreateAccountEnabled] = useState(false);
+    const [renameAccountEnabled, setRenameAccountEnabled] = useState(false);
     const [changePasswordEnabled, setChangePasswordEnabled] = useState(false);
     const [deleteAccountEnabled, setDeleteAccountEnabled] = useState(false);
     const [oidcEnabled, setOidcEnabled] = useState(false);
@@ -195,6 +196,7 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
 
     useEffect(() => {
         if (appSettingsSystemSettings.functionality) {
+            setRenameAccountEnabled(loginSystemSettings.functionality?.renameAccount ? true : false);
             setDeleteAccountEnabled(appSettingsSystemSettings.functionality?.deleteAccount ? true : false);
             setChangePasswordEnabled(appSettingsSystemSettings.functionality?.changePassword ? true : false);
         }
@@ -305,6 +307,18 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
         setLoginSystemSettings(newLoginSystemSettings);
         saveLoginSystemSettings(newLoginSystemSettings);
     };        
+
+    const handleToggleFunctionalityAppSettingsRenameAccount = () => {
+        let newRenameAccountEnabled = !renameAccountEnabled;
+        setRenameAccountEnabled(newRenameAccountEnabled);
+        let newAppSettingsSystemSettings = appSettingsSystemSettings;
+        if (!newAppSettingsSystemSettings.functionality) {
+            newAppSettingsSystemSettings.functionality = {};
+        }
+        newAppSettingsSystemSettings.functionality.renameAccount = newRenameAccountEnabled;
+        setAppSettingsSystemSettings(newAppSettingsSystemSettings);
+        saveAppSettingsSystemSettings(newAppSettingsSystemSettings);
+    };
 
     const handleToggleFunctionalityOidc = () => {
         let newOidcEnabled = !oidcEnabled;
@@ -543,6 +557,26 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
                                     </Stack>
                                     <Typography variant="caption">
                                         Enabling Create Account will provide a tab on the Login screen that will enable anyone with access to that screen to create an account with a username and password of their choice. Disable this if you want to use an alternative account creation method such as via a Single Sign-On provider.
+                                    </Typography>
+                                </Box>
+                            </Paper>
+
+                            <Paper sx={{ display: "flex", margin: 1, padding : "6px 20px" }}>
+                                <Box sx={{ display: 'flex', flexDirection: "column" }}>
+                                    <Stack direction="row" alignItems="center" justifyContent="space-between">
+                                        <Typography variant="h7">Rename Account</Typography>
+                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                            <Switch
+                                            checked={renameAccountEnabled}
+                                            onChange={handleToggleFunctionalityAppSettingsRenameAccount}
+                                            name="appSettingsRenameAccountEnabled"
+                                            inputProps={{ 'aria-label': 'Toggle enable rename account' }}
+                                            />
+                                            <Typography>{renameAccountEnabled ? "On" : "Off"}</Typography>
+                                        </Box>
+                                    </Stack>
+                                    <Typography variant="caption">
+                                        Enabling Rename Account will provide a tab on the App Settings screen that will enable the user to rename their account username. Disable this if you want to use an alternative account management method such as via a Single Sign-On provider.
                                     </Typography>
                                 </Box>
                             </Paper>
