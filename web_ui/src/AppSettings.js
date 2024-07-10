@@ -205,8 +205,8 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
               {tabIndex === 1 && (
                   <Box style={{ ...inputContainerStyle, textAlign: 'left', width: '100%' }} component="form" gap={2}>
                       <Typography margin={2}>The following system prompts will be applied to all AI requests.</Typography>
-                      <Typography variant="subtitle1" component="div" style={{ fontWeight: 'bold' }}>Language</Typography>
-                      <LanguageSelector
+                      <Typography variant="subtitle1" component="div" sx={{ width: "100%", fontWeight: 'bold', ml:4 }}>Language</Typography>
+                      <LanguageSelector sx={{ width: "100%", ml:4 }}
                         darkMode={darkMode}
                         isMobile={isMobile}
                         languageSettings={languageSettings}

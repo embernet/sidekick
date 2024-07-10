@@ -5,11 +5,14 @@ import { SystemContext } from './SystemContext';
 import LanguageSelector from './LanguageSelector';
 import { grey, red, orange, blue } from '@mui/material/colors';
 import HistoryIcon from '@mui/icons-material/History';
+import { useTheme } from '@mui/material/styles';
 
 const StatusBar = ({ statusUpdates, darkMode, persona, modelSettings,
 modelSettingsOpen, toggleModelSettingsOpen,
 personasOpen, togglePersonasOpen, isMobile, language, setLanguage, languageSettings, setLanguageSettings }) => {
     const system = useContext(SystemContext);
+    const theme = useTheme();
+
     const [displayMessage, setDisplayMessage] = useState('');
     const [dateTimeString, setDateTimeString] = useState('');
     const [popoverOpen, setPopoverOpen] = useState(false);
@@ -161,7 +164,7 @@ personasOpen, togglePersonasOpen, isMobile, language, setLanguage, languageSetti
             }
             { !isMobile && languageSettings &&
                 <Box style={{ color: "primary" }}>
-                    <LanguageSelector
+                    <LanguageSelector sx={{ color: theme.palette.primary.main}}
                         darkMode={darkMode}
                         isMobile={isMobile}
                         languageSettings={languageSettings}

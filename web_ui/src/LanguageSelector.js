@@ -16,12 +16,14 @@ import HelpOutlineIcon from '@mui/icons-material/Help';
 // and in that scenario avoid adding a prompt for the AI to respond in a specific language
 export const MODEL_DEFAULT_LANGUAGE = "Model default language";
 
-const LanguageSelector = memo(({ languageSettings, language, setLanguage }) => {
+const LanguageSelector = memo(({ languageSettings, language, setLanguage, sx }) => {
     const system = useContext(SystemContext);
     const theme = useTheme();
     const [languagesArray, setLanguagesArray] = useState([]);
     const [isHovered, setIsHovered] = useState(false);
     const [inputValue, setInputValue] = useState('');
+    const [customSx, setCustomSx] = useState(sx);
+
     const myId= uuidv4();
 
     const [width, setWidth] = useState(0);
@@ -92,7 +94,7 @@ const LanguageSelector = memo(({ languageSettings, language, setLanguage }) => {
 
     return (
         languagesArray && language !== undefined &&
-        <Box id={`language-selector-${myId}`} style={{ display: "flex", flexDirection: "row" }}>
+        <Box id={`language-selector-${myId}`} sx={{ ...customSx, display: "flex", flexDirection: "row" }}>
             <Autocomplete
                 id={`language-selector-${myId}`}
                 sx={{ width: '240px', minHeight: 'auto', maxHeight: "80px", }}
@@ -110,7 +112,7 @@ const LanguageSelector = memo(({ languageSettings, language, setLanguage }) => {
                     <TextField {...params} 
                         sx={{
                             '& .MuiInputBase-input': {
-                            color: theme.palette.primary.main, // Set text color to theme's primary color
+                            color: customSx?.color, // Set text color to theme's primary color
                             },
                         }}
                         label= {language ? "" : "Set Language"}
