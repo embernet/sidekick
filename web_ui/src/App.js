@@ -378,8 +378,10 @@ const App = () => {
     unmaximiseWindows();
     if (!appSettingsOpen) {
         closeUnpinnedLeftSideWindows(event);
+        setAppSettingsOpen(Date.now());
+      } else {
+        setAppSettingsOpen(false);
       }
-    setAppSettingsOpen(Date.now());
   }
 
   const handleToggleAdminOpen = (event) => {
