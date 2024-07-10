@@ -83,12 +83,12 @@ personasOpen, togglePersonasOpen, isMobile, language, setLanguage, languageSetti
             backgroundColor: darkMode ? grey[900] : grey[100] }}>
             {
                 statusUpdates.length ?
-                    <Button ref={statusRef} onClick={handleStatusClick} variant="outlined" size="small" sx={{ padding: 0, minWidth: 26 }}>
+                    <Button id="status-button-log" ref={statusRef} onClick={handleStatusClick} variant="outlined" size="small" sx={{ padding: 0, minWidth: 26 }}>
                         <HistoryIcon fontSize="small" style={{ color: statusColor(statusUpdates.length && statusUpdates[statusUpdates.length - 1].type) }} />
                     </Button>
                 : null
             }
-            <Button id="status-button-log" variant={statusUpdates.length > 0 ? "outlined" : "text"}
+            <Button id="status-button-time" variant={statusUpdates.length > 0 ? "outlined" : "text"}
                 size="small"
                 sx={{ fontSize: "0.8em", textTransform: 'none', width: isMobile ? "40px" : "auto", minWidth: 40 }}>
                 <Typography component="span"
@@ -159,7 +159,7 @@ personasOpen, togglePersonasOpen, isMobile, language, setLanguage, languageSetti
                     </Button>
                 </Tooltip>
             }
-            { languageSettings &&
+            { !isMobile && languageSettings &&
                 <Box style={{ color: "primary" }}>
                     <LanguageSelector
                         darkMode={darkMode}

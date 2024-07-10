@@ -828,14 +828,11 @@ const App = () => {
       <FeedbackButton icon={<RateReviewIcon/>} serverUrl={serverUrl} token={token} setToken={setToken}>
           <RateReviewIcon/>
       </FeedbackButton>
-      { user?.is_oidc
-        ? null
-        : <Tooltip title={ appSettingsOpen ? "Close App Settings" : "Open App Setings" }>
-            <IconButton edge="end" color="inherit" aria-label="Settings" onClick={handleToggleAppSettingsOpen}>
-              <SettingsIcon/>
-            </IconButton>
-          </Tooltip>
-      }
+      <Tooltip title={ appSettingsOpen ? "Close App Settings" : "Open App Setings" }>
+        <IconButton edge="end" color="inherit" aria-label="Settings" onClick={handleToggleAppSettingsOpen}>
+          <SettingsIcon/>
+        </IconButton>
+      </Tooltip>
     </>
 
   const appRender =
@@ -1038,6 +1035,8 @@ const App = () => {
                 serverUrl={serverUrl} token={token} setToken={setToken}
                 darkMode={darkMode}
                 isMobile={isMobile}
+                languageSettings={languageSettings} setLanguageSettings={setLanguageSettings}
+                language={language} setLanguage={setLanguage}
               />
               { chatsOpen ? <Explorer
                 onClose={()=>{setChatsOpen(false)}}

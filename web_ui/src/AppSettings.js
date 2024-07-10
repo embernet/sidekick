@@ -10,9 +10,11 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import { lightBlue } from '@mui/material/colors';
 import AccountDelete from "./AccountDelete";
 import AccountRename from "./AccountRename";
+import LanguageSelector from './LanguageSelector';
 
 const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
-     onClose, serverUrl, token, setToken, darkMode, isMobile }) => {
+     onClose, serverUrl, token, setToken, darkMode, isMobile,
+     languageSettings, setLanguageSettings, language, setLanguage }) => {
 
     const panelWindowRef = useRef(null);
 
@@ -184,9 +186,11 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
               <Tabs value={tabIndex} onChange={handleTabChange} orientation="vertical"
                   sx={{  textAlign: "left" }}>
                   <Tab label="About" />
+                  <Tab label="My System prompts" />
                   {appSettingsSystemSettings?.functionality?.changePassword &&
                   !user?.is_oidc ? <Tab label="Change Password" /> : null}
-                  {!user?.is_oidc ? <Tab label="Rename Account" /> : null}
+                  {appSettingsSystemSettings?.functionality?.renameAccount &&
+                  !user?.is_oidc ? <Tab label="Rename Account" /> : null}
                   {appSettingsSystemSettings?.functionality?.deleteAccount &&
                   !user?.is_oidc ? <Tab label="Delete Account" /> : null}
               </Tabs>
@@ -199,6 +203,20 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
                   </Box>
               )}
               {tabIndex === 1 && (
+                  <Box style={{ ...inputContainerStyle, textAlign: 'left', width: '100%' }} component="form" gap={2}>
+                      <Typography margin={2}>The following system prompts will be applied to all AI requests.</Typography>
+                      <Typography variant="subtitle1" component="div" style={{ fontWeight: 'bold' }}>Language</Typography>
+                      <LanguageSelector
+                        darkMode={darkMode}
+                        isMobile={isMobile}
+                        languageSettings={languageSettings}
+                        setLanguageSettings={setLanguageSettings}
+                        language={language}
+                        setLanguage={setLanguage}
+                        />
+                  </Box>
+              )}
+              {tabIndex === 2 && (
                   <Box style={inputContainerStyle} component="form" gap={2}>
                       <TextField type="password" label="Current Password" value={currentPassword} 
                           sx={{ width: "90%" }} autoComplete="off" onChange={handleCurrentPasswordChange} />
@@ -212,7 +230,7 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
                       </Box>
                   </Box>
               )}
-              {tabIndex === 2 && (
+              {tabIndex === 3 && (
                 <AccountRename
                     user = {user}
                     warningMessage = {<Typography>Warning: This will rename your account. If successful, you will be logged out.<br/><br/>You will no longer be able to login with your previous account name.</Typography>}
@@ -222,7 +240,7 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
                     onCancel={handleCancelRenameAccount}
                 />
               )}
-              {tabIndex === 3 && (
+              {tabIndex === 4 && (
                 <AccountDelete
                     warningMessage = {<Typography>Warning: This will delete your account and all your data.<br/><br/>Make sure you have copies of anything you need before proceeding.</Typography>}
                     serverUrl={serverUrl} token={token} setToken={setToken}
