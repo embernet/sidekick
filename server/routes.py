@@ -571,9 +571,9 @@ def docdb_create_document(document_type=""):
         data_size = len(json.dumps(data))
         document = DBUtils.create_document(
             user_id=get_jwt_identity(), type=document_type,
-            name=data['name'] if 'name' in data else "",
-            tags=data['tags'] if 'tags' in data else [],
-            properties=data['properties'] if 'properties' in data else {},
+            name=data['metadata']['name'],
+            tags=data['metadata']['tags'] if 'tags' in data['metadata'] else [],
+            properties=data['metadata']['properties'] if 'properties' in data['metadata'] else {},
             content=data['content'] if 'content' in data else {}
         )
         rl.push(action="created document", size=data_size)
@@ -626,9 +626,8 @@ def docdb_save_document(document_id, document_type=""):
         document = DBUtils.update_document(
             id=document_id,
             name=data['metadata']['name'],
-            tags=data['metadata']['tags'],
-            properties=data['metadata']['properties'] if 'properties' in data[
-            'metadata'] else {},
+            tags=data['metadata']['tags'] if 'tags' in data['metadata'] else [],
+            properties=data['metadata']['properties'] if 'properties' in data['metadata'] else {},
             content=data['content']
         )
         rl.push(action="updated document", size=document_size)

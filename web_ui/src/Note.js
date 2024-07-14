@@ -422,13 +422,15 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
             content = "";
         }
         const noteDocument = {
-            "name": name,
-            "tags": tags,
-            "properties": {
-                "inAILibrary": inAILibrary,
-                "starred": starred,
-                "bookmarked": bookmarked,
-           },
+            "metadata": {
+                "name": name,
+                "tags": tags,
+                "properties": {
+                    "inAILibrary": inAILibrary,
+                    "starred": starred,
+                    "bookmarked": bookmarked,
+                }
+            },
                 "content": {
                 "note": content
             }

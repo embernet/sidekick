@@ -287,8 +287,10 @@ const Script = memo(({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth
 
     const create = (scriptName=name) => {
         let request = {
-            name: scriptName,
-            tags: tags,
+            metadata: {
+                name: scriptName,
+                tags: tags,
+            },
             content: {
                 cells: cells,
             }

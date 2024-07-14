@@ -2957,7 +2957,6 @@ const Chat = ({
 
     const create = () => {
         let newChatObject = chatAsObject();
-        console.log('FUBARS', newChatObject)
         const url = `${serverUrl}/docdb/${folder}/documents`;
         axios.post(url, newChatObject, {
             headers: {
@@ -2990,8 +2989,14 @@ const Chat = ({
 
     const clone = () => {
         let request = {
-            name: name + " clone",
-            tags: tags,
+            metadata: {
+                name: name + " clone",
+                tags: tags,
+                properties: {
+                    starred: false, // don't clone the starred status
+                    bookmarked: false, // don't clone the bookmarked status
+                }
+            },
             content: {
                 context: chatContext,
                 goal: chatGoal,
@@ -3356,11 +3361,13 @@ const Chat = ({
         if (promptTemplateName) {
             const url = `${serverUrl}/docdb/prompt_templates/documents`;
             axios.post(url, {
-                "name": promptTemplateName,
-                "tags": [],
-                "properties": {
-                    "starred": false,
-                    "bookmarked": false,
+                "metadata": {
+                    "name": promptTemplateName,
+                    "tags": [],
+                    "properties": {
+                        "starred": false,
+                        "bookmarked": false,
+                    }
                 },
                 "content": {
                     "prompt_template": chatPromptRef.current.innerText.replace(/^.*?\n/, '')
