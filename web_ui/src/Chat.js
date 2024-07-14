@@ -83,190 +83,6 @@ const Chat = ({
 
     const newChatName = "New Chat"
 
-    // TODO - refactor <ActionMenu> to be generated from this JSON object and move it into its own component so it can be used from Note as well
-    const promptTemplates = {
-        "Analysis": {
-            "Balanced Scorecard": {
-                "prompt": "Perform a Balanced Scorecard analysis on the chat content, identifying key metrics across financial, customer, internal process, and learning & growth perspectives.",
-                "tooltip": "The Balanced Scorecard (BSC) is a strategic planning and management framework that translates an organization's vision and strategy into a coherent set of performance measures across four perspectives: financial, customer, internal processes, and learning and growth."
-            },
-            "Benefits Analysis": {
-                "prompt": "Conduct a Benefits Analysis on the topics discussed, identifying potential benefits, costs, and risks.",
-                "tooltip": "Benefits Analysis is a technique used to evaluate the potential benefits, costs, and risks associated with a decision, project, or investment. It helps in making informed decisions and assessing the value of an initiative."
-            },
-            "Business Model Canvas": {
-                "prompt": "Create a Business Model Canvas based on the chat content, identifying key partners, activities, resources, value propositions, customer relationships, channels, customer segments, cost structure, and revenue streams.",
-                "tooltip": "The Business Model Canvas is a strategic management template for developing new or documenting existing business models. It allows users to describe, design, challenge, invent, and pivot their business model."
-            },
-            "Competitive Analysis": {
-                "prompt": "Conduct a Competitive Analysis on the chat content, identifying key competitors, their strengths and weaknesses, and potential strategies for differentiation.",
-                "tooltip": "Competitive Analysis is the process of evaluating your competitors' strategies, strengths, weaknesses, and market positions to identify opportunities and threats. It helps in shaping strategic responses to enhance competitive advantage."
-            },
-            "Design Thinking": {
-                "prompt": "Apply Design Thinking principles to the conversation, identifying user needs, brainstorming solutions, and proposing prototypes.",
-                "tooltip": "Design Thinking is a user-centric approach that involves empathizing with users, defining problems, ideating solutions, prototyping, and testing. It fosters innovation and solves complex problems in a user-focused way."
-            },
-            "Failure Modes Effects Analysis (FMEA)": {
-                "prompt": "Carry out a Failure Modes Effects Analysis (FMEA) on the issues discussed, ranking them by severity, occurrence, and detection.",
-                "tooltip": "Failure Modes Effects Analysis (FMEA) is a systematic technique for identifying potential failure modes within a system, classifying them according to their severity, occurrence, and detectability, to prioritize fixes and prevent future failures."
-            },
-            "Gap Analysis": {
-                "prompt": "Conduct a Gap Analysis on the current discussion, identifying the difference between the current and desired states.",
-                "tooltip": "Gap Analysis is a process of comparing the actual performance with the potential or desired performance. It helps in identifying the gaps in a system, process, or business offering to recommend steps to bridge these gaps and enhance performance."
-            },
-            "Kano Model Analysis": {
-                "prompt": "Perform a Kano Model Analysis on the needs or features discussed, categorizing them as Must-be, Performance, or Delighters.",
-                "tooltip": "Kano Model Analysis categorizes customer preferences into must-haves, performance attributes, and delighters or wow factors, helping in prioritizing features based on their impact on customer satisfaction."
-            },
-            "Market Entry Strategy": {
-                "prompt": "Develop a Market Entry Strategy based on the conversation so far, including recommended modes of entry and potential barriers.",
-                "tooltip": "Market Entry Strategy involves analyzing and selecting the most viable approach to enter a new market, considering factors like competition, barriers to entry, market demand, and strategic fit."
-            },
-            "MoSCoW Prioritisation": {
-                "prompt": "Apply MoSCoW Prioritisation to the topics discussed, categorizing them as Must have, Should have, Could have, or Won't have.",
-                "tooltip": "MoSCoW Prioritisation is a decision-making technique that helps in categorizing tasks and requirements into Must haves, Should haves, Could haves, and Won't haves, facilitating effective prioritization and resource allocation."
-            },
-            "PEST Analysis": {
-                "prompt": "Conduct a PEST Analysis on the dialogue, examining Political, Economic, Social, and Technological factors.",
-                "tooltip": "PEST Analysis is a framework for analyzing the macro-environmental factors (Political, Economic, Social, Technological) that can impact an organization's strategies and future performance. It helps in understanding the broader forces affecting the business landscape."
-            },
-            "Porters Five Forces": {
-                "prompt": "Analyze the chat content using Porter's Five Forces framework, identifying competitive rivalry, supplier power, buyer power, threat of substitution, and threat of new entry.",
-                "tooltip": "Porter's Five Forces is a model for analyzing an industry's competitive environment. It examines five forces that determine the intensity of competition and market profitability: competitive rivalry, bargaining power of suppliers, bargaining power of buyers, threat of new entrants, and threat of substitute products or services."
-            },
-            "Root Cause Analysis": {
-                "prompt": "Perform a Root Cause Analysis on the issues raised in the chat, identifying underlying causes and suggesting solutions.",
-                "tooltip": "Root Cause Analysis (RCA) is a methodical approach used to identify the fundamental causes of problems or incidents to address the root issues, preventing recurrence rather than treating symptoms."
-            },
-            "SMART Goals": {
-                "prompt": "Formulate SMART Goals based on the objectives discussed in the chat, ensuring they are Specific, Measurable, Achievable, Relevant, and Time-bound.",
-                "tooltip": "SMART Goals framework helps in setting clear, achievable goals by ensuring they are Specific, Measurable, Achievable, Relevant, and Time-bound. It provides a structured approach to goal setting for better performance and outcomes."
-            },
-            "Six Thinking Hats": {
-                "prompt": "Apply the Six Thinking Hats method to the conversation, analyzing it from different perspectives: facts, emotions, caution, benefits, creativity, and process.",
-                "tooltip": "Six Thinking Hats is a critical thinking process that helps individuals and teams discuss and solve problems more effectively by looking at the situation from six distinct perspectives (White: facts, Red: emotions, Black: caution, Yellow: optimism, Green: creativity, Blue: process), facilitating a more rounded and thorough analysis."
-            },
-            "Stakeholder Analysis": {
-                "prompt": "Conduct a Stakeholder Analysis on the chat content, identifying key stakeholders, their interests, and potential strategies for engagement.",
-                "tooltip": "Stakeholder Analysis is a technique used to identify and assess the influence and interests of key people, groups of people, or organizations that may significantly impact the success of your activity or project. It helps in developing strategies for engaging stakeholders effectively."
-            },
-            "SWOT Analysis": {
-                "prompt": "Carry out a SWOT Analysis on the chat so far, identifying Strengths, Weaknesses, Opportunities, and Threats.",
-                "tooltip": "SWOT Analysis is a strategic planning tool used to identify and understand the Strengths, Weaknesses, Opportunities, and Threats related to business competition or project planning. It helps in crafting strategies that align with the organization's capabilities and market opportunities."
-            },
-            "Value Chain Analysis": {
-                "prompt": "Perform a Value Chain Analysis on the discussion, examining activities that create value and could lead to competitive advantage.",
-                "tooltip": "Value Chain Analysis is a process of examining the steps involved in bringing a product or service from conception to distribution and beyond. It helps in identifying where value is added and how it can be enhanced to achieve a competitive advantage."
-            },
-            "VPEC-T Analysis": {
-                "prompt": "Apply VPEC-T Analysis to the chat content, examining Values, Policies, Events, Content, and Trust.",
-                "tooltip": "VPEC-T Analysis stands for Values, Policies, Events, Content, and Trust. It's a framework for analyzing complex situations by examining the critical elements that influence decisions and actions in any context, focusing on understanding stakeholders' perspectives and the foundational elements that guide interactions."
-            },
-            "Wardley Mapping": {
-                "prompt": "Create a Wardley Map based on the chat content, visualizing the landscape of the discussion and identifying areas for strategic focus.",
-                "tooltip": "Wardley Mapping is a strategy tool that helps in visualizing the structure of a business or service, mapping the components needed to serve the customer or user. It assists in understanding the current landscape, predicting future trends, and identifying strategic opportunities."
-            },
-            "What If Analysis": {
-                "prompt": "Conduct a What If Analysis on the chat, exploring alternative scenarios and their potential outcomes.",
-                "tooltip": "What If Analysis is a systematic process to explore and evaluate potential outcomes of different scenarios based on varying parameters. It helps in decision making by anticipating possible challenges and opportunities, allowing for better preparedness and strategic planning."
-            },
-            "Why-Why Analysis": {
-                "prompt": "Perform a Why-Why Analysis on the chat content, asking 'why' repeatedly to drill down to the root cause of a problem.",
-                "tooltip": "Why-Why Analysis is a problem-solving technique that involves repeatedly asking the question 'Why?' to peel away the layers of symptoms and reach the core of a problem. It's a simple yet effective method for uncovering the root cause of a problem and ensuring that solutions address this foundational issue."
-            }
-        },
-        "Creativity": {
-            "Balanced Scorecard": {
-                "prompt": "Perform a Balanced Scorecard analysis on the chat content, identifying key metrics across financial, customer, internal process, and learning & growth perspectives.",
-                "tooltip": "The Balanced Scorecard (BSC) is a strategic planning and management framework that translates an organization's vision and strategy into a coherent set of performance measures across four perspectives: financial, customer, internal processes, and learning and growth."
-            },
-            "Benefits Analysis": {
-                "prompt": "Conduct a Benefits Analysis on the topics discussed, identifying potential benefits, costs, and risks.",
-                "tooltip": "Benefits Analysis is a technique used to evaluate the potential benefits, costs, and risks associated with a decision, project, or investment. It helps in making informed decisions and assessing the value of an initiative."
-            },
-            "Business Model Canvas": {
-                "prompt": "Create a Business Model Canvas based on the chat content, identifying key partners, activities, resources, value propositions, customer relationships, channels, customer segments, cost structure, and revenue streams.",
-                "tooltip": "The Business Model Canvas is a strategic management template for developing new or documenting existing business models. It allows users to describe, design, challenge, invent, and pivot their business model."
-            },
-            "Competitive Analysis": {
-                "prompt": "Conduct a Competitive Analysis on the chat content, identifying key competitors, their strengths and weaknesses, and potential strategies for differentiation.",
-                "tooltip": "Competitive Analysis is the process of evaluating your competitors' strategies, strengths, weaknesses, and market positions to identify opportunities and threats. It helps in shaping strategic responses to enhance competitive advantage."
-            },
-            "Design Thinking": {
-                "prompt": "Apply Design Thinking principles to the conversation, identifying user needs, brainstorming solutions, and proposing prototypes.",
-                "tooltip": "Design Thinking is a user-centric approach that involves empathizing with users, defining problems, ideating solutions, prototyping, and testing. It fosters innovation and solves complex problems in a user-focused way."
-            },
-            "Failure Modes Effects Analysis (FMEA)": {
-                "prompt": "Carry out a Failure Modes Effects Analysis (FMEA) on the issues discussed, ranking them by severity, occurrence, and detection.",
-                "tooltip": "Failure Modes Effects Analysis (FMEA) is a systematic technique for identifying potential failure modes within a system, classifying them according to their severity, occurrence, and detectability, to prioritize fixes and prevent future failures."
-            },
-            "Gap Analysis": {
-                "prompt": "Conduct a Gap Analysis on the current discussion, identifying the difference between the current and desired states.",
-                "tooltip": "Gap Analysis is a process of comparing the actual performance with the potential or desired performance. It helps in identifying the gaps in a system, process, or business offering to recommend steps to bridge these gaps and enhance performance."
-            },
-            "Kano Model Analysis": {
-                "prompt": "Perform a Kano Model Analysis on the needs or features discussed, categorizing them as Must-be, Performance, or Delighters.",
-                "tooltip": "Kano Model Analysis categorizes customer preferences into must-haves, performance attributes, and delighters or wow factors, helping in prioritizing features based on their impact on customer satisfaction."
-            },
-            "Market Entry Strategy": {
-                "prompt": "Develop a Market Entry Strategy based on the conversation so far, including recommended modes of entry and potential barriers.",
-                "tooltip": "Market Entry Strategy involves analyzing and selecting the most viable approach to enter a new market, considering factors like competition, barriers to entry, market demand, and strategic fit."
-            },
-            "MoSCoW Prioritisation": {
-                "prompt": "Apply MoSCoW Prioritisation to the topics discussed, categorizing them as Must have, Should have, Could have, or Won't have.",
-                "tooltip": "MoSCoW Prioritisation is a decision-making technique that helps in categorizing tasks and requirements into Must haves, Should haves, Could haves, and Won't haves, facilitating effective prioritization and resource allocation."
-            },
-            "PEST Analysis": {
-                "prompt": "Conduct a PEST Analysis on the dialogue, examining Political, Economic, Social, and Technological factors.",
-                "tooltip": "PEST Analysis is a framework for analyzing the macro-environmental factors (Political, Economic, Social, Technological) that can impact an organization's strategies and future performance. It helps in understanding the broader forces affecting the business landscape."
-            },
-            "Porters Five Forces": {
-                "prompt": "Analyze the chat content using Porter's Five Forces framework, identifying competitive rivalry, supplier power, buyer power, threat of substitution, and threat of new entry.",
-                "tooltip": "Porter's Five Forces is a model for analyzing an industry's competitive environment. It examines five forces that determine the intensity of competition and market profitability: competitive rivalry, bargaining power of suppliers, bargaining power of buyers, threat of new entrants, and threat of substitute products or services."
-            },
-            "Root Cause Analysis": {
-                "prompt": "Perform a Root Cause Analysis on the issues raised in the chat, identifying underlying causes and suggesting solutions.",
-                "tooltip": "Root Cause Analysis (RCA) is a methodical approach used to identify the fundamental causes of problems or incidents to address the root issues, preventing recurrence rather than treating symptoms."
-            },
-            "SMART Goals": {
-                "prompt": "Formulate SMART Goals based on the objectives discussed in the chat, ensuring they are Specific, Measurable, Achievable, Relevant, and Time-bound.",
-                "tooltip": "SMART Goals framework helps in setting clear, achievable goals by ensuring they are Specific, Measurable, Achievable, Relevant, and Time-bound. It provides a structured approach to goal setting for better performance and outcomes."
-            },
-            "Six Thinking Hats": {
-                "prompt": "Apply the Six Thinking Hats method to the conversation, analyzing it from different perspectives: facts, emotions, caution, benefits, creativity, and process.",
-                "tooltip": "Six Thinking Hats is a critical thinking process that helps individuals and teams discuss and solve problems more effectively by looking at the situation from six distinct perspectives (White: facts, Red: emotions, Black: caution, Yellow: optimism, Green: creativity, Blue: process), facilitating a more rounded and thorough analysis."
-            },
-            "Stakeholder Analysis": {
-                "prompt": "Conduct a Stakeholder Analysis on the chat content, identifying key stakeholders, their interests, and potential strategies for engagement.",
-                "tooltip": "Stakeholder Analysis is a technique used to identify and assess the influence and interests of key people, groups of people, or organizations that may significantly impact the success of your activity or project. It helps in developing strategies for engaging stakeholders effectively."
-            },
-            "SWOT Analysis": {
-                "prompt": "Carry out a SWOT Analysis on the chat so far, identifying Strengths, Weaknesses, Opportunities, and Threats.",
-                "tooltip": "SWOT Analysis is a strategic planning tool used to identify and understand the Strengths, Weaknesses, Opportunities, and Threats related to business competition or project planning. It helps in crafting strategies that align with the organization's capabilities and market opportunities."
-            },
-            "Value Chain Analysis": {
-                "prompt": "Perform a Value Chain Analysis on the discussion, examining activities that create value and could lead to competitive advantage.",
-                "tooltip": "Value Chain Analysis is a process of examining the steps involved in bringing a product or service from conception to distribution and beyond. It helps in identifying where value is added and how it can be enhanced to achieve a competitive advantage."
-            },
-            "VPEC-T Analysis": {
-                "prompt": "Apply VPEC-T Analysis to the chat content, examining Values, Policies, Events, Content, and Trust.",
-                "tooltip": "VPEC-T Analysis stands for Values, Policies, Events, Content, and Trust. It's a framework for analyzing complex situations by examining the critical elements that influence decisions and actions in any context, focusing on understanding stakeholders' perspectives and the foundational elements that guide interactions."
-            },
-            "Wardley Mapping": {
-                "prompt": "Create a Wardley Map based on the chat content, visualizing the landscape of the discussion and identifying areas for strategic focus.",
-                "tooltip": "Wardley Mapping is a strategy tool that helps in visualizing the structure of a business or service, mapping the components needed to serve the customer or user. It assists in understanding the current landscape, predicting future trends, and identifying strategic opportunities."
-            },
-            "What If Analysis": {
-                "prompt": "Conduct a What If Analysis on the chat, exploring alternative scenarios and their potential outcomes.",
-                "tooltip": "What If Analysis is a systematic process to explore and evaluate potential outcomes of different scenarios based on varying parameters. It helps in decision making by anticipating possible challenges and opportunities, allowing for better preparedness and strategic planning."
-            },
-            "Why-Why Analysis": {
-                "prompt": "Perform a Why-Why Analysis on the chat content, asking 'why' repeatedly to drill down to the root cause of a problem.",
-                "tooltip": "Why-Why Analysis is a problem-solving technique that involves repeatedly asking the question 'Why?' to peel away the layers of symptoms and reach the core of a problem. It's a simple yet effective method for uncovering the root cause of a problem and ensuring that solutions address this foundational issue."
-            }
-        },
-    }
-
     const reRenderChatPanel = () => {
         // e.g. to force resize when isMobile as some components may not resize correctly such as when a menu closes
         setChatPanelKey(Date.now());
@@ -321,17 +137,14 @@ const Chat = ({
     const stopStreamingRef = useRef(false);
     const [systemPrompt, setSystemPrompt] = useState("");
     const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady.current);
-    const [menuPromptsAnchorEl, setMenuPromptsAnchorEl] = useState(null);
+    const [menuToolboxesAnchorEl, setMenuToolboxesAnchorEl] = useState(null);
+    const [menuToolboxesAnchors, setMenuToolboxesAnchors] = useState({});
     const [menuDiagramsAnchorEl, setMenuDiagramsAnchorEl] = useState(null);
     const [menuPanelAnchorEl, setMenuPanelAnchorEl] = useState(null);
     const [menuPromptEditorAnchorEl, setMenuPromptEditorAnchorEl] = useState(null);
     const [menuMessageContext, setMenuMessageContext] = useState(null);
     const [menuCommandsAnchorEl, setMenuCommandsAnchorEl] = useState(null);
     const [menuCommandsOnSelectionAnchorEl, setMenuCommandsOnSelectionAnchorEl] = useState(null);
-    const [menuExplorationAnchorEl, setMenuExplorationAnchorEl] = useState(null);
-    const [menuInsightsAnchorEl, setMenuInsightsAnchorEl] = useState(null);
-    const [menuAnalysisAnchorEl, setMenuAnalysisAnchorEl] = useState(null);
-    const [menuCreativityAnchorEl, setMenuCreativityAnchorEl] = useState(null);
     const [uploadingFile, setUploadingFile] = useState(false);
     const [fileToUpload, setFileToUpload] = useState(null);
     const [markdownRenderingOn, setMarkdownRenderingOn] = useState(true);
@@ -356,13 +169,13 @@ const Chat = ({
             }
         },
         "content": {
-            "Chat": {
+            "Commands": {
                 "metadata": {
                     "name": "Chat",
                     "tags": [],
                     "properties": {
                         "favourite": true,
-                        "description": "Prompts for having an effective chat"
+                        "description": "Quickly send one of a number of simple common commands to the AI."
                     }
                 },
                 "content": {
@@ -1370,7 +1183,7 @@ const Chat = ({
                     "tags": [],
                     "properties": {
                         "favourite": true,
-                        "description": "Apply analytical and strategic tools to the situation"
+                        "description": "Apply well-known analytical and strategic tools and methodologies designed to inform decision-making, improve the rigor and completeness of problem-solving, and navigate complex challenges effectively."
                     }
                 },
                 "content": {
@@ -3144,6 +2957,7 @@ const Chat = ({
 
     const create = () => {
         let newChatObject = chatAsObject();
+        console.log('FUBARS', newChatObject)
         const url = `${serverUrl}/docdb/${folder}/documents`;
         axios.post(url, newChatObject, {
             headers: {
@@ -3305,17 +3119,21 @@ const Chat = ({
     }
 
     const save = () => {
-        let request = chatAsObject();
-        axios.put(`${serverUrl}/docdb/${folder}/documents/${id}`, request, {
-            headers: {
-                Authorization: 'Bearer ' + token
-              }
-        }).then(response => {
-            response.data.access_token && setToken(response.data.access_token);
-            onChange(id, name, "changed", "");
-        }).catch(error => {
-            system.error(`System Error saving chat.`, error, `/docdb/${folder}/documents/${id} PUT`);
-        })
+        if (id === "" || id === null) {
+            create();
+        } else {
+            let request = chatAsObject();
+            axios.put(`${serverUrl}/docdb/${folder}/documents/${id}`, request, {
+                headers: {
+                    Authorization: 'Bearer ' + token
+                }
+            }).then(response => {
+                response.data.access_token && setToken(response.data.access_token);
+                onChange(id, name, "changed", "");
+            }).catch(error => {
+                system.error(`System Error saving chat.`, error, `/docdb/${folder}/documents/${id} PUT`);
+            })
+        }
     }
 
     const closeChatStream = (message) => {
@@ -3565,7 +3383,11 @@ const Chat = ({
     }
     
     const handleTitleChange = (event) => {
-        setName(event.target.value);
+        if (event.target.value) {
+            setName(event.target.value);
+        } else {
+            setName(newChatName);
+        }
     }
 
     const handleNewChat = () => {
@@ -3709,13 +3531,8 @@ const Chat = ({
         handleMenuPanelClose();
         handleMenuCommandsClose();
         handleMenuCommandsOnSelectionClose();
-        handleMenuExplorationClose();
-        handleMenuAnalysisClose();
-        handleMenuInsightsClose();
-        handleMenuCreativityClose();
         handleMenuMessageContextClose();
         handleMenuPromptEditorClose();
-        handleMenuPromptsClose();
         handleMenuDiagramsClose();
     }
 
@@ -3727,14 +3544,10 @@ const Chat = ({
         functionToRun && functionToRun();
     };
 
-    const handleMenuPromptsOpen = (event) => {
-        setMenuPromptsAnchorEl(event.currentTarget);
+    const handleMenuToolboxesOpen = (event) => {
+        setMenuToolboxesAnchorEl(event.currentTarget);
     };
 
-    const handleMenuPromptsClose = () => {
-        setMenuPromptsAnchorEl(null);
-    };
-    
     const handleMenuDiagramsOpen = (event) => {
         setMenuDiagramsAnchorEl(event.currentTarget);
     };
@@ -3743,44 +3556,8 @@ const Chat = ({
         setMenuDiagramsAnchorEl(null);
     };
 
-    const handleMenuCommandsOpen = (event) => {
-        setMenuCommandsAnchorEl(event.currentTarget);
-    };
-
     const handleMenuCommandsClose = () => {
         setMenuCommandsAnchorEl(null);
-    };
-
-    const handleMenuInsightsOpen = (event) => {
-        setMenuInsightsAnchorEl(event.currentTarget);
-    };
-
-    const handleMenuInsightsClose = () => {
-        setMenuInsightsAnchorEl(null);
-    };
-
-    const handleMenuExplorationOpen = (event) => {
-        setMenuExplorationAnchorEl(event.currentTarget);
-    };
-
-    const handleMenuExplorationClose = () => {
-        setMenuExplorationAnchorEl(null);
-    };
-
-    const handleMenuAnalysisOpen = (event) => {
-        setMenuAnalysisAnchorEl(event.currentTarget);
-    }
-
-    const handleMenuAnalysisClose = () => {
-        setMenuAnalysisAnchorEl(null);
-    };
-
-    const handleMenuCreativityOpen = (event) => {
-        setMenuCreativityAnchorEl(event.currentTarget);
-    };
-
-    const handleMenuCreativityClose = () => {
-        setMenuCreativityAnchorEl(null);
     };
 
     const handleMenuCommandsOnSelectionOpen = (event) => {
@@ -4030,12 +3807,13 @@ const Chat = ({
     const ActionMenu = React.forwardRef(({name, prompt, tooltip, onClick}, ref) => {
         const menuItem = 
             <MenuItem
+                key={`action-menu-item-${name}`}
                 sx={{ width: "100%", whiteSpace: 'normal' }}
                 ref={ref}
                 onClick={
                     (event) => 
                         {
-                            onClick && onClick();
+                            onClick && onClick(event);
                             if (event.altKey || messages.length === 0) {
                                 runMenuAction(()=>{setChatPrompt(prompt)});
                             } else {
@@ -4065,16 +3843,117 @@ const Chat = ({
     
     const ActionOnTextMenu = ({prompt, text, onClick}) => {
         return (
-            <MenuItem onClick={ (event) => {
-                onClick && onClick();
-                if (event.altKey) {
-                    runMenuAction(()=>{setChatPrompt(prompt + ": " + text)});
-                } else {
-                    runMenuAction(()=>{sendPrompt(prompt + ": " + text)});
+            <MenuItem
+                key={`action-on-text-item-${prompt}`}
+                onClick={ (event) => {
+                    onClick && onClick();
+                    if (event.altKey) {
+                        runMenuAction(()=>{setChatPrompt(prompt + ": " + text)});
+                    } else {
+                        runMenuAction(()=>{sendPrompt(prompt + ": " + text)});
+                    }
                 }
-                }}>{prompt}</MenuItem>
+                }>
+                {prompt}
+            </MenuItem>
         )
     }
+
+    /**
+     * DynamicMenu component that renders a root menu and submenus based on the provided toolboxes.
+     * 
+     * @param {Object} props - The component props.
+     * @param {HTMLElement} props.menuAnchor - The anchor element for the root menu. If set, the menu is displayed at that location, otherwise the menu is hidden.
+     * @param {Function} props.setMenuAnchor - Function to set the anchor for the root menu.
+     * @param {Object} props.toolboxes - Object containing toolbox data used to generate menus.
+     * @param {boolean} props.isMobile - Flag indicating if the menu should adapt to mobile view.
+     */
+    const DynamicMenu = ({ rootMenuAnchor, setRootMenuAnchor, menuAnchors, setMenuAnchors, toolboxes, isMobile }) => {
+
+        const handleMenuOpen = (event, menuName) => {
+          setMenuAnchors({ ...menuAnchors, [menuName]: event.currentTarget });
+        };
+
+        const handleRootMenuClose = () => {
+            setRootMenuAnchor(null);
+        };
+      
+        const handleMenuClose = (menuName) => {
+          setMenuAnchors({ ...menuAnchors, [menuName]: null });
+        };
+
+        const menu = <Box key={`dynamic-menu-root-${toolboxes.metadata.name}`}>
+        <Menu
+            anchorEl={rootMenuAnchor}
+            open={Boolean(rootMenuAnchor)}
+            onClose={handleRootMenuClose}
+        >
+            {Object.keys(toolboxes.content).map((menuName) => (
+                <MenuItem
+                    key={`dynamic-menu-root-item-${menuName}`}
+                    onClick={(event) => handleMenuOpen(event, menuName)}>
+                    <Typography variant="subtitle1" component="div" style={{ flexGrow: 1 }}>
+                        {menuName}
+                    </Typography>
+                    <IconButton  edge="end" style={{ padding: 0 }}>
+                        <KeyboardArrowRightIcon />
+                    </IconButton>
+                </MenuItem>
+            ))}
+        </Menu>
+        {Object.keys(toolboxes.content).map((menuName) => (
+            <Menu
+                key={`dynamic-menu-menu-${menuName}`}
+                sx={{ width: isMobile ? "400px" : "100%" }}
+                anchorEl={menuAnchors[menuName]}
+                open={Boolean(menuAnchors[menuName])}
+                onClose={() => handleMenuClose(menuName)}
+                onKeyDown={
+                    (event) => {
+                        if (event.key === 'ArrowLeft') {
+                            handleMenuClose(menuName);
+                        }
+                    }
+                }
+                anchorOrigin={{
+                vertical: 'top',
+                horizontal: isMobile ? 'left' : 'right',
+                }}
+                transformOrigin={{
+                vertical: 'top',
+                horizontal: 'left',
+                }}
+            >
+                <Tooltip title={promptSelectionInstructions} placement="right">
+                    <MenuItem onClick={(event) => { handleMenuOpen(event, menuName) }}>
+                        <Typography variant="subtitle1" component="div" style={{ flexGrow: 1, fontWeight: 'bold' }}>
+                        {menuName}
+                        </Typography>
+                        <IconButton edge="end" color="inherit" onClick={() => { handleMenuClose(menuName) }}>
+                        <CloseIcon />
+                        </IconButton>
+                    </MenuItem>
+                </Tooltip>
+                {
+                Object.keys(toolboxes.content[menuName].content.tools)
+                    .map(key => (
+                    <ActionMenu
+                        key={`dynamic-menu-action-menu-${menuName}-${key}`}
+                        name={key}
+                        prompt={toolboxes.content[menuName].content.tools[key].content.prompt}
+                        tooltip={toolboxes.content[menuName].content.tools[key].properties.description}
+                        onClick={(event) => handleMenuOpen(event, key)}
+                        onClose={() => handleMenuClose(menuName)}
+                    />
+                    ))
+                }
+            </Menu>
+            ))
+        }
+        </Box>;
+      
+        return menu;
+    };
 
     const promptSelectionInstructions = "Click on a prompt to run it, ALT+Click (or Right-Arrow when using via slash command) to place in prompt editor so you can edit it";
     const diagramSelectionInstructions = "Click on a diagram (or press enter) to generate it based on context, ALT+Click (or Right-Arrow when using via slash command) to place in prompt editor so you can edit it and describe what you want";
@@ -4171,21 +4050,6 @@ const Chat = ({
                 horizontal: 'left',
             }}
         >
-            <MenuItem onClick={handleMenuPromptsOpen}
-                onKeyDown={
-                    (event) => {
-                        if (event.key === 'ArrowRight') {
-                            handleMenuPromptsOpen(event);
-                        }
-                    }
-                }    
-            >
-                <ListItemIcon><LibraryBooksIcon/></ListItemIcon>
-                Prompt Library
-                <IconButton  edge="end" style={{ padding: 0 }}>
-                    <KeyboardArrowRightIcon />
-                </IconButton>
-            </MenuItem>
             <MenuItem onClick={() => {handleMenuPanelClose(); handleNewChat();}}>
                 <ListItemIcon><AddOutlinedIcon/></ListItemIcon>
                 New Chat
@@ -4238,22 +4102,31 @@ const Chat = ({
                 horizontal: 'left',
             }}
         >
-            <MenuItem
-                onClick={handleMenuPromptsOpen}
+            <MenuItem onClick={handleMenuToolboxesOpen}
                 onKeyDown={
                     (event) => {
                         if (event.key === 'ArrowRight') {
-                            handleMenuPromptsOpen(event);
+                            handleMenuToolboxesOpen(event);
                         }
                     }
-                }
-                >
+                }    
+            >
                 <ListItemIcon><LibraryBooksIcon/></ListItemIcon>
-                Prompt Library
+                Toolboxes
                 <IconButton  edge="end" style={{ padding: 0 }}>
                     <KeyboardArrowRightIcon />
                 </IconButton>
             </MenuItem>
+            {
+                toolboxes && 
+                    <DynamicMenu 
+                        rootMenuAnchor={menuToolboxesAnchorEl} 
+                        setRootMenuAnchor={setMenuToolboxesAnchorEl} 
+                        menuAnchors={menuToolboxesAnchors}
+                        setMenuAnchors={setMenuToolboxesAnchors}
+                        toolboxes={toolboxes} 
+                        isMobile={isMobile}/>
+            }
             <MenuItem
                 onClick={handleMenuDiagramsOpen}
                 onKeyDown={
@@ -4363,16 +4236,6 @@ const Chat = ({
                     <KeyboardArrowRightIcon />
                 </IconButton>
             </MenuItem>
-            <MenuItem
-                style={{ minHeight: '30px' }} 
-                disabled={messages.length === 0 || !!window.getSelection().toString() || promptPlaceholder === userPromptWaiting}
-                onClick={handleMenuPromptsOpen}
-            >
-                <ListItemText>Prompts</ListItemText>
-                <IconButton  edge="end" style={{ padding: 0 }}>
-                    <KeyboardArrowRightIcon />
-                </IconButton>
-            </MenuItem>
             <MenuItem divider style={{ minHeight: '10px' }} />
             <MenuItem
                 style={{ height: '30px' }} 
@@ -4400,118 +4263,6 @@ const Chat = ({
             <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteAllMessages}>Delete all messages</MenuItem>
         </Menu>
         <Menu 
-            id="menu-prompts"
-            anchorEl={menuPromptsAnchorEl}
-            open={Boolean(menuPromptsAnchorEl)}
-            onClose={handleMenuPromptsClose}
-            onKeyDown={
-                (event) => {
-                    if (event.key === 'ArrowLeft') {
-                        handleMenuPromptsClose(event);
-                    }
-                }
-            }
-            anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-            }}
-            transformOrigin={{
-                vertical: 'top',
-                horizontal: 'left',
-            }}
-            >
-            <Tooltip title={promptSelectionInstructions} placement="right">
-                <MenuItem onClick={handleMenuPromptsClose}>
-                    <Typography variant="subtitle1" component="div" style={{ flexGrow: 1, fontWeight: 'bold' }}>
-                    Prompts
-                    </Typography>
-                    <IconButton edge="end" color="inherit" onClick={handleMenuPromptsClose}>
-                    <CloseIcon />
-                    </IconButton>
-                </MenuItem>
-            </Tooltip>
-            <Tooltip title="Quickly send one of a number of simple common commands to the AI." placement="right">
-                <MenuItem onClick={handleMenuCommandsOpen}
-                    onKeyDown={
-                        (event) => {
-                            if (event.key === 'ArrowRight') {
-                                handleMenuCommandsOpen(event);
-                            }
-                        }
-                    }
-                >
-                    <ListItemText>Commands</ListItemText>
-                    <IconButton  edge="end" style={{ padding: 0 }}>
-                        <KeyboardArrowRightIcon />
-                    </IconButton>
-                </MenuItem>
-            </Tooltip>
-            <Tooltip title="Explore the situation further by asking a series of simple questions that span causes, effects, stakeholders, perspectives, and strategies for preventing, improving, or coping with a situation." placement="right">
-                <MenuItem onClick={handleMenuExplorationOpen}
-                    onKeyDown={
-                        (event) => {
-                            if (event.key === 'ArrowRight') {
-                            handleMenuExplorationOpen(event);
-                            }
-                        }
-                    }
-                >
-                    <ListItemText>Exploration</ListItemText>
-                    <IconButton  edge="end" style={{ padding: 0 }}>
-                        <KeyboardArrowRightIcon />
-                    </IconButton>
-                </MenuItem>
-            </Tooltip>
-            <Tooltip title="Apply well-known analytical and strategic tools and methodologies designed to inform decision-making, improve the rigor and completeness of problem-solving, and navigate complex challenges effectively." placement="right">
-                <MenuItem onClick={handleMenuAnalysisOpen}
-                    onKeyDown={
-                        (event) => {
-                            if (event.key === 'ArrowRight') {
-                                handleMenuAnalysisOpen(event);
-                            }
-                        }
-                    }
-                >
-                    <ListItemText>Analysis</ListItemText>
-                    <IconButton  edge="end" style={{ padding: 0 }}>
-                        <KeyboardArrowRightIcon />
-                    </IconButton>
-                </MenuItem>
-            </Tooltip>
-            <Tooltip title="Apply creativity methods to stimulate out-of-the-box thinking, explore new perspectives, and generate new ideas to overcome challenges and avoid getting stuck in a rut." placement="right">
-                <MenuItem onClick={handleMenuCreativityOpen}
-                    onKeyDown={
-                        (event) => {
-                            if (event.key === 'ArrowRight') {
-                                handleMenuCreativityOpen(event);
-                            }
-                        }
-                    }
-                >
-                    <ListItemText>Creativity</ListItemText>
-                    <IconButton  edge="end" style={{ padding: 0 }}>
-                        <KeyboardArrowRightIcon />
-                    </IconButton>
-                </MenuItem>
-            </Tooltip>
-            <Tooltip title="Get insights to help with understanding and learning more about the situation to come up with strategies and actions to improve it." placement="right">
-                <MenuItem onClick={handleMenuInsightsOpen}
-                    onKeyDown={
-                        (event) => {
-                            if (event.key === 'ArrowRight') {
-                                handleMenuInsightsOpen(event);
-                            }
-                        }
-                    }
-                >
-                    <ListItemText>Insights</ListItemText>
-                    <IconButton  edge="end" style={{ padding: 0 }}>
-                        <KeyboardArrowRightIcon />
-                    </IconButton>
-                </MenuItem>
-            </Tooltip>
-        </Menu>
-        <Menu 
             id="menu-diagrams"
             anchorEl={menuDiagramsAnchorEl}
             open={Boolean(menuDiagramsAnchorEl)}
@@ -4532,7 +4283,7 @@ const Chat = ({
                 horizontal: 'left',
             }}
         >
-            <Tooltip title={diagramSelectionInstructions} placement="right">
+            <Tooltip key="close" title={diagramSelectionInstructions} placement="right">
                 <MenuItem onClick={handleMenuDiagramsClose}>
                     <Typography variant="subtitle1" component="div" style={{ flexGrow: 1, fontWeight: 'bold' }}>
                     Diagrams
@@ -4576,7 +4327,7 @@ const Chat = ({
                 horizontal: 'left',
             }}
         >
-            <Tooltip title={promptSelectionInstructions} placement="right">
+            <Tooltip key="close" title={promptSelectionInstructions} placement="right">
                 <MenuItem onClick={handleMenuCommandsClose}>
                     <Typography variant="subtitle1" component="div" style={{ flexGrow: 1, fontWeight: 'bold' }}>
                     Commands
@@ -4628,7 +4379,7 @@ const Chat = ({
                 horizontal: 'left',
             }}                            
         >
-            <Tooltip title={promptSelectionInstructions} placement="right">
+            <Tooltip key="close" title={promptSelectionInstructions} placement="right">
                 <MenuItem onClick={handleMenuCommandsOnSelectionClose}>
                     <Typography variant="subtitle1" component="div" style={{ flexGrow: 1, fontWeight: 'bold' }}>
                     Commands on selection
@@ -4653,279 +4404,6 @@ const Chat = ({
             <ActionOnTextMenu prompt="List trends related to" text={window.getSelection().toString()}/>
             <ActionOnTextMenu prompt="How can this help me" text={window.getSelection().toString()}/>
             <ActionOnTextMenu prompt="How might this hinder me" text={window.getSelection().toString()}/>
-        </Menu>
-        <Menu
-            id="menu-exploration"
-            sx={{ width: isMobile ? "400px" : "100%" }}
-            anchorEl={menuExplorationAnchorEl}
-            open={Boolean(menuExplorationAnchorEl)}
-            onClose={handleMenuExplorationClose}
-            onKeyDown={
-                (event) => {
-                    if (event.key === 'ArrowLeft') {
-                        handleMenuExplorationClose(event);
-                    }
-                }
-            }
-            anchorOrigin={{
-                vertical: 'top',
-                horizontal: isMobile ? 'left' : 'right', // make better use of small screen space on mobile
-            }}
-            transformOrigin={{
-                vertical: 'top',
-                horizontal: 'left',
-            }}
-        >
-            <Tooltip title={promptSelectionInstructions} placement="right">
-                <MenuItem onClick={handleMenuExplorationClose}>
-                    <Typography variant="subtitle1" component="div" style={{ flexGrow: 1, fontWeight: 'bold' }}>
-                    Exploration
-                    </Typography>
-                    <IconButton edge="end" color="inherit" onClick={handleMenuExplorationClose}>
-                    <CloseIcon />
-                    </IconButton>
-                </MenuItem>
-            </Tooltip>
-            <ActionMenu prompt="What questions does this raise?"/>
-            <ActionMenu prompt="What are the implications of this?"/>
-            <ActionMenu prompt="What topics are related to this?"/>
-            <ActionMenu prompt="What trends are related to this?"/>
-            <ActionMenu prompt="What led to this situation?"/>
-            <ActionMenu prompt="Explain the key factors contributing to this situation"/>
-            <ActionMenu prompt="Explain the fundamental principles underlying this"/>
-            <ActionMenu prompt="What are the potential short-term and long-term impacts of this situation?"/>
-            <ActionMenu prompt="How does this situation compare with historical precedents or trends?"/>
-            <ActionMenu prompt="What are the most common misconceptions or misunderstandings about this situation?"/>
-            <ActionMenu prompt="Where can I find more information or resources to deepen my understanding of this situation?"/>
-            <ActionMenu prompt="What alternative perspectives or viewpoints exist on this situation?"/>
-            <ActionMenu prompt="What stakeholders could be affected by this situation and how?"/>
-            <ActionMenu prompt="How can this situation serve as a learning opportunity?"/>
-            <ActionMenu prompt="In what ways could technology be leveraged to improve this situation?"/>
-            <ActionMenu prompt="In what ways could processes be adapted to improve this situation?"/>
-            <ActionMenu prompt="In what ways could organisational change improve this situation?"/>
-            <ActionMenu prompt="How could this situation be leveraged as the basis of a business model?"/>
-            <ActionMenu prompt="What skills and experience could help improve this situation?"/>
-            <ActionMenu prompt="How could this situation have been prevented?"/>
-            <ActionMenu prompt="What are the barriers to resolving this situation, and how can they be overcome?"/>
-            <ActionMenu prompt="What are the potential risks and uncertainties associated with this situation?"/>
-            <ActionMenu prompt="What are the ethical considerations related to this situation?"/>
-            <ActionMenu prompt="What are the legal implications of this situation?"/>
-            <ActionMenu prompt="Identify the key problems and conflicts in this situation. How could each be addressed?"/>
-            <ActionMenu prompt="What strategies can be employed to mitigate unavoidable negative outcomes?"/>
-            <ActionMenu prompt="What strategies can be employed to cope with negative outcomes that can't be mittigated?"/>
-            <ActionMenu prompt="What does history tell us about this kind of situation?"/>
-        </Menu>
-        <Menu
-            id="menu-analysis"
-            anchorEl={menuAnalysisAnchorEl}
-            sx={{ width: isMobile ? "400px" : "100%" }}
-            open={menuAnalysisAnchorEl !== null}
-            onClose={handleMenuAnalysisClose}
-            onKeyDown={
-                (event) => {
-                    if (event.key === 'ArrowLeft') {
-                        handleMenuAnalysisClose(event);
-                    }
-                }
-            }
-            anchorOrigin={{
-                vertical: 'top',
-                horizontal: isMobile ? 'left' : 'right', // make better use of small screen space on mobile
-            }}
-            transformOrigin={{
-                vertical: 'top',
-                horizontal: 'left',
-            }}
-        >
-            <Tooltip title={promptSelectionInstructions} placement="right">
-                <MenuItem onClick={handleMenuAnalysisClose}>
-                    <Typography variant="subtitle1" component="div" style={{ flexGrow: 1, fontWeight: 'bold' }}>
-                    Analysis
-                    </Typography>
-                    <IconButton edge="end" color="inherit" onClick={handleMenuAnalysisClose}>
-                    <CloseIcon />
-                    </IconButton>
-                </MenuItem>
-            </Tooltip>
-            <ActionMenu 
-                name="Balanced Scorecard" 
-                prompt="Perform a Balanced Scorecard analysis on the chat content, identifying key metrics across financial, customer, internal process, and learning & growth perspectives." 
-                tooltip="The Balanced Scorecard (BSC) is a strategic planning and management framework that translates an organization's vision and strategy into a coherent set of performance measures across four perspectives: financial, customer, internal processes, and learning and growth."
-              
-            />
-            <ActionMenu
-                name="Benefits Analysis"
-                prompt="Conduct a Benefits Analysis on the topics discussed, identifying potential benefits, costs, and risks."
-                tooltip="Benefits Analysis is a technique used to evaluate the potential benefits, costs, and risks associated with a decision, project, or investment. It helps in making informed decisions and assessing the value of an initiative."
-              />
-            <ActionMenu name="Business Model Canvas" prompt="Create a Business Model Canvas based on the chat content, identifying key partners, activities, resources, value propositions, customer relationships, channels, customer segments, cost structure, and revenue streams." tooltip="The Business Model Canvas is a strategic management template for developing new or documenting existing business models. It allows users to describe, design, challenge, invent, and pivot their business model."/>
-            <ActionMenu name="Competitive Analysis" prompt="Conduct a Competitive Analysis on the chat content, identifying key competitors, their strengths and weaknesses, and potential strategies for differentiation." tooltip="Competitive Analysis is the process of evaluating your competitors' strategies, strengths, weaknesses, and market positions to identify opportunities and threats. It helps in shaping strategic responses to enhance competitive advantage."/>
-            <ActionMenu name="Design Thinking" prompt="Apply Design Thinking principles to the conversation, identifying user needs, brainstorming solutions, and proposing prototypes." tooltip="Design Thinking is a user-centric approach that involves empathizing with users, defining problems, ideating solutions, prototyping, and testing. It fosters innovation and solves complex problems in a user-focused way."/>
-            <ActionMenu name="Failure Modes Effects Analysis (FMEA)" prompt="Carry out a Failure Modes Effects Analysis (FMEA) on the issues discussed, ranking them by severity, occurrence, and detection." tooltip="Failure Modes Effects Analysis (FMEA) is a systematic technique for identifying potential failure modes within a system, classifying them according to their severity, occurrence, and detectability, to prioritize fixes and prevent future failures."/>
-            <ActionMenu name="Gap Analysis" prompt="Conduct a Gap Analysis on the current discussion, identifying the difference between the current and desired states." tooltip="Gap Analysis is a process of comparing the actual performance with the potential or desired performance. It helps in identifying the gaps in a system, process, or business offering to recommend steps to bridge these gaps and enhance performance."/>
-            <ActionMenu name="Kano Model Analysis" prompt="Perform a Kano Model Analysis on the needs or features discussed, categorizing them as Must-be, Performance, or Delighters." tooltip="Kano Model Analysis categorizes customer preferences into must-haves, performance attributes, and delighters or wow factors, helping in prioritizing features based on their impact on customer satisfaction."/>
-            <ActionMenu name="Market Entry Strategy" prompt="Develop a Market Entry Strategy based on the conversation so far, including recommended modes of entry and potential barriers." tooltip="Market Entry Strategy involves analyzing and selecting the most viable approach to enter a new market, considering factors like competition, barriers to entry, market demand, and strategic fit."/>
-            <ActionMenu name="MoSCoW Prioritisation" prompt="Apply MoSCoW Prioritisation to the topics discussed, categorizing them as Must have, Should have, Could have, or Won't have." tooltip="MoSCoW Prioritisation is a decision-making technique that helps in categorizing tasks and requirements into Must haves, Should haves, Could haves, and Won't haves, facilitating effective prioritization and resource allocation."/>
-            <ActionMenu name="PEST Analysis" prompt="Conduct a PEST Analysis on the dialogue, examining Political, Economic, Social, and Technological factors." tooltip="PEST Analysis is a framework for analyzing the macro-environmental factors (Political, Economic, Social, Technological) that can impact an organization's strategies and future performance. It helps in understanding the broader forces affecting the business landscape."/>
-            <ActionMenu name="Porters Five Forces" prompt="Analyze the chat content using Porter's Five Forces framework, identifying competitive rivalry, supplier power, buyer power, threat of substitution, and threat of new entry." tooltip="Porter's Five Forces is a model for analyzing an industry's competitive environment. It examines five forces that determine the intensity of competition and market profitability: competitive rivalry, bargaining power of suppliers, bargaining power of buyers, threat of new entrants, and threat of substitute products or services."/>
-            <ActionMenu name="Root Cause Analysis" prompt="Perform a Root Cause Analysis on the issues raised in the chat, identifying underlying causes and suggesting solutions." tooltip="Root Cause Analysis (RCA) is a methodical approach used to identify the fundamental causes of problems or incidents to address the root issues, preventing recurrence rather than treating symptoms."/>
-            <ActionMenu name="SMART Goals" prompt="Formulate SMART Goals based on the objectives discussed in the chat, ensuring they are Specific, Measurable, Achievable, Relevant, and Time-bound." tooltip="SMART Goals framework helps in setting clear, achievable goals by ensuring they are Specific, Measurable, Achievable, Relevant, and Time-bound. It provides a structured approach to goal setting for better performance and outcomes."/>
-            <ActionMenu name="Six Thinking Hats" prompt="Apply the Six Thinking Hats method to the conversation, analyzing it from different perspectives: facts, emotions, caution, benefits, creativity, and process." tooltip="Six Thinking Hats is a critical thinking process that helps individuals and teams discuss and solve problems more effectively by looking at the situation from six distinct perspectives (White: facts, Red: emotions, Black: caution, Yellow: optimism, Green: creativity, Blue: process), facilitating a more rounded and thorough analysis."/>
-            <ActionMenu name="Stakeholder Analysis" prompt="Conduct a Stakeholder Analysis on the chat content, identifying key stakeholders, their interests, and potential strategies for engagement." tooltip="Stakeholder Analysis is a technique used to identify and assess the influence and interests of key people, groups of people, or organizations that may significantly impact the success of your activity or project. It helps in developing strategies for engaging stakeholders effectively."/>
-            <ActionMenu name="SWOT Analysis" prompt="Carry out a SWOT Analysis on the chat so far, identifying Strengths, Weaknesses, Opportunities, and Threats." tooltip="SWOT Analysis is a strategic planning tool used to identify and understand the Strengths, Weaknesses, Opportunities, and Threats related to business competition or project planning. It helps in crafting strategies that align with the organization's capabilities and market opportunities."/>
-            <ActionMenu name="Value Chain Analysis" prompt="Perform a Value Chain Analysis on the discussion, examining activities that create value and could lead to competitive advantage." tooltip="Value Chain Analysis is a process of examining the steps involved in bringing a product or service from conception to distribution and beyond. It helps in identifying where value is added and how it can be enhanced to achieve a competitive advantage."/>
-            <ActionMenu name="VPEC-T Analysis" prompt="Apply VPEC-T Analysis to the chat content, examining Values, Policies, Events, Content, and Trust." tooltip="VPEC-T Analysis stands for Values, Policies, Events, Content, and Trust. It's a framework for analyzing complex situations by examining the critical elements that influence decisions and actions in any context, focusing on understanding stakeholders' perspectives and the foundational elements that guide interactions."/>
-            <ActionMenu name="Wardley Mapping" prompt="Create a Wardley Map based on the chat content, visualizing the landscape of the discussion and identifying areas for strategic focus." tooltip="Wardley Mapping is a strategy tool that helps in visualizing the structure of a business or service, mapping the components needed to serve the customer or user. It assists in understanding the current landscape, predicting future trends, and identifying strategic opportunities."/>
-            <ActionMenu name="What If Analysis" prompt="Conduct a What If Analysis on the chat, exploring alternative scenarios and their potential outcomes." tooltip="What If Analysis is a systematic process to explore and evaluate potential outcomes of different scenarios based on varying parameters. It helps in decision making by anticipating possible challenges and opportunities, allowing for better preparedness and strategic planning."/>
-            <ActionMenu name="Why-Why Analysis" prompt="Perform a Why-Why Analysis on the chat content, asking 'why' repeatedly to drill down to the root cause of a problem." tooltip="Why-Why Analysis is a problem-solving technique that involves repeatedly asking the question 'Why?' to peel away the layers of symptoms and reach the core of a problem. It's a simple yet effective method for uncovering the root cause of a problem and ensuring that solutions address this foundational issue."/>
-        </Menu>
-        <Menu
-            id="menu-insights"
-            anchorEl={menuInsightsAnchorEl}
-            sx={{ width: isMobile ? "400px" : "100%" }}
-            open={menuInsightsAnchorEl !== null}
-            onClose={handleMenuInsightsClose}
-            onKeyDown={
-                (event) => {
-                    if (event.key === 'ArrowLeft') {
-                        handleMenuInsightsClose(event);
-                    }
-                }
-            }
-            anchorOrigin={{
-                vertical: 'top',
-                horizontal: isMobile ? 'left' : 'right', // make better use of small screen space on mobile
-            }}
-            transformOrigin={{
-                vertical: 'top',
-                horizontal: 'left',
-            }}
-            >
-            <Tooltip title={promptSelectionInstructions} placement="right">
-                <MenuItem onClick={handleMenuInsightsClose}>
-                    <Typography variant="subtitle1" component="div" style={{ flexGrow: 1, fontWeight: 'bold' }}>
-                    Insights
-                    </Typography>
-                    <IconButton edge="end" color="inherit" onClick={handleMenuInsightsClose}>
-                    <CloseIcon />
-                    </IconButton>
-                </MenuItem>
-            </Tooltip>
-            <ListSubheader>
-                <Typography variant="subtitle1" style={{ fontWeight: 600 }}>
-                Assessment & Analysis
-                </Typography>
-            </ListSubheader>
-            <ActionMenu prompt="What are the pros and cons of this?"/>
-            <ActionMenu prompt="What could improve the situation?"/>
-            <ActionMenu prompt="What could worsen the situation?"/>
-            <ActionMenu prompt="How can this be simplified?"/>
-            <ActionMenu prompt="What are the blockers to progress?"/>
-            <ActionMenu prompt="What are the enablers for progress?"/>
-            <ActionMenu prompt="What common mistakes are usually made in this situation?"/>
-            <ActionMenu prompt="What resources are typically available to help in this situation?"/>
-            <ActionMenu prompt="What alternative perspectives or approaches should be considered?"/>
-
-            <ListSubheader>
-                <Typography variant="subtitle1" style={{ fontWeight: 600 }}>
-                    Understanding & Learning
-                </Typography>
-            </ListSubheader>
-            <ActionMenu prompt="What is the most effective approach to tackling this situation, and why?"/>
-            <ActionMenu prompt="What recent advancements or tools apply to this situation?"/>
-            <ActionMenu prompt="What is a good example where a similar challenge was successfully overcome?"/>
-            <ActionMenu prompt="What resources (books, courses, websites) could give me a deeper understanding of this?"/>
-            <ActionMenu prompt="What are the key factors for success in resolving this?"/>
-
-            <ListSubheader>
-                <Typography variant="subtitle1" style={{ fontWeight: 600 }}>
-                    Strategy & Action
-                </Typography>
-            </ListSubheader>
-            <ActionMenu prompt="What steps could be taken to address the situation starting today?"/>
-            <ActionMenu prompt="What are the most critical challenges or obstacles in addressing this situation?"/>
-            <ActionMenu prompt="What potential solutions or strategies could be tried?"/>
-            <ActionMenu prompt="What measurable goals can be set to track progress?"/>
-            <ActionMenu prompt="How can feedback be effectively gathered and utilised to adjust strategies?"/>
-            <ActionMenu prompt="What lessons can be learnt from this situation?"/>
-        </Menu>
-        <Menu
-            id="menu-creativity"
-            anchorEl={menuCreativityAnchorEl}
-            open={menuCreativityAnchorEl !== null}
-            onClose={handleMenuCreativityClose}
-            onKeyDown={
-                (event) => {
-                    if (event.key === 'ArrowLeft') {
-                        handleMenuCreativityClose(event);
-                    }
-                }
-            }
-            anchorOrigin={{
-                vertical: 'top',
-                horizontal: isMobile ? 'left' : 'right', // make better use of small screen space on mobile
-            }}
-            transformOrigin={{
-                vertical: 'top',
-                horizontal: 'left',
-            }}
-        >
-            <Tooltip title={promptSelectionInstructions} placement="right">
-                <MenuItem onClick={handleMenuCreativityClose}>
-                    <Typography variant="subtitle1" component="div" style={{ flexGrow: 1, fontWeight: 'bold' }}>
-                    Creativity
-                    </Typography>
-                    <IconButton edge="end" color="inherit" onClick={handleMenuCreativityClose}>
-                    <CloseIcon />
-                    </IconButton>
-                </MenuItem>
-            </Tooltip>
-            <ActionMenu
-                name="Ansoff Matrix" prompt="Conduct an Ansoff Matrix analysis on the discussion so far, providing insights and recommendations."
-                tooltip="The Ansoff Matrix explores growth strategies through market penetration, market development, product development, and diversification. It assesses risks and helps in strategic decision-making to achieve business growth."
-            />
-            <ActionMenu
-                name="SCAMPER" prompt="Utilize the SCAMPER method on the topic discussed, exploring Substitute, Combine, Adapt, Modify, Put to another use, Eliminate, and Reverse to generate new ideas."
-                tooltip="SCAMPER is a creative thinking technique that guides users through different ways of improving or innovating existing products, services, or problems by modifying various aspects."
-            />
-            <ActionMenu name="Mind Mapping" prompt="Create a mind map around the current discussion topic, identifying and expanding on key ideas and their connections." tooltip="Mind Mapping is a visual brainstorming tool that helps structure information, helping users to better analyze, comprehend, synthesize, recall, and generate new ideas."
-            />
-            <ActionMenu name="Brainwriting" prompt="Silently write down ideas on the current topic, then compile and discuss them to explore further." tooltip="Brainwriting is an idea generation method that involves participants writing down their ideas on a specific topic before sharing them with the group to foster a broader range of ideas."
-            />
-            <ActionMenu name="Six Thinking Hats" prompt="Apply the Six Thinking Hats technique to the discussion, examining the topic from multiple perspectives including emotional, informational, logical, creative, critical, and organizational viewpoints." tooltip="Six Thinking Hats is a thinking framework that provides a means for groups to think together more effectively by adopting different perspectives, represented by six colored hats, to explore various aspects of a problem or a topic."
-            />
-            <ActionMenu name="Five Whys" prompt="Ask 'Why' five times in succession to delve deeper into the root cause of the topic at hand, uncovering underlying problems." tooltip="The Five Whys technique is a simple but powerful tool for cutting through the complexity of a problem to reach its root cause by repeatedly asking the question 'Why?'."
-            />
-            <ActionMenu name="Storyboarding" prompt="Develop a storyboard for the topic, creating a visual narrative to explore and communicate the ideas discussed." tooltip="Storyboarding is a sequential visual storytelling technique often used in film and animation but can be applied to any type of project to visually predict and explore scenes or concepts."
-            />
-            <ActionMenu name="Analogical Thinking" prompt="Draw analogies from unrelated fields to the current discussion to inspire new ideas and connections." tooltip="Analogical Thinking involves drawing parallels between different domains or experiences to generate creative insights and solutions by transferring knowledge from a familiar context to a new one."
-            />
-            <ActionMenu name="Attribute Listing" prompt="Break down the topic into attributes and suggest alterations to each, fostering a detailed exploration of possibilities." tooltip="Attribute Listing is a technique for exploring the potential variations of a product, service, or idea by systematically modifying its attributes to generate new possibilities."
-            />
-            <ActionMenu name="TRIZ" prompt="Apply TRIZ principles to identify and solve contradictions within the problem, generating innovative solutions." tooltip="TRIZ is a problem-solving, analysis, and forecasting tool derived from the study of patterns of invention in the global patent literature, offering a systematic approach for innovation."
-            />
-            <ActionMenu name="Random Input" prompt="Introduce a random stimulus (word, image, etc.) to encourage lateral thinking and inspire creativity around the topic." tooltip="Random Input is a creativity technique that uses unexpected or seemingly unrelated stimuli to spark innovative thinking and break conventional thought patterns."
-            />
-            <ActionMenu name="Forced Association" prompt="Create connections between the topic and randomly generated words or concepts, fostering unusual combinations and ideas." tooltip="Forced Association is a creativity method where seemingly unrelated ideas or concepts are deliberately combined, often leading to innovative solutions or new perspectives."
-            />
-            <ActionMenu name="Lotus Blossom" prompt="Expand ideas outward in a structured manner, exploring related themes and deeper layers of the topic." tooltip="Lotus Blossom is a creativity technique that helps expand thinking from a central idea, systematically exploring related themes and ideas in layers, much like unfolding a lotus flower."
-            />
-            <ActionMenu name="Reverse Thinking" prompt="Consider the opposite of usual assumptions or approaches to uncover unconventional solutions for the topic discussed." tooltip="Reverse Thinking, or reverse engineering the problem-solving process, involves looking at the problem from the end point or from an opposite perspective to uncover innovative solutions."
-            />
-            <ActionMenu name="Future Scenarios" prompt="Imagine future scenarios related to the topic, encouraging forward-thinking and speculative ideas." tooltip="Future Scenarios is a method for envisioning and analyzing possible futures to better understand potential opportunities and challenges, aiding in strategic planning and innovation."
-            />
-            <ActionMenu name="Provocation" prompt="Make a deliberately irrational statement about the topic to provoke out-of-the-box thinking and generate creative solutions." tooltip="Provocation is a technique used to challenge conventional thinking and stimulate radical ideas by proposing outrageous or seemingly nonsensical statements or questions."
-            />
-            <ActionMenu name="Role Storming" prompt="Adopt different roles or personas and generate ideas from the perspective of someone else related to the topic." tooltip="Role Storming is a brainstorming technique where participants assume different roles or personas, encouraging them to generate ideas from new and diverse perspectives."
-            />
-            <ActionMenu name="Wishful Thinking" prompt="Imagine ideal solutions without constraints for the topic, helping to identify desires and innovative paths forward." tooltip="Wishful Thinking involves imagining the best possible outcome or solution without the limitations of current constraints, often leading to the identification of innovative and ambitious goals."
-            />
-            <ActionMenu name="Checklists" prompt="Use creative checklists tailored to the topic, prompting consideration of aspects or angles not previously explored." tooltip="Checklists in a creative context are used to systematically explore a range of considerations or possibilities related to a topic, ensuring thorough exploration and idea generation."
-            />
-            <ActionMenu name="Morphological Analysis" prompt="Break down the problem into its components and systematically explore variations of each, combining them in new ways." tooltip="Morphological Analysis is a method for exploring all possible solutions to a multi-dimensional, complex problem by breaking it down into its components and examining the possible combinations of those elements."
-            />
-            <ActionMenu name="Boundary Relaxation" prompt="Relax constraints or assumptions about the problem, allowing for the exploration of more radical solutions." tooltip="Boundary Relaxation is a creative problem-solving technique that involves temporarily removing the usual limits or constraints around a problem to explore more innovative and unconventional solutions."
-            />
         </Menu>
     </StyledToolbar>;
 
