@@ -2,9 +2,9 @@ import axios from 'axios'
 import { debounce } from "lodash";
 import React from 'react';
 
-import { useEffect, useState, useContext, useCallback, useRef } from 'react';
+import { useEffect, useState, useContext, useCallback, useRef, memo } from 'react';
 import { Card, Box, Paper, Toolbar, IconButton, Typography, TextField,
-    List, ListItem, ListSubheader, Menu, MenuItem, Tooltip, Popover,
+    List, ListItem, Menu, MenuItem, Tooltip, Popover,
     ListItemText, ListItemIcon
      } from '@mui/material';
 import { ClassNames } from "@emotion/react";
@@ -138,7 +138,7 @@ const Chat = ({
     const [systemPrompt, setSystemPrompt] = useState("");
     const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady.current);
     const [menuToolboxesAnchorEl, setMenuToolboxesAnchorEl] = useState(null);
-    const [menuToolboxesAnchors, setMenuToolboxesAnchors] = useState({});
+    const [menuToolboxesSubMenuAnchor, setMenuToolboxesSubMenuAnchor] = useState({});
     const [menuDiagramsAnchorEl, setMenuDiagramsAnchorEl] = useState(null);
     const [menuPanelAnchorEl, setMenuPanelAnchorEl] = useState(null);
     const [menuPromptEditorAnchorEl, setMenuPromptEditorAnchorEl] = useState(null);
@@ -159,12 +159,12 @@ const Chat = ({
     const [starred, setStarred] = useState(false);
     const [promptLength, setPromptLength] = useState(0);
     const [toolboxOpen, setToolboxOpen] = useState(false);
-    const [toolboxes, setToolboxes] = useState({
+    const [promptCollections, setPromptCollections] = useState({
         "metadata": {
-            "name": "Toolboxes",
+            "name": "Prompt Collections",
             "tags": [],
             "properties": {
-                "defaultToolbox": "Chat",
+                "defaultToolbox": "Commands",
                 "description": "Prompt toolboxes for different AI chat use cases"
             }
         },
@@ -2935,13 +2935,17 @@ const Chat = ({
             streamingChatResponseCardRef.current?.scrollIntoView({ behavior: 'instant', block: 'end' });
         }
     }, [streamingChatResponse]);
+
+    const scrollMessagesToEnd = () => {
+        chatMessagesRef.current?.scrollIntoView({ behavior: "instant", block: "end" });
+    }
     
     const appendMessage = (message) => {
         setMessages(prevMessages => [...prevMessages, message]);
         if (!chatOpen) { setChatOpen(Date.now()) };
         if (!isScrolledOffBottom()) {
             setTimeout(() => {
-                chatMessagesRef.current?.scrollIntoView({ behavior: "instant", block: "end" });
+                scrollMessagesToEnd();
             }, 0);
         }
     }
@@ -3541,10 +3545,13 @@ const Chat = ({
         handleMenuMessageContextClose();
         handleMenuPromptEditorClose();
         handleMenuDiagramsClose();
+        setMenuToolboxesAnchorEl(null);
+        setMenuToolboxesSubMenuAnchor({});
     }
 
     const runMenuAction = (functionToRun, thenFocusOnPrompt=true) => {
         closeMenus();
+        scrollMessagesToEnd();
         if (thenFocusOnPrompt) {
             setFocusOnPrompt(Date.now());
         }
@@ -3831,6 +3838,8 @@ const Chat = ({
                 onKeyDown={
                     (event) => {
                         if (event.key === 'ArrowRight') {
+                            event.preventDefault(); // Prevent the default arrow down behavior
+                            event.stopPropagation(); // Stop the event from propagating further
                             onClick && onClick();
                             runMenuAction(()=>{setChatPrompt(prompt)});
                         }
@@ -3867,38 +3876,74 @@ const Chat = ({
     }
 
     /**
-     * DynamicMenu component that renders a root menu and submenus based on the provided toolboxes.
+     * DynamicMenu component that renders a root menu and submenus based on the provided collections.
      * 
      * @param {Object} props - The component props.
      * @param {HTMLElement} props.menuAnchor - The anchor element for the root menu. If set, the menu is displayed at that location, otherwise the menu is hidden.
      * @param {Function} props.setMenuAnchor - Function to set the anchor for the root menu.
-     * @param {Object} props.toolboxes - Object containing toolbox data used to generate menus.
+     * @param {Object} props.menuData - Object containing toolbox data used to generate menus.
      * @param {boolean} props.isMobile - Flag indicating if the menu should adapt to mobile view.
      */
-    const DynamicMenu = ({ rootMenuAnchor, setRootMenuAnchor, menuAnchors, setMenuAnchors, toolboxes, isMobile }) => {
+    const DynamicMenu = memo(({ rootMenuAnchor, setRootMenuAnchor, subMenuAnchor, setSubMenuAnchor, menuData, isMobile }) => {
+        const [myRootMenuAnchor, setMyRootMenuAnchor] = useState(rootMenuAnchor);
 
-        const handleMenuOpen = (event, menuName) => {
-          setMenuAnchors({ ...menuAnchors, [menuName]: event.currentTarget });
+        useEffect(() => {
+            if (myRootMenuAnchor !== rootMenuAnchor) {
+                setMyRootMenuAnchor(rootMenuAnchor);
+            }
+        }, [rootMenuAnchor]);            
+
+        const handleSubMenuOpen = (event, menuName) => {
+            setSubMenuAnchor({menu: menuName, anchor: rootMenuAnchor})
         };
 
         const handleRootMenuClose = () => {
             setRootMenuAnchor(null);
+            setSubMenuAnchor({});
         };
       
-        const handleMenuClose = (menuName) => {
-          setMenuAnchors({ ...menuAnchors, [menuName]: null });
+        const handleSubMenuClose = () => {
+          setSubMenuAnchor({});
         };
 
-        const menu = <Box key={`dynamic-menu-root-${toolboxes.metadata.name}`}>
+        const menu = <Box key={`dynamic-menu-root-${menuData.metadata.name}`}>
         <Menu
-            anchorEl={rootMenuAnchor}
-            open={Boolean(rootMenuAnchor)}
+            anchorEl={myRootMenuAnchor}
+            open={Boolean(myRootMenuAnchor)}
             onClose={handleRootMenuClose}
+            anchorOrigin={{
+                vertical: 'top',
+                horizontal: isMobile ? 'left' : 'right',
+                }}
+            transformOrigin={{
+                vertical: 'top',
+                horizontal: 'left',
+                }}
         >
-            {Object.keys(toolboxes.content).map((menuName) => (
+            <Tooltip title={promptSelectionInstructions} placement="right">
+                <MenuItem>
+                    <Typography variant="subtitle1" component="div" style={{ flexGrow: 1, fontWeight: 'bold' }}>
+                    {menuData.metadata.name}
+                    </Typography>
+                    <IconButton edge="end" color="inherit" onClick={handleRootMenuClose}>
+                    <CloseIcon />
+                    </IconButton>
+                </MenuItem>
+            </Tooltip>
+            {Object.keys(menuData.content).map((menuName) => (
                 <MenuItem
                     key={`dynamic-menu-root-item-${menuName}`}
-                    onClick={(event) => handleMenuOpen(event, menuName)}>
+                    onClick={(event) => handleSubMenuOpen(event, menuName)}
+                    onKeyDown={
+                        (event) => {
+                            if (event.key === 'ArrowRight') {
+                                event.preventDefault(); // Prevent default arrow key behavior
+                                event.stopPropagation(); // Stop event from propagating to parent elements
+                                handleSubMenuOpen(event, menuName);
+                            }
+                        }
+                    }
+                    >
                     <Typography variant="subtitle1" component="div" style={{ flexGrow: 1 }}>
                         {menuName}
                     </Typography>
@@ -3908,49 +3953,53 @@ const Chat = ({
                 </MenuItem>
             ))}
         </Menu>
-        {Object.keys(toolboxes.content).map((menuName) => (
+
+        {Object.keys(menuData.content).map((menuName) => (
             <Menu
                 key={`dynamic-menu-menu-${menuName}`}
                 sx={{ width: isMobile ? "400px" : "100%" }}
-                anchorEl={menuAnchors[menuName]}
-                open={Boolean(menuAnchors[menuName])}
-                onClose={() => handleMenuClose(menuName)}
+                anchorEl={subMenuAnchor["anchor"]}
+                open={Boolean(subMenuAnchor["menu"] === menuName)}
+                onClose={() => handleSubMenuClose()}
                 onKeyDown={
                     (event) => {
                         if (event.key === 'ArrowLeft') {
-                            handleMenuClose(menuName);
+                            event.preventDefault(); // Prevent default arrow key behavior
+                            event.stopPropagation(); // Stop event from propagating to parent elements
+                            handleSubMenuClose();
                         }
                     }
                 }
                 anchorOrigin={{
-                vertical: 'top',
-                horizontal: isMobile ? 'left' : 'right',
+                    vertical: 'top',
+                    horizontal: isMobile ? 'left' : 'right',
                 }}
                 transformOrigin={{
-                vertical: 'top',
-                horizontal: 'left',
+                    vertical: 'top',
+                    horizontal: 'left',
                 }}
+                style={{ left: '100px' }}
             >
                 <Tooltip title={promptSelectionInstructions} placement="right">
-                    <MenuItem onClick={(event) => { handleMenuOpen(event, menuName) }}>
+                    <MenuItem>
                         <Typography variant="subtitle1" component="div" style={{ flexGrow: 1, fontWeight: 'bold' }}>
                         {menuName}
                         </Typography>
-                        <IconButton edge="end" color="inherit" onClick={() => { handleMenuClose(menuName) }}>
+                        <IconButton edge="end" color="inherit" onClick={() => { handleSubMenuClose() }}>
                         <CloseIcon />
                         </IconButton>
                     </MenuItem>
                 </Tooltip>
                 {
-                Object.keys(toolboxes.content[menuName].content.tools)
+                Object.keys(menuData.content[menuName].content.tools)
                     .map(key => (
                     <ActionMenu
                         key={`dynamic-menu-action-menu-${menuName}-${key}`}
                         name={key}
-                        prompt={toolboxes.content[menuName].content.tools[key].content.prompt}
-                        tooltip={toolboxes.content[menuName].content.tools[key].properties.description}
-                        onClick={(event) => handleMenuOpen(event, key)}
-                        onClose={() => handleMenuClose(menuName)}
+                        prompt={menuData.content[menuName].content.tools[key].content.prompt}
+                        tooltip={menuData.content[menuName].content.tools[key].properties.description}
+                        onClick={(event) => handleSubMenuOpen(event, key)}
+                        onClose={() => handleSubMenuClose()}
                     />
                     ))
                 }
@@ -3960,7 +4009,7 @@ const Chat = ({
         </Box>;
       
         return menu;
-    };
+    });
 
     const promptSelectionInstructions = "Click on a prompt to run it, ALT+Click (or Right-Arrow when using via slash command) to place in prompt editor so you can edit it";
     const diagramSelectionInstructions = "Click on a diagram (or press enter) to generate it based on context, ALT+Click (or Right-Arrow when using via slash command) to place in prompt editor so you can edit it and describe what you want";
@@ -4119,19 +4168,19 @@ const Chat = ({
                 }    
             >
                 <ListItemIcon><LibraryBooksIcon/></ListItemIcon>
-                Toolboxes
+                Prompt collections
                 <IconButton  edge="end" style={{ padding: 0 }}>
                     <KeyboardArrowRightIcon />
                 </IconButton>
             </MenuItem>
             {
-                toolboxes && 
+                promptCollections && 
                     <DynamicMenu 
                         rootMenuAnchor={menuToolboxesAnchorEl} 
                         setRootMenuAnchor={setMenuToolboxesAnchorEl} 
-                        menuAnchors={menuToolboxesAnchors}
-                        setMenuAnchors={setMenuToolboxesAnchors}
-                        toolboxes={toolboxes} 
+                        subMenuAnchor={menuToolboxesSubMenuAnchor}
+                        setSubMenuAnchor={setMenuToolboxesSubMenuAnchor}
+                        menuData={promptCollections} 
                         isMobile={isMobile}/>
             }
             <MenuItem
@@ -4478,7 +4527,7 @@ const Chat = ({
                 toolboxOpen && !isMobile ?
                     <Box sx={{ display: "flex", width: toolboxWidth, minWidth: toolboxWidth, height:"100%" }}>
                         <Toolbox
-                            toolboxes={toolboxes} setToolboxes={setToolboxes}
+                            toolboxes={promptCollections} setToolboxes={setPromptCollections}
                             setToolboxOpen={setToolboxOpen} toolboxOpen={toolboxOpen}
                             setNewPromptPart={setChatPrompt} setNewPrompt={setPromptToSend}
                             darkMode={darkMode}/>
@@ -4837,6 +4886,7 @@ const Chat = ({
                             height: "100%", maxWidth: parseInt(chatContextWidth)+'px', minWidth: parseInt(chatContextWidth)+'px',
                             padding: "2px", margin: "6px", }}>
                         <SecondaryToolbar sx={{gap:1}} className={ClassNames.toolbar}>
+                            <ControlCameraIcon/>
                             <Typography>Chat Context</Typography>
                             <Box sx={{ display: "flex", flexDirection: "row", ml: "auto" }}>
                                 <Tooltip edge="end" title='The chat context and goal will be added to the system prompt each time you prompt the AI. Enter these before you start your chat to give the AI more to go on. They will be saved with the chat and applied if you continue the chat later.'>

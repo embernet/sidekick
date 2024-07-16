@@ -27,6 +27,8 @@ import { lightBlue, grey, blueGrey } from '@mui/material/colors';
 import { StyledBox, StyledToolbar, SecondaryToolbar } from './theme';
 import { ClassNames } from "@emotion/react";
 
+import HomeRepairServiceIcon from '@mui/icons-material/HomeRepairService';
+
 const Toolbox = memo(({ toolboxOpen, setToolboxOpen, toolboxes, setToolboxes, onChange,
     setOpenToolboxId, serverUrl, token, setToken, setNewPrompt, setNewPromptPart, darkMode
  }) => {
@@ -100,9 +102,10 @@ const Toolbox = memo(({ toolboxOpen, setToolboxOpen, toolboxes, setToolboxes, on
         });
     }
 
-    const render = toolbox ?
+    const render = toolboxOpen ?
             <Card id={`toolbox-${myId}`} sx={{ height: "100%", width: "100%", padding: "2px", margin: "6px", }}>
                 <SecondaryToolbar sx={{gap:1}} className={ClassNames.toolbar}>
+                    <HomeRepairServiceIcon/>
                     <Typography>Toolbox</Typography>
                     <Tooltip title='Close Prompt Toolbox'>
                         <IconButton sx={{ml:'auto'}} onClick={()=>{setToolboxOpen(false)}}>
