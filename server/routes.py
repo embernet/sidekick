@@ -42,7 +42,6 @@ def index():
 
 @app.route('/health', methods=['GET'])
 def health():
-    print(get_jwt_identity())
     with RequestLogger(request) as rl:
         try:
             # calculate uptime
