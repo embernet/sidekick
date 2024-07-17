@@ -5,7 +5,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from flask_cors import CORS
-from flask_oidc import OpenIDConnect
 from sqlalchemy.engine.url import make_url
 import uuid
 from prometheus_flask_exporter import PrometheusMetrics
@@ -23,21 +22,17 @@ app.config["SIDEKICK_WEBUI_BASE_URL"] = os.environ.get("SIDEKICK_WEBUI_BASE_URL"
 app.config["OPENAI_API_KEY"] = os.environ["OPENAI_API_KEY"]
 app.config["OPENAI_BASE_URL"] = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
 
-# Optionallay count chat tokens if specified in the env var
+# Optionally count chat tokens if specified in the env var
 # (token count is not returned by the streaming interface)
 # Set to True to count prompt and completion tokens, or leave blank
 # Counting tokens uses the tiktoken library, which calls an additional cloud endpoint
 app.config["SIDEKICK_COUNT_TOKENS"] = os.environ.get("SIDEKICK_COUNT_TOKENS", False)
 
-app.config["OIDC_CLIENT_SECRETS"] = {
-    "web": {
-        "client_id": os.environ.get("OIDC_CLIENT_ID"),
-        "client_secret": os.environ.get("OIDC_CLIENT_SECRET"),
-        "redirect_uris": [os.environ.get("OIDC_REDIRECT_URI")],
-        "issuer": os.environ.get("OIDC_ISSUER")
-    }
-}
-app.config["OVERWRITE_REDIRECT_URI"] = os.environ.get("OIDC_REDIRECT_URI")
+app.config["OIDC_WELL_KNOWN_URL"] = os.environ.get("OIDC_WELL_KNOWN_URL")
+app.config["OIDC_TOKEN_ENDPOINT"] = os.environ.get("OIDC_TOKEN_ENDPOINT")
+app.config["OIDC_CLIENT_ID"] = os.environ.get("OIDC_CLIENT_ID")
+app.config["OIDC_CLIENT_SECRET"] = os.environ.get("OIDC_CLIENT_SECRET")
+
 app.config["SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
 
 db_url = make_url(app.config["SQLALCHEMY_DATABASE_URI"])
@@ -69,10 +64,5 @@ formatter = logging.Formatter('[%(asctime)s][%(levelname)s][%(filename)s]'
 handler.setFormatter(formatter)
 app.logger.addHandler(handler)
 app.logger.info(f"message::Sidekick server started, version::{VERSION}")
-
-if app.config["OIDC_CLIENT_SECRETS"]["web"]["client_id"]:
-    oidc = OpenIDConnect(app)
-else:
-    oidc = None
 
 import routes
