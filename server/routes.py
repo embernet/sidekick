@@ -837,7 +837,7 @@ def oidc_callback():
                                 password=get_random_string(), properties={})
         update_default_settings(user_id)
         access_token = create_access_token(user_id, additional_claims=user)
-        return redirect(f"{app.config["SIDEKICK_WEBUI_BASE_URL"]}?access_token={access_token}")
+        return redirect(f"{app.config['SIDEKICK_WEBUI_BASE_URL']}?access_token={access_token}")
 
 
 @app.route('/logout', methods=['POST'])
