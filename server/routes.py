@@ -3,25 +3,30 @@ import json
 import requests
 import socket
 import sseclient
+import jwt
 
 from collections import OrderedDict
 from datetime import datetime
-from utils import DBUtils, construct_ai_request, RequestLogger,\
-    server_stats, increment_server_stat, openai_num_tokens_from_messages, \
-    get_random_string, num_characters_from_messages, update_default_settings
-from custom_utils.get_openai_token import get_openai_token
 
-from flask import request, jsonify, Response, stream_with_context, redirect, session, url_for
+from flask import jsonify, Response, stream_with_context, redirect, session, url_for
 from flask_jwt_extended import get_jwt_identity, jwt_required, \
     create_access_token, unset_jwt_cookies
-
-from authlib.oauth2.rfc6749 import OAuth2Token
 
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.exc import IntegrityError
 
-from app import app, oidc
+from jwt.exceptions import DecodeError
+from werkzeug.exceptions import InternalServerError, Unauthorized
+
+from app import app
 from app import VERSION, server_instance_id
+
+from utils import DBUtils, construct_ai_request, RequestLogger,\
+    server_stats, increment_server_stat, openai_num_tokens_from_messages, \
+    get_random_string, num_characters_from_messages, update_default_settings, \
+    get_well_known_metadata, get_oauth2_session, get_jwks_client
+from custom_utils.get_openai_token import get_openai_token
+
 
 class OrderedEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -36,7 +41,9 @@ def index():
 
 
 @app.route('/health', methods=['GET'])
+@jwt_required()
 def health():
+    print(get_jwt_identity())
     with RequestLogger(request) as rl:
         try:
             # calculate uptime
@@ -787,48 +794,50 @@ def handle_authenticated_oidc_user(user_id, name):
 
 @app.route('/oidc_login')
 def oidc_login():
-    with RequestLogger(request) as rl:
-        rl.info(f"oidc login request received")
-        if not oidc:
-            return "OIDC is not configured.", 500
-        rl.info(f"oidc configured")
-        # Attempt to retrieve and validate the existing session token
-        token_dict = session.get("oidc_auth_token")
-        rl.info(f"token_dict={token_dict}")
-        if token_dict:
-            token = OAuth2Token.from_dict(token_dict)
-            rl.info(f"token={token}")
-            rl.info(f"active_token={oidc.ensure_active_token(token)}")
-            try:
-                # Check if the token is active
-                oidc.ensure_active_token(token)
-            except InvalidTokenError:
-                # Token is expired or invalid; initiate a new login flow
-                rl.info("invalid token")
-                return redirect(url_for("oidc_auth.login"))
-
-        rl.info(f"user_loggedin={oidc.user_loggedin}")
-        if not oidc.user_loggedin:
-            # User is not logged in; initiate login flow
-            rl.info("user not logged in")
-            return redirect(url_for('oidc_auth.login'))
-
-        # The user is authenticated; proceed with the login success logic
-        user_id = oidc.user_getfield("sub")
-        name = oidc.user_getfield("name")
-        access_token = handle_authenticated_oidc_user(user_id, name)
-        rl.info("successful login", user_id=user_id, name=name)
-        return redirect(f"{app.config['SIDEKICK_WEBUI_BASE_URL']}?access_token={access_token}")
+    """
+    Initiate the OIDC login process by creating an oauth2 session and redirecting to the OIDC well-known url
+    """
+    if any(app.config[key] is None for key in ("OIDC_WELL_KNOWN_URL", "OIDC_CLIENT_ID", "OIDC_CLIENT_SECRET")):
+        return "OIDC is not configured.", 500
+    well_known_metadata = get_well_known_metadata()
+    oauth2_session = get_oauth2_session()
+    authorization_url, state = oauth2_session.authorization_url(well_known_metadata["authorization_endpoint"])
+    session["oauth_state"] = state
+    return redirect(authorization_url)
 
 @app.route('/oidc_callback')
 def oidc_callback():
+    """
+    This is the route that the OIDC provider will redirect to after a successful login. Once a user is logged in, make
+    sure the user exists in the database and update their default settings.
+    """
     with RequestLogger(request) as rl:
-        rl.info("oidc callback triggered")
-        user_id = oidc.user_getfield("sub")
-        name = oidc.user_getfield("name")
-        access_token = handle_authenticated_oidc_user(user_id, name)
-        rl.info("successful login", user_id=user_id, name=name)
-        return redirect(f"{app.config['SIDEKICK_WEBUI_BASE_URL']}?access_token={access_token}")
+        well_known_metadata = get_well_known_metadata()
+        oauth2_session = get_oauth2_session(state=session["oauth_state"])
+        session["oauth_token"] = oauth2_session.fetch_token(well_known_metadata["token_endpoint"],
+                                                            client_secret=app.config["OIDC_CLIENT_SECRET"],
+                                                            code=request.args["code"])["id_token"]
+        jwks_client = get_jwks_client()
+        signing_key = jwks_client.get_signing_key_from_jwt(session["oauth_token"])
+        header_data = jwt.get_unverified_header(session["oauth_token"])
+        user_data = jwt.decode(session["oauth_token"], signing_key.key, algorithms=[header_data['alg']],
+                                       audience=app.config["OIDC_CLIENT_ID"])
+        user_id = user_data["sub"]
+        name = user_data["name"]
+        name = user_id if name is None else name
+        rl.info("successful oidc login", user_id=user_id, name=name)
+        try:
+            user = DBUtils.get_user(user_id)
+            # If the user exists and their name in the OIDC provider has changed, update their name
+            if user["name"] != name:
+                DBUtils.update_user(user_id, name=name)
+
+        except NoResultFound:
+            user = DBUtils.create_user(user_id=user_id, name=name, is_oidc=True,
+                                password=get_random_string(), properties={})
+        update_default_settings(user_id)
+        access_token = create_access_token(user_id, additional_claims=user)
+        return redirect(f"{app.config["SIDEKICK_WEBUI_BASE_URL"]}?access_token={access_token}")
 
 
 @app.route('/logout', methods=['POST'])
@@ -849,14 +858,14 @@ def logout():
 
 @app.route('/oidc_logout')
 def oidc_logout():
-    with RequestLogger(request) as rl:
-        if oidc:
-            @oidc.require_login
-            def protected_route():
-                redirect_uri = request.args.get("redirect_uri")
-                oidc.logout()
-                return redirect(redirect_uri)
-        return protected_route()
+    """
+    Revoke the OIDC token
+    """
+    if any(app.config[key] is None for key in ("OIDC_WELL_KNOWN_URL", "OIDC_TOKEN_ENDPOINT",
+                                               "OIDC_CLIENT_ID", "OIDC_CLIENT_SECRET")):
+        return "OIDC is not configured.", 500
+    oauth2_session = get_oauth2_session(state=session["oauth_state"])
+    oauth2_session.revoke_token(app.config["OIDC_TOKEN_ENDPOINT"], token=session["oauth_token"])
 
 
 @app.route('/change_password', methods=['POST'])
@@ -953,3 +962,43 @@ def log():
         data = request.get_json()
         rl.info(message=data['message'])
         return jsonify({'success': True})
+
+@app.route("/oidc_loginx")
+def oidc_loginx():
+    well_known_metadata = get_well_known_metadata()
+    oauth2_session = get_oauth2_session()
+    authorization_url, state = oauth2_session.authorization_url(well_known_metadata["authorization_endpoint"])
+    session["oauth_state"] = state
+    return redirect(authorization_url)
+
+from flask import request
+@app.route("/oidc_callbackx")
+def oidc_callbackx():
+    well_known_metadata = get_well_known_metadata()
+    oauth2_session = get_oauth2_session(state=session["oauth_state"])
+    session["oauth_token"] = oauth2_session.fetch_token(well_known_metadata["token_endpoint"], client_secret=IDP_CONFIG["client_secret"], code=request.args["code"])["id_token"]
+    return "ok"
+
+jwks_client = get_jwks_client()
+
+# @app.before_request
+# def verify_and_decode_token():
+#     if request.endpoint not in {"oidc_login", "oidc_callback"}:
+#         if "Authorization" in request.headers:
+#             token = request.headers["Authorization"].split()[1]
+#         elif "oauth_token" in session:
+#             token = session["oauth_token"]
+#         else:
+#             return Unauthorized("Missing authorization token")
+#         try:
+#             print(jwks_client)
+#             signing_key = jwks_client.get_signing_key_from_jwt(token)
+#             print(signing_key)
+#             header_data = jwt.get_unverified_header(token)
+#             print(header_data)
+#             request.user_data = jwt.decode(token, signing_key.key, algorithms=[header_data['alg']], audience=app.config["OIDC_CLIENT_ID"])
+#             print(request.user_data)
+#         except DecodeError:
+#             return Unauthorized("Authorization token is invalid")
+#         except Exception:
+#             return InternalServerError("Error authenticating client")
