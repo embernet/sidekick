@@ -8,7 +8,7 @@ import jwt
 from collections import OrderedDict
 from datetime import datetime
 
-from flask import jsonify, Response, stream_with_context, redirect, session, url_for
+from flask import request, jsonify, Response, stream_with_context, redirect, session
 from flask_jwt_extended import get_jwt_identity, jwt_required, \
     create_access_token, unset_jwt_cookies
 
