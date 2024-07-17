@@ -301,7 +301,7 @@ def get_oauth2_session(**kwargs):
     Return an OAuth2Session that is configured with the OIDC client and redirect URI
     """
     return OAuth2Session(app.config["OIDC_CLIENT_ID"], scope=["profile", "email", "openid"],
-                         redirect_uri=url_for(".oidc_callback", _external=True), **kwargs)
+                         redirect_uri=app.config["OIDC_REDIRECT_URL"], **kwargs)
 
 
 def get_jwks_client():

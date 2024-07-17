@@ -796,7 +796,8 @@ def oidc_login():
     """
     Initiate the OIDC login process by creating an oauth2 session and redirecting to the OIDC well-known url
     """
-    if any(app.config[key] is None for key in ("OIDC_WELL_KNOWN_URL", "OIDC_CLIENT_ID", "OIDC_CLIENT_SECRET")):
+    if any(app.config[key] is None for key in ("OIDC_WELL_KNOWN_URL", "OIDC_REDIRECT_URL",
+                                               "OIDC_CLIENT_ID", "OIDC_CLIENT_SECRET")):
         return "OIDC is not configured.", 500
     well_known_metadata = get_well_known_metadata()
     oauth2_session = get_oauth2_session()
@@ -861,7 +862,8 @@ def oidc_logout():
     Revoke the OIDC token
     """
     if any(app.config[key] is None for key in ("OIDC_WELL_KNOWN_URL", "OIDC_TOKEN_ENDPOINT",
-                                               "OIDC_CLIENT_ID", "OIDC_CLIENT_SECRET")):
+                                               "OIDC_REDIRECT_URL", "OIDC_CLIENT_ID",
+                                               "OIDC_CLIENT_SECRET")):
         return "OIDC is not configured.", 500
     oauth2_session = get_oauth2_session(state=session["oauth_state"])
     oauth2_session.revoke_token(app.config["OIDC_TOKEN_ENDPOINT"], token=session["oauth_token"])
@@ -961,43 +963,3 @@ def log():
         data = request.get_json()
         rl.info(message=data['message'])
         return jsonify({'success': True})
-
-@app.route("/oidc_loginx")
-def oidc_loginx():
-    well_known_metadata = get_well_known_metadata()
-    oauth2_session = get_oauth2_session()
-    authorization_url, state = oauth2_session.authorization_url(well_known_metadata["authorization_endpoint"])
-    session["oauth_state"] = state
-    return redirect(authorization_url)
-
-from flask import request
-@app.route("/oidc_callbackx")
-def oidc_callbackx():
-    well_known_metadata = get_well_known_metadata()
-    oauth2_session = get_oauth2_session(state=session["oauth_state"])
-    session["oauth_token"] = oauth2_session.fetch_token(well_known_metadata["token_endpoint"], client_secret=IDP_CONFIG["client_secret"], code=request.args["code"])["id_token"]
-    return "ok"
-
-jwks_client = get_jwks_client()
-
-# @app.before_request
-# def verify_and_decode_token():
-#     if request.endpoint not in {"oidc_login", "oidc_callback"}:
-#         if "Authorization" in request.headers:
-#             token = request.headers["Authorization"].split()[1]
-#         elif "oauth_token" in session:
-#             token = session["oauth_token"]
-#         else:
-#             return Unauthorized("Missing authorization token")
-#         try:
-#             print(jwks_client)
-#             signing_key = jwks_client.get_signing_key_from_jwt(token)
-#             print(signing_key)
-#             header_data = jwt.get_unverified_header(token)
-#             print(header_data)
-#             request.user_data = jwt.decode(token, signing_key.key, algorithms=[header_data['alg']], audience=app.config["OIDC_CLIENT_ID"])
-#             print(request.user_data)
-#         except DecodeError:
-#             return Unauthorized("Authorization token is invalid")
-#         except Exception:
-#             return InternalServerError("Error authenticating client")

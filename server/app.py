@@ -30,6 +30,7 @@ app.config["SIDEKICK_COUNT_TOKENS"] = os.environ.get("SIDEKICK_COUNT_TOKENS", Fa
 
 app.config["OIDC_WELL_KNOWN_URL"] = os.environ.get("OIDC_WELL_KNOWN_URL")
 app.config["OIDC_TOKEN_ENDPOINT"] = os.environ.get("OIDC_TOKEN_ENDPOINT")
+app.config["OIDC_REDIRECT_URL"] = os.environ.get("OIDC_REDIRECT_URL")
 app.config["OIDC_CLIENT_ID"] = os.environ.get("OIDC_CLIENT_ID")
 app.config["OIDC_CLIENT_SECRET"] = os.environ.get("OIDC_CLIENT_SECRET")
 
