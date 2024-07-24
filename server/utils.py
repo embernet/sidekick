@@ -1,5 +1,4 @@
 import os
-from typing import Any
 import uuid
 import json
 import random
@@ -10,8 +9,11 @@ import time
 from datetime import datetime
 from sqlalchemy.exc import NoResultFound, OperationalError
 import tiktoken
-from flask import g
+import requests
+from flask import url_for
+from requests_oauthlib import OAuth2Session
 from flask_jwt_extended import get_jwt_identity
+from jwt import PyJWKClient
 
 from app import app, db, VERSION
 from models import User, Document, Tag, DocumentTag, UserTag
@@ -283,8 +285,34 @@ def update_default_settings(user_id):
                                             name=settings_name,
                                             type="settings",
                                             content=filesystem_settings)
-                    
-            
+
+
+def get_well_known_metadata():
+    """
+    Get the well known metadata from the OIDC well-known URL
+    """
+    response = requests.get(app.config["OIDC_WELL_KNOWN_URL"])
+    response.raise_for_status()
+    return response.json()
+
+
+def get_oauth2_session(**kwargs):
+    """
+    Return an OAuth2Session that is configured with the OIDC client and redirect URI
+    """
+    return OAuth2Session(app.config["OIDC_CLIENT_ID"], scope=["profile", "email", "openid"],
+                         redirect_uri=app.config["OIDC_REDIRECT_URL"], **kwargs)
+
+
+def get_jwks_client():
+    """
+    Get a JWKS client that can be used to decode JWTs
+    """
+    well_known_metadata = get_well_known_metadata()
+    jwks_client = PyJWKClient(well_known_metadata["jwks_uri"])
+    return jwks_client
+
+
 class DBUtils:
 
     @staticmethod

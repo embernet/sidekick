@@ -3,23 +3,30 @@ import json
 import requests
 import socket
 import sseclient
+import jwt
 
 from collections import OrderedDict
 from datetime import datetime
-from utils import DBUtils, construct_ai_request, RequestLogger,\
-    server_stats, increment_server_stat, openai_num_tokens_from_messages, \
-    get_random_string, num_characters_from_messages, update_default_settings
-from custom_utils.get_openai_token import get_openai_token
 
-from flask import request, jsonify, Response, stream_with_context, redirect, session, url_for
+from flask import request, jsonify, Response, stream_with_context, redirect, session
 from flask_jwt_extended import get_jwt_identity, jwt_required, \
     create_access_token, unset_jwt_cookies
 
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.exc import IntegrityError
 
-from app import app, oidc
+from jwt.exceptions import DecodeError
+from werkzeug.exceptions import InternalServerError, Unauthorized
+
+from app import app
 from app import VERSION, server_instance_id
+
+from utils import DBUtils, construct_ai_request, RequestLogger,\
+    server_stats, increment_server_stat, openai_num_tokens_from_messages, \
+    get_random_string, num_characters_from_messages, update_default_settings, \
+    get_well_known_metadata, get_oauth2_session, get_jwks_client
+from custom_utils.get_openai_token import get_openai_token
+
 
 class OrderedEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -116,10 +123,7 @@ def test_ai():
                     "content": "Give me an update on your status. "
                                 "Do not ask any questions or offer any help."}]
                 }
-            proxy_url = app.config["OPENAI_PROXY"]
-            proxies = {"http": proxy_url,
-                    "https": proxy_url} if proxy_url else None
-            response = requests.post(url, headers=headers, proxies=proxies,
+            response = requests.post(url, headers=headers,
                                     data=json.dumps(ai_request))
             openai_health = {
                 "success": True,
@@ -347,10 +351,7 @@ def name_topic():
             message_usage["prompt_characters"] = promptCharacters
             increment_server_stat(category="usage", stat_name="promptCharacters", increment=promptCharacters)
             increment_server_stat(category="usage", stat_name="totalCharacters", increment=promptCharacters)
-            proxy_url = app.config["OPENAI_PROXY"]
-            proxies = {"http": proxy_url,
-                    "https": proxy_url} if proxy_url else None
-            response = requests.post(url, headers=headers, proxies=proxies,
+            response = requests.post(url, headers=headers,
                                     data=json.dumps(ai_request))
             topic_name = response.json()["choices"][0]["message"]["content"]
             message_usage["completion_characters"] = len(topic_name)
@@ -423,10 +424,7 @@ def query_ai():
             }
             message_usage["prompt_characters"] = num_characters_from_messages(
                 ai_request["messages"])
-            proxy_url = app.config["OPENAI_PROXY"]
-            proxies = {"http": proxy_url,
-                    "https": proxy_url} if proxy_url else None
-            response = requests.post(url, headers=headers, proxies=proxies,
+            response = requests.post(url, headers=headers,
                                     data=json.dumps(ai_request))
             generated_text = response.json()["choices"][0]["message"]["content"]
             increment_server_stat(category="usage", stat_name="completionCharacters", increment=len(generated_text))
@@ -489,10 +487,7 @@ def chat_v2():
                     increment_server_stat(category="usage", stat_name="promptTokens", increment=prompt_tokens)
                 except Exception as e:
                     rl.exception(e, "Error calculating prompt tokens")
-            proxy_url = app.config["OPENAI_PROXY"]
-            proxies = {"http": proxy_url,
-                    "https": proxy_url} if proxy_url else None
-            response = requests.post(url, headers=headers, proxies=proxies,
+            response = requests.post(url, headers=headers,
                                     data=json.dumps(ai_request), stream=True)
             if response.status_code != 200:
                 error_message = f"Error - OpenAI API returned status code {response.status_code}"
@@ -778,36 +773,69 @@ def oidc_login_get_user():
         return jsonify(result)
 
 
+def handle_authenticated_oidc_user(user_id, name):
+    """
+    Handle an authenticated user
+    """
+    try:
+        user = DBUtils.get_user(user_id)
+        if user["name"] != name:
+            DBUtils.update_user(user_id, name=name)
+    except NoResultFound:
+        user = DBUtils.create_user(user_id=user_id, name=name, is_oidc=True,
+                                   password=get_random_string(), properties={})
+
+    update_default_settings(user_id)
+    access_token = create_access_token(user_id, additional_claims=user)
+    return access_token
+
 @app.route('/oidc_login')
 def oidc_login():
     """
-    Login via OIDC,
-    Create the user if they don't exist,
-    and redirect to the web_ui with the user's JWT access_token
+    Initiate the OIDC login process by creating an oauth2 session and redirecting to the OIDC well-known url
+    """
+    if any(app.config[key] is None for key in ("OIDC_WELL_KNOWN_URL", "OIDC_REDIRECT_URL",
+                                               "OIDC_CLIENT_ID", "OIDC_CLIENT_SECRET")):
+        return "OIDC is not configured.", 500
+    well_known_metadata = get_well_known_metadata()
+    oauth2_session = get_oauth2_session()
+    authorization_url, state = oauth2_session.authorization_url(well_known_metadata["authorization_endpoint"])
+    session["oauth_state"] = state
+    return redirect(authorization_url)
+
+@app.route('/oidc_callback')
+def oidc_callback():
+    """
+    This is the route that the OIDC provider will redirect to after a successful login. Once a user is logged in, make
+    sure the user exists in the database and update their default settings.
     """
     with RequestLogger(request) as rl:
-        if oidc:
-            @oidc.require_login
-            def protected_route():
-                user_id = oidc.user_getfield("sub")
-                name = oidc.user_getfield("name")
-                name = user_id if name is None else name
-                redirect_uri = request.args.get("redirect_uri")
-                rl.info("successful login", user_id=user_id, name=name)
-                try:
-                    user = DBUtils.get_user(user_id)
-                    # If the user exists and their name in the OIDC provider has changed, update their name
-                    if user["name"] != name:
-                        DBUtils.update_user(user_id, name=name)
+        well_known_metadata = get_well_known_metadata()
+        oauth2_session = get_oauth2_session(state=session["oauth_state"])
+        session["oauth_token"] = oauth2_session.fetch_token(well_known_metadata["token_endpoint"],
+                                                            client_secret=app.config["OIDC_CLIENT_SECRET"],
+                                                            code=request.args["code"])["id_token"]
+        jwks_client = get_jwks_client()
+        signing_key = jwks_client.get_signing_key_from_jwt(session["oauth_token"])
+        header_data = jwt.get_unverified_header(session["oauth_token"])
+        user_data = jwt.decode(session["oauth_token"], signing_key.key, algorithms=[header_data['alg']],
+                                       audience=app.config["OIDC_CLIENT_ID"])
+        user_id = user_data["sub"]
+        name = user_data["name"]
+        name = user_id if name is None else name
+        rl.info("successful oidc login", user_id=user_id, name=name)
+        try:
+            user = DBUtils.get_user(user_id)
+            # If the user exists and their name in the OIDC provider has changed, update their name
+            if user["name"] != name:
+                DBUtils.update_user(user_id, name=name)
 
-                except NoResultFound:
-                    user = DBUtils.create_user(user_id=user_id, name=name, is_oidc=True,
-                                            password=get_random_string(), properties={})
-
-                update_default_settings(user_id)
-                access_token = create_access_token(user_id, additional_claims=user)
-                return redirect(f"{redirect_uri}?access_token={access_token}")
-        return protected_route()
+        except NoResultFound:
+            user = DBUtils.create_user(user_id=user_id, name=name, is_oidc=True,
+                                password=get_random_string(), properties={})
+        update_default_settings(user_id)
+        access_token = create_access_token(user_id, additional_claims=user)
+        return redirect(f"{app.config['SIDEKICK_WEBUI_BASE_URL']}?access_token={access_token}")
 
 
 @app.route('/logout', methods=['POST'])
@@ -828,14 +856,15 @@ def logout():
 
 @app.route('/oidc_logout')
 def oidc_logout():
-    with RequestLogger(request) as rl:
-        if oidc:
-            @oidc.require_login
-            def protected_route():
-                redirect_uri = request.args.get("redirect_uri")
-                oidc.logout()
-                return redirect(redirect_uri)
-        return protected_route()
+    """
+    Revoke the OIDC token
+    """
+    if any(app.config[key] is None for key in ("OIDC_WELL_KNOWN_URL", "OIDC_TOKEN_ENDPOINT",
+                                               "OIDC_REDIRECT_URL", "OIDC_CLIENT_ID",
+                                               "OIDC_CLIENT_SECRET")):
+        return "OIDC is not configured.", 500
+    oauth2_session = get_oauth2_session(state=session["oauth_state"])
+    oauth2_session.revoke_token(app.config["OIDC_TOKEN_ENDPOINT"], token=session["oauth_token"])
 
 
 @app.route('/change_password', methods=['POST'])

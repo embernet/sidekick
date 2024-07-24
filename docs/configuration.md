@@ -6,15 +6,21 @@ The server supports multiple configuration options that can be supplied as envir
 
 ### Server Environment Variables
 
-| Variable                | Description                                                                                                                        | Required     | Default Value       |
-|-------------------------|------------------------------------------------------------------------------------------------------------------------------------|--------------|---------------------|
-| OPENAI_API_KEY          | The key used to authenticate with OpenAI's API                                                                                    | ✓            |                     |
-| JWT_SECRET_KEY          | The secret key used by Flask to encode and decode JWTs                                                                             | ✓            |                     |
-| SQLALCHEMY_DATABASE_URI | The database connection URI, for example `sqlite:///sqlite.db` or `postgresql://sidekick_user:sidekick_password@127.0.0.1/sidekick_db` | ✓            |                     |
-| SIDEKICK_SERVER_PORT               | The port for the Sidekick Server to run on when using run.py          |              | 5000               |
-| LOG_LEVEL               | The minimum urgency of logs to write to standard out. Supported values: 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'.           |              | ERROR               |
-| FLASK_DEBUG             | Whether or not to run the Flask app in debug mode. Supported values: 'True', 'False'.                                              |              | False               |
-| HTTPS_PROXY             | The full proxy URL, if using a proxy for HTTPS requests, in the format `protocol://username:password@host:port`.|              |                     |
+| Variable | Description | Required | Default Value |
+|----------|-------------|----------|---------------|
+|`JWT_SECRET_KEY`|Secret key used by Flask to encode and decode JWTs|✓||
+|`SQLALCHEMY_DATABASE_URI`|Database connection URI, for example `sqlite:///sqlite.db` or `postgresql://sidekick_user:sidekick_password@127.0.0.1/sidekick_db`|✓||
+|`OPENAI_API_KEY`|Key used to authenticate with OpenAI's API|✓||
+|`OPENAI_BASE_URL`|Base URL for OpenAI API|✓|`https://api.openai.com/v1`|
+|`SIDEKICK_SERVER_PORT`|Port for the Sidekick Server to run on when using `run.py`|✓|`5000`|
+|`SIDEKICK_WEBUI_BASE_URL`|Base URL for the Sidekick Web UI service|✓|`http://localhost:8081`|
+|`OIDC_WELL_KNOWN_URL`|The OIDC provider's well-known URL, required for OIDC authentication support|||
+|`OIDC_TOKEN_ENDPOINT`|The OIDC provider's token endpoint, used for handling OIDC logout|||
+|`OIDC_REDIRECT_URL`|Where the OIDC provider should redirect to after successful login.|||
+|`OIDC_CLIENT_ID`|Client ID used for authenticating with OIDC provider|||
+|`OIDC_CLIENT_SECRET`|Client secret used for authenticating with OIDC provider|||
+|`LOG_LEVEL`|Minimum urgency of logs to write to standard out. Supported values: 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'.||`ERROR`|
+|`FLASK_DEBUG`|Whether or not to run the Flask app in debug mode. Supported values: 'True', 'False'.|||
 
 ### System settings
 
