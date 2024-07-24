@@ -14,7 +14,8 @@ import LanguageSelector from './LanguageSelector';
 
 const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
      onClose, serverUrl, token, setToken, darkMode, isMobile,
-     languageSettings, setLanguageSettings, language, setLanguage }) => {
+     languageSettings, setLanguageSettings, language, setLanguage,
+    systemPrompts, setSystemPrompts }) => {
 
     const panelWindowRef = useRef(null);
 
@@ -180,7 +181,7 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
       value={user?.name ? user?.name : user?.id} />
   </Box>
 
-  <Box sx={{ height: "100%", width: "100%" }}>
+  <Box sx={{ height: '100%', width: "100%" }}>
     <Box sx={{ display: "flex", flexDirection: "row", height: "100%"}}>
           <Box sx={{ width: isMobile ? "115px" : "200px" }}>
               <Tabs value={tabIndex} onChange={handleTabChange} orientation="vertical"
@@ -203,10 +204,10 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
                   </Box>
               )}
               {tabIndex === 1 && (
-                  <Box style={{ ...inputContainerStyle, textAlign: 'left', width: '100%' }} component="form" gap={2}>
-                      <Typography margin={2}>The following system prompts will be applied to all AI requests.</Typography>
+                  <Box sx={{ width: '100%', height: 'calc(100% - 220px)', overflowY: "auto", overflowX: "hidden" }} style={{ ...inputContainerStyle, textAlign: 'left' }} gap={1}>
+                      <Typography sx={{ width: '90%' }} component="div">The following system prompts will be applied to all AI requests.</Typography>
                       <Typography variant="subtitle1" component="div" sx={{ width: "100%", fontWeight: 'bold', ml:4 }}>Language</Typography>
-                      <LanguageSelector sx={{ width: "100%", ml:4 }}
+                      <LanguageSelector sx={{ width: "calc(100% - 60px)", ml:4 }}
                         darkMode={darkMode}
                         isMobile={isMobile}
                         languageSettings={languageSettings}
@@ -214,6 +215,36 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
                         language={language}
                         setLanguage={setLanguage}
                         />
+                        {
+                            systemPrompts && Object.entries(systemPrompts).map(([key, systemPromptObject]) => {
+                                if (systemPromptObject &&
+                                    systemPromptObject.hasOwnProperty('name') &&
+                                    systemPromptObject.hasOwnProperty('description') &&
+                                    systemPromptObject.hasOwnProperty('prompt')) {
+                                    return (
+                                        <Box key={systemPromptObject.name}
+                                            sx={{ width: '100%' }}
+                                            style={{ ...inputContainerStyle, textAlign: 'left' }} gap={2}>
+                                            <Typography component="div" variant="subtitle1" sx={{ width: "100%", fontWeight: 'bold', ml:4 }}>{systemPromptObject.name}</Typography>
+                                            <Typography component="div" variant="subtitle2" sx={{ width: "calc(100% - 40px)", ml:2, mr:2, color:'grey' }}>{systemPromptObject.description}</Typography>
+                                            {systemPromptObject.prePrompt && <Typography component="div" variant="subtitle2" sx={{ width: "calc(100% - 40px)", ml:2, mr:2, color:'grey' }} >Pre-prompt: {systemPromptObject.prePrompt}</Typography>}
+                                            <TextField label={systemPromptObject.name} value={systemPromptObject.prompt}
+                                                sx={{ width: "calc(100% - 40px)", mt:2 }}
+                                                multiline
+                                                rows={4}
+                                                onChange={(event) => {
+                                                    setSystemPrompts(prevPrompts => {
+                                                        const updatedPrompts = { ...prevPrompts };
+                                                        updatedPrompts[key].prompt = event.target.value;
+                                                        return updatedPrompts;
+                                                    });
+                                                }} />
+                                        </Box>
+                                    );
+                                }
+                                return null;
+                            })
+                        }
                   </Box>
               )}
               {tabIndex === 2 && (

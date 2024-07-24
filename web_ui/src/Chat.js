@@ -71,7 +71,7 @@ const Chat = ({
     focusOnPrompt, setFocusOnPrompt, chatRequest, chatOpen, noteOpen, setChatOpen, darkMode,
     temperatureText, setTemperatureText, modelSettingsOpen, toggleModelSettingsOpen, togglePersonasOpen,
     onChange, personasOpen, promptEngineerOpen, togglePromptEngineerOpen, setOpenChatId, shouldAskAgainWithPersona, serverUrl, token, setToken,
-    streamingChatResponse, setStreamingChatResponse, chatStreamingOn, maxWidth, isMobile, language }) => {
+    streamingChatResponse, setStreamingChatResponse, chatStreamingOn, maxWidth, isMobile, language, systemPrompts, debugMode }) => {
     
     const sidekickClipboard = useContext(SidekickClipboardContext);
     const panelWindowRef = useRef(null);
@@ -2605,7 +2605,7 @@ const Chat = ({
                 userPromptReady.current = defaultUserPromptReady + (response.data?.userPromptReady ? " (" + response.data.userPromptReady + ")" : "");
                 setPromptPlaceholder(userPromptReady.current);
             }
-            console.log("Chat custom settings:", response);
+            debugMode && console.log("debugMode Chat custom settings:", response);
         }).catch(error => {
           console.error("Error getting Chat custom settings:", error);
         });
@@ -2640,7 +2640,7 @@ const Chat = ({
                 Authorization: 'Bearer ' + token
               }
         }).then(response => {
-            console.log("chat settings response", response);
+            debugMode && console.log("debugMode chat settings", response);
             response.data.access_token && setToken(response.data.access_token);
             setSettings(response.data);
             setSettingsLoaded(true);
@@ -2667,7 +2667,7 @@ const Chat = ({
 
     useEffect(()=>{
         setOpenChatId(id);
-        console.log("setOpenChatId", id);
+        debugMode && console.log("setOpenChatId", id);
     }, [id]);
 
     useEffect(()=>{
@@ -2710,7 +2710,7 @@ const Chat = ({
                   }
             }).then(response => {
                 response.data.access_token && setToken(response.data.access_token);
-                console.log("chat settings response", response);
+                debugMode && console.log("chat settings response", response);
             }
             ).catch(error => {
                 system.error(`System Error saving chat settings.`, error, "/settings/chat_settings PUT");
@@ -2752,11 +2752,11 @@ const Chat = ({
 
     useEffect(()=>{
         setMyModelSettings(modelSettings);
-        console.log("modelSettings", modelSettings);
+        debugMode && console.log("modelSettings", modelSettings);
     }, [modelSettings]);
 
     useEffect(()=>{
-        console.log("[myPersona]", myPersona);
+        debugMode && console.log("[myPersona]", myPersona);
         setSystemPrompt(myPersona.system_prompt);
         if (myShouldAskAgainWithPersona) {
             setPromptToSend({prompt: lastPrompt, timestamp: Date.now()});
@@ -2764,7 +2764,7 @@ const Chat = ({
     }, [myPersona]);
 
     useEffect(()=>{
-        console.log("usePersona", persona);
+        debugMode && console.log("usePersona", persona);
         setPreviousPersona(myPersona);
         setMyPersona(persona)
     }, [persona]);
@@ -2800,7 +2800,7 @@ const Chat = ({
                         Authorization: 'Bearer ' + token
                     }
                 }).then(response => {
-                    console.log("/docdb/prompt_templates GET Response:", response);
+                    debugMode && console.log("/docdb/prompt_templates GET Response:", response);
                     response.data.access_token && setToken(response.data.access_token);
                     setLastPrompt(chatPromptRef.current.innerText);
                     setChatPrompt("# " + response.data.metadata.name + "\n" + response.data.content.prompt_template);
@@ -2839,7 +2839,7 @@ const Chat = ({
 
     useEffect(()=>{
         if (myShouldAskAgainWithPersona) {
-            console.log("shouldAskAgainWithPersona", myShouldAskAgainWithPersona);
+            debugMode && console.log("shouldAskAgainWithPersona", myShouldAskAgainWithPersona);
             setMyPersona(myShouldAskAgainWithPersona.persona);
         }
     }, [myShouldAskAgainWithPersona]);
@@ -2860,7 +2860,7 @@ const Chat = ({
         if (newStreamDelta) {
             setStreamingChatResponse(r => r + newStreamDelta.value);
             if (newStreamDelta.done) {
-                console.log("Stream complete");
+                debugMode && console.log("Stream complete");
                 const chatResponse = streamingChatResponse;
                 setStreamingChatResponse("");
                 appendMessage({"role": "assistant", "content": chatResponse});
@@ -3065,7 +3065,7 @@ const Chat = ({
     }
 
     const handleUploadFile = (event) => {
-        console.log("handleUploadFile", event)
+        debugMode && console.log("handleUploadFile", event)
         const reader = new FileReader();
         let uploadedChat = null;
         reader.onload = (event) => {
@@ -3159,6 +3159,7 @@ const Chat = ({
     }
 
     const getChatStream = useCallback(async (requestData) => {
+            debugMode && console.log("debugMode getChatStream requestData", requestData);
             try {
                 const url = `${serverUrl}/chat/v2`;
                 const request = {
@@ -3235,17 +3236,32 @@ const Chat = ({
         // setup as much of the request as we can before calling appendMessage
         // as that will wait for any re-rendering and the id could change in that time
         let knowledgePrompt = "";
+        debugMode && console.log("debugMode systemPrompts", systemPrompts);
         if (selectedAiLibraryFullText !== "") {
             knowledgePrompt = "Given the following knowledge articles:\n\n" + selectedAiLibraryFullText + 
             `\n\nRespond to the following prompt (if there is not enough information in the knowledge articles to
             respond then say so and give your best response):\n\n`;
         }
-        let context = chatContext ? "\n\nContext:\n\n" + chatContext : "";
+        let contextPrompt = "";
+        if (systemPrompts?.generalContextPrompt?.prompt) {
+            contextPrompt += "\n\n" + systemPrompts.generalContextPrompt.prePrompt + ":\n" + systemPrompts.generalContextPrompt.prompt;
+        }
+        if (chatContext) {
+            contextPrompt += "\n\nChat context:\n\n" + chatContext;
+        }
         let goal = chatGoal ? "\n\nGoal:\n\n" + chatGoal : "";
+        let responseStylePrompt = "";
+        if (systemPrompts?.responseStylePrompt?.prompt) {
+            responseStylePrompt += "\n\n" + systemPrompts.responseStylePrompt.prePrompt + ":\n" + systemPrompts.responseStylePrompt.prompt;
+        }
+        let customSystemPrompt = "";
+        if (systemPrompts?.customSystemPrompt?.prompt) {
+            customSystemPrompt += "\n\n" + systemPrompts.customSystemPrompt.prompt;
+        }
         let promptForLanguage = language && language !== MODEL_DEFAULT_LANGUAGE ? "\n\nProvide the response in the following language: " + language + "\n\n" : "";
         let requestData = {
             model_settings: myModelSettings,
-            system_prompt: systemPrompt + context + goal + promptForLanguage,
+            system_prompt: systemPrompt + contextPrompt + customSystemPrompt + goal + responseStylePrompt + promptForLanguage,
             prompt: knowledgePrompt + prompt,
             id: id,
             name: name,
@@ -3319,18 +3335,16 @@ const Chat = ({
     };
 
     const handleStopStreaming = (event) => {
-        console.log("handleStopStreaming");
         stopStreamingRef.current = true;
         // wait a second and then close the chat stream
         setTimeout(() => {
-            closeChatStream(); console.log("closeChatStream");
+            closeChatStream();
         }, 1000);
     };
 
     const handleAskAgain = () => {
         if (lastPrompt) {
             // if the last user message is the same as the last prompt, just say "Ask again"
-            console.log(messages);
             if (messages.length > 1 && lastPrompt === messages[messages.length - 2].content) {
                 sendPrompt("That answer wasn't quite what I was looking for. Please try again.");
             } else {

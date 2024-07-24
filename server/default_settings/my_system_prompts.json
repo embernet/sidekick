@@ -1,0 +1,19 @@
+{
+    "generalContextPrompt": {
+        "name": "General Context",
+        "description": "Provide some general context that you want to inform the AI about for all chat requests. E.g. Your background, skills, expertise, interests, work, values, goals, priorities.",
+        "prePrompt": "Take the following general context into consideration if relevant and appropriate when responding",
+        "prompt": ""
+    },
+    "responseStylePrompt": {
+        "name": "Response Style",
+        "description": "Provide some guidelines for the AI to follow when responding to chat requests. E.g. Be concise, clear, friendly, professional, respectful, empathetic, supportive, encouraging, positive, constructive, informative, accurate, relevant, helpful, creative, original, engaging",
+        "prePrompt": "Respond in a style that follows these guidelines",
+        "prompt": ""
+    },
+    "customSystemPrompt": {
+        "name": "Custom System Prompt",
+        "description": "Provide an additional system prompt to be included with each chat request.",
+        "prompt": ""
+    }
+}

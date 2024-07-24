@@ -13,7 +13,8 @@
   - [Chat Prompt Templates](#chat-prompt-templates)
   - [Chat context menu](#chat-context-menu)
   - [Chat Prompt Editor](#chat-prompt-editor)
-  - [Mermaid diagrams](#mermaid-diagrams)
+  - [Prompts for methodologies and techniques](#prompts-for-methodologies-and-techniques)
+  - [Diagrams](#diagrams)
   - [Pick from different AI personas](#pick-from-different-ai-personas)
   - [Ask again with different personas](#ask-again-with-different-personas)
   - [Syntax highlighting of code](#syntax-highlighting-of-code)
@@ -35,6 +36,7 @@
 - [About](#about)
   - [License](#license)
   - [Roadmap](#roadmap)
+  - [Why did I write Sidekick?](#why-did-i-write-sidekick)
 - [References](#references)
 
 # Description
@@ -348,6 +350,10 @@ This project is in active development, however each release is intended to be re
 ## Roadmap
 
 This project is in active development. You can see the roadmap [here](docs/roadmap.md).
+
+## Why did I write Sidekick?
+
+I’ve worked with technology all my life and was in consulting for over 15 years. In that time I've built many many tools and learnt many methods and techniques for solving problems and innovating and thinking through how to create positive change to effect outcomes that create impact. Since GenAI took off it became clear that a lot of this knowledge is encapsulated in these large language models. I saw an opportunity to leverage this to create a tool that would bring together ways of thinking, methods, and techniques and harness some of that knowledge within those models and make it easier to access and combine and deploy as part of a way of planning and forging a way forward for anyone trying to create positive change. The tools I've created in the past have sometimes been general purpose innovation, creativity, or problem solving tools, and other times they have been very specific tools designed for one thing. With GenAI under the hood, and a UI and framework for creating resource packs that define how that GenAI can be applied in different ways, its possible to have a tool that is both general purpose and can be quickly and easily tailored to help with specific kinds of situation through prompt engineering, embeddings, RAG, and all the other techniques that are emerging in the GenAI space. To that end, in this project, I’m working on features and a UI in the base sidekick platform to create an adaptable AI Workbench. The idea is to create a way for people to contribute their own prompt templates, scripts, personas, and resource packs that collect groups of these together that make sense for specific situations. In this way it should be possible for anyone to adapt the tool to by selecting resource packs of interest to them, or creating their own, so they have sets of methods and techniques powered by a large language model under the hood, that best suits what they’re trying to do and their personal way of working. A Sidekick deployment is multi-user, so you can have a team of people working together on a project, each with their own database of chats and notes, and each able to contribute to the resource packs that are available to everyone. The idea is to create a community of people who are interested in using AI to help them think, explore ideas, solve problems, build knowledge, and get things done, and to create a platform that makes it easy for them to do that.
 
 # References
 

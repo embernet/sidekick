@@ -64,6 +64,7 @@ import SidekickAI from './SidekickAI';
 import StatusBar from './StatusBar';
 import Carousel from './Carousel';
 import SidekickModalDialog from './SidekickModalDialog';
+import { use } from 'marked';
 
 const VERSION = "0.3.5";
 
@@ -133,15 +134,29 @@ const App = () => {
   const [statusUpdates, setStatusUpdates] = useState([]);
   const [languageSettings, setLanguageSettings] = useState({});
   const [language, setLanguage] = useState(undefined);
+  const [systemPrompts, setSystemPrompts] = useState({});
+  const [generalContextPrompt, setGeneralContextPrompt] = useState(undefined);
+  const [responseGuidancePrompt, setResponseGuidancePrompt] = useState(undefined);
+  const [customSystemPrompt, setCustomSystemPrompt] = useState(undefined);
   const [noteWindowMaximized, setNoteWindowMaximized] = useState(false);
   const [chatWindowMaximized, setChatWindowMaximized] = useState(false);
   const [scriptWindowMaximized, setScriptWindowMaximized] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
   const [modalDialogInfo, setModalDialogInfo] = useState(undefined);
-  const [modalDialogVisual, setModalDialogVisual] = useState(null);
-  const [modalDialogMessage, setModalDialogMessage] = useState("");
+  const [debugMode, setDebugMode] = useState(false);
+
+  const checkDebugMode = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const debugParam = urlParams.get('debug');
   
+    if (debugParam === 'true') {
+        setDebugMode(true);
+    } else {
+        setDebugMode(false);
+    }
+  }
+
   const theme = createTheme({
     palette: {
       mode: darkMode ? 'dark' : 'light',
@@ -196,10 +211,11 @@ const App = () => {
 
   const mySettingsManager = useRef(null);
   const myLanguageSettingsManager = useRef(null);
+  const mySystemPromptsSettingsManager = useRef(null);
 
   const applyCustomSettings = () => {
     axios.get(`${serverUrl}/system_settings/app`).then(response => {
-      console.log("App custom settings:", response);
+      debugMode && console.log("App custom settings:", response);
       if ("instanceName" in response.data) {
         setAppInstanceName(response.data.instanceName);
       }
@@ -210,6 +226,18 @@ const App = () => {
       console.error("Error getting App custom settings:", error);
     });
   }
+
+  useEffect(() => {
+    checkDebugMode();
+  }, []);
+
+  useEffect(() => {
+    if (debugMode) {
+      console.log("Debug mode is ON");
+    } else {
+      console.log("Debug mode is OFF");
+    }
+  }, [debugMode]);
 
   useEffect(() => {
     // Workaround for the bug in the ResizeObserver that results in loop limit exceeded error
@@ -250,48 +278,58 @@ const App = () => {
     if (user) {
       mySettingsManager.current = new SettingsManager(serverUrl, token, setToken);
       mySettingsManager.current.loadSettings("app",
-      (data) => {
-        setAppSettings(data);
-        console.log("get app settings:", data);
-        setSidekickAIOpen(data?.sidekickAIOpenDefault || false);
-        setSidekickAIPinned(data?.sidekickAIPinnedOpenDefault || false);
-        setChatsOpen(data?.chatsOpenDefault || false);
-        setChatsPinned(data?.chatsPinned || false);
-        setScriptsOpen(data?.scriptsOpenDefault || false);
-        setScriptsPinned(data?.scriptsPinned || false);
-        setModelSettingsOpen(data?.modelSettingsOpenDefault || false);
-        setModelSettingsPinned(data?.modelSettingsPinned || false);
-        setPersonasOpen(data?.personasOpenDefault || false);
-        setPersonasPinned(data?.personasPinned || false);
-        setPromptEngineerOpen(data?.promptEngineerOpenDefault || false);
-        setPromptEngineerPinned(data?.promptEngineerPinned || false);
-        setChatOpen(data?.chatOpenDefault || false);
-        setScriptOpen(data?.scriptOpenDefault || false);
-        setNoteOpen(data?.noteOpenDefault || false);
-        setNotesOpen(data?.notesOpenDefault || false);
-        setNotesPinned(data?.notesPinned || false);
-        setDarkMode(data?.darkMode || false);
-        setAppSettingsOpen(false);
-        setAdminOpen(user?.properties?.roles?.admin ? true : false);
-      },
-      (error) => {
-          console.log("get app settings:", error);
-          setStatusUpdates( prev => [ ...prev, { message: "Error loading app settings. Using defaults."}]);
-      }
+        (data) => {
+          setAppSettings(data);
+          debugMode && console.log("get app settings:", data);
+          setSidekickAIOpen(data?.sidekickAIOpenDefault || false);
+          setSidekickAIPinned(data?.sidekickAIPinnedOpenDefault || false);
+          setChatsOpen(data?.chatsOpenDefault || false);
+          setChatsPinned(data?.chatsPinned || false);
+          setScriptsOpen(data?.scriptsOpenDefault || false);
+          setScriptsPinned(data?.scriptsPinned || false);
+          setModelSettingsOpen(data?.modelSettingsOpenDefault || false);
+          setModelSettingsPinned(data?.modelSettingsPinned || false);
+          setPersonasOpen(data?.personasOpenDefault || false);
+          setPersonasPinned(data?.personasPinned || false);
+          setPromptEngineerOpen(data?.promptEngineerOpenDefault || false);
+          setPromptEngineerPinned(data?.promptEngineerPinned || false);
+          setChatOpen(data?.chatOpenDefault || false);
+          setScriptOpen(data?.scriptOpenDefault || false);
+          setNoteOpen(data?.noteOpenDefault || false);
+          setNotesOpen(data?.notesOpenDefault || false);
+          setNotesPinned(data?.notesPinned || false);
+          setDarkMode(data?.darkMode || false);
+          setAppSettingsOpen(false);
+          setAdminOpen(user?.properties?.roles?.admin ? true : false);
+        },
+        (error) => {
+            console.log("get app settings:", error);
+            setStatusUpdates( prev => [ ...prev, { message: "Error loading app settings. Using defaults."}]);
+        }
       );
 
       myLanguageSettingsManager.current = new SettingsManager(serverUrl, token, setToken);
       myLanguageSettingsManager.current.loadSettings(`languages`,
-      (languageData) => {
-        setLanguageSettings(languageData);
-        return true;
-      },
-      (error) => {
-          console.log(`load languages:`, error);
-          return false;
-      }
-  )
-
+        (languageData) => {
+          setLanguageSettings(languageData);
+          return true;
+        },
+        (error) => {
+            console.error(`load languages:`, error);
+            return false;
+        }
+      )
+      mySystemPromptsSettingsManager.current = new SettingsManager(serverUrl, token, setToken);
+      mySystemPromptsSettingsManager.current.loadSettings(`my_system_prompts`,
+        (systemPrompts) => {
+          setSystemPrompts(systemPrompts);
+          return true;
+        },
+        (error) => {
+            console.error(`load system_prompts:`, error);
+            return false;
+        }
+      );
     }
   }, [user]);
 
@@ -299,7 +337,7 @@ const App = () => {
     if (myLanguageSettingsManager.current) {
       myLanguageSettingsManager.current.setAll(languageSettings,
         (data) => {
-          console.log("Saved language settings:", data);
+          debugMode && console.log("Saved language settings:", data);
         },
         (error) => {
             system.error("System Error saving language settings.", error);
@@ -307,6 +345,19 @@ const App = () => {
         );
       }
   }, [languageSettings])
+
+  useEffect(() => {
+    if (mySystemPromptsSettingsManager.current) {
+      mySystemPromptsSettingsManager.current.setAll(systemPrompts,
+        (data) => {
+          debugMode && console.log("Saved system prompts:", data);
+        },
+        (error) => {
+            system.error("System Error saving system prompts.", error);
+        }
+        );
+      }
+  }, [systemPrompts])
 
   useEffect(() => {
     if (language !== undefined && myLanguageSettingsManager.current && language !== languageSettings.default) {
@@ -317,8 +368,22 @@ const App = () => {
   }, [language]);
 
   useEffect(() => {
+    setGeneralContextPrompt(systemPrompts?.generalContextPrompt);
+    setResponseGuidancePrompt(systemPrompts?.responseGuidancePrompt);
+    setCustomSystemPrompt(systemPrompts?.customSystemPrompt);
+  }, [systemPrompts]);
+
+  useEffect(() => {
+    setSystemPrompts({
+      ...systemPrompts,
+      generalContextPrompt: generalContextPrompt,
+      responseGuidancePrompt: responseGuidancePrompt,
+      customSystemPrompt: customSystemPrompt 
+    })
+  }, [generalContextPrompt, responseGuidancePrompt, customSystemPrompt]);
+
+  useEffect(() => {
     if (appLoaded && mySettingsManager.current) {
-      console.log("Save app settings started");
       let newAppSettings = {...appSettings,
         sidekickAIOpenDefault: sidekickAIOpen,
         sidekickAIPinnedOpenDefault: sidekickAIPinned,
@@ -342,7 +407,7 @@ const App = () => {
       setAppSettings(newAppSettings);
       mySettingsManager.current.setAll(newAppSettings,
       (data) => {
-        console.log("Save app settings saved:", data);
+        debugMode && console.log("Save app settings saved:", data);
       },
       (error) => {
           system.error("System Error saving app settings.", error);
@@ -605,7 +670,7 @@ const App = () => {
   }
 
   const handleNoteChange = (change) => {
-    console.log("handleNoteChange", change);
+    debugMode && console.log("handleNoteChange", change);
     if (change.reason === "renamed") {
       setNoteNameChanged(change);
     } else if (change.reason === "created" || change.reason === "deleted" || change.reason === "changed") {
@@ -614,7 +679,7 @@ const App = () => {
   }
 
   const handleChatChange = (change) => {
-    console.log("handleChatChange", change);
+    debugMode && console.log("handleChatChange", change);
     if (change.reason === "renamed") {
       setChatNameChanged(change);
     } else if (change.detail === "promptTemplate") {
@@ -625,7 +690,7 @@ const App = () => {
   }
 
   const handleScriptChange = (change) => {
-    console.log("handleScriptChange", change);
+    debugMode && console.log("handleScriptChange", change);
     if (change.reason === "renamed") {
       setScriptNameChanged(change);
     } else if (change.detail === "promptTemplate") {
@@ -636,7 +701,7 @@ const App = () => {
   }
 
   const handlePromptTemplateChange = (change) => {
-    console.log("handlePromptTemplateChange", change);
+    debugMode && console.log("handlePromptTemplateChange", change);
     setRefreshPromptTemplateExplorer(change);
   }
 
@@ -1039,6 +1104,7 @@ const App = () => {
                 isMobile={isMobile}
                 languageSettings={languageSettings} setLanguageSettings={setLanguageSettings}
                 language={language} setLanguage={setLanguage}
+                systemPrompts={systemPrompts} setSystemPrompts={setSystemPrompts}
               />
               { chatsOpen ? <Explorer
                 onClose={()=>{setChatsOpen(false)}}
@@ -1098,6 +1164,8 @@ const App = () => {
                   maxWidth={appSettings.maxPanelWidth}
                   isMobile={isMobile}
                   language={language}
+                  systemPrompts={systemPrompts}
+                  debugMode={debugMode}
                 />
                 <ModelSettings 
                   setModelSettings={setModelSettings}
