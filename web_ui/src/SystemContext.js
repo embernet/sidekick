@@ -65,12 +65,15 @@ export const SystemProvider = ({ serverUrl, setStatusUpdates, setModalDialogInfo
     },
     error: (message, error=undefined, context=undefined) => {
       // message and context are strings, error is an object
-      let displayMessage = message +
-        (context ? "\nContext: " + context : "") +
-        (error ? "\nError: " + error : "");
-        setModalDialogInfo({ title: "Error", message: displayMessage });
-      setStatusUpdates(prevStatusUpdates => [...prevStatusUpdates, { message: message, type: 'error', error: error, timestamp: _dateTimeString() }]);
-      console.error(message, context ? context: context, error ? error : "");
+      const errorStack = error && error.stack ? "\nStack: " + error.stack : "";
+      const errorMessage = error && typeof error.toString === 'function' ? error.toString() : JSON.stringify(error);
+      let displayMessage = `${message}${context ? "\nContext: " 
+        + context : ""}${error ? "\nError: " + errorMessage : ""}${errorStack}`;
+
+      setModalDialogInfo({ title: "Error", message: displayMessage });
+      setStatusUpdates(prevStatusUpdates => [...prevStatusUpdates, 
+        { message: message, type: 'error', error: errorMessage, stack: errorStack, timestamp: _dateTimeString() }]);
+        console.error(`[Error] ${message}`, `Context: ${context || 'N/A'}`, `Error Details: ${errorMessage}`, `Timestamp: ${_dateTimeString()}`);
     },
     warning: (message, context="") => {
       setModalDialogInfo({ title: "Warning", message: message });
