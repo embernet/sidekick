@@ -159,6 +159,7 @@ const Chat = ({
     const [starred, setStarred] = useState(false);
     const [promptLength, setPromptLength] = useState(0);
     const [toolboxOpen, setToolboxOpen] = useState(false);
+    const [selectedToolbox, setSelectedToolbox] = useState("");
     const [promptCollections, setPromptCollections] = useState({
         "metadata": {
             "name": "Prompt Collections",
@@ -2892,6 +2893,8 @@ const Chat = ({
                     setTags(response.data.metadata?.tags || []);
                     setStarred(response.data.metadata?.properties?.starred || false);
                     setBookmarked(response.data.metadata?.properties?.bookmarked || false);
+                    setToolboxOpen(response.data.metadata?.properties?.toolboxOpen || false);
+                    setSelectedToolbox(response.data.metadata?.properties?.selectedToolbox || "");
 
                     setLastPrompt("");
                     // set lastPrompt to the last user message
@@ -3032,6 +3035,8 @@ const Chat = ({
                 properties: {
                     starred: starred,
                     bookmarked: bookmarked,
+                    toolboxOpen: toolboxOpen,
+                    selectedToolbox: selectedToolbox,
                 },
             },
             content: {
@@ -4543,6 +4548,7 @@ const Chat = ({
                         <Toolbox
                             toolboxes={promptCollections} setToolboxes={setPromptCollections}
                             setToolboxOpen={setToolboxOpen} toolboxOpen={toolboxOpen}
+                            selectedToolbox={selectedToolbox} setSelectedToolbox={setSelectedToolbox}
                             setNewPromptPart={setChatPrompt} setNewPrompt={setPromptToSend}
                             darkMode={darkMode}/>
                     </Box>
