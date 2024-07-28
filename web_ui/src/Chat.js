@@ -153,6 +153,8 @@ const Chat = ({
     const [chatContextWidth, setChatContextWidth] = useState("300px");
     const [settingsLoaded, setSettingsLoaded] = useState(false);
     const chatLoading = useRef(false);
+    const chatCreating = useRef(false);
+    const chatSaving = useRef(false);
     const [folder, setFolder] = useState("chats");
     const [tags, setTags] = useState([]);
     const [bookmarked, setBookmarked] = useState(false);
@@ -2585,6 +2587,7 @@ const Chat = ({
     const [aiLibrary, setAiLibrary] = useState([]);
     const [selectedAiLibraryFullText, setSelectedAiLibraryFullText] = useState("");
     const [selectedAiLibraryFullTextSize, setSelectedAiLibraryFullTextSize] = useState(0);
+    const [selectedAiLibraryNotesMetadataDict, setSelectedAiLibraryNotesMetadataDict] = useState({});
     const [selectedAiLibraryNotes, setSelectedAiLibraryNotes] = useState({});
     const [selectedAiLibraryNoteId, setSelectedAiLibraryNoteId] = useState("");
     const [aiLibraryOpen, setAiLibraryOpen] = useState(false);
@@ -2877,7 +2880,8 @@ const Chat = ({
             } else {
                 // prevent saves whilst we are updating state during load
                 chatLoading.current = true; // note: this will be reset in the [messages] useEffect hook
-                
+                reset();
+
                 axios.get(`${serverUrl}/docdb/${folder}/documents/${loadChat["id"]}`, {
                     headers: {
                         Authorization: 'Bearer ' + token
@@ -2895,6 +2899,7 @@ const Chat = ({
                     setBookmarked(response.data.metadata?.properties?.bookmarked || false);
                     setToolboxOpen(response.data.metadata?.properties?.toolboxOpen || false);
                     setSelectedToolbox(response.data.metadata?.properties?.selectedToolbox || "");
+                    setSelectedAiLibraryNotesMetadataDict(response.data.content?.selectedAiLibraryNotesMetadataDict || {});
 
                     setLastPrompt("");
                     // set lastPrompt to the last user message
@@ -2963,6 +2968,10 @@ const Chat = ({
     }
 
     const create = () => {
+        if (chatCreating.current) {
+            return;
+        }
+        chatCreating.current = true;
         let newChatObject = chatAsObject();
         const url = `${serverUrl}/docdb/${folder}/documents`;
         axios.post(url, newChatObject, {
@@ -2978,6 +2987,7 @@ const Chat = ({
         }).catch(error => {
             system.error(`System Error creating chat`, error, url + " POST");
         });
+        chatCreating.current = false;
     }
 
     const loadAiLibrary = () => {
@@ -3042,10 +3052,35 @@ const Chat = ({
             content: {
                 context: chatContext || "",
                 goal: chatGoal || "",
+                selectedAiLibraryNotesMetadataDict: selectedAiLibraryNotesMetadataDict,
                 chat: messages,
             }
         };
         return chat;
+    }
+
+    const save = () => {
+        if (chatSaving.current || chatLoading.current || chatCreating.current) {
+            return;
+        }
+        chatSaving.current = true;
+        if (id === "" || id === null) {
+            create();
+        } else {
+            let request = chatAsObject();
+            axios.put(`${serverUrl}/docdb/${folder}/documents/${id}`, request, {
+                headers: {
+                    Authorization: 'Bearer ' + token
+                }
+            }).then(response => {
+                response.data.access_token && setToken(response.data.access_token);
+                onChange(id, name, "changed", "");
+                debugMode && console.log("debugMode Chat saved", request, response);
+            }).catch(error => {
+                system.error(`System Error saving chat.`, error, `/docdb/${folder}/documents/${id} PUT`);
+            })
+        }
+        chatSaving.current = false;
     }
 
     const chatAsJSON = () => {
@@ -3129,24 +3164,6 @@ const Chat = ({
         if (chatContext.length > 0 || chatGoal.length > 0) {
             // TODO: only save if the context or goal has changed
             save();
-        }
-    }
-
-    const save = () => {
-        if (id === "" || id === null) {
-            create();
-        } else {
-            let request = chatAsObject();
-            axios.put(`${serverUrl}/docdb/${folder}/documents/${id}`, request, {
-                headers: {
-                    Authorization: 'Bearer ' + token
-                }
-            }).then(response => {
-                response.data.access_token && setToken(response.data.access_token);
-                onChange(id, name, "changed", "");
-            }).catch(error => {
-                system.error(`System Error saving chat.`, error, `/docdb/${folder}/documents/${id} PUT`);
-            })
         }
     }
 
@@ -3684,6 +3701,10 @@ const Chat = ({
         setLastPrompt("");
         setChatContext("");
         setChatGoal("");
+        setToolboxOpen(false);
+        setSelectedToolbox("");
+        setSelectedAiLibraryNotesMetadataDict({});
+        setSelectedAiLibraryNotes({});
         chatLoading.current = chatLoadingState;
     }
 
@@ -3799,37 +3820,82 @@ const Chat = ({
         setWindowMaximized(x);
     }
 
-    const handleloadKnowledgeToAi = (event) => {
-        const noteStub = event.target.value;
-        if (noteStub && noteStub.id) {
-            system.info(`Chat loading knowledge to AI: "${noteStub.name}"`);
-            system.debug("Chat loading knowledge to AI", noteStub);
-            let url = `${serverUrl}/docdb/notes/documents/${noteStub.id}`;
-            axios.get(url, {
+    const loadKnowledgeNote = async (noteMetadata) => {
+        debugMode && console.log("debugMode loadKnowledgeNote", noteMetadata);
+        let url = `${serverUrl}/docdb/notes/documents`;
+        try {
+            const response = await axios.get(`${url}/${noteMetadata.id}`, {
                 headers: {
-                    Authorization: 'Bearer ' + token
-                  }
-            }).then(response => {
-                response.data.access_token && setToken(response.data.access_token);
-                const aiLibraryNote = response.data;
-                const updatedSelectedAiLibraryNotes = { ...selectedAiLibraryNotes, [aiLibraryNote.metadata.id]: aiLibraryNote };
-                setSelectedAiLibraryNotes(updatedSelectedAiLibraryNotes);
-                // reset the Select component
-                setSelectedAiLibraryNoteId("");
-            }).catch(error => {
-                console.log("Chat AI library note load error", error);
-                system.error(`System Error loading Chat AI library note`, error, url);
+                Authorization: 'Bearer ' + token
+                }
             });
+            if (response.data.access_token) {
+                setToken(response.data.access_token);
+            }
+            debugMode && console.log("debugMode loadKnowledgeNote response", response);
+            const aiLibraryNote = response.data;
+            const updatedSelectedAiLibraryNotes = { ...selectedAiLibraryNotes, [aiLibraryNote.metadata.id]: aiLibraryNote };
+            setSelectedAiLibraryNotes(updatedSelectedAiLibraryNotes);
+        } catch (error) {
+            console.log("Chat AI library note load error", error);
+            // if the error is due to the note no longer existing, remove it from the selectedAiLibraryNotesMetadataDict
+            if (error.response?.request?.status === 404) {
+                setSelectedAiLibraryNotesMetadataDict(prevState => {
+                    const newDict = { ...prevState };
+                    delete newDict[noteMetadata.id];
+                    return newDict;
+                });
+                system.warning(`Removed reference from Chat AI library to Note that no longer exists: "${noteMetadata.name}"`);
+            } else {
+                system.error(`System Error loading Chat AI library note`, error, url);
+            }
+        }
+    };
+
+    useEffect(() => {
+        debugMode && console.log("debugMode selectedAiLibraryNotesMetadataDict", selectedAiLibraryNotesMetadataDict);
+        id && save(); // if the chat has already been created, save it
+        // loop over the selectedAILibraryNotes and remove any that are not in selectedAiLibraryNotesMetadataDict
+        const idsToDelete = Object.keys(selectedAiLibraryNotes).filter(id => !(id in selectedAiLibraryNotesMetadataDict));
+        let updatedSelectedAiLibraryNotes = { ...selectedAiLibraryNotes };
+        if (idsToDelete.length > 0) {
+            idsToDelete.forEach(id => {
+                delete updatedSelectedAiLibraryNotes[id];
+            });
+        }
+        // loop over the selectedAiLibraryNotesMetadataDict and load the notes that aren't already in selectedAiLibraryNotes
+        const loadNotesSequentially = async () => {
+            for (const noteMetadata of Object.values(selectedAiLibraryNotesMetadataDict)) {
+                if (!(noteMetadata.id in updatedSelectedAiLibraryNotes)) {
+                    await loadKnowledgeNote(noteMetadata);
+                }
+            }
+        };
+        loadNotesSequentially();
+        setSelectedAiLibraryNotes(updatedSelectedAiLibraryNotes);
+    }, [selectedAiLibraryNotesMetadataDict]);
+
+    const handleloadKnowledgeToAi = (event) => {
+        const noteMetadata = event.target.value;
+        if (noteMetadata && noteMetadata.id) {
+            system.info(`Chat loading knowledge to AI: "${noteMetadata.name}"`);
+            system.debug("Chat loading knowledge to AI", noteMetadata);
+            setSelectedAiLibraryNotesMetadataDict({...selectedAiLibraryNotesMetadataDict, [noteMetadata.id]: noteMetadata});
+            // reset the Select component
+            setSelectedAiLibraryNoteId("");
         }
     }
 
     const handleUnloadKnowledgeFromAi = (id) => {
-        if (id && id in selectedAiLibraryNotes) {
-            system.info(`Chat unloading knowledge from AI: "${selectedAiLibraryNotes[id].metadata.name}"`);
-            system.debug("Chat unloading knowledge from AI", selectedAiLibraryNotes[id].metadata);
-            const updatedSelectedAiLibraryNotes = { ...selectedAiLibraryNotes };
-            delete updatedSelectedAiLibraryNotes[id];
-            setSelectedAiLibraryNotes(updatedSelectedAiLibraryNotes);
+        if (id && id in selectedAiLibraryNotesMetadataDict) {
+            system.info(`Chat unloading knowledge from AI: "${selectedAiLibraryNotesMetadataDict[id].name}"`);
+            system.debug("Chat unloading knowledge from AI", selectedAiLibraryNotesMetadataDict[id]);
+            // remove this id from the selectedAiLibraryNotesMetadataDict
+            setSelectedAiLibraryNotesMetadataDict(prevState => {
+                const newDict = { ...prevState };
+                delete newDict[id];
+                return newDict;
+            });
         }
     }
     
@@ -4819,19 +4885,19 @@ const Chat = ({
                                     </Tooltip>
                                 </SecondaryToolbar>
                                 <List dense sx={{ width: "100%", overflow: "auto", maxHeight: "100px" }}>
-                                    {Object.values(selectedAiLibraryNotes).map(note =>(
+                                    {Object.values(selectedAiLibraryNotesMetadataDict).map(noteMetadata =>(
                                         <ListItem 
-                                            key={"loaded-ai-knowledge-" + note.metadata.id}
+                                            key={"loaded-ai-knowledge-" + noteMetadata.id}
                                             secondaryAction={
                                                 <Tooltip title={ "Unload knowledge from AI" }>
                                                     <IconButton edge="end" aria-label="Unload knowledge from AI"
-                                                        onClick={() => {handleUnloadKnowledgeFromAi(note.metadata.id)}}>
+                                                        onClick={() => {handleUnloadKnowledgeFromAi(noteMetadata.id)}}>
                                                         <CloseIcon />
                                                     </IconButton>
                                                 </Tooltip>
                                             }
                                         >
-                                            {note.metadata.name}
+                                            {noteMetadata.name}
                                         </ListItem>
                                     ))}
                                 </List>
@@ -4846,8 +4912,15 @@ const Chat = ({
                                         value={selectedAiLibraryNoteId}
                                         onChange={handleloadKnowledgeToAi}
                                         >
-                                            {(showOnlyNotesInAiLibrary ? aiLibrary.filter(noteStub => noteStub.properties.inAILibrary) : aiLibrary).map((noteStub) => (
-                                                <MenuItem key={'ai-library-item-' + noteStub.id} value={noteStub}>{noteStub.name}</MenuItem>
+                                            {(showOnlyNotesInAiLibrary
+                                                ? 
+                                                    aiLibrary.filter(noteMetadata => noteMetadata.properties.inAILibrary
+                                                        && !(noteMetadata.id in selectedAiLibraryNotesMetadataDict)
+                                                    )
+                                                :
+                                                    aiLibrary.filter(noteMetadata => !(noteMetadata.id in selectedAiLibraryNotesMetadataDict))
+                                                ).map((noteMetadata) => (
+                                                <MenuItem key={'ai-library-item-' + noteMetadata.id} value={noteMetadata}>{noteMetadata.name}</MenuItem>
                                             ))}
                                         </Select>
                                         <Tooltip title={ showOnlyNotesInAiLibrary ? "Select box will show notes that are in the AI Library. Click to show all notes" : "Show only notes in AI library" }>
