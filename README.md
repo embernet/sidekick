@@ -13,7 +13,25 @@
   - [Chat Prompt Templates](#chat-prompt-templates)
   - [Chat context menu](#chat-context-menu)
   - [Chat Prompt Editor](#chat-prompt-editor)
-  - [Prompts for methodologies and techniques](#prompts-for-methodologies-and-techniques)
+    - [Sidekick Prompt Collections and Toolboxes](#sidekick-prompt-collections-and-toolboxes)
+      - [Introduction to Toolboxes](#introduction-to-toolboxes)
+    - [Sidekick Toolboxes](#sidekick-toolboxes)
+      - [Analysis](#analysis)
+      - [Ask Others](#ask-others)
+      - [Change Management](#change-management)
+      - [Commands](#commands)
+      - [Communication](#communication)
+      - [Debate](#debate)
+      - [Decision Making](#decision-making)
+      - [Exploration](#exploration)
+      - [Futurology](#futurology)
+      - [Insights](#insights)
+      - [Learning](#learning)
+      - [Open Source](#open-source)
+      - [Operational Excellence](#operational-excellence)
+      - [Problem Solving](#problem-solving)
+      - [Programming](#programming)
+      - [Technology Innovation](#technology-innovation)
   - [Diagrams](#diagrams)
   - [Pick from different AI personas](#pick-from-different-ai-personas)
   - [Ask again with different personas](#ask-again-with-different-personas)
@@ -97,63 +115,514 @@ The Chat Prompt Editor lets you edit the prompt before sending it to the AI. You
 
 When clicking on the prompt editor menu and selecting a prompt, you can press and hold the Alt key to put the prompt into the editor without running it so you can update it. When navigating the menus from the keyboard after pressing "/" in an empty prompt to open the menu, using right arrow on a template will place it in the editor. Clicking or pressing enter will run the template immediately, hence applying it to the content of the chat.
 
-## Prompts for methodologies and techniques
+### Sidekick Prompt Collections and Toolboxes
 
-Clicking on the menu in the Prompt Editor, or pressing "/" in an empty prompt will open a menu of commands, tools, and templates.
+Sidekick includes a range of prompt collections designed to get the AI to apply deeper and more structured, or more creative, techniques.
 
-Prompt Library (providing prompts or various methodologies and techniques) includes the following:
+Many of the innovation, creativity, thinking, and structured analysis techniques that have been developed over the years are documented in detail in books and on the Internet and have been incorporated into the training data of Large Language Models. The AI knows these methods. You just need to know how to get it to apply them.
 
-- Exploration
-  - A list of questions designed to help you explore a topic
-- Analysis methods
-  - Balanced Scorecard
-  - Benefits Analysis
-  - Business Model Canvas
-  - Competitive Analysis
-  - Design Thinking
-  - Failure Mode Effects Analyusis (FMEA)
-  - Gap Analysis
-  - Kano Model Analysis
-  - Market Entry Strategy
-  - MoSCoW Prioritisation
-  - PEST Analysis
-  - Porters Five Forces
-  - Root Cause Analysiss
-  - SMART Goals
-  - Six Thinking Hats
-  - Stakeholder Analysis
-  - SWOT Analysis
-  - Value Chain Analysis
-  - VPEC-T Analysis
-  - Wardley Mapping
-  - What If Analysis
-  - Why-Why Analysis
-- Creativity methods
-  - Ansoff Matrix
-  - SCAMPER
-  - Mind Mapping
-  - Brainwriting
-  - Six Thinking Hats
-  - Five Whys
-  - Storyboarding
-  - Analogical Thinking
-  - Attribute Listing
-  - TRIZ
-  - Random Input
-  - Forced Association
-  - Lotus Blossom
-  - Reverse Thinking
-  - Future Scenarios
-  - Provocation
-  - Role Storming
-  - Wishful Thinking
-  - Checklists
-  - Morphological Analysis
-  - Boundary Relaxation
-- Insights
-  - A list of questions designed to help you gain insights into a topic
+**Accessing Prompt Collections**
 
-You can access the prompt library methods and commands from the prompt editor menu or by pressing "/" in an empty prompt.
+Prompt collections are available from a number of places:
+- Click the Prompt Editor hamburger menu and click 'Prompt Collections'
+- Press the slash ('/') key when in the prompt editor.
+- Click the Toolbox icon in the Chat main toolbar. This will open the toolbox, which presents each prompt collection as a palate of buttons for related prompts to the left of the chat.
+
+#### Introduction to Toolboxes
+
+Each prompt collection or toolbox is designed to cater to specific use cases, offering a range of tools that can be utilised together to enhance creativity, learning, decision-making, problem-solving, communication, and more.
+
+Select a Toolbox from the selector at the top. Hover over a tool button to see a tooltip describing what it does. Click the button to run the prompt immediately. ALT+Click to add the prompt to the Prompt Editor so you can update it before hitting send.
+
+### Sidekick Toolboxes
+
+**Index of Toolboxes**
+- [Analysis](#analysis)
+- [Ask Others](#ask-others)
+- [Change Management](#change-management)
+- [Commands](#commands)
+- [Communication](#communication)
+- [Debate](#debate)
+- [Decision Making](#decision-making)
+- [Exploration](#exploration)
+- [Futurology](#futurology)
+- [Insights](#insights)
+- [Learning](#learning)
+- [Open Source](#open-source)
+- [Operational Excellence](#operational-excellence)
+- [Problem Solving](#problem-solving)
+- [Programming](#programming)
+- [Technology Innovation](#technology-innovation)
+
+#### Analysis
+
+**Description:** Apply well-known analytical and strategic tools and methodologies designed to inform decision-making, improve the rigour and completeness of problem-solving, and navigate complex challenges effectively.
+
+**Applications:** Decision-making, strategic planning, business analysis.
+
+**Keywords:** Analysis, strategy, decision-making.
+
+**Related Topics:** Business Strategy, Decision Science, Market Analysis.
+
+**Tools:**
+
+- **Balanced Scorecard:** Perform a Balanced Scorecard analysis on the chat content.
+- **Benefits Analysis:** Conduct a Benefits Analysis on the topics discussed.
+- **Business Model Canvas:** Create a Business Model Canvas based on the chat content.
+- **Competitive Analysis:** Conduct a Competitive Analysis on the chat content.
+- **Design Thinking:** Apply Design Thinking principles to the conversation.
+- **Failure Modes Effects Analysis (FMEA):** Carry out a Failure Modes Effects Analysis (FMEA) on the issues discussed.
+- **Gap Analysis:** Conduct a Gap Analysis on the current discussion.
+- **Kano Model Analysis:** Perform a Kano Model Analysis on the needs or features discussed.
+- **Market Entry Strategy:** Develop a Market Entry Strategy based on the conversation.
+- **MoSCoW Prioritisation:** Apply MoSCoW Prioritisation to the topics discussed.
+- **PEST Analysis:** Conduct a PEST Analysis on the dialogue.
+- **Porters Five Forces:** Analyse the chat content using Porter’s Five Forces framework.
+- **Root Cause Analysis:** Perform a Root Cause Analysis on the issues raised in the chat.
+- **SMART Goals:** Formulate SMART Goals based on the objectives discussed in the chat.
+- **Six Thinking Hats:** Apply the Six Thinking Hats method to the conversation.
+- **Stakeholder Analysis:** Conduct a Stakeholder Analysis on the chat content.
+- **SWOT Analysis:** Carry out a SWOT Analysis on the chat so far.
+- **Value Chain Analysis:** Perform a Value Chain Analysis on the discussion.
+- **VPEC-T Analysis:** Apply VPEC-T Analysis to the chat content.
+- **Wardley Mapping:** Create a Wardley Map based on the chat content.
+- **What If Analysis:** Conduct a What If Analysis on the chat.
+- **Why-Why Analysis:** Perform a Why-Why Analysis on the chat content.
+
+[Return to Sidekick Toolboxes index](#sidekick-toolboxes)
+
+#### Ask Others
+
+**Description:** Get more rounded perspectives by simulating consulting others.
+
+**Applications:** Brainstorming, idea generation, perspective gathering.
+
+**Keywords:** Consultation, perspectives, brainstorming.
+
+**Related Topics:** Collaboration, Mentorship, Peer Review.
+
+**Tools:**
+
+- **Be Me:** Predict my next observations and question based on the chat.
+- **Consult a Friend:** Imagine my smartest friends are helping.
+- **Ask a Mentor:** Imagine an expert mentor is advising.
+- **Ask a Novice:** Imagine a curious novice is asking about this.
+- **Ask a Skeptic:** Imagine a critical skeptic is wading in.
+- **Ask a Supporter:** Imagine an enthusiastic supporter is helping.
+- **Ask a Critic:** Imagine a harsh critic is raising challenges.
+- **Ask a Visionary:** Imagine a creative visionary is helping.
+- **Ask a Realist:** Imagine a practical realist is helping.
+- **Ask a Dreamer:** Imagine an imaginative dreamer is helping.
+- **Ask a Pragmatist:** Imagine a sensible pragmatist is helping.
+- **Ask a Pessimist:** Imagine a skeptical pessimist is helping.
+- **Ask an Optimist:** Imagine a hopeful optimist is helping.
+
+[Return to Sidekick Toolboxes index](#sidekick-toolboxes)
+
+#### Change Management
+
+**Description:** Prompts for managing change and transformation.
+
+**Applications:** Organisational change, transformation projects, change strategy.
+
+**Keywords:** Change management, transformation, organisational change.
+
+**Related Topics:** Organisational Behaviour, Project Management, Leadership.
+
+**Tools:**
+
+- **Change Drivers:** Identify the drivers for change.
+- **Change Impacts:** Discuss the impacts of change.
+- **Change Resistance:** Identify potential resistance to change.
+- **Change Strategies:** Discuss strategies for managing change.
+- **Stakeholder Impact:** Identify affected stakeholders and their impact.
+- **Communication Plan:** Develop a communication plan for change.
+- **Training Needs:** Identify training needs for change.
+- **Resource Allocation:** Discuss resource allocation for change.
+- **Change Readiness:** Assess the readiness for change.
+- **Mitigating Negative Outcomes:** Identify mitigation strategies for negative outcomes.
+- **Coping Strategies:** Identify coping strategies for unavoidable negative outcomes.
+- **Process Improvements:** Identify ways processes could be adapted to improve this situation.
+- **Org Improvements:** Identify ways organisational change could improve this situation.
+- **Tech Improvements:** Identify ways technology could be leveraged to improve this situation.
+- **Measuring Success:** Discuss how success will be measured and assured.
+- **Feedback Mechanisms:** Identify feedback mechanisms for continuous improvement.
+
+[Return to Sidekick Toolboxes index](#sidekick-toolboxes)
+
+#### Commands
+
+**Description:** Quickly send one of a number of simple common commands to the AI.
+
+**Applications:** General conversation, summarisation, elaboration.
+
+**Keywords:** Commands, conversation, summarisation.
+
+**Related Topics:** Communication, Interaction, Dialogue.
+
+**Tools:**
+
+- **Continue:** Continue the conversation.
+- **Summarise:** Summarise the current discussion.
+- **Summarise as Bullets:** Summarise key points as a bullet list.
+- **Elaborate:** Elaborate on that.
+- **Give Examples:** Provide some examples.
+- **Provide More Detail:** Provide more detail.
+- **Explain in Simple Terms:** Explain in simple terms.
+- **Explain in Detail:** Explain in detail.
+- **Background and History:** Provide the background and history.
+- **Pros and Cons:** What are the pros and cons?
+- **Simplify:** How can we simplify this?
+- **Pivot Topic:** Pivot the conversation to a different but related topic.
+- **Alternative Perspective:** Provide an alternative perspective.
+- **Contrary View:** Propose a contrary view.
+
+[Return to Sidekick Toolboxes index](#sidekick-toolboxes)
+
+#### Communication
+
+**Description:** Prompts to help refine and create effective communication.
+
+**Applications:** Drafting emails, creating presentations, writing reports.
+
+**Keywords:** Communication, writing, presentation.
+
+**Related Topics:** Business Communication, Technical Writing, Public Speaking.
+
+**Tools:**
+
+- **Draft an Email:** Draft a professional email based on the discussion.
+- **Create a Presentation Outline:** Create an outline for a presentation.
+- **Summarise Key Points:** Summarise the key points from the discussion.
+- **Generate a Report:** Generate a report based on the discussion.
+- **Write a Social Media Post:** Draft a social media post based on the discussion.
+- **Create Talking Points:** Create talking points for a meeting or presentation.
+- **Write an Article:** Draft an article based on the discussion.
+- **Formulate a Response:** Formulate a response to a query or statement.
+- **Prepare a Speech:** Prepare a speech based on the discussion.
+- **Create a Proposal:** Draft a proposal based on the discussion.
+- **Draft a Press Release:** Draft a press release based on the discussion.
+- **Create a FAQ:** Create a list of frequently asked questions and answers.
+- **Write a Blog Post:** Draft a blog post based on the discussion.
+- **Create a Tweet:** Create a tweet based on the discussion.
+- **Prepare an Elevator Pitch:** Prepare an elevator pitch based on the discussion.
+
+[Return to Sidekick Toolboxes index](#sidekick-toolboxes)
+
+#### Debate
+
+**Description:** Prompts for engaging in a debate or argument.
+
+**Applications:** Argumentation, critical thinking, persuasive speaking.
+
+**Keywords:** Debate, argument, persuasion.
+
+**Related Topics:** Rhetoric, Logic, Public Speaking.
+
+**Tools:**
+
+- **Refute:** Provide a refutation.
+- **Cross-Examination:** Conduct a cross-examination.
+- **Signposting:** Use signposting to structure your argument.
+- **Evidence and Examples:** Provide evidence and examples.
+- **Analogies and Comparisons:** Use analogies and comparisons.
+- **Anticipate Counterarguments:** Anticipate counterarguments and construct responses.
+- **Rhetorical Questions:** Use rhetorical questions to engage the audience.
+- **Summarisation:** Summarise the arguments.
+- **Challenge Assumptions:** Challenge the assumptions made.
+- **Propose a Different Approach:** Propose a different approach.
+- **Predict Consequences:** Predict the consequences, issues, and questions raised.
+- **Pivot Argument:** Pivot the debate to come at it from a different angle.
+
+[Return to Sidekick Toolboxes index](#sidekick-toolboxes)
+
+#### Decision Making
+
+**Description:** Tools and prompts for making decisions.
+
+**Applications:** Decision-making, strategic planning, risk analysis.
+
+**Keywords:** Decision-making, strategy, evaluation.
+
+**Related Topics:** Decision Science, Risk Management, Strategic Planning.
+
+**Tools:**
+
+- **Identify the Decision:** Clearly define the decision to be made.
+- **Set Objectives:** Set clear objectives for the decision.
+- **Generate Options:** Generate a range of options.
+- **Evaluate Options:** Evaluate the options against the objectives.
+- **Pros and Cons:** List the advantages and disadvantages of each option.
+- **Decision Matrix:** Create a decision matrix to compare options.
+- **Weighted Decision Matrix:** Develop a weighted decision matrix to evaluate options.
+- **Risk Analysis:** Perform a risk analysis for each option.
+- **Make a Decision:** Make a decision based on the evaluation.
+
+[Return to Sidekick Toolboxes index](#sidekick-toolboxes)
+
+#### Exploration
+
+**Description:** Explore the situation or topic further.
+
+**Applications:** Research, learning, brainstorming.
+
+**Keywords:** Exploration, research, learning.
+
+**Related Topics:** Knowledge Management, Research Methodology, Learning Techniques.
+
+**Tools:**
+
+- **Questions Raised:** Explore what questions this raises.
+- **Implications:** Explore the implications of this.
+- **Related Topics:** Identify related topics.
+- **Related Trends:** Identify related trends.
+- **Underlying Principles:** Explain the fundamental principles underlying this.
+- **Historical Precedents:** Compare this situation with historical precedents or trends.
+- **Common Misconceptions:** Identify common misconceptions or misunderstandings.
+- **Learning Resources:** Find more information or resources.
+- **Alternative Perspectives:** Explore alternative perspectives or viewpoints.
+- **Learning Opportunities:** Identify learning opportunities from this situation.
+- **Tech Enablers:** Identify ways technology could improve this situation.
+- **Business Model Ideas:** Explore potential business model ideas and opportunities related to this.
+- **Go Up a Level:** Explore the super-system, ecosystem, and related systems.
+- **Go Down a Level:** Explore the sub-systems and dependencies.
+
+[Return to Sidekick Toolboxes index](#sidekick-toolboxes)
+
+#### Futurology
+
+**Description:** Prompts for exploring and envisioning potential future scenarios.
+
+**Applications:** Future planning, trend analysis, scenario planning.
+
+**Keywords:** Futurology, trends, future scenarios.
+
+**Related Topics:** Strategic Foresight, Scenario Planning, Trend Analysis.
+
+**Tools:**
+
+- **Predict Trends:** Predict future trends.
+- **Technological Advancements:** Discuss future technological advancements.
+- **Future Challenges:** Identify future challenges.
+- **Future Opportunities:** Explore future opportunities.
+- **Scenario Planning:** Create future scenarios.
+- **Impact on Society:** Discuss the potential societal impact.
+- **Ethical Considerations:** Examine ethical considerations.
+- **Future Innovations:** Speculate on future innovations.
+- **Long-term Vision:** Articulate a long-term vision of the future.
+- **Global Impact:** Discuss the global impact.
+- **Environmental Impact:** Analyse the environmental impact.
+- **Economic Impact:** Evaluate the economic impact.
+- **Cultural Shifts:** Explore potential cultural shifts.
+- **Policy Implications:** Discuss policy implications.
+- **Evolve with Worsening Action:** What might this situation evolve into if the tensions are not resolved and the actions that are taken progressively make things worse?
+- **Evolve with Improving Action:** What might this situation evolve into if the tensions are resolved and actions are taken to progressively improve the situation?
+- **Evolve with Worst Action:** What might this situation evolve into if the tensions are not resolved and the worst possible actions are taken to make things worse?
+- **Evolve with Best Action:** What might this situation evolve into if the tensions are resolved and the best possible actions are taken to improve the situation?
+
+[Return to Sidekick Toolboxes index](#sidekick-toolboxes)
+
+#### Insights
+
+**Description:** Gain insights to help with understanding and learning more about the situation.
+
+**Applications:** Analysis, strategic planning, decision-making.
+
+**Keywords:** Insights, analysis, understanding.
+
+**Related Topics:** Business Intelligence, Data Analysis, Knowledge Management.
+
+**Tools:**
+
+- **Identify Key Insights:** Identify key insights from the discussion.
+- **Highlight Important Patterns:** Highlight important patterns and trends.
+- **Summarise Main Points:** Summarise the main points of the discussion.
+- **Provide Context:** Provide context for the current situation.
+- **Draw Conclusions:** Draw conclusions based on the information discussed.
+- **Predict Outcomes:** Predict potential outcomes based on the current discussion.
+- **Identify Gaps in Knowledge:** Identify gaps in knowledge or information.
+- **Suggest Further Reading:** Suggest further reading or resources.
+- **Provide Expert Opinion:** Provide expert opinion on the topic.
+- **Identify Potential Biases:** Identify potential biases in the discussion.
+- **Compare with Industry Standards:** Compare the situation with industry standards or benchmarks.
+- **Highlight Best Practices:** Highlight best practices related to the topic.
+- **Identify Key Stakeholders:** Identify key stakeholders and their interests.
+- **Analyse Risks and Opportunities:** Analyse risks and opportunities in the current situation.
+- **Provide Historical Context:** Provide historical context for the current situation.
+- **Suggest Improvements:** Suggest improvements or next steps.
+- **Evaluate Impact:** Evaluate the impact of different factors on the situation.
+- **Identify Trends:** Identify trends that could affect the situation.
+- **Provide a SWOT Analysis:** Provide a SWOT analysis for the current situation.
+
+[Return to Sidekick Toolboxes index](#sidekick-toolboxes)
+
+#### Learning
+
+**Description:** Useful prompts for learning about a topic.
+
+**Applications:** Education, research, self-improvement.
+
+**Keywords:** Learning, education, knowledge.
+
+**Related Topics:** Pedagogy, Lifelong Learning, Educational Technology.
+
+**Tools:**
+
+- **Elaborate:** Elaborate on this further.- **Provide Examples:** Give examples with explanations to bring the topic to life.
+- **Explain:** Explain how something works or is the way it is.
+- **Real World Applications:** Describe real-world applications of this.
+- **History:** Provide the history for this.
+- **Future:** Hypothesise about the future of this.
+- **Zoom In:** Pick an area to do a deep dive into.
+- **Zoom Out:** Find out about the bigger picture.
+- **Related Topics:** Find out about related topics.
+- **Compare and Contrast:** Compare and contrast with other similar topics.
+- **Common Misconceptions:** Identify and clarify common misconceptions.
+- **Step-by-Step Guide:** Provide a step-by-step guide.
+- **Pros and Cons:** List the advantages and disadvantages.
+- **Key Terminology:** Define key terms related to this topic.
+- **Visualisation:** Create a visual representation.
+
+[Return to Sidekick Toolboxes index](#sidekick-toolboxes)
+
+#### Open Source
+
+**Description:** Useful prompts for open source projects.
+
+**Applications:** Open source development, community engagement, software projects.
+
+**Keywords:** Open source, software, community.
+
+**Related Topics:** Software Development, Community Management, Licensing.
+
+**Tools:**
+
+- **Open Source Libraries for This:** What open source libraries can do this?
+- **Further Research:** Where to do more research.
+- **Project Health:** Ask for project details if not provided.
+- **Community Metrics:** Provide or get community metrics.
+- **Open Source Action:** Talk to your company's open source office.
+- **Code Quality:** Ensure code quality.
+- **Documentation Best Practices:** Documenting best practices.
+- **Attract Contributors:** Manage contributors.
+- **Automate Testing:** Tools to automate testing and deployment.
+- **Licensing Issues:** Handle licensing issues.
+- **Project Promotion:** Promote within the community.
+- **CI/CD Integration:** Ask for tech stack if not described.
+- **Security Best Practices:** Security best practices.
+- **Effective Communication:** Communicate with the community.
+- **Common Pitfalls:** Common pitfalls to avoid.
+- **Product Management:** Product management concerns.
+- **User Questions:** Questions for end users.
+- **Cost Savings:** Determine cost savings.
+- **Leading Projects:** Leading projects in the space.
+
+[Return to Sidekick Toolboxes index](#sidekick-toolboxes)
+
+#### Operational Excellence
+
+**Description:** Prompts for achieving operational excellence.
+
+**Applications:** Process improvement, efficiency, quality management.
+
+**Keywords:** Operations, efficiency, improvement.
+
+**Related Topics:** Lean Management, Six Sigma, Total Quality Management.
+
+**Tools:**
+
+- **Process Optimisation:** How can we optimise this process?
+- **Waste Reduction:** Identify areas where we can reduce waste in our operations.
+- **Quality Improvement:** How can we improve the quality of our products or services?
+- **Cost Reduction:** Identify opportunities for cost reduction in our operations.
+- **Customer Satisfaction:** How can we improve customer satisfaction?
+- **Employee Engagement:** How can we improve employee engagement and motivation?
+- **Performance Measurement:** What are the key metrics we should track to measure our performance?
+- **Continuous Improvement:** How can we establish a culture of continuous improvement?
+- **Risk Management:** Identify potential risks in our operations and suggest mitigation strategies.
+- **Benchmarking:** How do we compare to industry benchmarks in terms of operational efficiency?
+
+[Return to Sidekick Toolboxes index](#sidekick-toolboxes)
+
+#### Problem Solving
+
+**Description:** Help with problem-solving.
+
+**Applications:** Troubleshooting, root cause analysis, solution generation.
+
+**Keywords:** Problem-solving, troubleshooting, analysis.
+
+**Related Topics:** Critical Thinking, Decision Science, Root Cause Analysis.
+
+**Tools:**
+
+- **Causes:** Explore the factors leading to this situation and what caused it.
+- **Contributing Factors:** Explain the key factors contributing to this situation.
+- **Impact:** Discuss potential short-term and long-term impacts.
+- **Prevention:** Discuss prevention strategies.
+- **Overcoming Barriers:** Identify barriers and solutions.
+- **Risks and Uncertainties:** Identify potential risks and uncertainties.
+- **Compare and Contrast:** Compare and contrast a variety of options.
+- **Predict Outcomes:** Predict outcomes and questions they raise.
+- **Evaluate Options:** Evaluate the options.
+- **Ethical Considerations:** Discuss ethical considerations.
+- **Legal Implications:** Discuss legal implications.
+- **Problems & Conflicts:** Identify key problems and conflicts and potential solutions.
+- **Skills & Experience:** Identify skills and experience that could help.
+- **Lessons from History:** Discuss historical precedents and lessons.
+
+[Return to Sidekick Toolboxes index](#sidekick-toolboxes)
+
+#### Programming
+
+**Description:** Prompts and tools for code development.
+
+**Applications:** Software development, code optimisation, debugging.
+
+**Keywords:** Coding, programming, software.
+
+**Related Topics:** Software Engineering, Computer Science, DevOps.
+
+**Tools:**
+
+- **Provide Code:** Provide code.
+- **Explain Code:** Explain this code in more detail.
+- **Identify Errors:** Identify and explain any errors in this code.
+- **Suggest Improvements:** How could this code be improved or optimised?
+- **Refactor Code:** Refactor this code for better readability and maintainability.
+- **Write Test Cases:** Write unit tests to verify the correctness of this code.
+- **Generate Documentation:** Generate documentation for this code.
+- **Explain Design Patterns:** Identify any design patterns used in this code and explain their purpose.
+- **Suggest Libraries:** Suggest relevant libraries or frameworks that could be used with this code.
+- **Performance Optimisation:** How can the performance of this code be optimised?
+- **Security Best Practices:** Identify potential security vulnerabilities and suggest best practices for this code.
+
+[Return to Sidekick Toolboxes index](#sidekick-toolboxes)
+
+#### Technology Innovation
+
+**Description:** Prompts to explore emerging technologies and trends.
+
+**Applications:** Tech innovation, trend analysis, future planning.
+
+**Keywords:** Tech, innovation, future.
+
+**Related Topics:** Emerging Technologies, Innovation Management, Trend Analysis.
+
+**Tools:**
+
+- **Emerging Trends:** What are the most promising emerging technologies?
+- **Industry Disruption:** How are new technologies disrupting traditional industries?
+- **Future Predictions:** What are some predictions for the future of technology?
+- **Ethical Considerations:** What are the ethical implications of emerging technologies?
+- **Tech Investment:** What are some promising areas for technology investment?
+- **Impact on Society:** How are new technologies impacting society?
+- **Tech Adoption Challenges:** What are the challenges of adopting new technologies?
+- **Tech Career Paths:** What are some promising career paths in the technology field?
+- **Innovation Strategies:** What strategies can companies use to foster innovation?
+- **Tech Regulation:** What are the current debates around technology regulation?
+
+[Return to Sidekick Toolboxes index](#sidekick-toolboxes)
 
 ## Diagrams
 
