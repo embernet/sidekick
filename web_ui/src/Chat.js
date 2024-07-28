@@ -3901,11 +3901,14 @@ const Chat = ({
      * @param {boolean} props.isMobile - Flag indicating if the menu should adapt to mobile view.
      */
     const DynamicMenu = memo(({ rootMenuAnchor, setRootMenuAnchor, subMenuAnchor, setSubMenuAnchor, menuData, isMobile }) => {
+        const [focusedIndex, setFocusedIndex] = useState(-1);
+        const [subMenuFocusedIndex, setSubMenuFocusedIndex] = useState({});
         const [myRootMenuAnchor, setMyRootMenuAnchor] = useState(rootMenuAnchor);
 
         useEffect(() => {
             if (myRootMenuAnchor !== rootMenuAnchor) {
                 setMyRootMenuAnchor(rootMenuAnchor);
+                setFocusedIndex(-1);
             }
         }, [rootMenuAnchor]);            
 
@@ -3922,6 +3925,52 @@ const Chat = ({
           setSubMenuAnchor({});
         };
 
+        useEffect(() => {
+            const menuItems = document.querySelectorAll('[data-menu-item]');
+            if (menuItems[focusedIndex]) {
+                menuItems[focusedIndex].focus();
+            }
+        }, [focusedIndex]);
+
+        useEffect(() => {
+            Object.keys(subMenuFocusedIndex).forEach((menuName) => {
+                const subMenuItems = document.querySelectorAll(`[data-submenu-item-${menuName.replace(/\s+/g, '-')}]`);
+                if (subMenuItems[subMenuFocusedIndex[menuName]]) {
+                    subMenuItems[subMenuFocusedIndex[menuName]].focus();
+                }
+            });
+        }, [subMenuFocusedIndex]);
+
+        const handleKeyDown = (event, index, menuName) => {
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                if (menuName) {
+                    setSubMenuFocusedIndex((prevState) => ({
+                        ...prevState,
+                        [menuName]: (prevState[menuName] + 1) % (Object.keys(menuData.content[menuName].content.tools).length + 1),
+                    }));
+                } else {
+                    setFocusedIndex((prevIndex) => (prevIndex + 1) % (Object.keys(menuData.content).length + 1));
+                }
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                if (menuName) {
+                    setSubMenuFocusedIndex((prevState) => ({
+                        ...prevState,
+                        [menuName]: (prevState[menuName] + Object.keys(menuData.content[menuName].content.tools).length) % (Object.keys(menuData.content[menuName].content.tools).length + 1),
+                    }));
+                } else {
+                    setFocusedIndex((prevIndex) => (prevIndex + Object.keys(menuData.content).length) % (Object.keys(menuData.content).length + 1));
+                }
+            } else if (event.key === 'ArrowRight'  && !menuName) {
+                event.preventDefault();
+                handleSubMenuOpen(event, Object.keys(menuData.content)[index]);
+            } else if (event.key === 'ArrowLeft' && menuName) {
+                event.preventDefault();
+                handleSubMenuClose();
+            }
+        };
+
         const menu = <Box key={`dynamic-menu-root-${menuData.metadata.name}`}>
         <Menu
             anchorEl={myRootMenuAnchor}
@@ -3930,14 +3979,18 @@ const Chat = ({
             anchorOrigin={{
                 vertical: 'top',
                 horizontal: isMobile ? 'left' : 'right',
-                }}
+            }}
             transformOrigin={{
                 vertical: 'top',
                 horizontal: 'left',
-                }}
+            }}
         >
             <Tooltip title={promptSelectionInstructions} placement="right">
-                <MenuItem>
+                <MenuItem
+                    data-menu-item
+                    onKeyDown={(event) => handleKeyDown(event, -1)}
+                    tabIndex={-1 === focusedIndex ? 0 : -1}
+                >
                     <Typography variant="subtitle1" component="div" style={{ flexGrow: 1, fontWeight: 'bold' }}>
                     {menuData.metadata.name}
                     </Typography>
@@ -3946,19 +3999,13 @@ const Chat = ({
                     </IconButton>
                 </MenuItem>
             </Tooltip>
-            {Object.keys(menuData.content).map((menuName) => (
+            {Object.keys(menuData.content).map((menuName, index) => (
                 <MenuItem
                     key={`dynamic-menu-root-item-${menuName}`}
+                    data-menu-item
                     onClick={(event) => handleSubMenuOpen(event, menuName)}
-                    onKeyDown={
-                        (event) => {
-                            if (event.key === 'ArrowRight') {
-                                event.preventDefault(); // Prevent default arrow key behavior
-                                event.stopPropagation(); // Stop event from propagating to parent elements
-                                handleSubMenuOpen(event, menuName);
-                            }
-                        }
-                    }
+                    onKeyDown={(event) => handleKeyDown(event, index)}
+                    tabIndex={index === focusedIndex ? 0 : -1}
                     >
                     <Typography variant="subtitle1" component="div" style={{ flexGrow: 1 }}>
                         {menuName}
@@ -3977,15 +4024,7 @@ const Chat = ({
                 anchorEl={subMenuAnchor["anchor"]}
                 open={Boolean(subMenuAnchor["menu"] === menuName)}
                 onClose={() => handleSubMenuClose()}
-                onKeyDown={
-                    (event) => {
-                        if (event.key === 'ArrowLeft') {
-                            event.preventDefault(); // Prevent default arrow key behavior
-                            event.stopPropagation(); // Stop event from propagating to parent elements
-                            handleSubMenuClose();
-                        }
-                    }
-                }
+                onKeyDown={(event) => handleKeyDown(event, null, menuName)}
                 anchorOrigin={{
                     vertical: 'top',
                     horizontal: isMobile ? 'left' : 'right',
@@ -4008,10 +4047,13 @@ const Chat = ({
                 </Tooltip>
                 {
                 Object.keys(menuData.content[menuName].content.tools)
-                    .map(key => (
+                    .map((key, subIndex) => (
                     <ActionMenu
                         key={`dynamic-menu-action-menu-${menuName}-${key}`}
+                        data-submenu-item={`${menuName.replace(/\s+/g, '-')}`}
                         name={key}
+                        onKeyDown={(event) => handleKeyDown(event, subIndex, menuName)}
+                        tabIndex={subIndex === subMenuFocusedIndex[menuName] ? 0 : -1}
                         prompt={menuData.content[menuName].content.tools[key].content.prompt}
                         tooltip={menuData.content[menuName].content.tools[key].properties.description}
                         onClick={(event) => handleSubMenuOpen(event, key)}
