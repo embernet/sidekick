@@ -177,1014 +177,6 @@ const Chat = ({
             }
         },
         "content": {
-            "Commands": {
-                "metadata": {
-                    "name": "Chat",
-                    "tags": [],
-                    "properties": {
-                        "favourite": true,
-                        "description": "Quickly send one of a number of simple common commands to the AI."
-                    }
-                },
-                "content": {
-                    "tools": {
-                        "Continue": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Continue the conversation"
-                            },
-                            "content": {
-                                "prompt": "Continue"
-                            }
-                        },
-                        "Summarise": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Summarise the current discussion"
-                            },
-                            "content": {
-                                "prompt": "Summarise the current discussion in one paragraph including the main topics discussed, any conclusions reached, and any outstanding questions or issues"
-                            }
-                        },
-                        "Summarise as bullets": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Summarise key points as a bullet list"
-                            },
-                            "content": {
-                                "prompt": "Summarise key points as a bullet list; include any conclusions reached, and any outstanding questions or issues"
-                            }
-                        },
-                        "Elaborate": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Elaborate on that"
-                            },
-                            "content": {
-                                "prompt": "Elaborate on that"
-                            }
-                        },
-                        "Give examples": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Provide some examples"
-                            },
-                            "content": {
-                                "prompt": "Provide some examples; include what are considered to be the most important examples, most common examples, more recent or innovative examples, and some less obvious examples"
-                            }
-                        },
-                        "Provide more detail": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Provide more detail"
-                            },
-                            "content": {
-                                "prompt": "Provide more detail; include any relevant background information, explanations, and examples"
-                            }
-                        },
-                        "Explain in simple terms": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Explain in simple terms"
-                            },
-                            "content": {
-                                "prompt": "Explain in simple terms"
-                            }
-                        },
-                        "Explain in detail": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Explain in detail"
-                            },
-                            "content": {
-                                "prompt": "Provide a detailed explanation; Include relevant concepts and definitions, key components, historical background, current relevance, along with some significant examples or applications. Additionally, discuss any controversies or debates surrounding this and potential future developments."
-                            }
-                        },
-                        "Background and history": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Provide the background and history"
-                            },
-                            "content": {
-                                "prompt": "Provide the background and history"
-                            }
-                        },
-                        "Pros and cons": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "What are the pros and cons?"
-                            },
-                            "content": {
-                                "prompt": "What are the pros and cons?"
-                            }
-                        },
-                        "Simplify": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "How can we simplify this?"
-                            },
-                            "content": {
-                                "prompt": "How can we simplify this? Start by describing the nature of the complexity, list ways in which it could be simplified in principle, and provide specific examples."
-                            }
-                        },
-                        "Pivot topic": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Pivot the conversation to a different but related topic."
-                            },
-                            "content": {
-                                "prompt": "Let's pivot the conversation. Tell me about something different but related."
-                            }
-                        },
-                        "Alternative perspective": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Provide an alternative perspective"
-                            },
-                            "content": {
-                                "prompt": "Provide an alternative perspective"
-                            }
-                        },
-                        "Contrary view": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Propose a contrary view"
-                            },
-                            "content": {
-                                "prompt": "Propose a contrary view, explain how it is contrary and why it might be relevant and worth considering"
-                            }
-                        },
-                    }
-                }
-            },
-            "Futurology": {
-                "metadata": {
-                    "name": "Futurology",
-                    "tags": [],
-                    "properties": {
-                        "favourite": true,
-                        "description": "Prompts for exploring and envisioning potential future scenarios"
-                    }
-                },
-                "content": {
-                    "tools": {
-                        "Predict Trends": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Predict future trends"
-                            },
-                            "content": {
-                                "prompt": "Predict the major trends in this domain for the next decade"
-                            }
-                        },
-                        "Technological Advancements": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Discuss future technological advancements"
-                            },
-                            "content": {
-                                "prompt": "Discuss potential technological advancements in this field along with related trends and enablers and the ultimate implications of these advancements"
-                            }
-                        },
-                        "Future Challenges": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify future challenges"
-                            },
-                            "content": {
-                                "prompt": "Identify and explain the major challenges that might arise in the future related to this topic"
-                            }
-                        },
-                        "Future Opportunities": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Explore future opportunities"
-                            },
-                            "content": {
-                                "prompt": "Explore potential opportunities that could emerge in the future within this area"
-                            }
-                        },
-                        "Scenario Planning": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Create future scenarios"
-                            },
-                            "content": {
-                                "prompt": "Create different future scenarios based on varying assumptions and conditions about what could change in this field"
-                            }
-                        },
-                        "Impact on Society": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Discuss the potential societal impact"
-                            },
-                            "content": {
-                                "prompt": "Discuss how future developments in this field could impact society"
-                            }
-                        },
-                        "Ethical Considerations": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Examine ethical considerations"
-                            },
-                            "content": {
-                                "prompt": "Examine the ethical considerations and dilemmas that might arise with future advancements in this area"
-                            }
-                        },
-                        "Future Innovations": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Speculate on future innovations"
-                            },
-                            "content": {
-                                "prompt": "Speculate on possible future innovations and their potential impact, include some incremental innovations and some game-changers"
-                            }
-                        },
-                        "Long-term Vision": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Articulate a long-term vision of the future"
-                            },
-                            "content": {
-                                "prompt": "Articulate a long-term vision for the future of this topic, considering possible developments over the next 50 years"
-                            }
-                        },
-                        "Global Impact": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Discuss the global impact"
-                            },
-                            "content": {
-                                "prompt": "Discuss the potential global impact of future developments in this field"
-                            }
-                        },
-                        "Environmental Impact": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Analyse the environmental impact"
-                            },
-                            "content": {
-                                "prompt": "Analyse the potential environmental impact of future advancements in this area"
-                            }
-                        },
-                        "Economic Impact": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Evaluate the economic impact"
-                            },
-                            "content": {
-                                "prompt": "Evaluate the potential economic impact of future trends and developments in this field"
-                            }
-                        },
-                        "Cultural Shifts": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Explore potential cultural shifts"
-                            },
-                            "content": {
-                                "prompt": "Explore how future trends might lead to cultural shifts and changes in societal norms"
-                            }
-                        },
-                        "Policy Implications": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Discuss policy implications"
-                            },
-                            "content": {
-                                "prompt": "Discuss the potential policy implications and regulatory considerations for future developments in this area"
-                            }
-                        },
-                        "Evolve with worsening action": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "What might this situation evolve into if the tensions are not resolved and the actions that are taken progressively make things worse?"
-                            },
-                            "content": {
-                                "prompt": "What might this situation evolve into if the tensions are not resolved and the actions that are taken progressively make things worse?"
-                            }
-                        },
-                        "Evolve with improving action": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "What might this situation evolve into if the tensions are resolved and actions are taken to progressively improve the situation?"
-                            },
-                            "content": {
-                                "prompt": "What might this situation evolve into if the tensions are resolved and actions are taken to progressively improve the situation?"
-                            }
-                        },
-                        "Evolve with worst action": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "What might this situation evolve into if the tensions are not resolved and the worst possible actions are taken to make things worse?"
-                            },
-                            "content": {
-                                "prompt": "What might this situation evolve into if the tensions are not resolved and the worst possible actions are taken to make things worse?"
-                            }
-                        },
-                        "Evolve with best action": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "What might this situation evolve into if the tensions are resolved and the best possible actions are taken to improve the situation?"
-                            },
-                            "content": {
-                                "prompt": "What might this situation evolve into if the tensions are resolved and the best possible actions are taken to improve the situation?"
-                            }
-                        },
-                    }
-                }
-            },
-            "Ask others": {
-                "metadata": {
-                    "name": "Ask others",
-                    "tags": [],
-                    "properties": {
-                        "favourite": true,
-                        "description": "Get more rounded perspectives by simulating consulting others"
-                    }
-                },
-                "content": {
-                    "tools": 
-                    {
-                        "Be me": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Predict my next observations and question based on the chat."
-                            },
-                            "content": {
-                                "prompt": "Considering my previous messages, the direction of our discussion, and the topics I've shown interest in, predict some insightful observations I might make and the next thoughtful question I would ask. Then, provide a detailed answer to that question."
-                            }
-                        },
-                        "Consult a friend": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Imagine my smartest friends are helping."
-                            },
-                            "content": {
-                                "prompt": "Imagine my five smartest friends with diverse skills and motivations are collaborating on this. Predict some insightful observations each might make and a deep, thought-provoking question each might ask. Then, provide comprehensive answers to those questions."
-                            }
-                        },
-                        "Ask a mentor": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Imagine an expert mentor is advising."
-                            },
-                            "content": {
-                                "prompt": "Imagine I have a wise and experienced mentor in this field. Predict some keen observations they might make and a profound, expert-level question they might ask. Then, provide a thorough and well-informed answer to that question."
-                            }
-                        },
-                        "Ask a novice": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Imagine a curious novice is asking about this."
-                            },
-                            "content": {
-                                "prompt": "Imagine I have a friend who is new to this topic. Predict some fresh and curious observations they might make and a basic yet insightful question they might ask. Then, provide a clear and informative answer to that question."
-                            }
-                        },
-                        "Ask a skeptic": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Imagine a critical skeptic is wading in."
-                            },
-                            "content": {
-                                "prompt": "Imagine I have a friend who is skeptical about this topic. Predict some critical and challenging observations they might make and a probing question they might ask. Then, provide a well-reasoned and robust answer to that question."
-                            }
-                        },
-                        "Ask a supporter": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Imagine an enthusiastic supporter is helping."
-                            },
-                            "content": {
-                                "prompt": "Imagine I have a friend who is very supportive of this topic. Predict some positive and enthusiastic observations they might make and an encouraging question they might ask. Then, provide a detailed and optimistic answer to that question."
-                            }
-                        },
-                        "Ask a critic": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Imagine a harsh critic is raising challenges."
-                            },
-                            "content": {
-                                "prompt": "Imagine I have a friend who is critical of this topic. Predict some harsh and negative observations and challenges they might make and a challenging question they might ask. Then, provide a balanced and thoughtful answer to that question."
-                            }
-                        },
-                        "Ask a visionary": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Imagine a creative visionary is helping."
-                            },
-                            "content": {
-                                "prompt": "Imagine I have a friend who is a visionary in this field. Predict some imaginative and forward-thinking observations they might make and an innovative question they might ask. Then, provide a creative and detailed answer to that question."
-                            }
-                        },
-                        "Ask a realist": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Imagine a practical realist is helping."
-                            },
-                            "content": {
-                                "prompt": "Imagine I have a friend who is a realist about this topic. Predict some practical and grounded observations they might make and a sensible question they might ask. Then, provide a pragmatic and detailed answer to that question."
-                            }
-                        },
-                        "Ask a dreamer": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Imagine an imaginative dreamer is helping."
-                            },
-                            "content": {
-                                "prompt": "Imagine I have a friend who is a dreamer in this area. Predict some imaginative and idealistic observations they might make and a visionary question they might ask. Then, provide a thoughtful and aspirational answer to that question."
-                            }
-                        },
-                        "Ask a pragmatist": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Imagine a sensible pragmatist is helping."
-                            },
-                            "content": {
-                                "prompt": "Imagine I have a friend who is a pragmatist about this topic. Predict some sensible and practical observations they might make and a solution-focused question they might ask. Then, provide a practical and actionable answer to that question."
-                            }
-                        },
-                        "Ask a pessimist": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Imagine a skeptical pessimist is helping."
-                            },
-                            "content": {
-                                "prompt": "Imagine I have a friend who is pessimistic about this topic. Predict some negative and skeptical observations they might make and a questioning, doubtful question they might ask. Then, provide a balanced and well-reasoned answer to that question."
-                            }
-                        },
-                        "Ask an optimist": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Imagine a hopeful optimist is helping."
-                            },
-                            "content": {
-                                "prompt": "Imagine I have a friend who is optimistic about this topic. Predict some positive and hopeful observations they might make and an encouraging question they might ask. Then, provide a detailed and uplifting answer to that question."
-                            }
-                        }
-                    }                    
-                }
-            },
-            "Debate": {
-                "metadata": {
-                    "name": "Debate",
-                    "tags": [],
-                    "properties": {
-                        "favourite": true,
-                        "description": "Prompts for engaging in a debate or argument"
-                    }
-                },
-                "content": {
-                    "tools": {
-                        "Refute": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Provide a refutation"
-                            },
-                            "content": {
-                                "prompt": "Refute the arguments made. Explain the weaknesses or flaws in the reasoning and present evidence to disprove them."
-                            }
-                        },
-                        "Cross-Examination": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Conduct a cross-examination"
-                            },
-                            "content": {
-                                "prompt": "Formulate questions to ask that clarify the arguments, expose contradictions, or highlight weaknesses. These questions should be aimed at undermining the credibility or validity of the points made."
-                            }
-                        },
-                        "Signposting": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Use signposting to structure your argument"
-                            },
-                            "content": {
-                                "prompt": "Outline the structure of the argument clearly. Indicate when transitioning from one point to another to help people follow the reasoning easily."
-                            }
-                        },
-                        "Evidence and Examples": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Provide evidence and examples"
-                            },
-                            "content": {
-                                "prompt": "Use credible sources, statistics, expert opinions, and real-world examples to back up these arguments. Explain how this evidence supports the claims and adds weight to the argument."
-                            }
-                        },
-                        "Analogies and Comparisons": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Use analogies and comparisons"
-                            },
-                            "content": {
-                                "prompt": "Draw parallels between the arguments and other well-understood situations. Use these analogies and comparisons to make the points more relatable and understandable."
-                            }
-                        },
-                        "Anticipate Counterarguments": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Anticipate counterarguments and construct responses"
-                            },
-                            "content": {
-                                "prompt": "Predict counter arguments that are likely to be made and prepare responses. Explain how to counter each arguments to weaken their case."
-                            }
-                        },
-                        "Rhetorical Questions": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Use rhetorical questions to engage the audience"
-                            },
-                            "content": {
-                                "prompt": "Formulate rhetorical questions that don't require an answer but are designed to make the audience think and reinforce the points. Explain how these questions support the argument."
-                            }
-                        },
-                        "Summarisation": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Summarise the arguments"
-                            },
-                            "content": {
-                                "prompt": "Conclude the argument by summarising the main points. Reinforce why the proposed position is stronger and leave a lasting impression on the audience."
-                            }
-                        },
-                        "Challenge assumptions": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Challenge the assumptions made"
-                            },
-                            "content": {
-                                "prompt": "Challenge the assumptions made with rationale and alternative perspectives"
-                            }
-                        },
-                        "Propose a different approach": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Propose a different approach"
-                            },
-                            "content": {
-                                "prompt": "Propose a different approach aiming to be constructive and insightful whilst also being direct and candid about shortcomings of the current approach"
-                            }
-                        },
-                        "Predict consequences": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Predict the consequences, issues and questions raised"
-                            },
-                            "content": {
-                                "prompt": "Predict the consequences of the situation along with risks this poses and questions this raises"
-                            }
-                        },
-                        "Pivot argument": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Pivot the debate to come at it from a different angle."
-                            },
-                            "content": {
-                                "prompt": "Pivot the debate to come at it from a different angle; provide a fresh perspective or introduce a new line of argument."
-                            }
-                        },
-                    }
-                }
-            },
-            "Exploration": {
-                "metadata": {
-                    "name": "Exploration",
-                    "tags": [],
-                    "properties": {
-                        "favourite": true,
-                        "description": "Explore the situation or topic further"
-                    }
-                },
-                "content": {
-                    "tools": {
-                        "Questions raised": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Explore what questions this raises"
-                            },
-                            "content": {
-                                "prompt": "What questions does this raise?"
-                            }
-                        },
-                        "Implications": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Explore the implications of this"
-                            },
-                            "content": {
-                                "prompt": "What are the implications of this?"
-                            }
-                        },
-                        "Related topics": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify related topics"
-                            },
-                            "content": {
-                                "prompt": "What topics are related to this?"
-                            }
-                        },
-                        "Related trends": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify related trends"
-                            },
-                            "content": {
-                                "prompt": "What trends are related to this?"
-                            }
-                        },
-                        "Underlying principles": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Explain the fundamental principles underlying this"
-                            },
-                            "content": {
-                                "prompt": "Explain the fundamental principles underlying this"
-                            }
-                        },
-                        "Historical precedents": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Compare this situation with historical precedents or trends"
-                            },
-                            "content": {
-                                "prompt": "How does this situation compare with historical precedents or trends?"
-                            }
-                        },
-                        "Common misconceptions": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify common misconceptions or misunderstandings"
-                            },
-                            "content": {
-                                "prompt": "What are the most common misconceptions or misunderstandings about this situation?"
-                            }
-                        },
-                        "Learning resources": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Find more information or resources"
-                            },
-                            "content": {
-                                "prompt": "Where can I find more information or resources to deepen my understanding of this situation?"
-                            }
-                        },
-                        "Alternative perspectives": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Explore alternative perspectives or viewpoints"
-                            },
-                            "content": {
-                                "prompt": "What alternative perspectives or viewpoints exist on this situation?"
-                            }
-                        },
-                        "Learning opportunities": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify learning opportunities from this situation"
-                            },
-                            "content": {
-                                "prompt": "How can this situation serve as a learning opportunity?"
-                            }
-                        },
-                        "Tech enablers": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify ways technology could improve this situation"
-                            },
-                            "content": {
-                                "prompt": "In what ways could technology be leveraged to improve this situation?"
-                            }
-                        },
-                        "Business model ideas": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Explore potential business model ideas and opportunities related to this"
-                            },
-                            "content": {
-                                "prompt": "How could this situation be leveraged as the basis of a business model?"
-                            }
-                        },
-                        "Go up a level": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Explore the super-system, ecosystem, and related systems"
-                            },
-                            "content": {
-                                "prompt": "Let's go up a level. Describe the super-system that this system operates within. What is its role, what other systems are related to it?, to what extent do they form an ecosystem?, how do they support or hinder each other?"
-                            }
-                        },
-                        "Go down a level": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Explore the sub-systems and dependencies"
-                            },
-                            "content": {
-                                "prompt": "Let's go down a level. Describe the sub-systems and dependencies of this system. What are they? How do they manifest in the system? What are their roles in the success of the overall system?"
-                            }
-                        },
-                    }
-                }
-            },
-            "Problem Solving": {
-                "metadata": {
-                    "name": "Problem Solving",
-                    "tags": [],
-                    "properties": {
-                        "favourite": true,
-                        "description": "Help with problem solving"
-                    }
-                },
-                "content": {
-                    "tools": {
-                        "Causes": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Explore the factors leading to this situation and what caused it"
-                            },
-                            "content": {
-                                "prompt": "What led to this situation?"
-                            }
-                        },
-                        "Contributing factors": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Explain the key factors contributing to this situation"
-                            },
-                            "content": {
-                                "prompt": "Explain the key factors contributing to this situation"
-                            }
-                        },
-                        "Impact": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Discuss potential short-term and long-term impacts"
-                            },
-                            "content": {
-                                "prompt": "What are the potential short-term and long-term impacts of this situation?"
-                            }
-                        },
-                        "Prevention": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Discuss prevention strategies"
-                            },
-                            "content": {
-                                "prompt": "How could this situation have been prevented?"
-                            }
-                        },
-                        "Overcoming barriers": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify barriers and solutions"
-                            },
-                            "content": {
-                                "prompt": "What are the barriers to resolving this situation, and how can they be overcome?"
-                            }
-                        },
-                        "Risks and uncertainties": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify potential risks and uncertainties"
-                            },
-                            "content": {
-                                "prompt": "What are the potential risks and uncertainties associated with this situation?"
-                            }
-                        },
-                        "Compare and contrast": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Compare and contrast a variety of options"
-                            },
-                            "content": {
-                                "prompt": "Given the situation and potential options, compare and contrast the options discussed with a variety of other possible options"
-                            }
-                        },
-                        "Predict outcomes": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Predict outcomes and questions they raise"
-                            },
-                            "content": {
-                                "prompt": "Predict potential outcomes and questions they raise"
-                            }
-                        },
-                        "Evaluate options": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Evaluate the options"
-                            },
-                            "content": {
-                                "prompt": "Evaluate the options discussed, giving a balanced view of the pros and cons of each along with potential risks and benefits"
-                            }
-                        },
-                        "Ethical considerations": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Discuss ethical considerations"
-                            },
-                            "content": {
-                                "prompt": "What are the ethical considerations related to this situation?"
-                            }
-                        },
-                        "Legal implications": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Discuss legal implications"
-                            },
-                            "content": {
-                                "prompt": "What are the legal implications of this situation?"
-                            }
-                        },
-                        "Problems & conflicts": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify key problems and conflicts and potential solutions"
-                            },
-                            "content": {
-                                "prompt": "Identify the key problems and conflicts in this situation. How could each be addressed?"
-                            }
-                        },
-                        "Skills & experience": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify skills and experience that could help"
-                            },
-                            "content": {
-                                "prompt": "What skills and experience could help improve this situation?"
-                            }
-                        },
-                        "Lessons from history": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Discuss historical precedents and lessons"
-                            },
-                            "content": {
-                                "prompt": "What does history tell us about this kind of situation?"
-                            }
-                        }
-                    }
-                }
-            },
-            "Change Management": {
-                "metadata": {
-                    "name": "Change Management",
-                    "tags": [],
-                    "properties": {
-                        "favourite": true,
-                        "description": "Prompts for managing change and transformation"
-                    }
-                },
-                "content": {
-                    "tools": {
-                        "Change drivers": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify the drivers for change"
-                            },
-                            "content": {
-                                "prompt": "What are the drivers for change in this situation?"
-                            }
-                        },
-                        "Change impacts": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Discuss the impacts of change"
-                            },
-                            "content": {
-                                "prompt": "What are the impacts of change in this situation?"
-                            }
-                        },
-                        "Change resistance": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify potential resistance to change"
-                            },
-                            "content": {
-                                "prompt": "What are the potential sources of resistance to change in this situation?"
-                            }
-                        },
-                        "Change strategies": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Discuss strategies for managing change"
-                            },
-                            "content": {
-                                "prompt": "What strategies could be employed to manage change in this situation?"
-                            }
-                        },
-                        "Stakeholder impact": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify affected stakeholders and their impact"
-                            },
-                            "content": {
-                                "prompt": "What stakeholders could be affected by this situation and how?"
-                            }
-                        },
-                        "Communication plan": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Develop a communication plan for change"
-                            },
-                            "content": {
-                                "prompt": "Develop a communication plan for managing change in this situation"
-                            }
-                        },
-                        "Training needs": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify training needs for change"
-                            },
-                            "content": {
-                                "prompt": "What training needs could arise from this situation?"
-                            }
-                        },
-                        "Resource allocation": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Discuss resource allocation for change"
-                            },
-                            "content": {
-                                "prompt": "How should resources be allocated to manage change in this situation?"
-                            }
-                        },
-                        "Change readiness": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Assess the readiness for change"
-                            },
-                            "content": {
-                                "prompt": "How can we assess the readiness of the organisation for this change?"
-                            }
-                        },
-                        "Mitigating negative outcomes": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify mitigation strategies for negative outcomes"
-                            },
-                            "content": {
-                                "prompt": "What strategies can be employed to mitigate unavoidable negative outcomes?"
-                            }
-                        },
-                        "Coping strategies": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify coping strategies for unavoidable negative outcomes"
-                            },
-                            "content": {
-                                "prompt": "What strategies can be employed to cope with negative outcomes that can't be mitigated?"
-                            }
-                        },
-                        "Process improvements": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify ways processes could be adapted to improve this situation"
-                            },
-                            "content": {
-                                "prompt": "In what ways could processes be adapted to improve this situation?"
-                            }
-                        },
-                        "Org improvements": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify ways organisational change could improve this situation"
-                            },
-                            "content": {
-                                "prompt": "In what ways could organisational change improve this situation?"
-                            }
-                        },
-                        "Tech improvements": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify ways technology could be leveraged to improve this situation"
-                            },
-                            "content": {
-                                "prompt": "In what ways could technology be leveraged to achieve the desired change?"
-                            }
-                        },
-                        "Measuring success": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Discuss how success will be measured and assured"
-                            },
-                            "content": {
-                                "prompt": "Discuss what could be used as measures for success and how this could be tracked and fed back into the change process to help adjust course as needed"
-                            }
-                        },
-                        "Feedback mechanisms": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify feedback mechanisms for continuous improvement"
-                            },
-                            "content": {
-                                "prompt": "What feedback mechanisms could be put in place to ensure continuous improvement and success?"
-                            }
-                        },
-                    }
-                }
-            },
             "Analysis": {
                 "metadata": {
                     "name": "Analysis",
@@ -1397,6 +389,1118 @@ const Chat = ({
                     }
                 }
             },
+            "Ask others": {
+                "metadata": {
+                    "name": "Ask others",
+                    "tags": [],
+                    "properties": {
+                        "favourite": true,
+                        "description": "Get more rounded perspectives by simulating consulting others"
+                    }
+                },
+                "content": {
+                    "tools": 
+                    {
+                        "Be me": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Predict my next observations and question based on the chat."
+                            },
+                            "content": {
+                                "prompt": "Considering my previous messages, the direction of our discussion, and the topics I've shown interest in, predict some insightful observations I might make and the next thoughtful question I would ask. Then, provide a detailed answer to that question."
+                            }
+                        },
+                        "Consult a friend": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Imagine my smartest friends are helping."
+                            },
+                            "content": {
+                                "prompt": "Imagine my five smartest friends with diverse skills and motivations are collaborating on this. Predict some insightful observations each might make and a deep, thought-provoking question each might ask. Then, provide comprehensive answers to those questions."
+                            }
+                        },
+                        "Ask a mentor": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Imagine an expert mentor is advising."
+                            },
+                            "content": {
+                                "prompt": "Imagine I have a wise and experienced mentor in this field. Predict some keen observations they might make and a profound, expert-level question they might ask. Then, provide a thorough and well-informed answer to that question."
+                            }
+                        },
+                        "Ask a novice": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Imagine a curious novice is asking about this."
+                            },
+                            "content": {
+                                "prompt": "Imagine I have a friend who is new to this topic. Predict some fresh and curious observations they might make and a basic yet insightful question they might ask. Then, provide a clear and informative answer to that question."
+                            }
+                        },
+                        "Ask a skeptic": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Imagine a critical skeptic is wading in."
+                            },
+                            "content": {
+                                "prompt": "Imagine I have a friend who is skeptical about this topic. Predict some critical and challenging observations they might make and a probing question they might ask. Then, provide a well-reasoned and robust answer to that question."
+                            }
+                        },
+                        "Ask a supporter": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Imagine an enthusiastic supporter is helping."
+                            },
+                            "content": {
+                                "prompt": "Imagine I have a friend who is very supportive of this topic. Predict some positive and enthusiastic observations they might make and an encouraging question they might ask. Then, provide a detailed and optimistic answer to that question."
+                            }
+                        },
+                        "Ask a critic": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Imagine a harsh critic is raising challenges."
+                            },
+                            "content": {
+                                "prompt": "Imagine I have a friend who is critical of this topic. Predict some harsh and negative observations and challenges they might make and a challenging question they might ask. Then, provide a balanced and thoughtful answer to that question."
+                            }
+                        },
+                        "Ask a visionary": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Imagine a creative visionary is helping."
+                            },
+                            "content": {
+                                "prompt": "Imagine I have a friend who is a visionary in this field. Predict some imaginative and forward-thinking observations they might make and an innovative question they might ask. Then, provide a creative and detailed answer to that question."
+                            }
+                        },
+                        "Ask a realist": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Imagine a practical realist is helping."
+                            },
+                            "content": {
+                                "prompt": "Imagine I have a friend who is a realist about this topic. Predict some practical and grounded observations they might make and a sensible question they might ask. Then, provide a pragmatic and detailed answer to that question."
+                            }
+                        },
+                        "Ask a dreamer": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Imagine an imaginative dreamer is helping."
+                            },
+                            "content": {
+                                "prompt": "Imagine I have a friend who is a dreamer in this area. Predict some imaginative and idealistic observations they might make and a visionary question they might ask. Then, provide a thoughtful and aspirational answer to that question."
+                            }
+                        },
+                        "Ask a pragmatist": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Imagine a sensible pragmatist is helping."
+                            },
+                            "content": {
+                                "prompt": "Imagine I have a friend who is a pragmatist about this topic. Predict some sensible and practical observations they might make and a solution-focused question they might ask. Then, provide a practical and actionable answer to that question."
+                            }
+                        },
+                        "Ask a pessimist": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Imagine a skeptical pessimist is helping."
+                            },
+                            "content": {
+                                "prompt": "Imagine I have a friend who is pessimistic about this topic. Predict some negative and skeptical observations they might make and a questioning, doubtful question they might ask. Then, provide a balanced and well-reasoned answer to that question."
+                            }
+                        },
+                        "Ask an optimist": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Imagine a hopeful optimist is helping."
+                            },
+                            "content": {
+                                "prompt": "Imagine I have a friend who is optimistic about this topic. Predict some positive and hopeful observations they might make and an encouraging question they might ask. Then, provide a detailed and uplifting answer to that question."
+                            }
+                        }
+                    }                    
+                }
+            },
+            "Change Management": {
+                "metadata": {
+                    "name": "Change Management",
+                    "tags": [],
+                    "properties": {
+                        "favourite": true,
+                        "description": "Prompts for managing change and transformation"
+                    }
+                },
+                "content": {
+                    "tools": {
+                        "Change drivers": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Identify the drivers for change"
+                            },
+                            "content": {
+                                "prompt": "What are the drivers for change in this situation?"
+                            }
+                        },
+                        "Change impacts": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Discuss the impacts of change"
+                            },
+                            "content": {
+                                "prompt": "What are the impacts of change in this situation?"
+                            }
+                        },
+                        "Change resistance": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Identify potential resistance to change"
+                            },
+                            "content": {
+                                "prompt": "What are the potential sources of resistance to change in this situation?"
+                            }
+                        },
+                        "Change strategies": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Discuss strategies for managing change"
+                            },
+                            "content": {
+                                "prompt": "What strategies could be employed to manage change in this situation?"
+                            }
+                        },
+                        "Stakeholder impact": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Identify affected stakeholders and their impact"
+                            },
+                            "content": {
+                                "prompt": "What stakeholders could be affected by this situation and how?"
+                            }
+                        },
+                        "Communication plan": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Develop a communication plan for change"
+                            },
+                            "content": {
+                                "prompt": "Develop a communication plan for managing change in this situation"
+                            }
+                        },
+                        "Training needs": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Identify training needs for change"
+                            },
+                            "content": {
+                                "prompt": "What training needs could arise from this situation?"
+                            }
+                        },
+                        "Resource allocation": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Discuss resource allocation for change"
+                            },
+                            "content": {
+                                "prompt": "How should resources be allocated to manage change in this situation?"
+                            }
+                        },
+                        "Change readiness": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Assess the readiness for change"
+                            },
+                            "content": {
+                                "prompt": "How can we assess the readiness of the organisation for this change?"
+                            }
+                        },
+                        "Mitigating negative outcomes": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Identify mitigation strategies for negative outcomes"
+                            },
+                            "content": {
+                                "prompt": "What strategies can be employed to mitigate unavoidable negative outcomes?"
+                            }
+                        },
+                        "Coping strategies": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Identify coping strategies for unavoidable negative outcomes"
+                            },
+                            "content": {
+                                "prompt": "What strategies can be employed to cope with negative outcomes that can't be mitigated?"
+                            }
+                        },
+                        "Process improvements": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Identify ways processes could be adapted to improve this situation"
+                            },
+                            "content": {
+                                "prompt": "In what ways could processes be adapted to improve this situation?"
+                            }
+                        },
+                        "Org improvements": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Identify ways organisational change could improve this situation"
+                            },
+                            "content": {
+                                "prompt": "In what ways could organisational change improve this situation?"
+                            }
+                        },
+                        "Tech improvements": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Identify ways technology could be leveraged to improve this situation"
+                            },
+                            "content": {
+                                "prompt": "In what ways could technology be leveraged to achieve the desired change?"
+                            }
+                        },
+                        "Measuring success": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Discuss how success will be measured and assured"
+                            },
+                            "content": {
+                                "prompt": "Discuss what could be used as measures for success and how this could be tracked and fed back into the change process to help adjust course as needed"
+                            }
+                        },
+                        "Feedback mechanisms": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Identify feedback mechanisms for continuous improvement"
+                            },
+                            "content": {
+                                "prompt": "What feedback mechanisms could be put in place to ensure continuous improvement and success?"
+                            }
+                        },
+                    }
+                }
+            },
+            "Commands": {
+                "metadata": {
+                    "name": "Chat",
+                    "tags": [],
+                    "properties": {
+                        "favourite": true,
+                        "description": "Quickly send one of a number of simple common commands to the AI."
+                    }
+                },
+                "content": {
+                    "tools": {
+                        "Continue": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Continue the conversation"
+                            },
+                            "content": {
+                                "prompt": "Continue"
+                            }
+                        },
+                        "Summarise": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Summarise the current discussion"
+                            },
+                            "content": {
+                                "prompt": "Summarise the current discussion in one paragraph including the main topics discussed, any conclusions reached, and any outstanding questions or issues"
+                            }
+                        },
+                        "Summarise as bullets": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Summarise key points as a bullet list"
+                            },
+                            "content": {
+                                "prompt": "Summarise key points as a bullet list; include any conclusions reached, and any outstanding questions or issues"
+                            }
+                        },
+                        "Elaborate": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Elaborate on that"
+                            },
+                            "content": {
+                                "prompt": "Elaborate on that"
+                            }
+                        },
+                        "Give examples": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Provide some examples"
+                            },
+                            "content": {
+                                "prompt": "Provide some examples; include what are considered to be the most important examples, most common examples, more recent or innovative examples, and some less obvious examples"
+                            }
+                        },
+                        "Provide more detail": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Provide more detail"
+                            },
+                            "content": {
+                                "prompt": "Provide more detail; include any relevant background information, explanations, and examples"
+                            }
+                        },
+                        "Explain in simple terms": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Explain in simple terms"
+                            },
+                            "content": {
+                                "prompt": "Explain in simple terms"
+                            }
+                        },
+                        "Explain in detail": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Explain in detail"
+                            },
+                            "content": {
+                                "prompt": "Provide a detailed explanation; Include relevant concepts and definitions, key components, historical background, current relevance, along with some significant examples or applications. Additionally, discuss any controversies or debates surrounding this and potential future developments."
+                            }
+                        },
+                        "Background and history": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Provide the background and history"
+                            },
+                            "content": {
+                                "prompt": "Provide the background and history"
+                            }
+                        },
+                        "Pros and cons": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "What are the pros and cons?"
+                            },
+                            "content": {
+                                "prompt": "What are the pros and cons?"
+                            }
+                        },
+                        "Simplify": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "How can we simplify this?"
+                            },
+                            "content": {
+                                "prompt": "How can we simplify this? Start by describing the nature of the complexity, list ways in which it could be simplified in principle, and provide specific examples."
+                            }
+                        },
+                        "Pivot topic": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Pivot the conversation to a different but related topic."
+                            },
+                            "content": {
+                                "prompt": "Let's pivot the conversation. Tell me about something different but related."
+                            }
+                        },
+                        "Alternative perspective": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Provide an alternative perspective"
+                            },
+                            "content": {
+                                "prompt": "Provide an alternative perspective"
+                            }
+                        },
+                        "Contrary view": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Propose a contrary view"
+                            },
+                            "content": {
+                                "prompt": "Propose a contrary view, explain how it is contrary and why it might be relevant and worth considering"
+                            }
+                        },
+                    }
+                }
+            },
+            "Communication": {
+                "metadata": {
+                    "name": "Communication",
+                    "tags": [],
+                    "properties": {
+                        "favourite": false,
+                        "description": "Prompts to help refine and create effective communication"
+                    }
+                },
+                "content": {
+                    "tools": {
+                        "Draft an Email": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Draft a professional email based on the discussion"
+                            },
+                            "content": {
+                                "prompt": "Based on our discussion, draft a professional email"
+                            }
+                        },
+                        "Create a Presentation Outline": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Create an outline for a presentation"
+                            },
+                            "content": {
+                                "prompt": "Create an outline for a presentation based on our discussion"
+                            }
+                        },
+                        "Summarise Key Points": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Summarise the key points from the discussion"
+                            },
+                            "content": {
+                                "prompt": "Summarise the key points from our discussion"
+                            }
+                        },
+                        "Generate a Report": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Generate a report based on the discussion"
+                            },
+                            "content": {
+                                "prompt": "Generate a report based on our discussion"
+                            }
+                        },
+                        "Write a Social Media Post": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Draft a social media post based on our discussion"
+                            },
+                            "content": {
+                                "prompt": "Draft a social media post based on our discussion"
+                            }
+                        },
+                        "Create Talking Points": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Create talking points for a meeting or presentation"
+                            },
+                            "content": {
+                                "prompt": "Create talking points for a meeting/presentation based on our discussion"
+                            }
+                        },
+                        "Write an Article": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Draft an article based on the discussion"
+                            },
+                            "content": {
+                                "prompt": "Draft an article based on the discussion"
+                            }
+                        },
+                        "Formulate a Response": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Formulate a response to a query or statement"
+                            },
+                            "content": {
+                                "prompt": "Based on our discussion, can you formulate a response to [query/statement]?"
+                            }
+                        },
+                        "Prepare a Speech": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Prepare a speech based on the discussion"
+                            },
+                            "content": {
+                                "prompt": "Prepare a speech based on the discussion"
+                            }
+                        },
+                        "Create a Proposal": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Draft a proposal based on the discussion"
+                            },
+                            "content": {
+                                "prompt": "Draft a proposal based on the discussion"
+                            }
+                        },
+                        "Draft a Press Release": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Draft a press release based on the discussion"
+                            },
+                            "content": {
+                                "prompt": "Draft a press release based on this discussion"
+                            }
+                        },
+                        "Create a FAQ": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Create a list of frequently asked questions and answers"
+                            },
+                            "content": {
+                                "prompt": "Create a list of frequently asked questions and answers based on this discussion"
+                            }
+                        },
+                        "Write a Blog Post": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Draft a blog post based on the discussion"
+                            },
+                            "content": {
+                                "prompt": "Draft a blog post based on this discussion"
+                            }
+                        },
+                        "Create a tweet": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Create a tweet"
+                            },
+                            "content": {
+                                "prompt": "Create a tweet based on the discussion"
+                            }
+                        },
+                        "Prepare an Elevator Pitch": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Prepare an elevator pitch based on the discussion"
+                            },
+                            "content": {
+                                "prompt": "Prepare an elevator pitch based on the discussion"
+                            }
+                        }
+                    }
+                }
+            },
+            "Debate": {
+                "metadata": {
+                    "name": "Debate",
+                    "tags": [],
+                    "properties": {
+                        "favourite": true,
+                        "description": "Prompts for engaging in a debate or argument"
+                    }
+                },
+                "content": {
+                    "tools": {
+                        "Refute": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Provide a refutation"
+                            },
+                            "content": {
+                                "prompt": "Refute the arguments made. Explain the weaknesses or flaws in the reasoning and present evidence to disprove them."
+                            }
+                        },
+                        "Cross-Examination": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Conduct a cross-examination"
+                            },
+                            "content": {
+                                "prompt": "Formulate questions to ask that clarify the arguments, expose contradictions, or highlight weaknesses. These questions should be aimed at undermining the credibility or validity of the points made."
+                            }
+                        },
+                        "Signposting": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Use signposting to structure your argument"
+                            },
+                            "content": {
+                                "prompt": "Outline the structure of the argument clearly. Indicate when transitioning from one point to another to help people follow the reasoning easily."
+                            }
+                        },
+                        "Evidence and Examples": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Provide evidence and examples"
+                            },
+                            "content": {
+                                "prompt": "Use credible sources, statistics, expert opinions, and real-world examples to back up these arguments. Explain how this evidence supports the claims and adds weight to the argument."
+                            }
+                        },
+                        "Analogies and Comparisons": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Use analogies and comparisons"
+                            },
+                            "content": {
+                                "prompt": "Draw parallels between the arguments and other well-understood situations. Use these analogies and comparisons to make the points more relatable and understandable."
+                            }
+                        },
+                        "Anticipate Counterarguments": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Anticipate counterarguments and construct responses"
+                            },
+                            "content": {
+                                "prompt": "Predict counter arguments that are likely to be made and prepare responses. Explain how to counter each arguments to weaken their case."
+                            }
+                        },
+                        "Rhetorical Questions": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Use rhetorical questions to engage the audience"
+                            },
+                            "content": {
+                                "prompt": "Formulate rhetorical questions that don't require an answer but are designed to make the audience think and reinforce the points. Explain how these questions support the argument."
+                            }
+                        },
+                        "Summarisation": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Summarise the arguments"
+                            },
+                            "content": {
+                                "prompt": "Conclude the argument by summarising the main points. Reinforce why the proposed position is stronger and leave a lasting impression on the audience."
+                            }
+                        },
+                        "Challenge assumptions": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Challenge the assumptions made"
+                            },
+                            "content": {
+                                "prompt": "Challenge the assumptions made with rationale and alternative perspectives"
+                            }
+                        },
+                        "Propose a different approach": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Propose a different approach"
+                            },
+                            "content": {
+                                "prompt": "Propose a different approach aiming to be constructive and insightful whilst also being direct and candid about shortcomings of the current approach"
+                            }
+                        },
+                        "Predict consequences": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Predict the consequences, issues and questions raised"
+                            },
+                            "content": {
+                                "prompt": "Predict the consequences of the situation along with risks this poses and questions this raises"
+                            }
+                        },
+                        "Pivot argument": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Pivot the debate to come at it from a different angle."
+                            },
+                            "content": {
+                                "prompt": "Pivot the debate to come at it from a different angle; provide a fresh perspective or introduce a new line of argument."
+                            }
+                        },
+                    }
+                }
+            },
+            "Decision Making": {
+                "metadata": {
+                    "name": "Decision Making",
+                    "tags": [],
+                    "properties": {
+                        "favourite": true,
+                        "description": "Tools and prompts for making decisions"
+                    }
+                },
+                "content": {
+                    "tools": {
+                        "Identify the decision": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Clearly define the decision to be made"
+                            },
+                            "content": {
+                                "prompt": "Clearly define the decision to be made, including the problem to be solved or the opportunity to be seized."
+                            }
+                        },
+                        "Set objectives": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Set clear objectives for the decision"
+                            },
+                            "content": {
+                                "prompt": "Set clear objectives for the decision, outlining what is to be achieved and why."
+                            }
+                        },
+                        "Generate options": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Generate a range of options"
+                            },
+                            "content": {
+                                "prompt": "Generate a range of options for the decision, considering different approaches and potential outcomes."
+                            }
+                        },
+                        "Evaluate options": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Evaluate the options against the objectives"
+                            },
+                            "content": {
+                                "prompt": "Evaluate the options against the objectives, considering factors such as feasibility, cost, effort, complexity, impact, and risks."
+                            }
+                        },
+                        "Pros and Cons": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "List the advantages and disadvantages of each option"
+                            },
+                            "content": {
+                                "prompt": "List the advantages and disadvantages of each option, providing a balanced view of the benefits and drawbacks."
+                            }
+                        },
+                        "Decision Matrix": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Create a decision matrix to compare options"
+                            },
+                            "content": {
+                                "prompt": "Create a decision matrix to compare options; as well as assessing criteria such as cost, time, resources, and impact, add additional criteria that make sense to consider for this decision."
+                            }
+                        },
+                        "Weighted Decision Matrix": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Develop a weighted decision matrix to evaluate options"
+                            },
+                            "content": {
+                                "prompt": "Develop a weighted decision matrix to evaluate options based on the importance of different criteria."
+                            }
+                        },
+                        "Risk Analysis": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Perform a risk analysis for each option"
+                            },
+                            "content": {
+                                "prompt": "Perform a risk analysis for each option, identifying potential risks and their likelihood and impact."
+                            }
+                        },
+                        "Make a decision": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Make a decision based on the evaluation"
+                            },
+                            "content": {
+                                "prompt": "Make a decision based on the evaluation of the options, choosing the one that best meets the objectives."
+                            }
+                        },
+                    }
+                }
+            },
+            "Exploration": {
+                "metadata": {
+                    "name": "Exploration",
+                    "tags": [],
+                    "properties": {
+                        "favourite": true,
+                        "description": "Explore the situation or topic further"
+                    }
+                },
+                "content": {
+                    "tools": {
+                        "Questions raised": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Explore what questions this raises"
+                            },
+                            "content": {
+                                "prompt": "What questions does this raise?"
+                            }
+                        },
+                        "Implications": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Explore the implications of this"
+                            },
+                            "content": {
+                                "prompt": "What are the implications of this?"
+                            }
+                        },
+                        "Related topics": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Identify related topics"
+                            },
+                            "content": {
+                                "prompt": "What topics are related to this?"
+                            }
+                        },
+                        "Related trends": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Identify related trends"
+                            },
+                            "content": {
+                                "prompt": "What trends are related to this?"
+                            }
+                        },
+                        "Underlying principles": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Explain the fundamental principles underlying this"
+                            },
+                            "content": {
+                                "prompt": "Explain the fundamental principles underlying this"
+                            }
+                        },
+                        "Historical precedents": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Compare this situation with historical precedents or trends"
+                            },
+                            "content": {
+                                "prompt": "How does this situation compare with historical precedents or trends?"
+                            }
+                        },
+                        "Common misconceptions": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Identify common misconceptions or misunderstandings"
+                            },
+                            "content": {
+                                "prompt": "What are the most common misconceptions or misunderstandings about this situation?"
+                            }
+                        },
+                        "Learning resources": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Find more information or resources"
+                            },
+                            "content": {
+                                "prompt": "Where can I find more information or resources to deepen my understanding of this situation?"
+                            }
+                        },
+                        "Alternative perspectives": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Explore alternative perspectives or viewpoints"
+                            },
+                            "content": {
+                                "prompt": "What alternative perspectives or viewpoints exist on this situation?"
+                            }
+                        },
+                        "Learning opportunities": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Identify learning opportunities from this situation"
+                            },
+                            "content": {
+                                "prompt": "How can this situation serve as a learning opportunity?"
+                            }
+                        },
+                        "Tech enablers": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Identify ways technology could improve this situation"
+                            },
+                            "content": {
+                                "prompt": "In what ways could technology be leveraged to improve this situation?"
+                            }
+                        },
+                        "Business model ideas": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Explore potential business model ideas and opportunities related to this"
+                            },
+                            "content": {
+                                "prompt": "How could this situation be leveraged as the basis of a business model?"
+                            }
+                        },
+                        "Go up a level": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Explore the super-system, ecosystem, and related systems"
+                            },
+                            "content": {
+                                "prompt": "Let's go up a level. Describe the super-system that this system operates within. What is its role, what other systems are related to it?, to what extent do they form an ecosystem?, how do they support or hinder each other?"
+                            }
+                        },
+                        "Go down a level": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Explore the sub-systems and dependencies"
+                            },
+                            "content": {
+                                "prompt": "Let's go down a level. Describe the sub-systems and dependencies of this system. What are they? How do they manifest in the system? What are their roles in the success of the overall system?"
+                            }
+                        },
+                    }
+                }
+            },
+            "Futurology": {
+                "metadata": {
+                    "name": "Futurology",
+                    "tags": [],
+                    "properties": {
+                        "favourite": true,
+                        "description": "Prompts for exploring and envisioning potential future scenarios"
+                    }
+                },
+                "content": {
+                    "tools": {
+                        "Predict Trends": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Predict future trends"
+                            },
+                            "content": {
+                                "prompt": "Predict the major trends in this domain for the next decade"
+                            }
+                        },
+                        "Technological Advancements": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Discuss future technological advancements"
+                            },
+                            "content": {
+                                "prompt": "Discuss potential technological advancements in this field along with related trends and enablers and the ultimate implications of these advancements"
+                            }
+                        },
+                        "Future Challenges": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Identify future challenges"
+                            },
+                            "content": {
+                                "prompt": "Identify and explain the major challenges that might arise in the future related to this topic"
+                            }
+                        },
+                        "Future Opportunities": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Explore future opportunities"
+                            },
+                            "content": {
+                                "prompt": "Explore potential opportunities that could emerge in the future within this area"
+                            }
+                        },
+                        "Scenario Planning": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Create future scenarios"
+                            },
+                            "content": {
+                                "prompt": "Create different future scenarios based on varying assumptions and conditions about what could change in this field"
+                            }
+                        },
+                        "Impact on Society": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Discuss the potential societal impact"
+                            },
+                            "content": {
+                                "prompt": "Discuss how future developments in this field could impact society"
+                            }
+                        },
+                        "Ethical Considerations": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Examine ethical considerations"
+                            },
+                            "content": {
+                                "prompt": "Examine the ethical considerations and dilemmas that might arise with future advancements in this area"
+                            }
+                        },
+                        "Future Innovations": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Speculate on future innovations"
+                            },
+                            "content": {
+                                "prompt": "Speculate on possible future innovations and their potential impact, include some incremental innovations and some game-changers"
+                            }
+                        },
+                        "Long-term Vision": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Articulate a long-term vision of the future"
+                            },
+                            "content": {
+                                "prompt": "Articulate a long-term vision for the future of this topic, considering possible developments over the next 50 years"
+                            }
+                        },
+                        "Global Impact": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Discuss the global impact"
+                            },
+                            "content": {
+                                "prompt": "Discuss the potential global impact of future developments in this field"
+                            }
+                        },
+                        "Environmental Impact": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Analyse the environmental impact"
+                            },
+                            "content": {
+                                "prompt": "Analyse the potential environmental impact of future advancements in this area"
+                            }
+                        },
+                        "Economic Impact": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Evaluate the economic impact"
+                            },
+                            "content": {
+                                "prompt": "Evaluate the potential economic impact of future trends and developments in this field"
+                            }
+                        },
+                        "Cultural Shifts": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Explore potential cultural shifts"
+                            },
+                            "content": {
+                                "prompt": "Explore how future trends might lead to cultural shifts and changes in societal norms"
+                            }
+                        },
+                        "Policy Implications": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Discuss policy implications"
+                            },
+                            "content": {
+                                "prompt": "Discuss the potential policy implications and regulatory considerations for future developments in this area"
+                            }
+                        },
+                        "Evolve with worsening action": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "What might this situation evolve into if the tensions are not resolved and the actions that are taken progressively make things worse?"
+                            },
+                            "content": {
+                                "prompt": "What might this situation evolve into if the tensions are not resolved and the actions that are taken progressively make things worse?"
+                            }
+                        },
+                        "Evolve with improving action": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "What might this situation evolve into if the tensions are resolved and actions are taken to progressively improve the situation?"
+                            },
+                            "content": {
+                                "prompt": "What might this situation evolve into if the tensions are resolved and actions are taken to progressively improve the situation?"
+                            }
+                        },
+                        "Evolve with worst action": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "What might this situation evolve into if the tensions are not resolved and the worst possible actions are taken to make things worse?"
+                            },
+                            "content": {
+                                "prompt": "What might this situation evolve into if the tensions are not resolved and the worst possible actions are taken to make things worse?"
+                            }
+                        },
+                        "Evolve with best action": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "What might this situation evolve into if the tensions are resolved and the best possible actions are taken to improve the situation?"
+                            },
+                            "content": {
+                                "prompt": "What might this situation evolve into if the tensions are resolved and the best possible actions are taken to improve the situation?"
+                            }
+                        },
+                    }
+                }
+            },
             "Insights": {
                 "metadata": {
                     "name": "Insights",
@@ -1582,101 +1686,6 @@ const Chat = ({
                     }
                 }
             },
-            "Decision Making": {
-                "metadata": {
-                    "name": "Decision Making",
-                    "tags": [],
-                    "properties": {
-                        "favourite": true,
-                        "description": "Tools and prompts for making decisions"
-                    }
-                },
-                "content": {
-                    "tools": {
-                        "Identify the decision": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Clearly define the decision to be made"
-                            },
-                            "content": {
-                                "prompt": "Clearly define the decision to be made, including the problem to be solved or the opportunity to be seized."
-                            }
-                        },
-                        "Set objectives": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Set clear objectives for the decision"
-                            },
-                            "content": {
-                                "prompt": "Set clear objectives for the decision, outlining what is to be achieved and why."
-                            }
-                        },
-                        "Generate options": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Generate a range of options"
-                            },
-                            "content": {
-                                "prompt": "Generate a range of options for the decision, considering different approaches and potential outcomes."
-                            }
-                        },
-                        "Evaluate options": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Evaluate the options against the objectives"
-                            },
-                            "content": {
-                                "prompt": "Evaluate the options against the objectives, considering factors such as feasibility, cost, effort, complexity, impact, and risks."
-                            }
-                        },
-                        "Pros and Cons": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "List the advantages and disadvantages of each option"
-                            },
-                            "content": {
-                                "prompt": "List the advantages and disadvantages of each option, providing a balanced view of the benefits and drawbacks."
-                            }
-                        },
-                        "Decision Matrix": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Create a decision matrix to compare options"
-                            },
-                            "content": {
-                                "prompt": "Create a decision matrix to compare options; as well as assessing criteria such as cost, time, resources, and impact, add additional criteria that make sense to consider for this decision."
-                            }
-                        },
-                        "Weighted Decision Matrix": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Develop a weighted decision matrix to evaluate options"
-                            },
-                            "content": {
-                                "prompt": "Develop a weighted decision matrix to evaluate options based on the importance of different criteria."
-                            }
-                        },
-                        "Risk Analysis": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Perform a risk analysis for each option"
-                            },
-                            "content": {
-                                "prompt": "Perform a risk analysis for each option, identifying potential risks and their likelihood and impact."
-                            }
-                        },
-                        "Make a decision": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Make a decision based on the evaluation"
-                            },
-                            "content": {
-                                "prompt": "Make a decision based on the evaluation of the options, choosing the one that best meets the objectives."
-                            }
-                        },
-                    }
-                }
-            },
             "Learning": {
                 "metadata": {
                     "name": "Learning",
@@ -1821,119 +1830,6 @@ const Chat = ({
                             },
                             "content": {
                                 "prompt": "Provide mermaid markdown for a mindmap of this topic to aid understanding"
-                            }
-                        }
-                    }
-                }
-            },
-            "Programming": {
-                "metadata": {
-                    "name": "Programming",
-                    "tags": ["coding", "programming", "software"],
-                    "properties": {
-                        "favourite": true,
-                        "description": "Prompts and tools for code development"
-                    }
-                },
-                "content": {
-                    "tools": {
-                        "Provide code": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Provide code"
-                            },
-                            "content": {
-                                "prompt": "Provide code for this"
-                            }
-                        },
-                        "Explain Code": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Explain this code in more detail"
-                            },
-                            "content": {
-                                "prompt": "Explain this code in more detail."
-                            }
-                        },
-                        "Identify Errors": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify and explain any errors in this code"
-                            },
-                            "content": {
-                                "prompt": "Identify and explain any errors in this code, suggesting a fix."
-                            }
-                        },
-                        "Suggest Improvements": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "How could this code be improved or optimised?"
-                            },
-                            "content": {
-                                "prompt": "How could this code be improved or optimised?"
-                            }
-                        },
-                        "Refactor Code": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Refactor this code for better readability and maintainability"
-                            },
-                            "content": {
-                                "prompt": "Refactor this code for better readability and maintainability."
-                            }
-                        },
-                        "Write Test Cases": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Write unit tests to verify the correctness of this code"
-                            },
-                            "content": {
-                                "prompt": "Write unit tests to verify the correctness of this code."
-                            }
-                        },
-                        "Generate Documentation": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Generate documentation for this code."
-                            },
-                            "content": {
-                                "prompt": "Generate documentation for this code."
-                            }
-                        },
-                        "Explain Design Patterns": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify any design patterns used in this code and explain their purpose."
-                            },
-                            "content": {
-                                "prompt": "Identify any design patterns used in this code and explain their purpose."
-                            }
-                        },
-                        "Suggest Libraries": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Suggest relevant libraries or frameworks that could be used with this code."
-                            },
-                            "content": {
-                                "prompt": "Suggest relevant libraries or frameworks that could be used with this code."
-                            }
-                        },
-                        "Performance Optimisation": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "How can the performance of this code be optimised?"
-                            },
-                            "content": {
-                                "prompt": "How can the performance of this code be optimised?"
-                            }
-                        },
-                        "Security Best Practices": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Identify potential security vulnerabilities and suggest best practices for this code."
-                            },
-                            "content": {
-                                "prompt": "Identify potential security vulnerabilities and suggest best practices for this code."
                             }
                         }
                     }
@@ -2228,105 +2124,254 @@ const Chat = ({
                     }
                 }
             },
-            "Dinner Party Menu": {
+            "Problem Solving": {
                 "metadata": {
-                    "name": "Dinner Party Menu",
-                    "tags": ["food", "cooking", "menu", "party"],
+                    "name": "Problem Solving",
+                    "tags": [],
                     "properties": {
                         "favourite": true,
-                        "description": "Prompts for creating a delicious dinner party menu"
+                        "description": "Help with problem solving"
                     }
                 },
                 "content": {
                     "tools": {
-                        "Suggest Starters": {
+                        "Causes": {
                             "properties": {
                                 "favourite": true,
-                                "description": "Suggest some appetising starters for a dinner party."
+                                "description": "Explore the factors leading to this situation and what caused it"
                             },
                             "content": {
-                                "prompt": "Suggest some appetising starters for a dinner party."
+                                "prompt": "What led to this situation?"
                             }
                         },
-                        "Main Course Ideas": {
+                        "Contributing factors": {
                             "properties": {
                                 "favourite": true,
-                                "description": "What are some impressive main course options for a dinner party?"
+                                "description": "Explain the key factors contributing to this situation"
                             },
                             "content": {
-                                "prompt": "What are some impressive main course options for a dinner party?"
+                                "prompt": "Explain the key factors contributing to this situation"
                             }
                         },
-                        "Vegetarian Mains": {
+                        "Impact": {
                             "properties": {
                                 "favourite": true,
-                                "description": "Suggest some delicious vegetarian main courses for a dinner party."
+                                "description": "Discuss potential short-term and long-term impacts"
                             },
                             "content": {
-                                "prompt": "Suggest some delicious vegetarian main courses for a dinner party."
+                                "prompt": "What are the potential short-term and long-term impacts of this situation?"
                             }
                         },
-                        "Side Dish Pairings": {
+                        "Prevention": {
                             "properties": {
                                 "favourite": true,
-                                "description": "What side dishes would go well with this main course?"
+                                "description": "Discuss prevention strategies"
                             },
                             "content": {
-                                "prompt": "What side dishes would go well with this main course?"
+                                "prompt": "How could this situation have been prevented?"
                             }
                         },
-                        "Dessert Suggestions": {
+                        "Overcoming barriers": {
                             "properties": {
                                 "favourite": true,
-                                "description": "Suggest some decadent desserts to finish off the meal."
+                                "description": "Identify barriers and solutions"
                             },
                             "content": {
-                                "prompt": "Suggest some decadent desserts to finish off the meal."
+                                "prompt": "What are the barriers to resolving this situation, and how can they be overcome?"
                             }
                         },
-                        "Wine Pairings": {
+                        "Risks and uncertainties": {
                             "properties": {
                                 "favourite": true,
-                                "description": "Recommend some wines to pair with the menu."
+                                "description": "Identify potential risks and uncertainties"
                             },
                             "content": {
-                                "prompt": "Recommend some wines to pair with the menu."
+                                "prompt": "What are the potential risks and uncertainties associated with this situation?"
                             }
                         },
-                        "Dietary Restrictions": {
+                        "Compare and contrast": {
                             "properties": {
                                 "favourite": true,
-                                "description": "Help me create a menu that accommodates dietary restrictions."
+                                "description": "Compare and contrast a variety of options"
                             },
                             "content": {
-                                "prompt": "Help me create a menu that accommodates dietary restrictions."
+                                "prompt": "Given the situation and potential options, compare and contrast the options discussed with a variety of other possible options"
                             }
                         },
-                        "Seasonal Ingredients": {
+                        "Predict outcomes": {
                             "properties": {
                                 "favourite": true,
-                                "description": "What are some seasonal ingredients I could incorporate into the menu?"
+                                "description": "Predict outcomes and questions they raise"
                             },
                             "content": {
-                                "prompt": "What are some seasonal ingredients I could incorporate into the menu?"
+                                "prompt": "Predict potential outcomes and questions they raise"
                             }
                         },
-                        "Theme Ideas": {
+                        "Evaluate options": {
                             "properties": {
                                 "favourite": true,
-                                "description": "Suggest some fun themes for a dinner party."
+                                "description": "Evaluate the options"
                             },
                             "content": {
-                                "prompt": "Suggest some fun themes for a dinner party."
+                                "prompt": "Evaluate the options discussed, giving a balanced view of the pros and cons of each along with potential risks and benefits"
                             }
                         },
-                        "Presentation Tips": {
+                        "Ethical considerations": {
                             "properties": {
                                 "favourite": true,
-                                "description": "Give me some tips on how to present the dishes beautifully."
+                                "description": "Discuss ethical considerations"
                             },
                             "content": {
-                                "prompt": "Give me some tips on how to present the dishes beautifully."
+                                "prompt": "What are the ethical considerations related to this situation?"
+                            }
+                        },
+                        "Legal implications": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Discuss legal implications"
+                            },
+                            "content": {
+                                "prompt": "What are the legal implications of this situation?"
+                            }
+                        },
+                        "Problems & conflicts": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Identify key problems and conflicts and potential solutions"
+                            },
+                            "content": {
+                                "prompt": "Identify the key problems and conflicts in this situation. How could each be addressed?"
+                            }
+                        },
+                        "Skills & experience": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Identify skills and experience that could help"
+                            },
+                            "content": {
+                                "prompt": "What skills and experience could help improve this situation?"
+                            }
+                        },
+                        "Lessons from history": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Discuss historical precedents and lessons"
+                            },
+                            "content": {
+                                "prompt": "What does history tell us about this kind of situation?"
+                            }
+                        }
+                    }
+                }
+            },
+            "Programming": {
+                "metadata": {
+                    "name": "Programming",
+                    "tags": ["coding", "programming", "software"],
+                    "properties": {
+                        "favourite": true,
+                        "description": "Prompts and tools for code development"
+                    }
+                },
+                "content": {
+                    "tools": {
+                        "Provide code": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Provide code"
+                            },
+                            "content": {
+                                "prompt": "Provide code for this"
+                            }
+                        },
+                        "Explain Code": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Explain this code in more detail"
+                            },
+                            "content": {
+                                "prompt": "Explain this code in more detail."
+                            }
+                        },
+                        "Identify Errors": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Identify and explain any errors in this code"
+                            },
+                            "content": {
+                                "prompt": "Identify and explain any errors in this code, suggesting a fix."
+                            }
+                        },
+                        "Suggest Improvements": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "How could this code be improved or optimised?"
+                            },
+                            "content": {
+                                "prompt": "How could this code be improved or optimised?"
+                            }
+                        },
+                        "Refactor Code": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Refactor this code for better readability and maintainability"
+                            },
+                            "content": {
+                                "prompt": "Refactor this code for better readability and maintainability."
+                            }
+                        },
+                        "Write Test Cases": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Write unit tests to verify the correctness of this code"
+                            },
+                            "content": {
+                                "prompt": "Write unit tests to verify the correctness of this code."
+                            }
+                        },
+                        "Generate Documentation": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Generate documentation for this code."
+                            },
+                            "content": {
+                                "prompt": "Generate documentation for this code."
+                            }
+                        },
+                        "Explain Design Patterns": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Identify any design patterns used in this code and explain their purpose."
+                            },
+                            "content": {
+                                "prompt": "Identify any design patterns used in this code and explain their purpose."
+                            }
+                        },
+                        "Suggest Libraries": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Suggest relevant libraries or frameworks that could be used with this code."
+                            },
+                            "content": {
+                                "prompt": "Suggest relevant libraries or frameworks that could be used with this code."
+                            }
+                        },
+                        "Performance Optimisation": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "How can the performance of this code be optimised?"
+                            },
+                            "content": {
+                                "prompt": "How can the performance of this code be optimised?"
+                            }
+                        },
+                        "Security Best Practices": {
+                            "properties": {
+                                "favourite": true,
+                                "description": "Identify potential security vulnerabilities and suggest best practices for this code."
+                            },
+                            "content": {
+                                "prompt": "Identify potential security vulnerabilities and suggest best practices for this code."
                             }
                         }
                     }
@@ -2431,155 +2476,6 @@ const Chat = ({
                             },
                             "content": {
                                 "prompt": "What are the current debates around technology regulation?"
-                            }
-                        }
-                    }
-                }
-            },
-            "Communication": {
-                "metadata": {
-                    "name": "Communication",
-                    "tags": [],
-                    "properties": {
-                        "favourite": false,
-                        "description": "Prompts to help refine and create effective communication"
-                    }
-                },
-                "content": {
-                    "tools": {
-                        "Draft an Email": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Draft a professional email based on the discussion"
-                            },
-                            "content": {
-                                "prompt": "Based on our discussion, draft a professional email"
-                            }
-                        },
-                        "Create a Presentation Outline": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Create an outline for a presentation"
-                            },
-                            "content": {
-                                "prompt": "Create an outline for a presentation based on our discussion"
-                            }
-                        },
-                        "Summarise Key Points": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Summarise the key points from the discussion"
-                            },
-                            "content": {
-                                "prompt": "Summarise the key points from our discussion"
-                            }
-                        },
-                        "Generate a Report": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Generate a report based on the discussion"
-                            },
-                            "content": {
-                                "prompt": "Generate a report based on our discussion"
-                            }
-                        },
-                        "Write a Social Media Post": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Draft a social media post based on our discussion"
-                            },
-                            "content": {
-                                "prompt": "Draft a social media post based on our discussion"
-                            }
-                        },
-                        "Create Talking Points": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Create talking points for a meeting or presentation"
-                            },
-                            "content": {
-                                "prompt": "Create talking points for a meeting/presentation based on our discussion"
-                            }
-                        },
-                        "Write an Article": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Draft an article based on the discussion"
-                            },
-                            "content": {
-                                "prompt": "Draft an article based on the discussion"
-                            }
-                        },
-                        "Formulate a Response": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Formulate a response to a query or statement"
-                            },
-                            "content": {
-                                "prompt": "Based on our discussion, can you formulate a response to [query/statement]?"
-                            }
-                        },
-                        "Prepare a Speech": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Prepare a speech based on the discussion"
-                            },
-                            "content": {
-                                "prompt": "Prepare a speech based on the discussion"
-                            }
-                        },
-                        "Create a Proposal": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Draft a proposal based on the discussion"
-                            },
-                            "content": {
-                                "prompt": "Draft a proposal based on the discussion"
-                            }
-                        },
-                        "Draft a Press Release": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Draft a press release based on the discussion"
-                            },
-                            "content": {
-                                "prompt": "Draft a press release based on this discussion"
-                            }
-                        },
-                        "Create a FAQ": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Create a list of frequently asked questions and answers"
-                            },
-                            "content": {
-                                "prompt": "Create a list of frequently asked questions and answers based on this discussion"
-                            }
-                        },
-                        "Write a Blog Post": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Draft a blog post based on the discussion"
-                            },
-                            "content": {
-                                "prompt": "Draft a blog post based on this discussion"
-                            }
-                        },
-                        "Create a tweet": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Create a tweet"
-                            },
-                            "content": {
-                                "prompt": "Create a tweet based on the discussion"
-                            }
-                        },
-                        "Prepare an Elevator Pitch": {
-                            "properties": {
-                                "favourite": true,
-                                "description": "Prepare an elevator pitch based on the discussion"
-                            },
-                            "content": {
-                                "prompt": "Prepare an elevator pitch based on the discussion"
                             }
                         }
                     }
