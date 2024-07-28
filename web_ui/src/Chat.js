@@ -67,6 +67,7 @@ import SidekickMarkdown from './SidekickMarkdown';
 import NativeTextEditorEventHandlers from './NativeTextEditorEventHandlers';
 import Toolbox from './Toolbox';
 import ContentElement from './ContentElement';
+import { AutoAwesomeMotionOutlined } from '@mui/icons-material';
 
 const Chat = ({
     provider, modelSettings, persona,
@@ -4182,7 +4183,7 @@ const Chat = ({
                 <IconButton edge="start" color="inherit" aria-label={toolboxOpen ? "Close prompt toolbox" : "Open prompt toolbox"}
                     onClick={ () => {setChatContextOpen(x=>!x)} }
                 >
-                    { chatContextOpen ? <AutoAwesomeMotionIcon/> : <AutoAwesomeMotionOutlinedIcon/> }
+                    { chatGoal || chatContext ? <AutoAwesomeMotionIcon/> : <AutoAwesomeMotionOutlinedIcon/> }
                 </IconButton>
             </span>
         </Tooltip>
@@ -4240,6 +4241,22 @@ const Chat = ({
             <MenuItem onClick={() => {handleMenuPanelClose(); handleUploadRequest();}}>
                 <ListItemIcon><FileUploadIcon/></ListItemIcon>
                 Upload Chat
+            </MenuItem>
+            <MenuItem onClick={() => {handleMenuPanelClose(); setBookmarked(x=>!x);}}>
+                <ListItemIcon>{bookmarked ? <BookmarkIcon/> : <BookmarkBorderIcon/>}</ListItemIcon>
+                {bookmarked ? "Unbookmark this chat" : "Bookmark this chat"}
+            </MenuItem>
+            <MenuItem onClick={() => {handleMenuPanelClose(); setStarred(x=>!x);}}>
+                <ListItemIcon>{starred ? <StarIcon/> : <StarBorderIcon/>}</ListItemIcon>
+                {starred ? "Unstar this chat" : "Star this chat"}
+            </MenuItem>
+            <MenuItem onClick={() => {handleMenuPanelClose(); setToolboxOpen(x=>!x);}}>
+                <ListItemIcon>{toolboxOpen ? <HomeRepairServiceIcon/> : <HomeRepairServiceOutlinedIcon/>}</ListItemIcon>
+                {toolboxOpen ? "Close prompt toolbox" : "Open prompt toolbox"}
+            </MenuItem>
+            <MenuItem onClick={() => {handleMenuPanelClose(); setChatContextOpen(x=>!x);}}>
+                <ListItemIcon>{chatGoal || chatContext ? <AutoAwesomeMotionIcon/> : <AutoAwesomeMotionOutlinedIcon/>}</ListItemIcon>
+                {chatContextOpen ? "Hide chat context and goal" : "Edit chat context and goal"}
             </MenuItem>
             <MenuItem onClick={() => {handleMenuPanelClose(); handleToggleMarkdownRendering();}}>
             <ListItemIcon>{ markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }</ListItemIcon>
@@ -5062,7 +5079,7 @@ const Chat = ({
                             height: "100%", maxWidth: parseInt(chatContextWidth)+'px', minWidth: parseInt(chatContextWidth)+'px',
                             padding: "2px", margin: "6px", }}>
                         <SecondaryToolbar sx={{gap:1}} className={ClassNames.toolbar}>
-                            <AutoAwesomeMotionIcon/>
+                            { chatGoal || chatContext ? <AutoAwesomeMotionIcon/> : <AutoAwesomeMotionOutlined/> }
                             <Typography>Chat Context</Typography>
                             <Box sx={{ display: "flex", flexDirection: "row", ml: "auto" }}>
                                 <Tooltip edge="end" title='The chat context and goal will be added to the system prompt each time you prompt the AI. Enter these before you start your chat to give the AI more to go on. They will be saved with the chat and applied if you continue the chat later.'>
