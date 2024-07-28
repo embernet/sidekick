@@ -51,6 +51,8 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 import { SystemContext } from './SystemContext';
 import { SidekickClipboardContext } from './SidekickClipboardContext';
@@ -3291,8 +3293,10 @@ const Chat = ({
             persona: myPersona,
         };
         appendMessage({"role": "user", "content": prompt});
-        // add the messages as chatHistory but remove the sidekick metadata       
-        requestData.chatHistory = messages.map((message) => {
+        // add the messages that have not been made invisible as chatHistory but remove the sidekick metadata       
+        requestData.chatHistory = messages
+            .filter(message => !message?.metadata?.invisibleToAi)
+            .map((message) => {
             let newMessage = {...message};
             delete newMessage.metadata;
             return newMessage;
@@ -3537,6 +3541,35 @@ const Chat = ({
     const handleContractAllMessages = (event) => {
         event.stopPropagation();
         contractAllMessages();
+        closeMenus();
+    }
+
+    const makeVisibleToAI = (index) => {
+        if (messages[index]?.metadata?.invisibleToAi) {
+            const newMessages = [...messages];
+            delete newMessages[index].metadata.invisibleToAi;
+            setMessages(newMessages);
+        }
+    }
+
+    const handleMakeVisibleToAI = (event, index) => {
+        event.stopPropagation();
+        makeVisibleToAI(index);
+        closeMenus();
+    }
+
+    const makeInvisibleToAi = (index) => {
+        const newMessages = [...messages];
+        if (!newMessages[index].metadata) {
+            newMessages[index].metadata = {};
+        }
+        newMessages[index].metadata['invisibleToAi'] = true;
+        setMessages(newMessages);
+    }
+
+    const handleMakeInvisibleToAi = (event, index) => {
+        event.stopPropagation();
+        makeInvisibleToAi(index);
         closeMenus();
     }
 
@@ -4734,9 +4767,29 @@ const Chat = ({
                                                 </IconButton>
                                             </Tooltip>
                                     }
+                                    {
+                                        messages[index]?.metadata?.invisibleToAi
+                                        ?
+                                        <Tooltip title="Message invisible to the AI and will not be sent as part of the message history with the next prompt. Click to include this message to provide more context.">
+                                            <IconButton
+                                                sx={{ position: 'absolute', top: 0, left: 32 }}
+                                                onClick={(event) => { handleMakeVisibleToAI(event, index); }}>
+                                                <VisibilityOffIcon sx={{ color: 'firebrick' }}/>
+                                            </IconButton>
+                                        </Tooltip>
+                                        :
+                                        <Tooltip title="Message is visible to the AI and will be sent as part of the message history with the next prompt. Click to make this message invisible to the AI. It will remain here for you to see. You can do this to save space in the AI message context and improve response time and relevance if this message content is no longer required for context.">
+                                            <IconButton
+                                                sx={{ position: 'absolute', top: 0, left: 32,
+                                                    }}
+                                                onClick={(event) => { handleMakeInvisibleToAi(event, index); }}>
+                                                <VisibilityIcon sx={{color: darkMode ? 'lightgrey' : 'grey' }}/>
+                                            </IconButton>
+                                        </Tooltip>
+                                    }
                                     <Tooltip title="Copy message">
                                         <IconButton
-                                            style={{ position: 'absolute', top: 0, left: 32,
+                                            style={{ position: 'absolute', top: 0, left: 64,
                                                 color: darkMode ? 'lightgrey' : 'darkgrey' }}
                                             onClick={(event) => {
                                                 event.stopPropagation();
