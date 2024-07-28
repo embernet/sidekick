@@ -3551,7 +3551,7 @@ const Chat = ({
         }
     }
 
-    const handleMakeVisibleToAI = (event, index) => {
+    const handleMakeVisibleToAi = (event, index) => {
         event.stopPropagation();
         makeVisibleToAI(index);
         closeMenus();
@@ -4398,6 +4398,21 @@ const Chat = ({
             { 
                 typeof menuMessageContext?.index !== 'undefined'
                 ?
+                    <MenuItem
+                        style={{ minHeight: '30px' }}
+                        onClick={
+                            (event) => {
+                                messages[menuMessageContext.index]?.metadata?.invisibleToAi
+                                ? handleMakeVisibleToAi(event, menuMessageContext.index)
+                                : handleMakeInvisibleToAi(event, menuMessageContext.index)
+                            }}>
+                        <ListItemText>{messages[menuMessageContext.index]?.metadata?.invisibleToAi ? "Make visible to the AI" : "Make invisible to the AI"}</ListItemText>
+                    </MenuItem>
+                : null
+            }
+            { 
+                typeof menuMessageContext?.index !== 'undefined'
+                ?
                     <MenuItem divider style={{ minHeight: '10px' }} />
                 : null
             }
@@ -4772,7 +4787,7 @@ const Chat = ({
                                         <Tooltip title="Message invisible to the AI and will not be sent as part of the message history with the next prompt. Click to include this message to provide more context.">
                                             <IconButton
                                                 sx={{ position: 'absolute', top: 0, left: 32 }}
-                                                onClick={(event) => { handleMakeVisibleToAI(event, index); }}>
+                                                onClick={(event) => { handleMakeVisibleToAi(event, index); }}>
                                                 <VisibilityOffIcon sx={{ color: 'firebrick' }}/>
                                             </IconButton>
                                         </Tooltip>
