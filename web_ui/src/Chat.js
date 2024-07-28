@@ -4740,7 +4740,7 @@ const Chat = ({
                                         {
                                             markdownRenderingOn
                                             ?
-                                                <SidekickMarkdown markdown={message.content}/>
+                                                <SidekickMarkdown markdown={message.content} sx={{ mt:2 }}/>
                                             :
                                                 <Typography sx={{ whiteSpace: 'pre-wrap', mt: 2 }}>
                                                     {message.content}
