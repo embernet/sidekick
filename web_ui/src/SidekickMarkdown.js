@@ -50,31 +50,42 @@ const SidekickMarkdown = memo(({ markdown, sx = {} }) => {
                 const before = markdown.slice(lastIndex, startIndex);
                 const after = markdown.slice(endIndex);
                 renderedMarkdown.push(<ReactMarkdown key={lastIndex} sx={{ width: "100%", whiteSpace: 'pre-wrap' }}>{before}</ReactMarkdown>);
-                renderedMarkdown.push(
-                <Card key={uuidv4()} sx={{ width: "100%", height: "fit-content" }}>
-                    <Toolbar className={ClassNames.toolbar}>
-                        <Typography sx={{ mr: 2 }}>{language}</Typography>
-                        <Box sx={{ display: "flex", width: "100%", flexDirection: "row", ml: "auto" }}>
-                            <Tooltip title="Copy markdown to clipboard" arrow>
-                                <IconButton edge="start" color="inherit" aria-label="copy to clipboard"
-                                onClick={(event) => { (async () => {
-                                    await sidekickClipboard.write({text: code, sidekickObject: { markdown: codeMarkdown }});
-                                })(); event.stopPropagation(); }}>
-                                <ContentCopyIcon/>
-                                </IconButton>
-                            </Tooltip>
-                        </Box>
-                        
-                    </Toolbar>
-                    {(language === "mermaid") ?
-                        <MermaidDiagram markdown={code} escapedMarkdown={codeMarkdown}/>
+                let render = (language === "markdown") ?
+                    <ReactMarkdown sx={{ width: "100%", whiteSpace: 'pre-wrap' }}>
+                        {/* If the AI decides to quote the markdown then remove that and render it normally.
+                            This also means the copy paste will not include the markdown quotes, and the multi-mode copy
+                            to text or rendered html will work.
+                         */}
+                        { code.startsWith("```markdown") && code.endsWith("```") ? code.slice(11, -3).trim() : code }
+                    </ReactMarkdown>
                     :
-                        <SyntaxHighlighter sx={{ width: "100%" }} lineProps={{style: {wordBreak: 'break-all', whiteSpace: 'pre-wrap'}}} language={language} wrapLines={true} style={docco}>
-                        {code}
-                        </SyntaxHighlighter>
-                    }
-                </Card>
-                );
+                    <Card key={uuidv4()} sx={{ width: "100%", height: "fit-content" }}>
+                        <Toolbar className={ClassNames.toolbar}>
+                            <Typography sx={{ mr: 2 }}>{language}</Typography>
+                            <Box sx={{ display: "flex", width: "100%", flexDirection: "row", ml: "auto" }}>
+                                <Tooltip title="Copy markdown to clipboard" arrow>
+                                    <IconButton edge="start" color="inherit" aria-label="copy to clipboard"
+                                    onClick={(event) => { (async () => {
+                                        await sidekickClipboard.write({text: code, sidekickObject: { markdown: codeMarkdown }});
+                                    })(); event.stopPropagation(); }}>
+                                    <ContentCopyIcon/>
+                                    </IconButton>
+                                </Tooltip>
+                            </Box>
+                            
+                        </Toolbar>
+                        {
+                            (language === "mermaid") ?
+                                <MermaidDiagram markdown={code} escapedMarkdown={codeMarkdown}/>
+                            :
+                                <SyntaxHighlighter sx={{ width: "100%" }}
+                                    lineProps={{style: {wordBreak: 'break-all', whiteSpace: 'pre-wrap'}}}
+                                    language={language} wrapLines={true} style={docco}>
+                                    {code}
+                                </SyntaxHighlighter>
+                        }
+                    </Card>
+                renderedMarkdown.push(render);
                 lastIndex = codeRegex.lastIndex;
                 if (lastIndex === markdown.length) {
                 renderedMarkdown.push(<ReactMarkdown key={lastIndex} sx={{ width: "100%", whiteSpace: 'pre-wrap' }}>{after}</ReactMarkdown>);
