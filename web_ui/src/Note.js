@@ -43,7 +43,7 @@ import AIPromptResponse from './AIPromptResponse';
 const Note = ({noteOpen, setNoteOpen, appendNoteContent, loadNote, createNote, darkMode,
     closeOtherPanels, restoreOtherPanels, windowMaximized, setWindowMaximized,
     setNewPromptPart, setNewPrompt, setChatRequest, onChange, setOpenNoteId, 
-    modelSettings, persona, serverUrl, token, setToken, maxWidth, isMobile, language}) => {
+    modelSettings, persona, serverUrl, token, setToken, maxWidth, isMobile, language, languagePrompt}) => {
 
     const sidekickClipboard = useContext(SidekickClipboardContext);
     const panelWindowRef = useRef(null);
@@ -993,6 +993,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
             onBlur={save}
             darkMode={darkMode}
             language={language}
+            languagePrompt={languagePrompt}
         />
     </Box>
 </Card>

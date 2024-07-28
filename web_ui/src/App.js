@@ -134,6 +134,7 @@ const App = () => {
   const [statusUpdates, setStatusUpdates] = useState([]);
   const [languageSettings, setLanguageSettings] = useState({});
   const [language, setLanguage] = useState(undefined);
+  const [languagePrompt, setLanguagePrompt] = useState("");
   const [systemPrompts, setSystemPrompts] = useState({});
   const [generalContextPrompt, setGeneralContextPrompt] = useState(undefined);
   const [responseGuidancePrompt, setResponseGuidancePrompt] = useState(undefined);
@@ -1085,6 +1086,7 @@ const App = () => {
                 darkMode={darkMode}
                 isMobile={isMobile}
                 language={language}
+                languagePrompt={languagePrompt}
               />
               { user?.properties?.roles?.admin && adminOpen ? <Admin 
                 adminOpen={adminOpen}
@@ -1104,6 +1106,7 @@ const App = () => {
                 isMobile={isMobile}
                 languageSettings={languageSettings} setLanguageSettings={setLanguageSettings}
                 language={language} setLanguage={setLanguage}
+                languagePrompt={languagePrompt} setLanguagePrompt={setLanguagePrompt}
                 systemPrompts={systemPrompts} setSystemPrompts={setSystemPrompts}
               />
               { chatsOpen ? <Explorer
@@ -1164,6 +1167,7 @@ const App = () => {
                   maxWidth={appSettings.maxPanelWidth}
                   isMobile={isMobile}
                   language={language}
+                  languagePrompt={languagePrompt}
                   systemPrompts={systemPrompts}
                   debugMode={debugMode}
                 />
@@ -1260,6 +1264,7 @@ const App = () => {
                   serverUrl={serverUrl} token={token} setToken={setToken}
                   isMobile={isMobile}
                   language={language}
+                  languagePrompt={languagePrompt}
                 />
                 <Note 
                   noteOpen={noteOpen}
@@ -1283,6 +1288,7 @@ const App = () => {
                   maxWidth={appSettings.maxPanelWidth}
                   isMobile={isMobile}
                   language={language}
+                  languagePrompt={languagePrompt}
                 />
               </Box>
               { notesOpen ? <Explorer
@@ -1318,6 +1324,7 @@ const App = () => {
             languageSettings={languageSettings}
             setLanguageSettings={setLanguageSettings}
             language={language} setLanguage={setLanguage}
+            languagePrompt={languagePrompt} setLanguagePrompt={setLanguagePrompt}
           />
         </Box>
       </ThemeProvider>

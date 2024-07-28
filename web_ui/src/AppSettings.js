@@ -15,6 +15,7 @@ import LanguageSelector from './LanguageSelector';
 const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
      onClose, serverUrl, token, setToken, darkMode, isMobile,
      languageSettings, setLanguageSettings, language, setLanguage,
+     languagePrompt, setLanguagePrompt,
     systemPrompts, setSystemPrompts }) => {
 
     const panelWindowRef = useRef(null);
@@ -212,8 +213,8 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
                         isMobile={isMobile}
                         languageSettings={languageSettings}
                         setLanguageSettings={setLanguageSettings}
-                        language={language}
-                        setLanguage={setLanguage}
+                        language={language} setLanguage={setLanguage}
+                        languagePrompt={languagePrompt} setLanguagePrompt={setLanguagePrompt}
                         />
                         {
                             systemPrompts && Object.entries(systemPrompts).map(([key, systemPromptObject]) => {

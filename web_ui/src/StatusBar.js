@@ -9,7 +9,7 @@ import { useTheme } from '@mui/material/styles';
 
 const StatusBar = ({ statusUpdates, darkMode, persona, modelSettings,
 modelSettingsOpen, toggleModelSettingsOpen,
-personasOpen, togglePersonasOpen, isMobile, language, setLanguage, languageSettings, setLanguageSettings }) => {
+personasOpen, togglePersonasOpen, isMobile, language, setLanguage, languagePrompt, setLanguagePrompt, languageSettings, setLanguageSettings }) => {
     const system = useContext(SystemContext);
     const theme = useTheme();
 
@@ -171,6 +171,8 @@ personasOpen, togglePersonasOpen, isMobile, language, setLanguage, languageSetti
                         setLanguageSettings={setLanguageSettings}
                         language={language}
                         setLanguage={setLanguage}
+                        languagePrompt={languagePrompt}
+                        setLanguagePrompt={setLanguagePrompt}
                     />
                 </Box>
             }

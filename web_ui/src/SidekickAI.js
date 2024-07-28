@@ -31,7 +31,7 @@ import { lightBlue, grey, blueGrey } from '@mui/material/colors';
 const SidekickAI = ({
     sidekickAIOpen, setSidekickAIOpen, serverUrl, token, 
     windowPinnedOpen, setWindowPinnedOpen, darkMode,
-    isMobile, language
+    isMobile, language, languagePrompt,
     }) => {
 
     const sidekickClipboard = useContext(SidekickClipboardContext);
@@ -68,7 +68,6 @@ const SidekickAI = ({
     const [newStreamDelta, setNewStreamDelta] = useState({value: "", done: true, timestamp: Date.now()});
     const streamingChatResponseRef = useRef("");
     const [stopStreaming, setStopStreaming] = useState(false);
-    const [systemPrompt, setSystemPrompt] = useState("");
     const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady);
     const [messageContextMenu, setMessageContextMenu] = useState(null);
 
@@ -131,7 +130,6 @@ const SidekickAI = ({
             setSidekickManual(manualData);
             setSidekickPromptEngineeringGuide(guideData);
             setSideKickAIGuide(aiData);
-            setSystemPrompt(sidekickAISystemPrompt + "\nHere is the sidekick manual:\n" + aiData);
           }).catch(error => console.error(error));
         setMessages([]);
         setSidekickAIPrompt("");
@@ -280,7 +278,6 @@ const SidekickAI = ({
         setTabIndex(TABS.SIDEKICK_AI);
         // setup as much of the request as we can before calling appendMessage
         // as that will wait for any re-rendering and the id could change in that time
-        let promptForLanguage = language && language !== MODEL_DEFAULT_LANGUAGE ? "\n\nProvide the response in the following language: " + language + "\n\n" : "";
         let requestData = {
             model_settings: {
                 provider: "OpenAI",
@@ -292,7 +289,7 @@ const SidekickAI = ({
                     frequency_penalty: 0
                 }
             },
-            system_prompt: systemPrompt + promptForLanguage,
+            system_prompt: sidekickAISystemPrompt + languagePrompt + "\nHere is the sidekick manual:\n\n" + sideKickAIGuide,
             prompt: sidekickAIPromptDirective + prompt,
         }
 

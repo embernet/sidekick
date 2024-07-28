@@ -16,7 +16,7 @@ import HelpOutlineIcon from '@mui/icons-material/Help';
 // and in that scenario avoid adding a prompt for the AI to respond in a specific language
 export const MODEL_DEFAULT_LANGUAGE = "Model default language";
 
-const LanguageSelector = memo(({ languageSettings, language, setLanguage, sx = {} }) => {
+const LanguageSelector = memo(({ languageSettings, language, setLanguage, setLanguagePrompt, sx = {} }) => {
     const system = useContext(SystemContext);
     const theme = useTheme();
     const [languagesArray, setLanguagesArray] = useState([]);
@@ -34,6 +34,17 @@ const LanguageSelector = memo(({ languageSettings, language, setLanguage, sx = {
         }, 100),
         []
     );
+
+    const changeLanguageAndPrompt = (newLanguage) => {
+        setLanguage(newLanguage);
+        if (newLanguage === MODEL_DEFAULT_LANGUAGE || !newLanguage) {
+            setLanguagePrompt && setLanguagePrompt("");
+        } else {
+            setLanguagePrompt && setLanguagePrompt(
+                "\n\nProvide the response in the following language unless otherwise specified: " + newLanguage + "\n\n"
+            );
+        }
+    }
 
     useEffect(() => {
         const element = document.getElementById(`language-selector-${myId}`);
@@ -54,14 +65,14 @@ const LanguageSelector = memo(({ languageSettings, language, setLanguage, sx = {
             l.unshift(MODEL_DEFAULT_LANGUAGE);
             setLanguagesArray(l);
             if (!languageSettings.default) {
-                setLanguage(MODEL_DEFAULT_LANGUAGE);
+                changeLanguageAndPrompt(MODEL_DEFAULT_LANGUAGE);
             } else if (languageSettings && languageSettings?.default) {
                 // Only set the language if it was not set or changed to avoid mutually recursive endless loop with App.[language]
                 if (language === undefined || language !== languageSettings.default) {
-                    setLanguage(languageSettings.default);
+                    changeLanguageAndPrompt(languageSettings.default);
                 }
             } else {
-                setLanguage(""); // Set to model default language
+                changeLanguageAndPrompt(""); // Set to model default language
             }
         }
     }, [languageSettings]);
@@ -81,14 +92,14 @@ const LanguageSelector = memo(({ languageSettings, language, setLanguage, sx = {
         // Call setLanguage only if the input value is different from the current language
         // and not empty, indicating the user has finished typing and clicked away
         if (!inputValue) {
-            setLanguage(MODEL_DEFAULT_LANGUAGE);
+            changeLanguageAndPrompt(MODEL_DEFAULT_LANGUAGE);
         } else if (inputValue && inputValue !== language) {
-            setLanguage(inputValue);
+            changeLanguageAndPrompt(inputValue);
         }
     };
 
     const handleLanguageChange = (event, newValue) => {
-        setLanguage(newValue);
+        changeLanguageAndPrompt(newValue);
         event.target.blur();
     }
 

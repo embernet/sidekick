@@ -51,7 +51,7 @@ const AIPromptResponse = ({modelSettings, serverUrl, token, setToken, customUser
     streamingOn, streamingChatResponseRef, streamingChatResponse,
     setStreamingChatResponse, setAIResponse, onChange, focusOnPrompt,
     setUserPromptEntered, userPromptToSend, setUserPromptToSend, darkMode,
-    controlName, toolbarButtons, sendButtonTooltip, language, interactiveMode=true, showPrompt=true, passiveUserPromptToSend=null}) => {
+    controlName, toolbarButtons, sendButtonTooltip, language, languagePrompt, interactiveMode=true, showPrompt=true, passiveUserPromptToSend=null}) => {
 
     const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
         backgroundColor: darkMode ? grey[900] : grey[300],
@@ -236,10 +236,9 @@ const AIPromptResponse = ({modelSettings, serverUrl, token, setToken, customUser
     const sendPrompt = async (prompt) => {        
         // Send the chat history and prompt using the streaming/non-streaming API
         // based on what the user selected in ModelSettings
-        let promptForLanguage = language && language !== MODEL_DEFAULT_LANGUAGE ? "\n\nProvide the response in the following language: " + language + "\n\n" : "";
         let requestData = {
             model_settings: modelSettings,
-            system_prompt: systemPrompt + promptForLanguage,
+            system_prompt: systemPrompt + languagePrompt,
             prompt: prompt
         };
         showWaiting();

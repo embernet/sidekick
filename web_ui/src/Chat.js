@@ -74,7 +74,7 @@ const Chat = ({
     focusOnPrompt, setFocusOnPrompt, chatRequest, chatOpen, noteOpen, setChatOpen, darkMode,
     temperatureText, setTemperatureText, modelSettingsOpen, toggleModelSettingsOpen, togglePersonasOpen,
     onChange, personasOpen, promptEngineerOpen, togglePromptEngineerOpen, setOpenChatId, shouldAskAgainWithPersona, serverUrl, token, setToken,
-    streamingChatResponse, setStreamingChatResponse, chatStreamingOn, maxWidth, isMobile, language, systemPrompts, debugMode }) => {
+    streamingChatResponse, setStreamingChatResponse, chatStreamingOn, maxWidth, isMobile, language, languagePrompt, systemPrompts, debugMode }) => {
     
     const sidekickClipboard = useContext(SidekickClipboardContext);
     const panelWindowRef = useRef(null);
@@ -3283,10 +3283,9 @@ const Chat = ({
         if (systemPrompts?.customSystemPrompt?.prompt) {
             customSystemPrompt += "\n\n" + systemPrompts.customSystemPrompt.prompt;
         }
-        let promptForLanguage = language && language !== MODEL_DEFAULT_LANGUAGE ? "\n\nProvide the response in the following language: " + language + "\n\n" : "";
         let requestData = {
             model_settings: myModelSettings,
-            system_prompt: systemPrompt + contextPrompt + customSystemPrompt + goal + responseStylePrompt + promptForLanguage,
+            system_prompt: systemPrompt + contextPrompt + customSystemPrompt + goal + responseStylePrompt + languagePrompt,
             prompt: knowledgePrompt + prompt,
             id: id,
             name: name,
