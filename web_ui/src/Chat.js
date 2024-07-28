@@ -50,6 +50,7 @@ import ControlCameraIcon from '@mui/icons-material/ControlCamera';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 import { SystemContext } from './SystemContext';
 import { SidekickClipboardContext } from './SidekickClipboardContext';
@@ -4733,6 +4734,20 @@ const Chat = ({
                                                 </IconButton>
                                             </Tooltip>
                                     }
+                                    <Tooltip title="Copy message">
+                                        <IconButton
+                                            style={{ position: 'absolute', top: 0, left: 32,
+                                                color: darkMode ? 'lightgrey' : 'darkgrey' }}
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                sidekickClipboard.write({
+                                                    html: new ContentFormatter(message.content).asHtml(),
+                                                    sidekickObject: { markdown: message.content },
+                                                });
+                                            }}>
+                                            <ContentCopyIcon/>
+                                        </IconButton>
+                                    </Tooltip>
                                     <Tooltip title="Delete this message">
                                         <IconButton
                                             style={{ position: 'absolute', top: 0, right: 0,
