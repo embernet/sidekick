@@ -16,7 +16,7 @@ import HelpOutlineIcon from '@mui/icons-material/Help';
 // and in that scenario avoid adding a prompt for the AI to respond in a specific language
 export const MODEL_DEFAULT_LANGUAGE = "Model default language";
 
-const LanguageSelector = memo(({ languageSettings, language, setLanguage, sx }) => {
+const LanguageSelector = memo(({ languageSettings, language, setLanguage, sx = {} }) => {
     const system = useContext(SystemContext);
     const theme = useTheme();
     const [languagesArray, setLanguagesArray] = useState([]);
