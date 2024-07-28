@@ -46,13 +46,14 @@ import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import SchemaIcon from '@mui/icons-material/Schema';
 import HomeRepairServiceIcon from '@mui/icons-material/HomeRepairService';
 import HomeRepairServiceOutlinedIcon from '@mui/icons-material/HomeRepairServiceOutlined';
-import ControlCameraIcon from '@mui/icons-material/ControlCamera';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import AutoAwesomeMotionIcon from '@mui/icons-material/AutoAwesomeMotion';
+import AutoAwesomeMotionOutlinedIcon from '@mui/icons-material/AutoAwesomeMotionOutlined';
 
 import { SystemContext } from './SystemContext';
 import { SidekickClipboardContext } from './SidekickClipboardContext';
@@ -4181,7 +4182,7 @@ const Chat = ({
                 <IconButton edge="start" color="inherit" aria-label={toolboxOpen ? "Close prompt toolbox" : "Open prompt toolbox"}
                     onClick={ () => {setChatContextOpen(x=>!x)} }
                 >
-                    <ControlCameraIcon/>
+                    { chatContextOpen ? <AutoAwesomeMotionIcon/> : <AutoAwesomeMotionOutlinedIcon/> }
                 </IconButton>
             </span>
         </Tooltip>
@@ -5061,7 +5062,7 @@ const Chat = ({
                             height: "100%", maxWidth: parseInt(chatContextWidth)+'px', minWidth: parseInt(chatContextWidth)+'px',
                             padding: "2px", margin: "6px", }}>
                         <SecondaryToolbar sx={{gap:1}} className={ClassNames.toolbar}>
-                            <ControlCameraIcon/>
+                            <AutoAwesomeMotionIcon/>
                             <Typography>Chat Context</Typography>
                             <Box sx={{ display: "flex", flexDirection: "row", ml: "auto" }}>
                                 <Tooltip edge="end" title='The chat context and goal will be added to the system prompt each time you prompt the AI. Enter these before you start your chat to give the AI more to go on. They will be saved with the chat and applied if you continue the chat later.'>
