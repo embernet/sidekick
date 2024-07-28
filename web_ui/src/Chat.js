@@ -4717,20 +4717,20 @@ const Chat = ({
                                     {
                                         messages[index]?.metadata?.expandLess
                                         ?
-                                            <Tooltip title="Expand this message so you can see the whole thing">
+                                            <Tooltip title="Message is contracted. Click to expand to show the full message">
                                                 <IconButton
                                                     sx={{ position: 'absolute', top: 0, left: 0,
                                                          }}
                                                     onClick={(event) => { handleExpandMessage(event, index); }}>
-                                                    <ExpandMoreIcon sx={{color: 'firebrick'}}/>
+                                                    <ExpandLessIcon sx={{color: 'firebrick'}}/>
                                                 </IconButton>
                                             </Tooltip>
                                         :
-                                            <Tooltip title="Contract this message. You can expand it again when needed. The full message will still be included in the chat history sent to the AI.">
+                                            <Tooltip title="Full message is shown. Click to contract this message to save space. You can expand it again when needed.">
                                                 <IconButton
                                                     sx={{ position: 'absolute', top: 0, left: 0 }}
                                                     onClick={(event) => { handleContractMessage(event, index); }}>
-                                                    <ExpandLessIcon sx={{ color: darkMode ? 'lightgrey' : 'grey' }}/>
+                                                    <ExpandMoreIcon sx={{ color: darkMode ? 'lightgrey' : 'grey' }}/>
                                                 </IconButton>
                                             </Tooltip>
                                     }
