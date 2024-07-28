@@ -29,14 +29,13 @@ import { ClassNames } from "@emotion/react";
 
 import HomeRepairServiceIcon from '@mui/icons-material/HomeRepairService';
 
-const Toolbox = memo(({ toolboxOpen, setToolboxOpen, toolboxes, setToolboxes, onChange,
+const Toolbox = memo(({ toolboxOpen, setToolboxOpen, selectedToolbox, setSelectedToolbox, toolboxes, setToolboxes, onChange,
     setOpenToolboxId, serverUrl, token, setToken, setNewPrompt, setNewPromptPart, darkMode
  }) => {
     const folder = useRef("toolboxes");
     const system = useContext(SystemContext);
     const [id, setId] = useState("");
     const theme = useTheme();
-    const [selectedToolbox, setSelectedToolbox] = useState(toolboxes.metadata.properties.defaultToolbox);
     const [toolbox, setToolbox] = useState(null);
 
     const [buttons, setButtons] = useState({});
@@ -70,7 +69,12 @@ const Toolbox = memo(({ toolboxOpen, setToolboxOpen, toolboxes, setToolboxes, on
     }, [])
 
     useEffect(() => {
-        const toolbox = toolboxes.content[selectedToolbox];
+        let toolboxName = selectedToolbox;
+        if (!toolboxName) {
+            toolboxName = toolboxes.metadata.properties.defaultToolbox;
+            setSelectedToolbox(toolboxName);
+        }
+        const toolbox = toolboxes.content[toolboxName];
         setToolbox(toolbox);
     }, [selectedToolbox])
 

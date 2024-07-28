@@ -16,12 +16,13 @@ import { memo } from 'react';
 import MermaidDiagram from './MermaidDiagram';
 import { v4 as uuidv4 } from 'uuid';
 
-const SidekickMarkdown = memo(({ markdown }) => {
+const SidekickMarkdown = memo(({ markdown, sx = {} }) => {
     const system = useContext(SystemContext);
     const sidekickClipboard = useContext(SidekickClipboardContext);
 
     const [myMarkdown, setMyMarkdown] = useState(null);
     const [myRenderedMarkdown, setMyRenderedMarkdown] = useState(null);
+    const [customSx, setCustomSx] = useState(sx);
 
     useEffect(() => {
         setMyMarkdown(markdown);
@@ -82,7 +83,7 @@ const SidekickMarkdown = memo(({ markdown }) => {
             if (lastIndex < markdown.length) {
                 renderedMarkdown.push(<ReactMarkdown key={lastIndex} sx={{ width: "100%", whiteSpace: 'pre-wrap' }}>{markdown.slice(lastIndex)}</ReactMarkdown>);
             }
-            return <Box sx={{ width: "100%" }}>{renderedMarkdown}</Box>;
+            return <Box sx={{ width: "100%", ...customSx }}>{renderedMarkdown}</Box>;
         } catch (err) {
             system.error(`System Error rendering markdown.`, err, "Rendering markdown");
             return <Typography sx={{ width: "100%", whiteSpace: 'pre-wrap' }}>{markdown}</Typography>;

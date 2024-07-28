@@ -50,6 +50,9 @@ import ControlCameraIcon from '@mui/icons-material/ControlCamera';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 import { SystemContext } from './SystemContext';
 import { SidekickClipboardContext } from './SidekickClipboardContext';
@@ -153,12 +156,15 @@ const Chat = ({
     const [chatContextWidth, setChatContextWidth] = useState("300px");
     const [settingsLoaded, setSettingsLoaded] = useState(false);
     const chatLoading = useRef(false);
+    const chatCreating = useRef(false);
+    const chatSaving = useRef(false);
     const [folder, setFolder] = useState("chats");
     const [tags, setTags] = useState([]);
     const [bookmarked, setBookmarked] = useState(false);
     const [starred, setStarred] = useState(false);
     const [promptLength, setPromptLength] = useState(0);
     const [toolboxOpen, setToolboxOpen] = useState(false);
+    const [selectedToolbox, setSelectedToolbox] = useState("");
     const [promptCollections, setPromptCollections] = useState({
         "metadata": {
             "name": "Prompt Collections",
@@ -2584,6 +2590,7 @@ const Chat = ({
     const [aiLibrary, setAiLibrary] = useState([]);
     const [selectedAiLibraryFullText, setSelectedAiLibraryFullText] = useState("");
     const [selectedAiLibraryFullTextSize, setSelectedAiLibraryFullTextSize] = useState(0);
+    const [selectedAiLibraryNotesMetadataDict, setSelectedAiLibraryNotesMetadataDict] = useState({});
     const [selectedAiLibraryNotes, setSelectedAiLibraryNotes] = useState({});
     const [selectedAiLibraryNoteId, setSelectedAiLibraryNoteId] = useState("");
     const [aiLibraryOpen, setAiLibraryOpen] = useState(false);
@@ -2876,7 +2883,8 @@ const Chat = ({
             } else {
                 // prevent saves whilst we are updating state during load
                 chatLoading.current = true; // note: this will be reset in the [messages] useEffect hook
-                
+                reset();
+
                 axios.get(`${serverUrl}/docdb/${folder}/documents/${loadChat["id"]}`, {
                     headers: {
                         Authorization: 'Bearer ' + token
@@ -2892,6 +2900,9 @@ const Chat = ({
                     setTags(response.data.metadata?.tags || []);
                     setStarred(response.data.metadata?.properties?.starred || false);
                     setBookmarked(response.data.metadata?.properties?.bookmarked || false);
+                    setToolboxOpen(response.data.metadata?.properties?.toolboxOpen || false);
+                    setSelectedToolbox(response.data.metadata?.properties?.selectedToolbox || "");
+                    setSelectedAiLibraryNotesMetadataDict(response.data.content?.selectedAiLibraryNotesMetadataDict || {});
 
                     setLastPrompt("");
                     // set lastPrompt to the last user message
@@ -2960,6 +2971,10 @@ const Chat = ({
     }
 
     const create = () => {
+        if (chatCreating.current) {
+            return;
+        }
+        chatCreating.current = true;
         let newChatObject = chatAsObject();
         const url = `${serverUrl}/docdb/${folder}/documents`;
         axios.post(url, newChatObject, {
@@ -2975,6 +2990,7 @@ const Chat = ({
         }).catch(error => {
             system.error(`System Error creating chat`, error, url + " POST");
         });
+        chatCreating.current = false;
     }
 
     const loadAiLibrary = () => {
@@ -3032,15 +3048,42 @@ const Chat = ({
                 properties: {
                     starred: starred,
                     bookmarked: bookmarked,
+                    toolboxOpen: toolboxOpen,
+                    selectedToolbox: selectedToolbox,
                 },
             },
             content: {
                 context: chatContext || "",
                 goal: chatGoal || "",
+                selectedAiLibraryNotesMetadataDict: selectedAiLibraryNotesMetadataDict,
                 chat: messages,
             }
         };
         return chat;
+    }
+
+    const save = () => {
+        if (chatSaving.current || chatLoading.current || chatCreating.current) {
+            return;
+        }
+        chatSaving.current = true;
+        if (id === "" || id === null) {
+            create();
+        } else {
+            let request = chatAsObject();
+            axios.put(`${serverUrl}/docdb/${folder}/documents/${id}`, request, {
+                headers: {
+                    Authorization: 'Bearer ' + token
+                }
+            }).then(response => {
+                response.data.access_token && setToken(response.data.access_token);
+                onChange(id, name, "changed", "");
+                debugMode && console.log("debugMode Chat saved", request, response);
+            }).catch(error => {
+                system.error(`System Error saving chat.`, error, `/docdb/${folder}/documents/${id} PUT`);
+            })
+        }
+        chatSaving.current = false;
     }
 
     const chatAsJSON = () => {
@@ -3124,24 +3167,6 @@ const Chat = ({
         if (chatContext.length > 0 || chatGoal.length > 0) {
             // TODO: only save if the context or goal has changed
             save();
-        }
-    }
-
-    const save = () => {
-        if (id === "" || id === null) {
-            create();
-        } else {
-            let request = chatAsObject();
-            axios.put(`${serverUrl}/docdb/${folder}/documents/${id}`, request, {
-                headers: {
-                    Authorization: 'Bearer ' + token
-                }
-            }).then(response => {
-                response.data.access_token && setToken(response.data.access_token);
-                onChange(id, name, "changed", "");
-            }).catch(error => {
-                system.error(`System Error saving chat.`, error, `/docdb/${folder}/documents/${id} PUT`);
-            })
         }
     }
 
@@ -3268,8 +3293,10 @@ const Chat = ({
             persona: myPersona,
         };
         appendMessage({"role": "user", "content": prompt});
-        // add the messages as chatHistory but remove the sidekick metadata       
-        requestData.chatHistory = messages.map((message) => {
+        // add the messages that have not been made invisible as chatHistory but remove the sidekick metadata       
+        requestData.chatHistory = messages
+            .filter(message => !message?.metadata?.invisibleToAi)
+            .map((message) => {
             let newMessage = {...message};
             delete newMessage.metadata;
             return newMessage;
@@ -3517,6 +3544,35 @@ const Chat = ({
         closeMenus();
     }
 
+    const makeVisibleToAI = (index) => {
+        if (messages[index]?.metadata?.invisibleToAi) {
+            const newMessages = [...messages];
+            delete newMessages[index].metadata.invisibleToAi;
+            setMessages(newMessages);
+        }
+    }
+
+    const handleMakeVisibleToAI = (event, index) => {
+        event.stopPropagation();
+        makeVisibleToAI(index);
+        closeMenus();
+    }
+
+    const makeInvisibleToAi = (index) => {
+        const newMessages = [...messages];
+        if (!newMessages[index].metadata) {
+            newMessages[index].metadata = {};
+        }
+        newMessages[index].metadata['invisibleToAi'] = true;
+        setMessages(newMessages);
+    }
+
+    const handleMakeInvisibleToAi = (event, index) => {
+        event.stopPropagation();
+        makeInvisibleToAi(index);
+        closeMenus();
+    }
+
     const handleMenuMessageContextOpen = (event, message, index) => {
         // to handle right-click and click on a message
         event.preventDefault();
@@ -3679,6 +3735,10 @@ const Chat = ({
         setLastPrompt("");
         setChatContext("");
         setChatGoal("");
+        setToolboxOpen(false);
+        setSelectedToolbox("");
+        setSelectedAiLibraryNotesMetadataDict({});
+        setSelectedAiLibraryNotes({});
         chatLoading.current = chatLoadingState;
     }
 
@@ -3794,37 +3854,82 @@ const Chat = ({
         setWindowMaximized(x);
     }
 
-    const handleloadKnowledgeToAi = (event) => {
-        const noteStub = event.target.value;
-        if (noteStub && noteStub.id) {
-            system.info(`Chat loading knowledge to AI: "${noteStub.name}"`);
-            system.debug("Chat loading knowledge to AI", noteStub);
-            let url = `${serverUrl}/docdb/notes/documents/${noteStub.id}`;
-            axios.get(url, {
+    const loadKnowledgeNote = async (noteMetadata) => {
+        debugMode && console.log("debugMode loadKnowledgeNote", noteMetadata);
+        let url = `${serverUrl}/docdb/notes/documents`;
+        try {
+            const response = await axios.get(`${url}/${noteMetadata.id}`, {
                 headers: {
-                    Authorization: 'Bearer ' + token
-                  }
-            }).then(response => {
-                response.data.access_token && setToken(response.data.access_token);
-                const aiLibraryNote = response.data;
-                const updatedSelectedAiLibraryNotes = { ...selectedAiLibraryNotes, [aiLibraryNote.metadata.id]: aiLibraryNote };
-                setSelectedAiLibraryNotes(updatedSelectedAiLibraryNotes);
-                // reset the Select component
-                setSelectedAiLibraryNoteId("");
-            }).catch(error => {
-                console.log("Chat AI library note load error", error);
-                system.error(`System Error loading Chat AI library note`, error, url);
+                Authorization: 'Bearer ' + token
+                }
             });
+            if (response.data.access_token) {
+                setToken(response.data.access_token);
+            }
+            debugMode && console.log("debugMode loadKnowledgeNote response", response);
+            const aiLibraryNote = response.data;
+            const updatedSelectedAiLibraryNotes = { ...selectedAiLibraryNotes, [aiLibraryNote.metadata.id]: aiLibraryNote };
+            setSelectedAiLibraryNotes(updatedSelectedAiLibraryNotes);
+        } catch (error) {
+            console.log("Chat AI library note load error", error);
+            // if the error is due to the note no longer existing, remove it from the selectedAiLibraryNotesMetadataDict
+            if (error.response?.request?.status === 404) {
+                setSelectedAiLibraryNotesMetadataDict(prevState => {
+                    const newDict = { ...prevState };
+                    delete newDict[noteMetadata.id];
+                    return newDict;
+                });
+                system.warning(`Removed reference from Chat AI library to Note that no longer exists: "${noteMetadata.name}"`);
+            } else {
+                system.error(`System Error loading Chat AI library note`, error, url);
+            }
+        }
+    };
+
+    useEffect(() => {
+        debugMode && console.log("debugMode selectedAiLibraryNotesMetadataDict", selectedAiLibraryNotesMetadataDict);
+        id && save(); // if the chat has already been created, save it
+        // loop over the selectedAILibraryNotes and remove any that are not in selectedAiLibraryNotesMetadataDict
+        const idsToDelete = Object.keys(selectedAiLibraryNotes).filter(id => !(id in selectedAiLibraryNotesMetadataDict));
+        let updatedSelectedAiLibraryNotes = { ...selectedAiLibraryNotes };
+        if (idsToDelete.length > 0) {
+            idsToDelete.forEach(id => {
+                delete updatedSelectedAiLibraryNotes[id];
+            });
+        }
+        // loop over the selectedAiLibraryNotesMetadataDict and load the notes that aren't already in selectedAiLibraryNotes
+        const loadNotesSequentially = async () => {
+            for (const noteMetadata of Object.values(selectedAiLibraryNotesMetadataDict)) {
+                if (!(noteMetadata.id in updatedSelectedAiLibraryNotes)) {
+                    await loadKnowledgeNote(noteMetadata);
+                }
+            }
+        };
+        loadNotesSequentially();
+        setSelectedAiLibraryNotes(updatedSelectedAiLibraryNotes);
+    }, [selectedAiLibraryNotesMetadataDict]);
+
+    const handleloadKnowledgeToAi = (event) => {
+        const noteMetadata = event.target.value;
+        if (noteMetadata && noteMetadata.id) {
+            system.info(`Chat loading knowledge to AI: "${noteMetadata.name}"`);
+            system.debug("Chat loading knowledge to AI", noteMetadata);
+            setSelectedAiLibraryNotesMetadataDict({...selectedAiLibraryNotesMetadataDict, [noteMetadata.id]: noteMetadata});
+            // reset the Select component
+            setSelectedAiLibraryNoteId("");
         }
     }
 
     const handleUnloadKnowledgeFromAi = (id) => {
-        if (id && id in selectedAiLibraryNotes) {
-            system.info(`Chat unloading knowledge from AI: "${selectedAiLibraryNotes[id].metadata.name}"`);
-            system.debug("Chat unloading knowledge from AI", selectedAiLibraryNotes[id].metadata);
-            const updatedSelectedAiLibraryNotes = { ...selectedAiLibraryNotes };
-            delete updatedSelectedAiLibraryNotes[id];
-            setSelectedAiLibraryNotes(updatedSelectedAiLibraryNotes);
+        if (id && id in selectedAiLibraryNotesMetadataDict) {
+            system.info(`Chat unloading knowledge from AI: "${selectedAiLibraryNotesMetadataDict[id].name}"`);
+            system.debug("Chat unloading knowledge from AI", selectedAiLibraryNotesMetadataDict[id]);
+            // remove this id from the selectedAiLibraryNotesMetadataDict
+            setSelectedAiLibraryNotesMetadataDict(prevState => {
+                const newDict = { ...prevState };
+                delete newDict[id];
+                return newDict;
+            });
         }
     }
     
@@ -4543,6 +4648,7 @@ const Chat = ({
                         <Toolbox
                             toolboxes={promptCollections} setToolboxes={setPromptCollections}
                             setToolboxOpen={setToolboxOpen} toolboxOpen={toolboxOpen}
+                            selectedToolbox={selectedToolbox} setSelectedToolbox={setSelectedToolbox}
                             setNewPromptPart={setChatPrompt} setNewPrompt={setPromptToSend}
                             darkMode={darkMode}/>
                     </Box>
@@ -4634,7 +4740,7 @@ const Chat = ({
                                         {
                                             markdownRenderingOn
                                             ?
-                                                <SidekickMarkdown markdown={message.content}/>
+                                                <SidekickMarkdown markdown={message.content} sx={{ mt:2 }}/>
                                             :
                                                 <Typography sx={{ whiteSpace: 'pre-wrap', mt: 2 }}>
                                                     {message.content}
@@ -4644,23 +4750,57 @@ const Chat = ({
                                     {
                                         messages[index]?.metadata?.expandLess
                                         ?
-                                            <Tooltip title="Expand this message so you can see the whole thing">
+                                            <Tooltip title="Message is contracted. Click to expand to show the full message">
                                                 <IconButton
                                                     sx={{ position: 'absolute', top: 0, left: 0,
                                                          }}
                                                     onClick={(event) => { handleExpandMessage(event, index); }}>
-                                                    <ExpandMoreIcon sx={{color: 'firebrick'}}/>
+                                                    <ExpandLessIcon sx={{color: 'firebrick'}}/>
                                                 </IconButton>
                                             </Tooltip>
                                         :
-                                            <Tooltip title="Contract this message. You can expand it again when needed. The full message will still be included in the chat history sent to the AI.">
+                                            <Tooltip title="Full message is shown. Click to contract this message to save space. You can expand it again when needed.">
                                                 <IconButton
                                                     sx={{ position: 'absolute', top: 0, left: 0 }}
                                                     onClick={(event) => { handleContractMessage(event, index); }}>
-                                                    <ExpandLessIcon sx={{ color: darkMode ? 'lightgrey' : 'grey' }}/>
+                                                    <ExpandMoreIcon sx={{ color: darkMode ? 'lightgrey' : 'grey' }}/>
                                                 </IconButton>
                                             </Tooltip>
                                     }
+                                    {
+                                        messages[index]?.metadata?.invisibleToAi
+                                        ?
+                                        <Tooltip title="Message invisible to the AI and will not be sent as part of the message history with the next prompt. Click to include this message to provide more context.">
+                                            <IconButton
+                                                sx={{ position: 'absolute', top: 0, left: 32 }}
+                                                onClick={(event) => { handleMakeVisibleToAI(event, index); }}>
+                                                <VisibilityOffIcon sx={{ color: 'firebrick' }}/>
+                                            </IconButton>
+                                        </Tooltip>
+                                        :
+                                        <Tooltip title="Message is visible to the AI and will be sent as part of the message history with the next prompt. Click to make this message invisible to the AI. It will remain here for you to see. You can do this to save space in the AI message context and improve response time and relevance if this message content is no longer required for context.">
+                                            <IconButton
+                                                sx={{ position: 'absolute', top: 0, left: 32,
+                                                    }}
+                                                onClick={(event) => { handleMakeInvisibleToAi(event, index); }}>
+                                                <VisibilityIcon sx={{color: darkMode ? 'lightgrey' : 'grey' }}/>
+                                            </IconButton>
+                                        </Tooltip>
+                                    }
+                                    <Tooltip title="Copy message">
+                                        <IconButton
+                                            style={{ position: 'absolute', top: 0, left: 64,
+                                                color: darkMode ? 'lightgrey' : 'darkgrey' }}
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                sidekickClipboard.write({
+                                                    html: new ContentFormatter(message.content).asHtml(),
+                                                    sidekickObject: { markdown: message.content },
+                                                });
+                                            }}>
+                                            <ContentCopyIcon/>
+                                        </IconButton>
+                                    </Tooltip>
                                     <Tooltip title="Delete this message">
                                         <IconButton
                                             style={{ position: 'absolute', top: 0, right: 0,
@@ -4813,19 +4953,19 @@ const Chat = ({
                                     </Tooltip>
                                 </SecondaryToolbar>
                                 <List dense sx={{ width: "100%", overflow: "auto", maxHeight: "100px" }}>
-                                    {Object.values(selectedAiLibraryNotes).map(note =>(
+                                    {Object.values(selectedAiLibraryNotesMetadataDict).map(noteMetadata =>(
                                         <ListItem 
-                                            key={"loaded-ai-knowledge-" + note.metadata.id}
+                                            key={"loaded-ai-knowledge-" + noteMetadata.id}
                                             secondaryAction={
                                                 <Tooltip title={ "Unload knowledge from AI" }>
                                                     <IconButton edge="end" aria-label="Unload knowledge from AI"
-                                                        onClick={() => {handleUnloadKnowledgeFromAi(note.metadata.id)}}>
+                                                        onClick={() => {handleUnloadKnowledgeFromAi(noteMetadata.id)}}>
                                                         <CloseIcon />
                                                     </IconButton>
                                                 </Tooltip>
                                             }
                                         >
-                                            {note.metadata.name}
+                                            {noteMetadata.name}
                                         </ListItem>
                                     ))}
                                 </List>
@@ -4840,8 +4980,15 @@ const Chat = ({
                                         value={selectedAiLibraryNoteId}
                                         onChange={handleloadKnowledgeToAi}
                                         >
-                                            {(showOnlyNotesInAiLibrary ? aiLibrary.filter(noteStub => noteStub.properties.inAILibrary) : aiLibrary).map((noteStub) => (
-                                                <MenuItem key={'ai-library-item-' + noteStub.id} value={noteStub}>{noteStub.name}</MenuItem>
+                                            {(showOnlyNotesInAiLibrary
+                                                ? 
+                                                    aiLibrary.filter(noteMetadata => noteMetadata.properties.inAILibrary
+                                                        && !(noteMetadata.id in selectedAiLibraryNotesMetadataDict)
+                                                    )
+                                                :
+                                                    aiLibrary.filter(noteMetadata => !(noteMetadata.id in selectedAiLibraryNotesMetadataDict))
+                                                ).map((noteMetadata) => (
+                                                <MenuItem key={'ai-library-item-' + noteMetadata.id} value={noteMetadata}>{noteMetadata.name}</MenuItem>
                                             ))}
                                         </Select>
                                         <Tooltip title={ showOnlyNotesInAiLibrary ? "Select box will show notes that are in the AI Library. Click to show all notes" : "Show only notes in AI library" }>

@@ -196,7 +196,7 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
 
     useEffect(() => {
         if (appSettingsSystemSettings.functionality) {
-            setRenameAccountEnabled(loginSystemSettings.functionality?.renameAccount ? true : false);
+            setRenameAccountEnabled(appSettingsSystemSettings.functionality?.renameAccount ? true : false);
             setDeleteAccountEnabled(appSettingsSystemSettings.functionality?.deleteAccount ? true : false);
             setChangePasswordEnabled(appSettingsSystemSettings.functionality?.changePassword ? true : false);
         }
