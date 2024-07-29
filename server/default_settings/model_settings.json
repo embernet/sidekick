@@ -11,7 +11,16 @@
                         "presencePenalty": 0,
                         "contextTokenSize": 128000,
                         "systemMessage": "You are a helpful advisor.",
-                        "notes": "Points to the latest version of the gpt-4o (Omni) model. Cheaper and faster than gpt-4-turbo."
+                        "notes": "Points to the latest version of the gpt-4o (Omni) model. OpenAI's high-intelligence flagship model for complex, multi-step tasks. GPT-4o is cheaper and faster than GPT-4 Turbo."
+                    },
+                    "gpt-4o-mini": {
+                        "temperature": 0.7,
+                        "topP": 1,
+                        "frequencyPenalty": 0,
+                        "presencePenalty": 0,
+                        "contextTokenSize": 128000,
+                        "systemMessage": "You are a helpful advisor.",
+                        "notes": "Points to the latest version of the gpt-4o-mini. A lower-cost, intelligent, small model for fast, lightweight tasks. GPT-4o mini is cheaper and more capable than GPT-3.5 Turbo."
                     },
                     "gpt-4-turbo-preview": {
                         "temperature": 0.7,
