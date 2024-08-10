@@ -14,6 +14,7 @@ The server supports multiple configuration options that can be supplied as envir
 |`OPENAI_BASE_URL`|Base URL for OpenAI API|✓|`https://api.openai.com/v1`|
 |`SIDEKICK_SERVER_PORT`|Port for the Sidekick Server to run on when using `run.py`|✓|`5000`|
 |`SIDEKICK_WEBUI_BASE_URL`|Base URL for the Sidekick Web UI service|✓|`http://localhost:8081`|
+|`SIDEKICK_UTILITY_MODEL`|Model used for utility functions such as naming chats and notes and AI Help. If you are running offline, for example with ollama models, you would change this|||
 |`OIDC_WELL_KNOWN_URL`|The OIDC provider's well-known URL, required for OIDC authentication support|||
 |`OIDC_TOKEN_ENDPOINT`|The OIDC provider's token endpoint, used for handling OIDC logout|||
 |`OIDC_REDIRECT_URL`|Where the OIDC provider should redirect to after successful login.|||
