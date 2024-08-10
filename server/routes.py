@@ -114,7 +114,7 @@ def test_ai():
                 'Authorization': f"Bearer {get_openai_token()}"
             }
             ai_request = {
-                "model": "gpt-3.5-turbo",
+                "model": app.config['SIDEKICK_UTILITY_MODEL'],
                 "temperature": 0.9,
                 "messages": [
                     {"role": "system", "content": "You are an AI that has "
@@ -328,7 +328,7 @@ def name_topic():
         def construct_name_topic_request(request):
             increment_server_stat(category="requests", stat_name="nameTopic")
             ai_request = {
-                "model": "gpt-3.5-turbo",
+                "model": app.config['SIDEKICK_UTILITY_MODEL'],
                 "temperature": 0.9,
                 "messages": [
                     {"role": "system", "content": "You generate concise names \
@@ -397,7 +397,7 @@ def query_ai():
         def construct_query_ai_request(request):
             increment_server_stat(category="requests", stat_name=f"generatetext")
             ai_request = {
-                "model": "gpt-3.5-turbo",
+                "model": app.config['SIDEKICK_UTILITY_MODEL'],
                 "temperature": 0.9,
                 "messages": [
                     {"role": "system", "content": "You are DocumentGPT. \

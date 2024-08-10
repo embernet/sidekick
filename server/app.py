@@ -21,6 +21,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["SQLALCHEMY_DATABASE_URI"]
 app.config["SIDEKICK_WEBUI_BASE_URL"] = os.environ.get("SIDEKICK_WEBUI_BASE_URL", "http://localhost:8081")
 app.config["OPENAI_API_KEY"] = os.environ["OPENAI_API_KEY"]
 app.config["OPENAI_BASE_URL"] = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
+app.config["SIDEKICK_UTILITY_MODEL"] = os.environ.get("SIDEKICK_UTILITY_MODEL", "gpt-4o")
 
 # Optionally count chat tokens if specified in the env var
 # (token count is not returned by the streaming interface)
