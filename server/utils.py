@@ -220,8 +220,9 @@ def merge_settings(settings, new_settings):
         settings_updated: True if any new settings were added, False otherwise
     """
     settings_updated = False
+    overrides = new_settings.get("_overrides", [])
     for key, value in new_settings.items():
-        if key not in settings:
+        if key not in settings or key in overrides:
             settings[key] = value
             settings_updated = True
         elif isinstance(value, dict):
