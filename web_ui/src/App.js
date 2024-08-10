@@ -66,7 +66,7 @@ import Carousel from './Carousel';
 import SidekickModalDialog from './SidekickModalDialog';
 import { use } from 'marked';
 
-const VERSION = "0.3.5";
+const VERSION = "0.3.6";
 
 const ScriptIcon = SmartDisplayOutlinedIcon;
 const ScriptsExplorerIcon = SubscriptionsOutlinedIcon;
@@ -1087,6 +1087,7 @@ const App = () => {
                 isMobile={isMobile}
                 language={language}
                 languagePrompt={languagePrompt}
+                debugMode={debugMode}
               />
               { user?.properties?.roles?.admin && adminOpen ? <Admin 
                 adminOpen={adminOpen}
