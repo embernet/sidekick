@@ -3,6 +3,10 @@
     "model_settings": {
         "providers": {
             "OpenAI": {
+                "_overrides": ["baseUrl", "baseUrlOverrideEnvVar"],
+                "baseUrl": "https://api.openai.com/v1",
+                "baseUrlOverrideEnvVar": "OPENAI_BASE_URL",
+                "enabled": true,
                 "models": {
                     "gpt-4o": {
                         "temperature": 0.7,
@@ -76,6 +80,60 @@
                         "pending": true
                     }
                 }
+            },
+            "Ollama": {
+                "_overrides": ["baseUrl", "baseUrlOverrideEnvVar"],
+                "baseUrl": "http://localhost:11434/v1",
+                "baseUrlOverrideEnvVar": "OLLAMA_BASE_URL",
+                "enabled": false,
+                "models": {
+                    "llama3:70b": {
+                        "temperature": 0.7,
+                        "topP": 1,
+                        "frequencyPenalty": 0,
+                        "presencePenalty": 0,
+                        "contextTokenSize": 8192,
+                        "systemMessage": "You are a helpful advisor.",
+                        "notes": "Meta's Llama3 70 billion parameter model."
+                    },
+                    "llama3:8b": {
+                        "temperature": 0.7,
+                        "topP": 1,
+                        "frequencyPenalty": 0,
+                        "presencePenalty": 0,
+                        "contextTokenSize": 8192,
+                        "systemMessage": "You are a helpful advisor.",
+                        "notes": "Meta's Llama3 8 billion parameter model."
+                    },
+                    "falcon:40b": {
+                        "temperature": 0.7,
+                        "topP": 1,
+                        "frequencyPenalty": 0,
+                        "presencePenalty": 0,
+                        "contextTokenSize": 2048,
+                        "systemMessage": "You are a helpful advisor.",
+                        "notes": "A large language model built by the Technology Innovation Institute (TII) for use in summarization, text generation, and chat bots."
+                    },
+                    "phi3:14b": {
+                        "temperature": 0.7,
+                        "topP": 1,
+                        "frequencyPenalty": 0,
+                        "presencePenalty": 0,
+                        "contextTokenSize": 131072,
+                        "systemMessage": "You are a helpful advisor.",
+                        "notes": "Phi-3 14b is a lightweight 14B (Medium) state-of-the-art open model by Microsoft."
+                    },
+                    "phi3:3.8b": {
+                        "temperature": 0.7,
+                        "topP": 1,
+                        "frequencyPenalty": 0,
+                        "presencePenalty": 0,
+                        "contextTokenSize": 131072,
+                        "systemMessage": "You are a helpful advisor.",
+                        "notes": "Phi-3 3.8b is a lightweight 3.8B (Small) state-of-the-art open model by Microsoft."
+                    }
+                },
+                "default": "llama3:8b"
             }
         },
         "default": "OpenAI"

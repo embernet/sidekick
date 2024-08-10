@@ -20,7 +20,14 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = False
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["SQLALCHEMY_DATABASE_URI"]
 app.config["SIDEKICK_WEBUI_BASE_URL"] = os.environ.get("SIDEKICK_WEBUI_BASE_URL", "http://localhost:8081")
 app.config["OPENAI_API_KEY"] = os.environ["OPENAI_API_KEY"]
-app.config["OPENAI_BASE_URL"] = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
+# OPENAI_BASE_URL and OLLAMA_BASE_URL are provided as OS env var overrides
+# for these two model providers, which Sidekick supports out of the box.
+# The baseUrlOverrideEnvVar name is specified in model_settings.json per provider
+# If this env var is not set, baseUrl from model_settings.json for the provider is used
+# TODO: Add ability for users to add their own providers, in which case the base URL
+# would only be taken from the provider settings in the model_settings.json
+app.config["OPENAI_BASE_URL"] = os.environ.get("OPENAI_BASE_URL", "")
+app.config["OLLAMA_BASE_URL"] = os.environ.get("OLLAMA_BASE_URL", "")
 app.config["SIDEKICK_UTILITY_MODEL"] = os.environ.get("SIDEKICK_UTILITY_MODEL", "gpt-4o")
 
 # Optionally count chat tokens if specified in the env var

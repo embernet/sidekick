@@ -34,6 +34,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     const [modelSettingsOptionsLoaded, setModelSettingsOptionsLoaded] = useState(false);
     const [loadingModelSettingsOptionsMessage, setLoadingModelSettingsOptionsMessage] = useState("Loading model settings options...");
     const [selectedProvider, setSelectedProvider] = useState(null);
+    const [baseUrl, setBaseUrl] = useState(null);
     const [modelOptions, setModelOptions] = useState(null);
     const [temperature, setTemperature] = useState(null);
     const [selectedModel, setSelectedModel] = useState(null);
@@ -72,6 +73,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
         setSliders(data.sliders);
         const provider = data.model_settings.userDefault ? data.model_settings.userDefault : data.model_settings.default;
         setSelectedProvider(provider);
+        setBaseUrl(data.model_settings.providers[provider].baseUrl);
         setSelectedModel(data.model_settings.providers[provider].userDefault ? data.model_settings.providers[provider].userDefault : data.model_settings.providers[provider].default);
         setModelOptions(Object.keys(data.model_settings.providers[data.model_settings.userDefault ? data.model_settings.userDefault : data.model_settings.default].models));
         setTemperature(data.sliders.temperature.userDefault ? data.sliders.temperature.userDefault : data.sliders.temperature.default);
@@ -197,6 +199,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
             return;
         }
         setSelectedProvider(value);
+        setBaseUrl(modelSettingsOptions.providers[value].baseUrl);
         setModelOptions(Object.keys(modelSettingsOptions.providers[value].models));
         setSelectedModel(modelSettingsOptions.providers[value].default);
     };
@@ -238,6 +241,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     const shareModelSettings = () => {
         let newModelSettings = {
             "provider": selectedProvider,
+            "baseUrl": baseUrl,
             "contextTokenSize": selectedModelContextTokenSize,
             "notes": selectedModelNotes,
             "asShortText": selectedProvider + " " + selectedModel,
@@ -296,12 +300,13 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
         <Box
             sx = {{ display: "flex", flexDirection:"column", overflow:"auto", flex: 1, padding: "6px", margin: "6px" }}>
             <Typography variant="caption" sx={{ mt: 1 }}>Change models and settings to change behaviour and capability to suite your needs.</Typography>
-            {Object.keys(modelSettingsOptions.providers).length === 1 ? (
+            {Object.keys(modelSettingsOptions.providers)
+                .filter(key => modelSettingsOptions.providers[key].enabled).length === 1 ? (
                 <TextField
                     id="single-provider"
                     label="Provider"
                     autoComplete='off'
-                    value={Object.keys(modelSettingsOptions.providers)[0]}
+                    value={Object.keys(modelSettingsOptions.providers).filter(key => modelSettingsOptions.providers[key].enabled)[0]}
                     InputProps={{ readOnly: true, disabled: true }}
                     sx={{ mt: 2, mb: 3 }}
                 />
@@ -309,7 +314,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
                     <Autocomplete
                     disablePortal
                     id="provider"
-                    options={Object.keys(modelSettingsOptions.providers)}
+                    options={Object.keys(modelSettingsOptions.providers).filter(key => modelSettingsOptions.providers[key].enabled)}
                     defaultValue={modelSettingsOptions.default}
                     value={selectedProvider}
                     onChange={handleProviderChange}

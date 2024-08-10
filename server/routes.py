@@ -471,7 +471,12 @@ def chat_v2():
         increment_server_stat(category="requests", stat_name="chatV2")
 
         def generate():
-            url = f"{app.config['OPENAI_BASE_URL']}/chat/completions"
+            base_url = request.json["model_settings"]["baseUrl"]
+            base_url_override_env_var = request.json["model_settings"].get("baseUrlOverrideEnvVar")
+            if base_url_override_env_var:
+                base_url = os.getenv(base_url_override_env_var, base_url)
+            # TODO: If we want to support non OpenAI compatible APIs then we will need to not hard code /chat/completions below
+            url = f"{base_url}/chat/completions"
             headers = {
                 'content-type': 'application/json; charset=utf-8',
                 'Authorization': f"Bearer {get_openai_token()}"
