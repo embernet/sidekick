@@ -68,7 +68,14 @@
                         "notes": "Training data up to Sep 2021"
                     }
                 },
-                "default": "gpt-4o"
+                "default": "gpt-4o",
+                "releaseUpdates": {
+                    "modelUpdate": {
+                        "message": "Your default AI model has been set to gpt-4o, which is OpenAI's high-intelligence flagship model for complex, multi-step tasks. It's faster and lower cost than gpt4-turbo. Other models are available in Model Settings. For example, gpt-4o-mini is even faster and suitable for most simple tasks.",
+                        "model": "gpt-4o",
+                        "pending": true
+                    }
+                }
             }
         },
         "default": "OpenAI"

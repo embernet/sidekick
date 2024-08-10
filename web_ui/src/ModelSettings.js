@@ -1,5 +1,5 @@
 import { debounce } from "lodash";
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useContext } from 'react';
 import { Toolbar, Card, Paper, Box, IconButton, Tooltip,
     Typography, TextField, Autocomplete, Slider } from '@mui/material';
 import { ClassNames } from "@emotion/react";
@@ -10,6 +10,7 @@ import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import HelpIcon from '@mui/icons-material/Help';
 import SaveIcon from '@mui/icons-material/Save';
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
+import { SystemContext } from './SystemContext';
 
 import { styled } from '@mui/system';
 import { lightBlue } from '@mui/material/colors';
@@ -26,6 +27,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
         marginRight: theme.spacing(2),
     }));
 
+    const system = useContext(SystemContext);
     const [mySettingsManager, setMySettingsManager] = useState(settingsManager);
     const [modelSettingsOptions, setModelSettingsOptions] = useState({});
     const [sliders, setSliders] = useState({});
@@ -43,6 +45,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     const [showHelp, setShowHelp] = useState(false);
     const [settingsChanged, setSettingsChanged] = useState(false);
     const [settingsDifferentToFactoryDefaults, setSettingsDifferentToFactoryDefaults] = useState(false);
+    const [releaseUpdates, setReleaseUpdates] = useState({});
 
     const [width, setWidth] = useState(0);
     const handleResize = useCallback( 
@@ -76,6 +79,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
         setpresence_penalty(data.sliders.presence_penalty.userDefault ? data.sliders.presence_penalty.userDefault : data.sliders.presence_penalty.default);
         setfrequency_penalty(data.sliders.frequency_penalty.userDefault ? data.sliders.frequency_penalty.userDefault : data.sliders.frequency_penalty.default);
         setModelSettingsOptionsLoaded(true);
+        setReleaseUpdates(data.model_settings.providers[provider].releaseUpdates);
     }
 
     useEffect(()=>{
@@ -127,25 +131,46 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
         );
     }, [selectedProvider, selectedModel, temperature, top_p, presence_penalty, frequency_penalty]);
 
-    const saveUserDefaults = () => {
-        // Save current settings as user defaults
-        let m = modelSettingsOptions;
-        m.userDefault = selectedProvider;
-        m.providers[selectedProvider].userDefault = selectedModel;
+    const slidersAsObject = (sliders) => {
         let s = sliders;
         s.temperature.userDefault = temperature;
         s.top_p.userDefault = top_p;
         s.presence_penalty.userDefault = presence_penalty;
         s.frequency_penalty.userDefault = frequency_penalty;
-
+    }
+                
+    const saveUserDefaults = (modelSettingsOptions, sliders) => {
         const settings = {
-            "model_settings": m,
-            "sliders": s
+            "model_settings": modelSettingsOptions,
+            "sliders": sliders
         }
-        console.log("ModelSettings.saveUserDefaults:", settings);
         mySettingsManager.setAll(settings);
+    }
+
+    const saveCurrentSettingsAsUserDefaults = () => {
+        modelSettingsOptions.userDefault = selectedProvider;
+        modelSettingsOptions.providers[selectedProvider].userDefault = selectedModel;
+        saveUserDefaults(modelSettingsOptions, slidersAsObject(sliders));
         setSettingsChanged(false);
     };
+
+    useEffect(() => {
+        if (releaseUpdates?.modelUpdate?.pending) {
+            // this release includes an update to the default model for this provider
+            let update = releaseUpdates.modelUpdate;
+            let updatedModelSettingsOptions = modelSettingsOptions;
+            if (update.model !== selectedModel) {
+                // set the current model for this session
+                setSelectedModel(update.model);
+                // set the user default model
+                updatedModelSettingsOptions.providers[selectedProvider].userDefault = update.model;
+                system.announce("AI default model update", update.message);
+            }
+            // mark this release update as applied
+            updatedModelSettingsOptions.providers[selectedProvider].releaseUpdates.modelUpdate.pending = false;
+            saveUserDefaults(updatedModelSettingsOptions, sliders);
+      }
+    }, [releaseUpdates]);
 
     const restoreSystemDefaultSettings = () => {
         let m = modelSettingsOptions;
@@ -442,7 +467,7 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
                 <Tooltip title={ "Save settings as user defaults" }>
                     <span>
                         <IconButton edge="start" color="inherit" aria-label="Save settings as user defaults"
-                            disabled={!settingsChanged} onClick={saveUserDefaults}>
+                            disabled={!settingsChanged} onClick={saveCurrentSettingsAsUserDefaults}>
                             <SaveIcon/>
                         </IconButton>
                     </span>
