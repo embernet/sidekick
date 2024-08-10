@@ -1,0 +1,24 @@
+{
+    "configurations": {
+        "ollama": {
+            "provider": "Ollama",
+            "baseUrl": "http://localhost:11434/v1",
+            "model": "llama3",
+            "temperature": 0.3,
+            "top_p": 1,
+            "presence_penalty": 0,
+            "frequency_penalty": 0        
+        },
+        "openai": {
+            "provider": "OpenAI",
+            "baseUrl": "https://api.openai.com/v1",
+            "model": "gpt-4o",
+            "temperature": 0.3,
+            "top_p": 1,
+            "presence_penalty": 0,
+            "frequency_penalty": 0
+        }
+    },
+    "default_configuration": "openai",
+    "_overrides": ["default_configuration"]
+}

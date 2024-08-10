@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { debounce } from "lodash";
 import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Tabs, Tab, Box, Toolbar, IconButton, Typography, TextField,
@@ -31,7 +32,7 @@ import { lightBlue, grey, blueGrey } from '@mui/material/colors';
 const SidekickAI = ({
     sidekickAIOpen, setSidekickAIOpen, serverUrl, token, 
     windowPinnedOpen, setWindowPinnedOpen, darkMode,
-    isMobile, language, languagePrompt,
+    isMobile, language, languagePrompt, debugMode
     }) => {
 
     const sidekickClipboard = useContext(SidekickClipboardContext);
@@ -57,6 +58,7 @@ const SidekickAI = ({
     }));
         
     const system = useContext(SystemContext);
+    const [sidekickAiSystemSettings, setSidekickAiSystemSettings] = useState({});
     const [streamingChatResponse, setStreamingChatResponse] = useState("");
     const userPromptReady = "Ask a question about sidekick...";
     const userPromptWaiting = "Waiting for response...";
@@ -121,7 +123,17 @@ const SidekickAI = ({
         return () => observer.disconnect();
     }, [handleResize]);
 
+    const applySystemSettings = () => {
+        axios.get(`${serverUrl}/system_settings/sidekickai`).then(response => {
+            setSidekickAiSystemSettings(response.data);
+            debugMode && console.log("SidekickAI system settings", response.data);
+        }).catch(error => {
+            console.error("Error getting SidekickAI system settings:", error);
+        });
+    }
+
     useEffect(()=>{
+        applySystemSettings();
         Promise.all([
             fetch("sidekick_manual.md").then(response => response.text()),
             fetch("sidekick_prompt_engineering_guide.md").then(response => response.text()),
@@ -278,33 +290,48 @@ const SidekickAI = ({
         setTabIndex(TABS.SIDEKICK_AI);
         // setup as much of the request as we can before calling appendMessage
         // as that will wait for any re-rendering and the id could change in that time
-        let requestData = {
-            model_settings: {
-                provider: "OpenAI",
-                request: {
-                    model: "gpt-4o",
-                    temperature: 0.3,
-                    top_p: 1,
-                    presence_penalty: 0,
-                    frequency_penalty: 0
-                }
-            },
-            system_prompt: sidekickAISystemPrompt + languagePrompt + "\nHere is the sidekick manual:\n\n" + sideKickAIGuide,
-            prompt: sidekickAIPromptDirective + prompt,
+        let sidekickAiSettings = {};
+        debugMode && console.log('sidekickAiSystemSettings', sidekickAiSystemSettings);
+        try {
+            sidekickAiSettings = sidekickAiSystemSettings.configurations[
+                sidekickAiSystemSettings.default_configuration
+            ];
+        } catch (error) {
+            system.error("Error reading Sidekick AI settings", error);
         }
+        try {
+            debugMode && console.log('sidekickAiSettings', sidekickAiSettings);
+            let requestData = {
+                model_settings: {
+                    provider: sidekickAiSettings.provider,
+                    baseUrl: sidekickAiSettings.baseUrl,
+                    request: {
+                        model: sidekickAiSettings.model,
+                        temperature: sidekickAiSettings.temperature,
+                        top_p: sidekickAiSettings.top_p,
+                        presence_penalty: sidekickAiSettings.presence_penalty,
+                        frequency_penalty: sidekickAiSettings.frequency_penalty
+                    }
+                },
+                system_prompt: sidekickAISystemPrompt + languagePrompt + "\nHere is the sidekick manual:\n\n" + sideKickAIGuide,
+                prompt: sidekickAIPromptDirective + prompt,
+            }
 
-        console.log('sendSidekickAIPrompt request', requestData);
-        appendMessage({"role": "user", "content": prompt});
-        // add the messages as chatHistory but remove the sidekick metadata       
-        requestData.chatHistory = messages.map((message) => {
-            let newMessage = {...message};
-            delete newMessage.metadata;
-            return newMessage;
+            debugMode && console.log('sendSidekickAIPrompt request', requestData);
+            appendMessage({"role": "user", "content": prompt});
+            // add the messages as chatHistory but remove the sidekick metadata       
+            requestData.chatHistory = messages.map((message) => {
+                let newMessage = {...message};
+                delete newMessage.metadata;
+                return newMessage;
+            }
+            );
+
+            showWaiting();
+            getChatStream(requestData);
+        } catch (error) {
+            system.error("Error sending prompt to Sidekick AI", error);
         }
-        );
-
-        showWaiting();
-        getChatStream(requestData);
     }
 
     const handleSendToSidekickAI = (event) => {
