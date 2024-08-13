@@ -543,23 +543,48 @@ def chat_v2():
         return result
 
 
-@app.route('/docdb//documents', methods=['GET'])
-@app.route('/docdb/<document_type>/documents', methods=['GET'])
+# @app.route('/docdb//documents', methods=['GET'])
+# @app.route('/docdb/<document_type>/documents', methods=['GET'])
+# @jwt_required()
+# def docdb_list_documents(document_type=""):
+#     with RequestLogger(request) as rl:
+#         acting_user_id = get_jwt_identity()    
+#         increment_server_stat(category="requests", stat_name=f"docdbList({document_type})")
+#         if DBUtils.user_isadmin(acting_user_id) and document_type == "feedback":
+#             documents = DBUtils.list_feedback()
+#         else:
+#             documents = DBUtils.list_documents(document_type=document_type,
+#                                         user_id=acting_user_id)
+#         document_count = len(documents["documents"])
+#         rl.push(action="listed documents", document_type=document_type, count=document_count)
+#         return jsonify(documents)
+
+@app.route('/docdb/<document_type>/<scope>/documents', methods=['GET'])
 @jwt_required()
-def docdb_list_documents(document_type=""):
+def docdb_list_documents(document_type, scope=""):
     with RequestLogger(request) as rl:
         acting_user_id = get_jwt_identity()    
         increment_server_stat(category="requests", stat_name=f"docdbList({document_type})")
-        if DBUtils.user_isadmin(acting_user_id) and document_type == "feedback":
-            documents = DBUtils.list_feedback()
+
+        if scope == "mine":
+            documents = DBUtils.list_documents(document_type=document_type, user_id=acting_user_id)
+        elif scope == "my-shared":
+            documents = DBUtils.list_my_shared_documents(document_type=document_type, user_id=acting_user_id)
+        elif scope == "my-private":
+            documents = DBUtils.list_my_private_documents(document_type=document_type, user_id=acting_user_id)
+        elif scope == "all-shared":
+            documents = DBUtils.list_all_shared_documents(document_type=document_type)
+        elif scope == "others-shared":
+            documents = DBUtils.list_others_shared_documents(document_type=document_type, user_id=acting_user_id)
+        elif scope == "all":
+            documents = DBUtils.list_all_visible_documents(document_type=document_type, user_id=acting_user_id)
         else:
-            documents = DBUtils.list_documents(document_type=document_type,
-                                        user_id=acting_user_id)
+            documents = DBUtils.list_documents(document_type=document_type, user_id=acting_user_id)
+
         document_count = len(documents["documents"])
         rl.push(action="listed documents", document_type=document_type, count=document_count)
         return jsonify(documents)
-
-
+    
 @app.route('/docdb//documents', methods=['POST'])
 @app.route('/docdb/<document_type>/documents', methods=['POST'])
 @jwt_required()
@@ -568,10 +593,13 @@ def docdb_create_document(document_type=""):
         acting_user_id = get_jwt_identity()
         increment_server_stat(category="requests", stat_name=f"docdbCreate({document_type})")
         data = request.get_json()
+        if not data['metadata'].get('visibility'):
+            data['metadata']['visibility'] = "private"
         data_size = len(json.dumps(data))
         document = DBUtils.create_document(
             user_id=get_jwt_identity(), type=document_type,
             name=data['metadata']['name'],
+            visibility=data['metadata']['visibility'],
             tags=data['metadata']['tags'] if 'tags' in data['metadata'] else [],
             properties=data['metadata']['properties'] if 'properties' in data['metadata'] else {},
             content=data['content'] if 'content' in data else {}
@@ -591,7 +619,7 @@ def docdb_load_document(document_id, document_type=""):
             document = DBUtils.get_document(document_id=document_id)
 
             # if the document privacy is set to private, only the owner can access it
-            if document.get("visibility", "private") == "private" and document["metadata"]["user_id"] != acting_user_id:
+            if document['metadata'].get("visibility", "private") == "private" and document["metadata"].get("user_id", "") != acting_user_id:
                 rl.warning("SECURITY_ALERT: Attempt to access private document",
                            document_id=document_id, acting_user_id=acting_user_id,
                            owning_user_id=document["metadata"]["user_id"])
@@ -613,8 +641,9 @@ def docdb_save_document(document_id, document_type=""):
         acting_user_id = get_jwt_identity()
 
         document = DBUtils.get_document(document_id=document_id)
+        
         # users can only save documents they own
-        if document["metadata"]["user_id"] != acting_user_id:
+        if document["metadata"].get("user_id","") != acting_user_id:
             rl.warning("SECURITY_ALERT: Attempt to write to another user's document",
                         document_id=document_id, acting_user_id=acting_user_id,
                         owning_user_id=document["metadata"]["user_id"])
@@ -623,8 +652,11 @@ def docdb_save_document(document_id, document_type=""):
         increment_server_stat(category="requests", stat_name=f"docdbSave({document_type})")
         data = request.get_json()
         document_size = len(json.dumps(data))
+        if not data['metadata'].get('visibility'):
+            data['metadata']['visibility'] = "private"
         document = DBUtils.update_document(
             id=document_id,
+            visibility=data['metadata']['visibility'],
             name=data['metadata']['name'],
             tags=data['metadata']['tags'] if 'tags' in data['metadata'] else [],
             properties=data['metadata']['properties'] if 'properties' in data['metadata'] else {},

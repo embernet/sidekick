@@ -153,13 +153,15 @@ personasOpen, togglePersonasOpen, isMobile, language, setLanguage, languagePromp
                 <Tooltip title={
                         "Selected AI persona" + (personasOpen ? " (click to hide Persona Explorer)" : " (click to show Persona Explorer)")
                 }>
-                    <Button id="status-button-personas" variant="outlined" sx={{ textTransform: 'none' }} onClick={togglePersonasOpen}>
-                        <Typography component="span"
-                            sx={{ margin: '2px', padding: '2px', borderRadius: '4px', whiteSpace: 'nowrap', display: 'inline-block',
-                                overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {persona.name}
-                        </Typography>
-                    </Button>
+                    <span>
+                        <Button id="status-button-personas" variant="outlined" sx={{ textTransform: 'none' }} onClick={togglePersonasOpen}>
+                            <Typography component="span"
+                                sx={{ margin: '2px', padding: '2px', borderRadius: '4px', whiteSpace: 'nowrap', display: 'inline-block',
+                                    overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {persona.name}
+                            </Typography>
+                        </Button>
+                    </span>
                 </Tooltip>
             }
             { !isMobile && languageSettings &&
@@ -186,12 +188,14 @@ personasOpen, togglePersonasOpen, isMobile, language, setLanguage, languagePromp
                         </pre>
                     </Fragment>
                     }>
-                    <Button id="status-button-model-settings" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={toggleModelSettingsOpen}>
-                        <Typography component="span"
-                            sx={{ margin: '2px', padding: '2px', borderRadius: '4px', whiteSpace: 'nowrap', display: 'inline-block', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {modelSettings.asShortText}
-                        </Typography>
-                    </Button>
+                    <span>
+                        <Button id="status-button-model-settings" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={toggleModelSettingsOpen}>
+                            <Typography component="span"
+                                sx={{ margin: '2px', padding: '2px', borderRadius: '4px', whiteSpace: 'nowrap', display: 'inline-block', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {modelSettings.asShortText}
+                            </Typography>
+                        </Button>
+                    </span>
                 </Tooltip>
             }
         </Paper>

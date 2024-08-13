@@ -62,6 +62,7 @@ class Document(db.Model):
             "metadata": {
                 "id": self.id,
                 "user_id": self.user_id,
+                "visibility": self.visibility,
                 "name": self.name,
                 "type": self.type,
                 "created_date": self.created_date,

@@ -54,6 +54,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import AutoAwesomeMotionIcon from '@mui/icons-material/AutoAwesomeMotion';
 import AutoAwesomeMotionOutlinedIcon from '@mui/icons-material/AutoAwesomeMotionOutlined';
+import { AutoAwesomeMotionOutlined } from '@mui/icons-material';
 
 import { SystemContext } from './SystemContext';
 import { SidekickClipboardContext } from './SidekickClipboardContext';
@@ -67,7 +68,6 @@ import SidekickMarkdown from './SidekickMarkdown';
 import NativeTextEditorEventHandlers from './NativeTextEditorEventHandlers';
 import Toolbox from './Toolbox';
 import ContentElement from './ContentElement';
-import { AutoAwesomeMotionOutlined } from '@mui/icons-material';
 
 const Chat = ({
     provider, modelSettings, persona,
@@ -80,7 +80,7 @@ const Chat = ({
     
     const sidekickClipboard = useContext(SidekickClipboardContext);
     const panelWindowRef = useRef(null);
-    const chatMessagesContainerRef = useRef(null);
+    const chatMessagesContainerRef = useRef(null);    
     const chatMessagesRef = useRef(null);
     const streamingChatResponseCardRef = useRef(null);
     const promptEditorMenuRef = useRef(null);
@@ -117,6 +117,8 @@ const Chat = ({
     const system = useContext(SystemContext);
     const [id, setId] = useState("");
     const [name, setName] = useState(newChatName);
+    const [visibility, setVisibility] = useState("private");
+    const [documentOwner, setDocumentOwner] = useState("");
     const [previousName, setPreviousName] = useState(newChatName);
     const defaultUserPromptReady = 'Enter prompt (or "/" for commands and prompt templates)...';
     const userPromptReady = useRef(defaultUserPromptReady);
@@ -2496,6 +2498,13 @@ const Chat = ({
     const [anchorAiLibraryHelpEl, setAnchorAiLibraryHelpEl] = useState(null);
     const aiLibraryHelpPopoverOpen = Boolean(anchorAiLibraryHelpEl);
 
+    const isEditable = () => {
+        let editable = false;
+        if (system.user.id === documentOwner) {
+            editable = true;
+        }
+        return editable;
+    }
     const handleAiLibraryHelpPopoverOpen = (event) => {
         setAnchorAiLibraryHelpEl(event.currentTarget);
       };
@@ -2576,7 +2585,13 @@ const Chat = ({
     }, [id]);
 
     useEffect(()=>{
-        if (!chatLoading.current && (messages.length > 0 || chatContext.length > 0 || chatGoal.length > 0 || starred || bookmarked || tags.length > 0)) {
+        if (!chatLoading.current && 
+                (
+                    // anything has changed
+                    messages.length > 0 || chatContext.length > 0 || chatGoal.length > 0 || starred || bookmarked
+                    || visibility !== "private" || tags.length > 0
+                )
+            ) {
             // don't save if this hook was called as a result of loading a chat
             if (id !== "" && id !== null) {
                 save();
@@ -2604,7 +2619,7 @@ const Chat = ({
         setPromptCount(promptCount);
         setResponseCount(responseCount);
         setMessagesSize(messagesSize);
-    }, [messages, starred, bookmarked, tags]);
+    }, [messages, starred, bookmarked, visibility, tags]);
 
     useEffect(()=>{
         settings["rendered"] = markdownRenderingOn;
@@ -2774,59 +2789,66 @@ const Chat = ({
         }
     }, [newStreamDelta]);
 
+    const load = (id) => {
+        // prevent saves whilst we are updating state during load
+        chatLoading.current = true; // note: this will be reset in the [messages] useEffect hook
+        reset();
+
+        axios.get(`${serverUrl}/docdb/${folder}/documents/${id}`, {
+            headers: {
+                Authorization: 'Bearer ' + token
+            }
+        }).then(response => {
+            response.data.access_token && setToken(response.data.access_token);
+            debugMode && console.log("/docdb/chat GET Response:", response);
+            setId(response.data.metadata.id);
+            setName(response.data.metadata.name);
+            setDocumentOwner(response.data.metadata.user_id);
+            setVisibility(response.data.metadata.visibility);
+            setPreviousName(response.data.metadata.name);
+            setChatContext(response.data.content?.context || "");
+            setChatGoal(response.data.content?.goal || "");
+            setMessages(response.data.content.chat);
+            setTags(response.data.metadata?.tags || []);
+            setStarred(response.data.metadata?.properties?.starred || false);
+            setBookmarked(response.data.metadata?.properties?.bookmarked || false);
+            setToolboxOpen(response.data.metadata?.properties?.toolboxOpen || false);
+            setSelectedToolbox(response.data.metadata?.properties?.selectedToolbox || "");
+            setSelectedAiLibraryNotesMetadataDict(response.data.content?.selectedAiLibraryNotesMetadataDict || {});
+
+            setLastPrompt("");
+            // set lastPrompt to the last user message
+            try {
+                let lastUserMessage = "";
+                response.data.content.chat.forEach((message) => {
+                    if (message.role && message.role === "user") {
+                        lastUserMessage = message.content;
+                    }
+                });
+                setLastPrompt(lastUserMessage);
+            } catch (err) {
+                console.log(err);
+            }
+
+            // if the chat has a goal or context, open the chat context panel
+            if (response.data.content?.goal || response.data.content?.context) {
+                setChatContextOpen(true);
+            }
+            if (isMobile && chatOpen) {
+                panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+            }
+            if (!chatOpen) { setChatOpen(Date.now()); }
+        }).catch(error => {
+            system.error(`System Error loading chat.`, error, "/docdb/chat GET");
+        });
+    }
+
     useEffect(()=>{
         if (loadChat) {
             if (streamingChatResponse !== "") {
                 system.warning("Please wait for the current chat to finish loading before loading another chat.");
             } else {
-                // prevent saves whilst we are updating state during load
-                chatLoading.current = true; // note: this will be reset in the [messages] useEffect hook
-                reset();
-
-                axios.get(`${serverUrl}/docdb/${folder}/documents/${loadChat["id"]}`, {
-                    headers: {
-                        Authorization: 'Bearer ' + token
-                    }
-                }).then(response => {
-                    response.data.access_token && setToken(response.data.access_token);
-                    setId(response.data.metadata.id);
-                    setName(response.data.metadata.name);
-                    setPreviousName(response.data.metadata.name);
-                    setChatContext(response.data.content?.context || "");
-                    setChatGoal(response.data.content?.goal || "");
-                    setMessages(response.data.content.chat);
-                    setTags(response.data.metadata?.tags || []);
-                    setStarred(response.data.metadata?.properties?.starred || false);
-                    setBookmarked(response.data.metadata?.properties?.bookmarked || false);
-                    setToolboxOpen(response.data.metadata?.properties?.toolboxOpen || false);
-                    setSelectedToolbox(response.data.metadata?.properties?.selectedToolbox || "");
-                    setSelectedAiLibraryNotesMetadataDict(response.data.content?.selectedAiLibraryNotesMetadataDict || {});
-
-                    setLastPrompt("");
-                    // set lastPrompt to the last user message
-                    try {
-                        let lastUserMessage = "";
-                        response.data.content.chat.forEach((message) => {
-                            if (message.role && message.role === "user") {
-                                lastUserMessage = message.content;
-                            }
-                        });
-                        setLastPrompt(lastUserMessage);
-                    } catch (err) {
-                        console.log(err);
-                    }
-
-                    // if the chat has a goal or context, open the chat context panel
-                    if (response.data.content?.goal || response.data.content?.context) {
-                        setChatContextOpen(true);
-                    }
-                    if (isMobile && chatOpen) {
-                        panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
-                    }
-                    if (!chatOpen) { setChatOpen(Date.now()); }
-                }).catch(error => {
-                    system.error(`System Error loading chat.`, error, "/docdb/chat GET");
-                });
+                load(loadChat["id"]);
             }
         }
     }, [loadChat]);
@@ -2892,12 +2914,13 @@ const Chat = ({
     }
 
     const loadAiLibrary = () => {
-        axios.get(`${serverUrl}/docdb/notes/documents`, {
+        axios.get(`${serverUrl}/docdb/notes/mine/documents`, {
             headers: {
                 Authorization: 'Bearer ' + token
               }
         }).then(response => {
             response.data.access_token && setToken(response.data.access_token);
+            debugMode && console.log("AI Library loaded", response);
             response.data.documents.sort((a, b) => (a.name > b.name) ? 1 : -1);
             setAiLibrary(response.data.documents);
         }).catch(error => {
@@ -2928,11 +2951,10 @@ const Chat = ({
             }
         }).then(response => {
             response.data.access_token && setToken(response.data.access_token);
-            setId(response.data.metadata.id);
-            setName(response.data.metadata.name);
             onChange(id, name, "created", "");
             system.info(`Cloned chat into "${response.data.metadata.name}".`);
             system.debug("Chat cloned", response, url + " POST");
+            load(response.data.metadata.id);
         }).catch(error => {
             system.error(`System Error cloning chat`, error, url + " POST");
         });
@@ -2942,6 +2964,7 @@ const Chat = ({
         let chat = {
             metadata: {
                 name: name,
+                visibility: visibility,
                 tags: tags,
                 properties: {
                     starred: starred,
@@ -2961,7 +2984,7 @@ const Chat = ({
     }
 
     const save = () => {
-        if (chatSaving.current || chatLoading.current || chatCreating.current) {
+        if (!isEditable() || chatSaving.current || chatLoading.current || chatCreating.current) {
             return;
         }
         chatSaving.current = true;
@@ -3336,6 +3359,11 @@ const Chat = ({
             setName(event.target.value);
         } else {
             setName(newChatName);
+        }    }
+
+    const handleVisibilityChange = (event) => {
+        if (event.target.value) {
+            setVisibility(event.target.value);
         }
     }
 
@@ -3624,6 +3652,14 @@ const Chat = ({
         setId("");
         setName(newChatName);
         setPreviousName(newChatName);
+        setVisibility("private");
+
+        // documentOwner is set by the server using the auth creds on POST
+        // Its use here is only for differentiating when loading a shared document
+        // to be able to see if the owner is the current user
+        // and hence whether its editable
+        setDocumentOwner(system.user.id); 
+        
         setMessages([]);
         setTags([]);
         setStarred(false);
@@ -3785,7 +3821,9 @@ const Chat = ({
 
     useEffect(() => {
         debugMode && console.log("debugMode selectedAiLibraryNotesMetadataDict", selectedAiLibraryNotesMetadataDict);
-        id && save(); // if the chat has already been created, save it
+        if (id && !chatLoading.current) {
+            save(); // if the chat has already been created, save it
+        }
         // loop over the selectedAILibraryNotes and remove any that are not in selectedAiLibraryNotesMetadataDict
         const idsToDelete = Object.keys(selectedAiLibraryNotes).filter(id => !(id in selectedAiLibraryNotesMetadataDict));
         let updatedSelectedAiLibraryNotes = { ...selectedAiLibraryNotes };
@@ -4089,33 +4127,39 @@ const Chat = ({
                 </IconButton>
             </span>
         </Tooltip>
-        <Tooltip title={ bookmarked ? "Unbookmark this chat" : "Bookmark this chat"}>
-            <span>
-                <IconButton edge="start" color="inherit" aria-label={bookmarked ? "Unbookmark this chat" : "Bookmark this chat"}
-                    disabled={ id === "" } onClick={ () => {setBookmarked(x=>!x)} }
-                >
-                    {bookmarked ? <BookmarkIcon/> : <BookmarkBorderIcon/>}
-                </IconButton>
-            </span>
-        </Tooltip>
-        <Tooltip title={ starred ? "Unstar this chat" : "Star this chat"}>
-            <span>
-                <IconButton edge="start" color="inherit" aria-label={starred ? "Unstar this chat" : "Star this chat"}
-                    disabled={ id === "" } onClick={ () => {setStarred(x=>!x)} }
-                >
-                    {starred ? <StarIcon/> : <StarBorderIcon/>}
-                </IconButton>
-            </span>
-        </Tooltip>
-        <Tooltip title={ toolboxOpen ? "Close prompt toolbox" : "Open prompt toolbox"}>
-            <span>
-                <IconButton edge="start" color="inherit" aria-label={toolboxOpen ? "Close prompt toolbox" : "Open prompt toolbox"}
-                    onClick={ () => {setToolboxOpen(x=>!x)} }
-                >
-                    { isMobile ? null : (toolboxOpen ? <HomeRepairServiceIcon/> : <HomeRepairServiceOutlinedIcon/>) }
-                </IconButton>
-            </span>
-        </Tooltip>
+        { isEditable() &&
+            <Tooltip title={ bookmarked ? "Unbookmark this chat" : "Bookmark this chat"}>
+                <span>
+                    <IconButton edge="start" color="inherit" aria-label={bookmarked ? "Unbookmark this chat" : "Bookmark this chat"}
+                        disabled={ id === "" } onClick={ () => {setBookmarked(x=>!x)} }
+                    >
+                        {bookmarked ? <BookmarkIcon/> : <BookmarkBorderIcon/>}
+                    </IconButton>
+                </span>
+            </Tooltip>
+        }
+        { isEditable() &&
+            <Tooltip title={ starred ? "Unstar this chat" : "Star this chat"}>
+                <span>
+                    <IconButton edge="start" color="inherit" aria-label={starred ? "Unstar this chat" : "Star this chat"}
+                        disabled={ id === "" } onClick={ () => {setStarred(x=>!x)} }
+                    >
+                        {starred ? <StarIcon/> : <StarBorderIcon/>}
+                    </IconButton>
+                </span>
+            </Tooltip>
+        }
+        { isEditable() &&
+            <Tooltip title={ toolboxOpen ? "Close prompt toolbox" : "Open prompt toolbox"}>
+                <span>
+                    <IconButton edge="start" color="inherit" aria-label={toolboxOpen ? "Close prompt toolbox" : "Open prompt toolbox"}
+                        onClick={ () => {setToolboxOpen(x=>!x)} }
+                    >
+                        { isMobile ? null : (toolboxOpen ? <HomeRepairServiceIcon/> : <HomeRepairServiceOutlinedIcon/>) }
+                    </IconButton>
+                </span>
+            </Tooltip>
+        }
         <Tooltip title = {chatContextOpen ? "Hide chat context and goal" : "Edit chat context and goal"}>
             <span>
                 <IconButton edge="start" color="inherit" aria-label={toolboxOpen ? "Close prompt toolbox" : "Open prompt toolbox"}
@@ -4131,11 +4175,13 @@ const Chat = ({
             </IconButton>
         </Tooltip>
         <Box sx={{ display: "flex", flexDirection: "row", ml: "auto" }}>
-            <Tooltip title={ "Delete chat" }>
-                <IconButton edge="end" color="inherit" aria-label="delete chat" onClick={handleDeleteChat}>
-                    <DeleteIcon/>
-                </IconButton>
-            </Tooltip>
+            { isEditable() &&
+                <Tooltip title={ "Delete chat" }>
+                    <IconButton edge="end" color="inherit" aria-label="delete chat" onClick={handleDeleteChat}>
+                        <DeleteIcon/>
+                    </IconButton>
+                </Tooltip>
+            }
             {
                 isMobile ? null :
                     <Tooltip title={ windowMaximized ? "Shrink window" : "Expand window" }>
@@ -4180,25 +4226,32 @@ const Chat = ({
                 <ListItemIcon><FileUploadIcon/></ListItemIcon>
                 Upload Chat
             </MenuItem>
-            <MenuItem onClick={() => {handleMenuPanelClose(); setBookmarked(x=>!x);}}>
-                <ListItemIcon>{bookmarked ? <BookmarkIcon/> : <BookmarkBorderIcon/>}</ListItemIcon>
-                {bookmarked ? "Unbookmark this chat" : "Bookmark this chat"}
-            </MenuItem>
-            <MenuItem onClick={() => {handleMenuPanelClose(); setStarred(x=>!x);}}>
-                <ListItemIcon>{starred ? <StarIcon/> : <StarBorderIcon/>}</ListItemIcon>
-                {starred ? "Unstar this chat" : "Star this chat"}
-            </MenuItem>
-            <MenuItem onClick={() => {handleMenuPanelClose(); setToolboxOpen(x=>!x);}}>
-                <ListItemIcon>{toolboxOpen ? <HomeRepairServiceIcon/> : <HomeRepairServiceOutlinedIcon/>}</ListItemIcon>
-                {toolboxOpen ? "Close prompt toolbox" : "Open prompt toolbox"}
-            </MenuItem>
+            { isEditable() &&
+                <MenuItem onClick={() => {handleMenuPanelClose(); setBookmarked(x=>!x);}}>
+                    <ListItemIcon>{bookmarked ? <BookmarkIcon/> : <BookmarkBorderIcon/>}</ListItemIcon>
+                    {bookmarked ? "Unbookmark this chat" : "Bookmark this chat"}
+                </MenuItem>
+            }
+            { isEditable() &&
+                <MenuItem onClick={() => {handleMenuPanelClose(); setStarred(x=>!x);}}>
+                    <ListItemIcon>{starred ? <StarIcon/> : <StarBorderIcon/>}</ListItemIcon>
+                    {starred ? "Unstar this chat" : "Star this chat"}
+                </MenuItem>
+            }
+            { isEditable() &&
+                <MenuItem onClick={() => {handleMenuPanelClose(); setToolboxOpen(x=>!x);}}>
+                    <ListItemIcon>{toolboxOpen ? <HomeRepairServiceIcon/> : <HomeRepairServiceOutlinedIcon/>}</ListItemIcon>
+                    {toolboxOpen ? "Close prompt toolbox" : "Open prompt toolbox"}
+                </MenuItem>
+            }
             <MenuItem onClick={() => {handleMenuPanelClose(); setChatContextOpen(x=>!x);}}>
                 <ListItemIcon>{chatGoal || chatContext ? <AutoAwesomeMotionIcon/> : <AutoAwesomeMotionOutlinedIcon/>}</ListItemIcon>
                 {chatContextOpen ? "Hide chat context and goal" : "Edit chat context and goal"}
             </MenuItem>
             <MenuItem onClick={() => {handleMenuPanelClose(); handleToggleMarkdownRendering();}}>
-            <ListItemIcon>{ markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }</ListItemIcon>
-                { markdownRenderingOn ? "Turn off markdown rendering" : "Turn on markdown rendering" }</MenuItem>
+                <ListItemIcon>{ markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }</ListItemIcon>
+                { markdownRenderingOn ? "Turn off markdown rendering" : "Turn on markdown rendering" }
+            </MenuItem>
             {
                 isMobile ? null :
                 <MenuItem onClick={() => {handleMenuPanelClose(); handleToggleWindowMaximise();}}>
@@ -4206,10 +4259,12 @@ const Chat = ({
                     { windowMaximized ? "Shrink window" : "Expand window" }
                 </MenuItem>
             }
-            <MenuItem onClick={() => {handleMenuPanelClose(); handleDeleteChat();}}>
-                <ListItemIcon><DeleteIcon/></ListItemIcon>
-                Delete Chat
-            </MenuItem>
+            { isEditable() &&
+                <MenuItem onClick={() => {handleMenuPanelClose(); handleDeleteChat();}}>
+                    <ListItemIcon><DeleteIcon/></ListItemIcon>
+                    Delete Chat
+                </MenuItem>
+            }
         </Menu>
         <Menu
             id="menu-prompt-editor"
@@ -4356,6 +4411,7 @@ const Chat = ({
                 ?
                     <MenuItem
                         style={{ minHeight: '30px' }}
+                        disabled={!isEditable()}
                         onClick={
                             (event) => {
                                 messages[menuMessageContext.index]?.metadata?.invisibleToAi
@@ -4374,7 +4430,7 @@ const Chat = ({
             }
             <MenuItem
                 style={{ minHeight: '30px' }}
-                disabled={!window.getSelection().toString() || promptPlaceholder === userPromptWaiting}
+                disabled={!window.getSelection().toString() || promptPlaceholder === userPromptWaiting || !isEditable()}
                 onClick={handleMenuCommandsOnSelectionOpen}>
                 <ListItemText>Commands on selection</ListItemText>
                 <IconButton  edge="end" style={{ padding: 0 }}>
@@ -4395,17 +4451,17 @@ const Chat = ({
             <MenuItem style={{ minHeight: '30px' }} onClick={handleCopyMessageAsHTML}>Copy message as html</MenuItem>
             <MenuItem style={{ minHeight: '30px' }} onClick={handleCopyAllAsHTML}>Copy all messages as html</MenuItem>
             <MenuItem divider style={{ minHeight: '10px' }} />
-            <MenuItem style={{ height: '30px' }} onClick={handleAppendToChatInput}>Append message to chat input</MenuItem>
-            <MenuItem style={{ minHeight: '10px' }} onClick={handleUseAsChatInput}>Use message as chat input</MenuItem>
+            <MenuItem style={{ height: '30px' }} disabled={!isEditable()} onClick={handleAppendToChatInput}>Append message to chat input</MenuItem>
+            <MenuItem style={{ minHeight: '10px' }} disabled={!isEditable()} onClick={handleUseAsChatInput}>Use message as chat input</MenuItem>
             <MenuItem divider style={{ minHeight: '10px' }} />
             <MenuItem style={{ minHeight: '30px' }} disabled={!noteOpen} onClick={handleAppendToNote}>Append message to note</MenuItem>
             <MenuItem style={{ minHeight: '30px' }} disabled={!noteOpen} onClick={handleAppendAllToNote}>Append all to note</MenuItem>
             <MenuItem divider style={{ minHeight: '10px' }} />
-            <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteThisMessage}>Delete this message</MenuItem>
-            <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteThisAndPreviousMessage}>Delete this and previous message</MenuItem>
-            <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteAllMessagesUpToHere}>Delete this and all previous messages</MenuItem>
-            <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteAllMessagesFromHere}>Delete this and all subseqeunt messages</MenuItem>
-            <MenuItem style={{ minHeight: '30px' }} onClick={handleDeleteAllMessages}>Delete all messages</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} disabled={!isEditable()} onClick={handleDeleteThisMessage}>Delete this message</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} disabled={!isEditable()} onClick={handleDeleteThisAndPreviousMessage}>Delete this and previous message</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} disabled={!isEditable()} onClick={handleDeleteAllMessagesUpToHere}>Delete this and all previous messages</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} disabled={!isEditable()} onClick={handleDeleteAllMessagesFromHere}>Delete this and all subseqeunt messages</MenuItem>
+            <MenuItem style={{ minHeight: '30px' }} disabled={!isEditable()} onClick={handleDeleteAllMessages}>Delete all messages</MenuItem>
         </Menu>
         <Menu 
             id="menu-diagrams"
@@ -4633,6 +4689,7 @@ const Chat = ({
                         label="Chat name"
                         variant="outlined"
                         value={name}
+                        disabled={!isEditable()}
                         onClick={(event) => {
                                 if (name === newChatName) {
                                 event.target.select();
@@ -4654,6 +4711,21 @@ const Chat = ({
                         onBlur={() => {handleRenameChat();}}
                         onChange={handleTitleChange}
                     />
+                    <FormControl sx={{ ml:1, mt: 2, minWidth: 120 }}>
+                        <InputLabel id={"chat-visibility-label"}>Visibility</InputLabel>
+                        <Select
+                            id={"chat-visibility"}
+                            name={"Visibility"}
+                            disabled={messages.length === 0 || !isEditable()}
+                            labelId={"chat-visibility-label"}
+                            value={visibility}
+                            label="Visibility"
+                            onChange={handleVisibilityChange}
+                            >
+                                    <MenuItem value="private">Private</MenuItem>
+                                    <MenuItem value="shared">Shared</MenuItem>
+                        </Select>
+                    </FormControl>
                     <Toolbar sx={{ paddingLeft: "0px" }}>
                         <Tooltip title={ "Regenerate chat name" } sx={{ ml: "auto" }}>
                             <span>
@@ -4737,29 +4809,9 @@ const Chat = ({
                                                 </IconButton>
                                             </Tooltip>
                                     }
-                                    {
-                                        messages[index]?.metadata?.invisibleToAi
-                                        ?
-                                        <Tooltip title="Message invisible to the AI and will not be sent as part of the message history with the next prompt. Click to include this message to provide more context.">
-                                            <IconButton
-                                                sx={{ position: 'absolute', top: 0, left: 32 }}
-                                                onClick={(event) => { handleMakeVisibleToAi(event, index); }}>
-                                                <VisibilityOffIcon sx={{ color: 'firebrick' }}/>
-                                            </IconButton>
-                                        </Tooltip>
-                                        :
-                                        <Tooltip title="Message is visible to the AI and will be sent as part of the message history with the next prompt. Click to make this message invisible to the AI. It will remain here for you to see. You can do this to save space in the AI message context and improve response time and relevance if this message content is no longer required for context.">
-                                            <IconButton
-                                                sx={{ position: 'absolute', top: 0, left: 32,
-                                                    }}
-                                                onClick={(event) => { handleMakeInvisibleToAi(event, index); }}>
-                                                <VisibilityIcon sx={{color: darkMode ? 'lightgrey' : 'grey' }}/>
-                                            </IconButton>
-                                        </Tooltip>
-                                    }
                                     <Tooltip title="Copy message">
                                         <IconButton
-                                            style={{ position: 'absolute', top: 0, left: 64,
+                                            style={{ position: 'absolute', top: 0, left: 32,
                                                 color: darkMode ? 'lightgrey' : 'darkgrey' }}
                                             onClick={(event) => {
                                                 event.stopPropagation();
@@ -4771,20 +4823,45 @@ const Chat = ({
                                             <ContentCopyIcon/>
                                         </IconButton>
                                     </Tooltip>
-                                    <Tooltip title="Delete this message">
-                                        <IconButton
-                                            style={{ position: 'absolute', top: 0, right: 0,
-                                                color: darkMode ? 'lightgrey' : 'darkgrey' }}
-                                            onClick={(event) => {
-                                                event.stopPropagation();
-                                                // delete this message
-                                                const newMessages = [...messages];
-                                                newMessages.splice(index, 1);
-                                                setMessages(newMessages);
-                                            }}>
-                                            <HighlightOffIcon/>
-                                        </IconButton>
-                                    </Tooltip>
+                                    {
+                                        isEditable() &&
+                                        (
+                                            messages[index]?.metadata?.invisibleToAi
+                                            ?
+                                            <Tooltip title="Message invisible to the AI and will not be sent as part of the message history with the next prompt. Click to include this message to provide more context.">
+                                                <IconButton
+                                                    sx={{ position: 'absolute', top: 0, left: 64 }}
+                                                    onClick={(event) => { handleMakeVisibleToAi(event, index); }}>
+                                                    <VisibilityOffIcon sx={{ color: 'firebrick' }}/>
+                                                </IconButton>
+                                            </Tooltip>
+                                            :
+                                            <Tooltip title="Message is visible to the AI and will be sent as part of the message history with the next prompt. Click to make this message invisible to the AI. It will remain here for you to see. You can do this to save space in the AI message context and improve response time and relevance if this message content is no longer required for context.">
+                                                <IconButton
+                                                    sx={{ position: 'absolute', top: 0, left: 64,
+                                                        }}
+                                                    onClick={(event) => { handleMakeInvisibleToAi(event, index); }}>
+                                                    <VisibilityIcon sx={{color: darkMode ? 'lightgrey' : 'grey' }}/>
+                                                </IconButton>
+                                            </Tooltip>
+                                        )
+                                    }
+                                    { isEditable() &&
+                                        <Tooltip title="Delete this message">
+                                            <IconButton
+                                                style={{ position: 'absolute', top: 0, right: 0,
+                                                    color: darkMode ? 'lightgrey' : 'darkgrey' }}
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    // delete this message
+                                                    const newMessages = [...messages];
+                                                    newMessages.splice(index, 1);
+                                                    setMessages(newMessages);
+                                                }}>
+                                                <HighlightOffIcon/>
+                                            </IconButton>
+                                        </Tooltip>
+                                    }
                                 </Box>
                             </ListItem>
                         ))}
@@ -4804,208 +4881,223 @@ const Chat = ({
                         </ListItem>}
                     </List>
                 </StyledBox>
-                <Box sx={{ display: "flex", flexDirection: "column", minHeight: "128px" }}>
-                    <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
-                        <IconButton ref={promptEditorMenuRef} edge="start" color="inherit" aria-label="Slash commands"
-                            onClick={handleMenuPromptEditorOpen}>
-                        <MenuIcon/>
-                        </IconButton>
-                        <Typography sx={{mr:2}}>Prompt Editor</Typography>
-                        <Tooltip title={ "Save prompt as template" }>
-                            <span>
-                                <IconButton edge="start" color="inherit" aria-label="save prompt as template"
-                                    disabled={promptPlaceholder === userPromptWaiting} onClick={handleSavePromptAsTemplate}>
-                                    <SaveIcon/>
+                {
+                    isEditable() ?
+                        <Box sx={{ display: "flex", flexDirection: "column", minHeight: "128px" }}>
+                            <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
+                                <IconButton ref={promptEditorMenuRef} edge="start" color="inherit" aria-label="Slash commands"
+                                    onClick={handleMenuPromptEditorOpen}>
+                                <MenuIcon/>
                                 </IconButton>
-                            </span>
-                        </Tooltip>
-                        <Tooltip title={ aiLibraryOpen ? "Hide AI Library" : `Show AI Library. You can then select notes to add to the chat context.
-                        You can add individual notes to the AI library by opening them in the Note editor and clicking on the 'Add to AI Library' button. 
-                        (${Object.keys(selectedAiLibraryNotes).length} knowledge notes currently loaded)`}>
-                            <IconButton edge="start" color="inherit" aria-label={ aiLibraryOpen ? "Hide AI Library" : "Show AI Library."}
-                                onClick={handleToggleAILibraryOpen}>
-                                { Object.keys(selectedAiLibraryNotes).length === 0 ? <LocalLibraryOutlinedIcon/> : <LocalLibraryIcon/> }
-                            </IconButton>
-                        </Tooltip>
-                        <Tooltip title={ "Ask again" }>
-                            <span>
-                                <IconButton edge="start" color="inherit" aria-label="Ask again" 
-                                    disabled={promptPlaceholder === userPromptWaiting} onClick={handleAskAgain}>
-                                    <ReplayIcon/>
-                                </IconButton>
-                            </span>
-                        </Tooltip>
-                        <Tooltip title={ "Reload last prompt for editing" }>
-                            <span>
-                                <IconButton edge="start" color="inherit" aria-label="Reload last prompt for editing"
-                                    disabled={promptPlaceholder === userPromptWaiting} onClick={handleReload}>
-                                    <RedoIcon/>
-                                </IconButton>
-                            </span>
-                        </Tooltip>
-                        <Box ml="auto">
-                        { !isMobile
-                            ? <TextStatsDisplay name="Prompt" sizeInCharacters={promptLength} maxTokenSize={myModelSettings.contextTokenSize}/>
-                            : null
-                        }
-                            {streamingChatResponse !== "" && 
-                            <Tooltip title={ "Stop" }>
-                                <span>
-                                    <IconButton id="chat-stop" edge="end" color="inherit" aria-label="stop"
-                                        onClick={() => { handleStopStreaming(); }}
-                                    >
-                                        <StopCircleIcon/>
-                                    </IconButton>
-                                </span>
-                            </Tooltip>}
-                            <Tooltip title={ "Send prompt to AI" }>
-                                <span>
-                                    <IconButton edge="end" color="inherit" aria-label="send" disabled={promptPlaceholder === userPromptWaiting}
-                                        onClick={() => { setPromptToSend({prompt: chatPromptRef.current.innerText, timestamp: Date.now()}); }}
-                                    >
-                                        <SendIcon/>
-                                    </IconButton>
-                                </span>
-                            </Tooltip>
-                        </Box>
-                    </SecondaryToolbar>
-                    <Box position="relative">
-                        <div
-                            // Using a div with a reference to the DOM element instead of TextField for performance reasons
-                            // For large text content, TextField lag in rendering individual key strokes is unacceptable
-                            id="chat-prompt"
-                            ref={chatPromptRef}
-                            tabIndex="-1" // To allow the div to receive focus
-                            contentEditable={promptPlaceholder === userPromptWaiting ? "false" : "true"}
-                            onInput={handleChatPromptInput}
-                            onKeyDown={
-                                (event) => {
-                                    editorEventHandlers.onKeyDown(event);
-                                    handleChatPromptKeydown(event);
-                                }
-                            }
-                            onKeyUp={handleChatPromptKeyup}
-                            onPaste={ (event) => { editorEventHandlers.onPaste(event); setChatPromptIsEmpty(false); }}
-                            data-placeholder={promptPlaceholder}
-                            className={chatPromptIsEmpty ? 'empty' : ''}
-                            style={{
-                                ...editorEventHandlers.style,
-                                overflow: "auto",
-                                minHeight: "56px",
-                                maxHeight: "300px",
-                                flex: 1,
-                                marginTop: "auto",
-                                padding: "18.5px 14px",
-                                backgroundColor: darkMode ? grey[900] : 'white',
-                                color: darkMode ? "rgba(255, 255, 255, 0.87)" : "rgba(0, 0, 0, 0.87)",
-                                border: darkMode ? "1px solid rgba(200, 200, 200, 0.23)" : "1px solid rgba(0, 0, 0, 0.23)",
-                            }}
-                        >
-                        </div>
-                        <HighlightOffIcon
-                            style={{ position: 'absolute', top: 0, right: 0,
-                                color: darkMode ? 'lightgrey' : 'darkgrey' }}
-                            onClick={(event) => {event.stopPropagation(); setChatPrompt("");}}
-                            />
-                    </Box>
-                    { aiLibraryOpen ? 
-                        <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: darkMode ? grey[900] : grey[100] }}>
-                            <Box sx={{ mt: 2, display: "flex", flexDirection: "column", width: "100%" }}>
-                                <SecondaryToolbar sx={{gap:1}} className={ClassNames.toolbar}>
-                                    <Typography fontWeight="bold">AI Library</Typography>
-                                    <Typography sx={{mr:1}}>Loaded notes: {Object.keys(selectedAiLibraryNotes).length}</Typography>
-                                    <TextStatsDisplay name="AI Library" sizeInCharacters={selectedAiLibraryFullTextSize} 
-                                        maxTokenSize={myModelSettings.contextTokenSize}/>
-                                    <Tooltip title='Close AI library'>
-                                        <IconButton sx={{ml:'auto'}} onClick={()=>{setAiLibraryOpen(false)}}>
-                                            <CloseIcon />
+                                <Typography sx={{mr:2}}>Prompt Editor</Typography>
+                                <Tooltip title={ "Save prompt as template" }>
+                                    <span>
+                                        <IconButton edge="start" color="inherit" aria-label="save prompt as template"
+                                            disabled={promptPlaceholder === userPromptWaiting} onClick={handleSavePromptAsTemplate}>
+                                            <SaveIcon/>
                                         </IconButton>
+                                    </span>
+                                </Tooltip>
+                                <Tooltip title={ aiLibraryOpen ? "Hide AI Library" : `Show AI Library. You can then select notes to add to the chat context.
+                                You can add individual notes to the AI library by opening them in the Note editor and clicking on the 'Add to AI Library' button. 
+                                (${Object.keys(selectedAiLibraryNotes).length} knowledge notes currently loaded)`}>
+                                    <IconButton edge="start" color="inherit" aria-label={ aiLibraryOpen ? "Hide AI Library" : "Show AI Library."}
+                                        onClick={handleToggleAILibraryOpen}>
+                                        { Object.keys(selectedAiLibraryNotes).length === 0 ? <LocalLibraryOutlinedIcon/> : <LocalLibraryIcon/> }
+                                    </IconButton>
+                                </Tooltip>
+                                <Tooltip title={ "Ask again" }>
+                                    <span>
+                                        <IconButton edge="start" color="inherit" aria-label="Ask again" 
+                                            disabled={promptPlaceholder === userPromptWaiting} onClick={handleAskAgain}>
+                                            <ReplayIcon/>
+                                        </IconButton>
+                                    </span>
+                                </Tooltip>
+                                <Tooltip title={ "Reload last prompt for editing" }>
+                                    <span>
+                                        <IconButton edge="start" color="inherit" aria-label="Reload last prompt for editing"
+                                            disabled={promptPlaceholder === userPromptWaiting} onClick={handleReload}>
+                                            <RedoIcon/>
+                                        </IconButton>
+                                    </span>
+                                </Tooltip>
+                                <Box ml="auto">
+                                { !isMobile
+                                    ? <TextStatsDisplay name="Prompt" sizeInCharacters={promptLength} maxTokenSize={myModelSettings.contextTokenSize}/>
+                                    : null
+                                }
+                                    {streamingChatResponse !== "" && 
+                                    <Tooltip title={ "Stop" }>
+                                        <span>
+                                            <IconButton id="chat-stop" edge="end" color="inherit" aria-label="stop"
+                                                onClick={() => { handleStopStreaming(); }}
+                                            >
+                                                <StopCircleIcon/>
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>}
+                                    <Tooltip title={ "Send prompt to AI" }>
+                                        <span>
+                                            <IconButton edge="end" color="inherit" aria-label="send" disabled={promptPlaceholder === userPromptWaiting}
+                                                onClick={() => { setPromptToSend({prompt: chatPromptRef.current.innerText, timestamp: Date.now()}); }}
+                                            >
+                                                <SendIcon/>
+                                            </IconButton>
+                                        </span>
                                     </Tooltip>
-                                </SecondaryToolbar>
-                                <List dense sx={{ width: "100%", overflow: "auto", maxHeight: "100px" }}>
-                                    {Object.values(selectedAiLibraryNotesMetadataDict).map(noteMetadata =>(
-                                        <ListItem 
-                                            key={"loaded-ai-knowledge-" + noteMetadata.id}
-                                            secondaryAction={
-                                                <Tooltip title={ "Unload knowledge from AI" }>
-                                                    <IconButton edge="end" aria-label="Unload knowledge from AI"
-                                                        onClick={() => {handleUnloadKnowledgeFromAi(noteMetadata.id)}}>
-                                                        <CloseIcon />
+                                </Box>
+                            </SecondaryToolbar>
+                            <Box position="relative">
+                                <div
+                                    // Using a div with a reference to the DOM element instead of TextField for performance reasons
+                                    // For large text content, TextField lag in rendering individual key strokes is unacceptable
+                                    id="chat-prompt"
+                                    ref={chatPromptRef}
+                                    tabIndex="-1" // To allow the div to receive focus
+                                    contentEditable={promptPlaceholder === userPromptWaiting ? "false" : "true"}
+                                    onInput={handleChatPromptInput}
+                                    onKeyDown={
+                                        (event) => {
+                                            editorEventHandlers.onKeyDown(event);
+                                            handleChatPromptKeydown(event);
+                                        }
+                                    }
+                                    onKeyUp={handleChatPromptKeyup}
+                                    onPaste={ (event) => { editorEventHandlers.onPaste(event); setChatPromptIsEmpty(false); }}
+                                    data-placeholder={promptPlaceholder}
+                                    className={chatPromptIsEmpty ? 'empty' : ''}
+                                    style={{
+                                        ...editorEventHandlers.style,
+                                        overflow: "auto",
+                                        minHeight: "56px",
+                                        maxHeight: "300px",
+                                        flex: 1,
+                                        marginTop: "auto",
+                                        padding: "18.5px 14px",
+                                        backgroundColor: darkMode ? grey[900] : 'white',
+                                        color: darkMode ? "rgba(255, 255, 255, 0.87)" : "rgba(0, 0, 0, 0.87)",
+                                        border: darkMode ? "1px solid rgba(200, 200, 200, 0.23)" : "1px solid rgba(0, 0, 0, 0.23)",
+                                    }}
+                                >
+                                </div>
+                                <HighlightOffIcon
+                                    style={{ position: 'absolute', top: 0, right: 0,
+                                        color: darkMode ? 'lightgrey' : 'darkgrey' }}
+                                    onClick={(event) => {event.stopPropagation(); setChatPrompt("");}}
+                                    />
+                            </Box>
+                            { aiLibraryOpen ? 
+                                <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1, backgroundColor: darkMode ? grey[900] : grey[100] }}>
+                                    <Box sx={{ mt: 2, display: "flex", flexDirection: "column", width: "100%" }}>
+                                        <SecondaryToolbar sx={{gap:1}} className={ClassNames.toolbar}>
+                                            <Typography fontWeight="bold">AI Library</Typography>
+                                            <Typography sx={{mr:1}}>Loaded notes: {Object.keys(selectedAiLibraryNotes).length}</Typography>
+                                            <TextStatsDisplay name="AI Library" sizeInCharacters={selectedAiLibraryFullTextSize} 
+                                                maxTokenSize={myModelSettings.contextTokenSize}/>
+                                            <Tooltip title='Close AI library'>
+                                                <IconButton sx={{ml:'auto'}} onClick={()=>{setAiLibraryOpen(false)}}>
+                                                    <CloseIcon />
+                                                </IconButton>
+                                            </Tooltip>
+                                        </SecondaryToolbar>
+                                        <List dense sx={{ width: "100%", overflow: "auto", maxHeight: "100px" }}>
+                                            {Object.values(selectedAiLibraryNotesMetadataDict).map(noteMetadata =>(
+                                                <ListItem 
+                                                    key={"loaded-ai-knowledge-" + noteMetadata.id}
+                                                    secondaryAction={
+                                                        <Tooltip title={ "Unload knowledge from AI" }>
+                                                            <IconButton edge="end" aria-label="Unload knowledge from AI"
+                                                                onClick={() => {handleUnloadKnowledgeFromAi(noteMetadata.id)}}>
+                                                                <CloseIcon />
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    }
+                                                >
+                                                    {noteMetadata.name}
+                                                </ListItem>
+                                            ))}
+                                        </List>
+                                        <FormControl sx={{ minWidth: 120, width: "100%" }}>
+                                            <Box sx={{ display: "flex", direction: "row", width: "100%" }}>
+                                                <InputLabel id="ai-library-helper-label">Select knowledge to add</InputLabel>
+                                                <Select
+                                                sx={{width: "100%"}}
+                                                labelId="ai-library-select-helper-label"
+                                                id="ai-library-select-helper"
+                                                label="Select notes to add to AI knowledge"
+                                                value={selectedAiLibraryNoteId}
+                                                onChange={handleloadKnowledgeToAi}
+                                                >
+                                                    {(showOnlyNotesInAiLibrary
+                                                        ? 
+                                                            aiLibrary.filter(noteMetadata => noteMetadata.properties.inAILibrary
+                                                                && !(noteMetadata.id in selectedAiLibraryNotesMetadataDict)
+                                                            )
+                                                        :
+                                                            aiLibrary.filter(noteMetadata => !(noteMetadata.id in selectedAiLibraryNotesMetadataDict))
+                                                        ).map((noteMetadata) => (
+                                                        <MenuItem key={'ai-library-item-' + noteMetadata.id} value={noteMetadata}>{noteMetadata.name}</MenuItem>
+                                                    ))}
+                                                </Select>
+                                                <Tooltip title={ showOnlyNotesInAiLibrary ? "Select box will show notes that are in the AI Library. Click to show all notes" : "Show only notes in AI library" }>
+                                                    <IconButton onClick={() => { setShowOnlyNotesInAiLibrary(x=>!x) }}>
+                                                        { showOnlyNotesInAiLibrary ? <LocalLibraryIcon/> : <LocalLibraryOutlinedIcon/> }
                                                     </IconButton>
                                                 </Tooltip>
-                                            }
-                                        >
-                                            {noteMetadata.name}
-                                        </ListItem>
-                                    ))}
-                                </List>
-                                <FormControl sx={{ minWidth: 120, width: "100%" }}>
-                                    <Box sx={{ display: "flex", direction: "row", width: "100%" }}>
-                                        <InputLabel id="ai-library-helper-label">Select knowledge to add</InputLabel>
-                                        <Select
-                                        sx={{width: "100%"}}
-                                        labelId="ai-library-select-helper-label"
-                                        id="ai-library-select-helper"
-                                        label="Select notes to add to AI knowledge"
-                                        value={selectedAiLibraryNoteId}
-                                        onChange={handleloadKnowledgeToAi}
-                                        >
-                                            {(showOnlyNotesInAiLibrary
-                                                ? 
-                                                    aiLibrary.filter(noteMetadata => noteMetadata.properties.inAILibrary
-                                                        && !(noteMetadata.id in selectedAiLibraryNotesMetadataDict)
-                                                    )
-                                                :
-                                                    aiLibrary.filter(noteMetadata => !(noteMetadata.id in selectedAiLibraryNotesMetadataDict))
-                                                ).map((noteMetadata) => (
-                                                <MenuItem key={'ai-library-item-' + noteMetadata.id} value={noteMetadata}>{noteMetadata.name}</MenuItem>
-                                            ))}
-                                        </Select>
-                                        <Tooltip title={ showOnlyNotesInAiLibrary ? "Select box will show notes that are in the AI Library. Click to show all notes" : "Show only notes in AI library" }>
-                                            <IconButton onClick={() => { setShowOnlyNotesInAiLibrary(x=>!x) }}>
-                                                { showOnlyNotesInAiLibrary ? <LocalLibraryIcon/> : <LocalLibraryOutlinedIcon/> }
-                                            </IconButton>
-                                        </Tooltip>
-                                        <IconButton onClick={handleAiLibraryHelpPopoverOpen}>
-                                        <HelpIcon />
-                                        </IconButton>
-                                        <Popover
-                                        id="ai-library-help-popover"
-                                        open={aiLibraryHelpPopoverOpen}
-                                            anchorEl={anchorAiLibraryHelpEl}
-                                        onClick={handleAiLibraryHelpPopoverClose}
-                                        onClose={handleAiLibraryHelpPopoverClose}
-                                        anchorOrigin={{
-                                            vertical: 'bottom',
-                                            horizontal: 'left',
-                                        }}
-                                        transformOrigin={{
-                                            vertical: 'top',
-                                            horizontal: 'left',
-                                        }}
-                                        >
-                                        <FormHelperText sx={{ p: 2, width: "300px" }}>
-                                            Add knowledge the AI can use to answer questions by creating notes and clicking the book icon in the notes main toolbar to add them to the AI library, then select notes from this list for the AI to use in answering your questions. Click the X next to loaded knowledge notes to unload them. Loaded knowledge takes up space in the AI context window, so ensure it is concise.
-                                        </FormHelperText>
-                                        </Popover>
+                                                <IconButton onClick={handleAiLibraryHelpPopoverOpen}>
+                                                <HelpIcon />
+                                                </IconButton>
+                                                <Popover
+                                                id="ai-library-help-popover"
+                                                open={aiLibraryHelpPopoverOpen}
+                                                    anchorEl={anchorAiLibraryHelpEl}
+                                                onClick={handleAiLibraryHelpPopoverClose}
+                                                onClose={handleAiLibraryHelpPopoverClose}
+                                                anchorOrigin={{
+                                                    vertical: 'bottom',
+                                                    horizontal: 'left',
+                                                }}
+                                                transformOrigin={{
+                                                    vertical: 'top',
+                                                    horizontal: 'left',
+                                                }}
+                                                >
+                                                <FormHelperText sx={{ p: 2, width: "300px" }}>
+                                                    Add knowledge the AI can use to answer questions by creating notes and clicking the book icon in the notes main toolbar to add them to the AI library, then select notes from this list for the AI to use in answering your questions. Click the X next to loaded knowledge notes to unload them. Loaded knowledge takes up space in the AI context window, so ensure it is concise.
+                                                </FormHelperText>
+                                                </Popover>
+                                            </Box>
+                                        </FormControl>
                                     </Box>
-                                </FormControl>
-                            </Box>
-                        </Paper> : null
-                    }
-                    { !isMobile
-                        ? <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 2, backgroundColor: darkMode ? grey[900] : grey[100] }}>
-                                <Typography color="textSecondary">Prompts: {promptCount}</Typography>
-                                <Typography color="textSecondary">Responses: {responseCount}</Typography>
-                                <Typography color="textSecondary">K-Notes: { Object.keys(selectedAiLibraryNotes).length }</Typography>
-                                <Typography color="textSecondary">Total size: 
-                                    <TextStatsDisplay sx={{ ml:1 }} name="prompt + context" sizeInCharacters={messagesSize + promptLength + selectedAiLibraryFullTextSize}
-                                    maxTokenSize={myModelSettings.contextTokenSize} />
-                                </Typography>
-                            </Paper>
-                        : null
-                    }
-                </Box>
+                                </Paper> : null
+                            }
+                            { !isMobile
+                                ? <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 2, backgroundColor: darkMode ? grey[900] : grey[100] }}>
+                                        <Typography color="textSecondary">Prompts: {promptCount}</Typography>
+                                        <Typography color="textSecondary">Responses: {responseCount}</Typography>
+                                        <Typography color="textSecondary">K-Notes: { Object.keys(selectedAiLibraryNotes).length }</Typography>
+                                        <Typography color="textSecondary">Total size: 
+                                            <TextStatsDisplay sx={{ ml:1 }} name="prompt + context" sizeInCharacters={messagesSize + promptLength + selectedAiLibraryFullTextSize}
+                                            maxTokenSize={myModelSettings.contextTokenSize} />
+                                        </Typography>
+                                    </Paper>
+                                : null
+                            }
+                        </Box>
+                    :
+                        <Box>
+                            <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
+                                <Typography sx={{ flexGrow: 1 }}>Chat shared by {documentOwner}.<br/>Shared chats are read only. Clone to continue.</Typography>
+                                <Tooltip title={ "Clone chat" }>
+                                    <IconButton edge="end" onClick={() => {handleMenuPanelClose(); handleCloneChat();}}>
+                                        <FileCopyIcon/>
+                                    </IconButton>
+                                </Tooltip>
+                                </SecondaryToolbar>
+                        </Box>
+                }
+
             </Box>
             {
                 chatContextOpen  && !isMobile // show chat context to the side of messages on desktop

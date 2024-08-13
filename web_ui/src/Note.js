@@ -4,10 +4,11 @@ import { debounce } from "lodash";
 import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Box, Toolbar, IconButton, Typography, TextField, Menu,
     ListItemIcon, MenuItem, Tooltip } from '@mui/material';
+import { InputLabel, FormControl, Select } from '@mui/material';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
 import { green, lightBlue, grey } from '@mui/material/colors';
-import { StyledBox } from './theme';
+import { StyledBox, SecondaryToolbar } from './theme';
 
 // Icons
 import CloseIcon from '@mui/icons-material/Close';
@@ -18,6 +19,7 @@ import CodeOffIcon from '@mui/icons-material/CodeOff';
 import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 import DeleteIcon from '@mui/icons-material/Delete';
+import FileCopyIcon from '@mui/icons-material/FileCopy';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
@@ -43,8 +45,10 @@ import AIPromptResponse from './AIPromptResponse';
 const Note = ({noteOpen, setNoteOpen, appendNoteContent, loadNote, createNote, darkMode,
     closeOtherPanels, restoreOtherPanels, windowMaximized, setWindowMaximized,
     setNewPromptPart, setNewPrompt, setChatRequest, onChange, setOpenNoteId, 
-    modelSettings, persona, serverUrl, token, setToken, maxWidth, isMobile, language, languagePrompt}) => {
+    modelSettings, persona, serverUrl, token, setToken, maxWidth, isMobile,
+    language, languagePrompt, debugMode}) => {
 
+    const noteMenuButtonRef = useRef(null);
     const sidekickClipboard = useContext(SidekickClipboardContext);
     const panelWindowRef = useRef(null);
     const [notePanelKey, setNotePanelKey] = useState(Date.now()); // used to force re-renders
@@ -52,7 +56,7 @@ const Note = ({noteOpen, setNoteOpen, appendNoteContent, loadNote, createNote, d
     const StyledToolbar = styled(Toolbar)(({ theme }) => ({
         backgroundColor: darkMode ? green[900] : green[300],
         marginRight: theme.spacing(2),
-    }));
+    }));    
     
     const newNoteName = "New Note";
     const systemPrompt = `You are DocumentGPT.
@@ -72,6 +76,14 @@ You always do your best to generate text in the same style as the context text p
 
     const focusOnContent = () => {
         document.getElementById("note-content")?.focus();
+    }
+
+    const isEditable = () => {
+        let editable = false;
+        if (system.user.id === documentOwner) {
+            editable = true;
+        }
+        return editable;
     }
 
     const applySystemSettings = () => {
@@ -120,6 +132,8 @@ You always do your best to generate text in the same style as the context text p
     const system = useContext(SystemContext);
     const [id, setId] = useState("");
     const [name, setName] = useState(newNoteName);
+    const [visibility, setVisibility] = useState("private");
+    const [documentOwner, setDocumentOwner] = useState("");
     const [previousName, setPreviousName] = useState(newNoteName);
     const defaultUserPromptReady = "What do you want to add to your note?";
     const userPromptReady = useRef(defaultUserPromptReady);
@@ -127,7 +141,7 @@ You always do your best to generate text in the same style as the context text p
     const noteContentRef = useRef(null);
     const [contentDisabled, setContentDisabled] = useState(false);
     const [promptPlaceholder, setPromptPlaceholder] = useState(userPromptReady.current);
-    const [menuPanelAnchorEl, setMenuPanelAnchorEl] = useState(null);
+    const [menuPosition, setMenuPosition] = useState(null);
     const [noteContextMenu, setNoteContextMenu] = useState(null);
     const [folder, setFolder] = useState("notes");
     const [tags, setTags] = useState([]);
@@ -148,8 +162,72 @@ You always do your best to generate text in the same style as the context text p
     const [timeToSave, setTimeToSave] = useState(false);
     const [noteMarkdownRenderBuffer, setNoteMarkdownRenderBuffer] = useState("");
 
+    const clone = () => {
+        let request = {
+            metadata: {
+                name: name + " clone",
+                tags: tags,
+                properties: {
+                    inAILibrary: inAILibrary, // if its in the AI library then thats probbaly why you want to clone it, so keep it in there
+                    starred: false, // don't clone the starred status
+                    bookmarked: false, // don't clone the bookmarked status
+                }
+            },
+            content: { note: noteContentRef.current.innerText }
+        };
+        const url = `${serverUrl}/docdb/${folder}/documents`;
+        axios.post(url, request, {
+            headers: {
+                Authorization: 'Bearer ' + token
+            }
+        }).then(response => {
+            response.data.access_token && setToken(response.data.access_token);
+            onChange(id, name, "created", "");
+            system.info(`Cloned note into "${response.data.metadata.name}".`);
+            system.debug("Note cloned", response, url + " POST");
+            load(response.data.metadata.id);
+        }).catch(error => {
+            system.error(`System Error cloning chat`, error, url + " POST");
+        });
+    }
+
+    const _save = () => {
+        console.log("_Save", id, name, saveStatus.current);
+        saveStatus.current = "saving"; 
+        const request = {
+            metadata: {
+                name: name,
+                visibility: visibility,
+                tags: tags,
+                properties: {
+                    inAILibrary: inAILibrary,
+                    starred: starred,
+                    bookmarked: bookmarked,
+                },
+            },
+            content: { note: noteContentRef.current.innerText },
+        }
+        let url = `${serverUrl}/docdb/${folder}/documents/${id}`;
+        axios.put(url, request, {
+            headers: {
+                Authorization: 'Bearer ' + token
+            }
+        }).then(response => {
+            saveStatus.current = "saved";
+            response.data.access_token && setToken(response.data.access_token);
+            if (id === "") {
+                setId(response.data.metadata.id);
+            }
+            onChange(id, name, "changed", "");
+            console.log("note save Response", response);
+        }).catch(error => {
+            system.error(`System Error saving note.`, error, url + " PUT");
+            saveStatus.current = "changed";
+        });
+    }
+
     const save = () => {
-        if (["loading", "saving", "creating"].includes(saveStatus.current)) {
+        if (!isEditable() || ["loading", "saving", "creating"].includes(saveStatus.current)) {
             return;
         }
         console.log("save", id, name);
@@ -196,7 +274,7 @@ You always do your best to generate text in the same style as the context text p
             saveStatus.current = "changed";
         }
         save();
-    }, [inAILibrary, starred, bookmarked, tags]);
+    }, [inAILibrary, starred, bookmarked, visibility, tags]);
 
     useEffect(() => {
         if (noteOpen && userPromptEntered) {
@@ -265,44 +343,52 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         }
     }, [id]);
 
+    const load = (id) => {
+        noteInstantiated.current = false;
+        saveStatus.current = "loading";
+        resetNote();
+        setNoteOpen({id: id, timestamp: Date.now()});
+        if (id !== null) {
+            let url = `${serverUrl}/docdb/${folder}/documents/${id}`;
+            console.log("loadNote", id);
+            axios.get(url, {
+                headers: {
+                    Authorization: 'Bearer ' + token
+                  }
+            }).then(response => {
+                response.data.access_token && setToken(response.data.access_token);
+                debugMode && console.log("loadNote Response", response);
+                setId(response.data.metadata.id);
+                setName(response.data.metadata.name);
+                setDocumentOwner(response.data.metadata.user_id);
+                setVisibility(response.data.metadata.visibility);
+                setTags(response.data.metadata?.tags || []);
+                setBookmarked(response.data.metadata?.properties?.bookmarked || false);
+                setStarred(response.data.metadata?.properties?.starred || false);
+                setInAILibrary(response.data.metadata?.properties?.inAILibrary || false);
+                setPreviousName(response.data.metadata.name);
+                setContent(response.data.content.note);
+                saveStatus.current = "saved";// we know its saved because we just loaded it!
+                if (isMobile) {
+                    panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+                }
+                focusOnContent();
+            }).catch(error => {
+                system.error(`System Error loading note.`, error, url + " GET");
+            });
+            // Wait for the note to load before scrolling to the top
+            setTimeout(() => {
+                let c = document.getElementById("note-content")
+                if (c) {
+                    c.scrollTop = 0;
+                }
+            }, 0);
+        }
+    }
+
     useEffect(()=>{
         if(loadNote) {
-            noteInstantiated.current = false;
-            saveStatus.current = "loading";
-            setNoteOpen({id: loadNote.id, timestamp: Date.now()});
-            if (loadNote.id !== null) {
-                let url = `${serverUrl}/docdb/${folder}/documents/${loadNote.id}`;
-                console.log("loadNote", loadNote.id);
-                axios.get(url, {
-                    headers: {
-                        Authorization: 'Bearer ' + token
-                      }
-                }).then(response => {
-                    response.data.access_token && setToken(response.data.access_token);
-                    setId(response.data.metadata.id);
-                    setName(response.data.metadata.name);
-                    setTags(response.data.metadata?.tags || []);
-                    setBookmarked(response.data.metadata?.properties?.bookmarked || false);
-                    setStarred(response.data.metadata?.properties?.starred || false);
-                    setInAILibrary(response.data.metadata?.properties?.inAILibrary || false);
-                    setPreviousName(response.data.metadata.name);
-                    setContent(response.data.content.note);
-                    saveStatus.current = "saved";// we know its saved because we just loaded it!
-                    if (isMobile) {
-                        panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
-                    }
-                    focusOnContent();
-                }).catch(error => {
-                    system.error(`System Error loading note.`, error, url + " GET");
-                });
-                // Wait for the note to load before scrolling to the top
-                setTimeout(() => {
-                    let c = document.getElementById("note-content")
-                    if (c) {
-                        c.scrollTop = 0;
-                    }
-                }, 0);
-            }
+            load(loadNote.id);
         }
     }, [loadNote]);
 
@@ -339,40 +425,6 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
 
     const showWaiting = () => {
         setPromptPlaceholder(userPromptWaiting);
-    }
-
-    const _save = () => {
-        console.log("_Save", id, name, saveStatus.current);
-        saveStatus.current = "saving"; 
-        const request = {
-            metadata: {
-                name: name,
-                tags: tags,
-                properties: {
-                    inAILibrary: inAILibrary,
-                    starred: starred,
-                    bookmarked: bookmarked,
-                },
-            },
-            content: { note: noteContentRef.current.innerText },
-        }
-        let url = `${serverUrl}/docdb/${folder}/documents/${id}`;
-        axios.put(url, request, {
-            headers: {
-                Authorization: 'Bearer ' + token
-            }
-        }).then(response => {
-            saveStatus.current = "saved";
-            response.data.access_token && setToken(response.data.access_token);
-            if (id === "") {
-                setId(response.data.metadata.id);
-            }
-            onChange(id, name, "changed", "");
-            console.log("note save Response", response);
-        }).catch(error => {
-            system.error(`System Error saving note.`, error, url + " PUT");
-            saveStatus.current = "changed";
-        });
     }
 
     const downloadFile = (filename, content) => {
@@ -461,9 +513,12 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         setMarkdownRenderingOn(false);
         setName(newNoteName);
         setPreviousName(newNoteName);
+        setVisibility("private");
+        setDocumentOwner(system.user.id); 
         setTags([]);
         setBookmarked(false);
         setStarred(false);
+        setVisibility("private");
         setContent("");
         setAIResponse('');
         setInAILibrary(false);
@@ -499,6 +554,10 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     const handleNewNote = () => {
         resetNote();
         focusOnContent();
+    }
+
+    const handleCloneNote = () => {
+        clone();
     }
 
     const renameNote = (newName) => {
@@ -548,6 +607,12 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         setName(event.target.value);
     }
 
+    const handleVisibilityChange = (event) => {
+        if (event.target.value) {
+            setVisibility(event.target.value);
+        }
+    }
+
     const generateNoteName = async (text) => {
         if (renameInProcess) {
             return;
@@ -578,11 +643,13 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
     }
 
     const handleMenuPanelOpen = (event) => {
-        setMenuPanelAnchorEl(event.currentTarget);
+        setMenuPosition({
+            mouseX: event.clientX,
+            mouseY: event.clientY,
+        });
     };
-
     const handleMenuPanelClose = () => {
-        setMenuPanelAnchorEl(null);
+        setMenuPosition(null);
     };
 
     const handleNoteContextMenu = (event, note, title) => {
@@ -716,69 +783,11 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         >
             <EditNoteIcon/>
         </IconButton>
-        <Typography sx={{mr:2}}>Note</Typography>
-        <Tooltip title={ id === "" ? "You are in a new note" : "New note" }>
-            <span>
-                <IconButton edge="start" color="inherit" aria-label="New note"
-                    disabled={id === ""} onClick={handleNewNote}
-                >
-                    <AddOutlinedIcon/>
-                </IconButton>
-            </span>
-        </Tooltip>
-        <Tooltip title={ bookmarked ? "Unbookmark this note" : "Bookmark this note"}>
-            <span>
-                <IconButton edge="start" color="inherit" aria-label={bookmarked ? "Unbookmark this note" : "Bookmark this note"}
-                    onClick={ () => {setBookmarked(x=>!x)} }
-                >
-                    {bookmarked ? <BookmarkIcon/> : <BookmarkBorderIcon/>}
-                </IconButton>
-            </span>
-        </Tooltip>
-        <Tooltip title={ starred ? "Unstar this note" : "Star this note"}>
-            <span>
-                <IconButton edge="start" color="inherit" aria-label={starred ? "Unstar this note" : "Star this note"}
-                    onClick={ () => {setStarred(x=>!x)} }
-                >
-                    {starred ? <StarIcon/> : <StarBorderIcon/>}
-                </IconButton>
-            </span>
-        </Tooltip>
-        <Tooltip title={ markdownRenderingOn ? "Stop rendering as markdown and edit as text" : "Preview markdown and code rendering (read only)" }>
-            <IconButton edge="start" color="inherit" aria-label="delete chat" onClick={handleToggleMarkdownRendering}>
-                { markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }
-            </IconButton>
-        </Tooltip>
-        <Tooltip title={ inAILibrary ? "Remove from AI Library" : "Add to AI library. When you click the same library icon in the Chat Prompt Editor it will give you the option of adding notes to the context of your chat. These notes do not appear in the chat transcript but are sent to the AI every time you prompt it so it has them as context." }>
-            <IconButton edge="start" color="inherit" aria-label={ inAILibrary ? "Remove from AI Library" : "Add to AI library" } onClick={handleToggleInAILibrary}>
-                { inAILibrary ? <LocalLibraryIcon/> : <LocalLibraryOutlinedIcon/> }
-            </IconButton>
-        </Tooltip>
-        <Box ml="auto">
-            <Tooltip title={ "Delete note" }>
-                <IconButton edge="end" color="inherit" aria-label="delete note"
-                    onClick={handleDeleteNote}
-                >
-                    <DeleteIcon/>
-                </IconButton>
-            </Tooltip>
-            {
-                !isMobile ?
-                    <Tooltip title={ windowMaximized ? "Shrink window" : "Expand window" }>
-                        <IconButton edge="end" color="inherit" aria-label={ windowMaximized ? "Shrink window" : "Expand window" } onClick={handleToggleWindowMaximise}>
-                            { windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }
-                        </IconButton>
-                    </Tooltip>
-                    : null
-            }
-            <IconButton onClick={handleClose}>
-                <CloseIcon />
-            </IconButton>
-        </Box>
         <Menu
             id="menu-note"
-            anchorEl={menuPanelAnchorEl}
-            open={Boolean(menuPanelAnchorEl)}
+            anchorReference="anchorPosition"
+            anchorPosition={menuPosition ? { top: menuPosition.mouseY, left: menuPosition.mouseX } : undefined}
+            open={Boolean(menuPosition)}
             onClose={handleMenuPanelClose}
             anchorOrigin={{
                 vertical: 'top',
@@ -792,6 +801,10 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
             <MenuItem onClick={() => { handleMenuPanelClose(); handleNewNote();}}>
                 <ListItemIcon><AddOutlinedIcon/></ListItemIcon>
                 New Note
+            </MenuItem>
+            <MenuItem onClick={() => {handleMenuPanelClose(); handleCloneNote();}} disabled={id === ""}>
+                <ListItemIcon><FileCopyIcon/></ListItemIcon>
+                Clone Note
             </MenuItem>
             <MenuItem onClick={() => { handleMenuPanelClose(); handleDownload();}}>
                 <ListItemIcon><FileDownloadIcon/></ListItemIcon>
@@ -812,15 +825,85 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     { windowMaximized ? "Shrink window" : "Expand window" }
                 </MenuItem>
             }
-            <MenuItem onClick={() => { handleMenuPanelClose(); handleDeleteNote();}}>
-                <ListItemIcon><DeleteIcon/></ListItemIcon>
-                Delete Note</MenuItem>
+            { isEditable() &&
+                <MenuItem onClick={() => { handleMenuPanelClose(); handleDeleteNote();}}>
+                    <ListItemIcon><DeleteIcon/></ListItemIcon>
+                    Delete Note
+                </MenuItem>
+            }
             <MenuItem onClick={() => { handleMenuPanelClose(); handleClose();}}>
                 <ListItemIcon><CloseIcon/></ListItemIcon>
                 Close Window
             </MenuItem>
 
         </Menu>
+        <Typography sx={{mr:2}}>Note</Typography>
+        <Tooltip title={ id === "" ? "You are in a new note" : "New note" }>
+            <span>
+                <IconButton edge="start" color="inherit" aria-label="New note"
+                    disabled={id === ""} onClick={handleNewNote}
+                >
+                    <AddOutlinedIcon/>
+                </IconButton>
+            </span>
+        </Tooltip>
+        { isEditable() &&
+            <Tooltip title={ bookmarked ? "Unbookmark this note" : "Bookmark this note"}>
+                <span>
+                    <IconButton edge="start" color="inherit" aria-label={bookmarked ? "Unbookmark this note" : "Bookmark this note"}
+                        onClick={ () => {setBookmarked(x=>!x)} }
+                    >
+                        {bookmarked ? <BookmarkIcon/> : <BookmarkBorderIcon/>}
+                    </IconButton>
+                </span>
+            </Tooltip>
+        }
+        { isEditable() &&
+            <Tooltip title={ starred ? "Unstar this note" : "Star this note"}>
+                <span>
+                    <IconButton edge="start" color="inherit" aria-label={starred ? "Unstar this note" : "Star this note"}
+                        onClick={ () => {setStarred(x=>!x)} }
+                    >
+                        {starred ? <StarIcon/> : <StarBorderIcon/>}
+                    </IconButton>
+                </span>
+            </Tooltip>
+        }
+        <Tooltip title={ markdownRenderingOn ? "Stop rendering as markdown and edit as text" : "Preview markdown and code rendering (read only)" }>
+            <IconButton edge="start" color="inherit" aria-label="delete chat" onClick={handleToggleMarkdownRendering}>
+                { markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }
+            </IconButton>
+        </Tooltip>
+        { isEditable() &&
+            <Tooltip title={ inAILibrary ? "Remove from AI Library" : "Add to AI library. When you click the same library icon in the Chat Prompt Editor it will give you the option of adding notes to the context of your chat. These notes do not appear in the chat transcript but are sent to the AI every time you prompt it so it has them as context." }>
+                <IconButton edge="start" color="inherit" aria-label={ inAILibrary ? "Remove from AI Library" : "Add to AI library" } onClick={handleToggleInAILibrary}>
+                    { inAILibrary ? <LocalLibraryIcon/> : <LocalLibraryOutlinedIcon/> }
+                </IconButton>
+            </Tooltip>
+        }
+        <Box ml="auto">
+            { isEditable() &&
+                <Tooltip title={ "Delete note" }>
+                    <IconButton edge="end" color="inherit" aria-label="delete note"
+                        onClick={handleDeleteNote}
+                    >
+                        <DeleteIcon/>
+                    </IconButton>
+                </Tooltip>
+            }
+            {
+                !isMobile ?
+                    <Tooltip title={ windowMaximized ? "Shrink window" : "Expand window" }>
+                        <IconButton edge="end" color="inherit" aria-label={ windowMaximized ? "Shrink window" : "Expand window" } onClick={handleToggleWindowMaximise}>
+                            { windowMaximized ? <CloseFullscreenIcon/> : <OpenInFullIcon/> }
+                        </IconButton>
+                    </Tooltip>
+                    : null
+            }
+            <IconButton onClick={handleClose}>
+                <CloseIcon />
+            </IconButton>
+        </Box>
     </StyledToolbar>
     );
 
@@ -859,6 +942,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 label="Note name"
                 variant="outlined"
                 value={name}
+                disabled={!isEditable()}
                 onClick={(event) => {
                         if (name === newNoteName) {
                         event.target.select();
@@ -880,6 +964,21 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 onBlur={(event) => { handleNameBlur(event) }}
                 onChange={handleNameChange}
             />
+            <FormControl sx={{ ml:1, mt: 2, minWidth: 120 }}>
+                <InputLabel id={"chat-visibility-label"}>Visibility</InputLabel>
+                <Select
+                    id={"note-visibility"}
+                    name={"Visibility"}
+                    disabled={id === ""  || !isEditable()}
+                    labelId={"chat-visibility-label"}
+                    value={visibility}
+                    label="Visibility"
+                    onChange={handleVisibilityChange}
+                    >
+                            <MenuItem value="private">Private</MenuItem>
+                            <MenuItem value="shared">Shared</MenuItem>
+                </Select>
+            </FormControl>
             <Toolbar sx={{ paddingLeft: "0px" }}>
                 <Tooltip title={ "Regenerate note name" } sx={{ ml: "auto" }}>
                     <span>
@@ -972,29 +1071,43 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         </StyledBox>
     </StyledBox>
     <Box>
-        <AIPromptResponse 
-            modelSettings={modelSettings}
-            serverUrl={serverUrl}
-            token={token}
-            setToken={setToken}
-            streamingOn={true}
-            customUserPromptReady={userPromptReady.current}
-            systemPrompt={ persona.system_prompt + "\n\n" + systemPrompt }
-            streamingChatResponseRef={streamingChatResponseRef}
-            streamingChatResponse={streamingChatResponse}
-            setStreamingChatResponse={setStreamingChatResponse}
-            setAIResponse={setAIResponse}
-            onChange={onChange}
-            setUserPromptEntered={setUserPromptEntered}
-            userPromptToSend={userPromptToSend}
-            setUserPromptToSend={setUserPromptToSend}
-            controlName="Note Writer"
-            sendButtonTooltip="Send note and prompt to AI"
-            onBlur={save}
-            darkMode={darkMode}
-            language={language}
-            languagePrompt={languagePrompt}
-        />
+        {
+            isEditable() ?
+                <AIPromptResponse 
+                    modelSettings={modelSettings}
+                    serverUrl={serverUrl}
+                    token={token}
+                    setToken={setToken}
+                    streamingOn={true}
+                    customUserPromptReady={userPromptReady.current}
+                    systemPrompt={ persona.system_prompt + "\n\n" + systemPrompt }
+                    streamingChatResponseRef={streamingChatResponseRef}
+                    streamingChatResponse={streamingChatResponse}
+                    setStreamingChatResponse={setStreamingChatResponse}
+                    setAIResponse={setAIResponse}
+                    onChange={onChange}
+                    setUserPromptEntered={setUserPromptEntered}
+                    userPromptToSend={userPromptToSend}
+                    setUserPromptToSend={setUserPromptToSend}
+                    controlName="Note Writer"
+                    sendButtonTooltip="Send note and prompt to AI"
+                    onBlur={save}
+                    darkMode={darkMode}
+                    language={language}
+                    languagePrompt={languagePrompt}
+                    />
+            :
+                <Box>
+                    <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
+                        <Typography sx={{ flexGrow: 1 }}>Note shared by {documentOwner}.<br/>Shared notes are read only. Clone to edit.</Typography>
+                        <Tooltip title={ "Clone note" }>
+                            <IconButton edge="end" onClick={() => {handleMenuPanelClose(); handleCloneNote(); }}>
+                                <FileCopyIcon/>
+                            </IconButton>
+                        </Tooltip>
+                    </SecondaryToolbar>
+                </Box>
+        }
     </Box>
 </Card>
 

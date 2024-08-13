@@ -530,7 +530,7 @@ class DBUtils:
             db.session.commit()
 
     @staticmethod
-    def create_document(user_id, name, type="",tags=[],
+    def create_document(user_id, name, type="", visibility="private", tags=[],
                         properties={}, content={}):
         try:
             User.query.filter_by(id=user_id).one()
@@ -540,6 +540,7 @@ class DBUtils:
             return
 
         document = Document(id=str(uuid.uuid4()), user_id=user_id, name=name,
+                            visibility=visibility,
                             type=type, properties=properties,
                             updated_date=str(datetime.now()),
                             created_date=str(datetime.now()),
@@ -553,9 +554,10 @@ class DBUtils:
         return document.as_dict()
 
     @staticmethod
-    def update_document(id, name, tags, properties, content):
+    def update_document(id, name, tags, properties, content, visibility="private"):
         document = Document.query.filter_by(id=id).one()
         document.name = name
+        document.visibility = visibility
         document.properties = json.dumps(properties)
         document.content = json.dumps(content)
         document.updated_date = str(datetime.now())
@@ -602,6 +604,54 @@ class DBUtils:
                      Document.query.filter_by(type=document_type,
                                               user_id=user_id
                                               if user_id else None).all()]
+        return {"file_count": len(documents), "error_count": 0, "status": "OK",
+                "message": "All files read successfully",
+                "documents": documents}
+
+    @staticmethod
+    def list_my_shared_documents(document_type, user_id):
+        documents = [doc.as_dict()["metadata"] for doc in
+            Document.query.filter_by(type=document_type,
+                                     user_id=user_id,
+                                     visibility='shared').all()]
+        return {"file_count": len(documents), "error_count": 0, "status": "OK",
+                "message": "All files read successfully",
+                "documents": documents}
+
+    @staticmethod
+    def list_my_private_documents(document_type, user_id):
+        documents = [doc.as_dict()["metadata"] for doc in
+            Document.query.filter_by(type=document_type,
+                                     user_id=user_id,
+                                     visibility='private').all()]
+        return {"file_count": len(documents), "error_count": 0, "status": "OK",
+                "message": "All files read successfully",
+                "documents": documents}
+
+    @staticmethod
+    def list_all_shared_documents(document_type):
+        documents = [doc.as_dict()["metadata"] for doc in
+            Document.query.filter_by(type=document_type,
+                                     visibility='shared').all()]
+        return {"file_count": len(documents), "error_count": 0, "status": "OK",
+                "message": "All files read successfully",
+                "documents": documents}
+
+    @staticmethod
+    def list_others_shared_documents(document_type, user_id):
+        documents = [doc.as_dict()["metadata"] for doc in
+            Document.query.filter_by(type=document_type,
+                                     visibility='shared').filter(Document.user_id != user_id).all()]
+        return {"file_count": len(documents), "error_count": 0, "status": "OK",
+                "message": "All files read successfully",
+                "documents": documents}
+
+    @staticmethod
+    def list_all_visible_documents(document_type, user_id):
+        my_documents = Document.query.filter_by(type=document_type, user_id=user_id).all()
+        shared_documents = Document.query.filter_by(type=document_type, visibility='shared').all()
+        documents = [doc.as_dict()["metadata"] for doc in
+            list(set(my_documents + shared_documents))]
         return {"file_count": len(documents), "error_count": 0, "status": "OK",
                 "message": "All files read successfully",
                 "documents": documents}

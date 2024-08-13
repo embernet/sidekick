@@ -1,7 +1,8 @@
 import { debounce } from "lodash";
 import { useEffect, useState, useContext, useCallback, useRef } from 'react';
-import { Card, Box, Toolbar, IconButton, Typography, TextField, List, ListItem, ListItemText,
-    Tooltip, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Card, Box, Divider, Toolbar, IconButton, Typography, TextField, List, ListItem, ListItemText,
+    Tooltip, FormControl, InputLabel, Select, MenuItem,
+    Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from '@mui/material';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
 import CloseIcon from '@mui/icons-material/Close';
@@ -41,11 +42,14 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
     const [filterText, setFilterText] = useState('');
     const [myFolder, setMyFolder] = useState(folder);
     const [sortOrder, setSortOrder] = useState("updated");
+    const [scope, setScope] = useState("mine");
     const [sortOrderDirection, setSortOrderDirection] = useState(-1);
     const [showItemDetails, setShowItemDetails] = useState(false);
     const [userDefaultsLoaded, setUserDefaultsLoaded] = useState(false);
     const [filterBookmarked, setFilterBookmarked] = useState(false);
     const [filterStarred, setFilterStarred] = useState(false);
+    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const [docsToDelete, setDocsToDelete] = useState([]);
 
     const [width, setWidth] = useState(0);
     const handleResize = useCallback(
@@ -90,7 +94,7 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
         if (refresh?.reason === "showExplorer" && isMobile) {
             panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
         }
-    }, [refresh]);
+    }, [refresh, scope]);
 
     useEffect(()=>{
         mySettingsManager.loadSettings(`${folder}_explorer_settings`,
@@ -114,7 +118,7 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
     }, [docNameChanged]);
 
     const loadItems = (sortOrder, sortOrderDirection) => {
-        let url = `${serverUrl}/docdb/${myFolder}/documents`;
+        let url = `${serverUrl}/docdb/${myFolder}/${scope}/documents`;
         axios.get(url, {
             headers: {
                 Authorization: 'Bearer ' + token
@@ -171,6 +175,10 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
         sortDocs(value, sortOrderDirection);
     }
 
+    const handleScopeChange = (event) => {
+        setScope(event.target.value);
+    };
+
     const handleToggleSortOrderDirection = () => {
         sortDocs(sortOrder, sortOrderDirection * -1);
         setSortOrderDirection(x=>x*-1);
@@ -190,10 +198,26 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
     });
 
     const handleDeleteFilteredItems = () => {
+        setDocsToDelete(filteredDocs.filter(doc => doc.user_id === system.user.id));
+    };
+
+    useEffect(() => {
+        if (docsToDelete.length === 0) {
+            return;
+        }
+        setOpenDeleteDialog(true);
+    }, [docsToDelete]);
+
+    const handleCancelDelete = () => {
+        setOpenDeleteDialog(false);
+    };    
+    
+    const deleteItems = (docsToDelete) => {
+        setOpenDeleteDialog(false);
         console.log("handleDeleteFilteredItems", itemOpen);
         let count = 0;
         let url = `${serverUrl}/docdb/${myFolder}/documents/`;
-        const deletePromises = filteredDocs.map(doc => {
+        const deletePromises = docsToDelete.map(doc => {
             if (openItemId === doc.id) {
                 setItemOpen(false);
             }
@@ -217,6 +241,35 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
         });
     };
 
+    const confirmDeleteDialog =
+        <Dialog
+            open={openDeleteDialog}
+            onClose={handleCancelDelete}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+        >
+            <DialogTitle id="alert-dialog-title">{"Confirm Deletion"}</DialogTitle>
+            <DialogContent>
+                { (filteredDocs.length === docsToDelete.length) ? null :
+                    <DialogContentText id="alert-dialog-warning" sx={{ mb:2 }}>
+                            Warning: {filteredDocs.length - docsToDelete.length} of the {filteredDocs.length} selected documents are not yours,
+                            so cannot be deleted by you. If you continue, only your selected items will be deleted.
+                    </DialogContentText>
+                }
+                <DialogContentText id="alert-dialog-confirmation">
+                    Are you sure you want to delete {docsToDelete.length} items?
+                </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={handleCancelDelete} color="primary">
+                    Cancel
+                </Button>
+                <Button onClick={() => { deleteItems(docsToDelete); }} color="primary" autoFocus>
+                    OK
+                </Button>
+            </DialogActions>
+        </Dialog>;
+
     const render = <Card id={{name}+"-explorer-panel"} ref={panelWindowRef}
                     sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1,
                     width: isMobile ? `${window.innerWidth}px` : null,
@@ -224,7 +277,8 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                     maxWidth: isMobile ? `${window.innerWidth}px` : "450px"
                     }}
                     >
-       {
+        {confirmDeleteDialog}
+        {
            hidePrimaryToolbar ? null 
            :
                <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
@@ -235,31 +289,32 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                             <ListAltIcon />
                         </IconButton>
                     </Tooltip>
-                    <Tooltip title={ filterBookmarked ? "Don't filter on bookmarked" : "Filter to show only bookmarked items"}>
-                        <span>
-                            <IconButton edge="start" color="inherit" aria-label={ filterBookmarked ? "Don't filter on bookmarked" : "Filter to show only bookmarked items"}
-                                onClick={ () => {setFilterBookmarked(x=>!x)} }
-                            >
-                                {filterBookmarked ? <BookmarkIcon/> : <BookmarkBorderIcon/>}
-                            </IconButton>
-                        </span>
-                    </Tooltip>
-                    <Tooltip title={ filterStarred ? "Don't filter on starred" : "Show only starred items"}>
-                        <span>
-                            <IconButton edge="start" color="inherit" aria-label={ filterStarred ? "Don't filter on starred" : "Show only starred items"}
-                                onClick={ () => {setFilterStarred(x=>!x)} }
-                            >
-                                {filterStarred ? <StarIcon/> : <StarBorderIcon/>}
-                            </IconButton>
-                        </span>
-                    </Tooltip>
                     <Box ml="auto">
+                        {
+                            deleteEnabled ?
+                                <Tooltip title={ filterText.length === 0 
+                                    ? "Enter a filter to enable bulk delete" 
+                                    : "Bulk delete all notes matching filter" 
+                                }>
+                                    <span>
+                                        <IconButton edge="end" color="inherit" aria-label="delete notes matching filter"
+                                            onClick={handleDeleteFilteredItems}
+                                            disabled={filterText.length === 0}
+                                        >
+                                            <DeleteIcon/>
+                                        </IconButton>
+                                    </span>
+                                </Tooltip>
+                            : null
+                        }
                         {
                             isMobile ? null :
                                 <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
-                                    <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
-                                        {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
-                                    </IconButton>
+                                    <span>
+                                        <IconButton edge="end" onClick={() => { setWindowPinnedOpen(state => !state); }}>
+                                            {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
+                                        </IconButton>
+                                    </span>
                                 </Tooltip>
                         }
                         
@@ -270,54 +325,83 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                         </Tooltip>
                     </Box>
                </StyledToolbar>
-       }
-       <Box sx={{ width: "100%", paddingLeft: 0, paddingRight: 0, display: "flex", flexDirection: "row" }}>
-           <FormControl sx={{ mt: 2, minWidth: 120 }} size="small">
-               <InputLabel id={{name} + "-explorer-sort-order-label"}>Sort order</InputLabel>
-               <Select
-                   id={name + "-explorer-sort-order"}
-                   name={name + " explorer sort order"}
-                   labelId={name + "-explorer-sort-order-label"}
-                   value={sortOrder}
-                   label="Sort order"
-                   onChange={(event) => { handleSortOrderChange(event.target.value); }}
-                   >
-                           <MenuItem value="name">Name</MenuItem>
-                           <MenuItem value="created">Created</MenuItem>
-                           <MenuItem value="updated">Updated</MenuItem>
-               </Select>
-           </FormControl>
-           <Tooltip title="Change sort order">
-               <IconButton onClick={handleToggleSortOrderDirection}>
-                   { sortOrderDirection === 1 ? <ArrowUpwardIcon/> : <ArrowDownwardIcon/> }
-               </IconButton>
-           </Tooltip>
-           <Box sx={{ flexGrow: 1 }}>
-               <TextField
-                   id={name + "-explorer-filter"}
-                   autoComplete='off'
-                   label="Filter"
-                   value={filterText}
-                   onChange={handleFilterTextChange}
-                   onKeyDown={handleFilterKeyDown}
-                   size="small"
-                   sx={{ mt: 2, flex: 1 }}
-               />
-           </Box>
-           {deleteEnabled ? <Tooltip title={ filterText.length === 0 
-               ? "Enter a filter to enable bulk delete" 
-               : "Delete notes matching filter" 
-           }>
-               <Box sx={{ ml: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                   <IconButton edge="start" color="inherit" aria-label="delete notes matching filter"
-                       onClick={handleDeleteFilteredItems}
-                       disabled={filterText.length === 0}
-                   >
-                       <DeleteIcon/>
-                   </IconButton>
-               </Box>
-           </Tooltip> : null}
+        }
+        <Box sx={{ width: "100%", paddingLeft: 0, paddingRight: 0, display: "flex", flexDirection: "column" }}>
+            <Box className={ClassNames.toolbar} sx={{ display: "flex", flexDirection: "row", gap: 1, mt: 2 }}>
+                <FormControl sx={{ minWidth: 120 }} size="small">
+                    <InputLabel id={name + "-explorer-scope-label"}>Scope</InputLabel>
+                    <Select
+                        id={name + "-explorer-scope"}
+                        name={"Scope"}
+                        labelId={name + "-explorer-scope-label"}
+                        value={scope}
+                        label="Scope"
+                        onChange={handleScopeChange}
+                        >
+                                <MenuItem value="mine">Mine</MenuItem>
+                                <MenuItem value="my-shared">My shared</MenuItem>
+                                <MenuItem value="my-private">My private</MenuItem>
+                                <MenuItem value="all-shared">All shared</MenuItem>
+                                <MenuItem value="others-shared">Others' shared</MenuItem>
+                                <MenuItem value="all">All</MenuItem>
+                    </Select>
+                </FormControl>
+                <Tooltip title={ filterBookmarked ? "Don't filter on bookmarked" : "Filter to show only bookmarked items"}>
+                    <span>
+                        <IconButton edge="start" color="inherit" aria-label={ filterBookmarked ? "Don't filter on bookmarked" : "Filter to show only bookmarked items"}
+                            onClick={ () => {setFilterBookmarked(x=>!x)} }
+                        >
+                            {filterBookmarked ? <BookmarkIcon/> : <BookmarkBorderIcon/>}
+                        </IconButton>
+                    </span>
+                </Tooltip>
+                <Tooltip title={ filterStarred ? "Don't filter on starred" : "Show only starred items"}>
+                    <span>
+                        <IconButton edge="start" color="inherit"
+                            aria-label={ filterStarred ? "Don't filter on starred" : "Show only starred items"}
+                            onClick={ () => {setFilterStarred(x=>!x)} }
+                        >
+                            {filterStarred ? <StarIcon/> : <StarBorderIcon/>}
+                        </IconButton>
+                    </span>
+                </Tooltip>
+            </Box>
+            <Box sx={{ display: "flex", flexDirection: "row"}}>
+                <FormControl sx={{ mt: 2, minWidth: 120 }} size="small">
+                    <InputLabel id={{name} + "-explorer-sort-order-label"}>Sort order</InputLabel>
+                    <Select
+                        id={name + "-explorer-sort-order"}
+                        name={name + " explorer sort order"}
+                        labelId={name + "-explorer-sort-order-label"}
+                        value={sortOrder}
+                        label="Sort order"
+                        onChange={(event) => { handleSortOrderChange(event.target.value); }}
+                        >
+                                <MenuItem value="name">Name</MenuItem>
+                                <MenuItem value="created">Created</MenuItem>
+                                <MenuItem value="updated">Updated</MenuItem>
+                    </Select>
+                </FormControl>
+                <Tooltip title="Change sort order">
+                    <IconButton onClick={handleToggleSortOrderDirection}>
+                        { sortOrderDirection === 1 ? <ArrowUpwardIcon/> : <ArrowDownwardIcon/> }
+                    </IconButton>
+                </Tooltip>
+                <Box sx={{ flexGrow: 1 }}>
+                    <TextField
+                        id={name + "-explorer-filter"}
+                        autoComplete='off'
+                        label="Filter"
+                        value={filterText}
+                        onChange={handleFilterTextChange}
+                        onKeyDown={handleFilterKeyDown}
+                        size="small"
+                        sx={{ mt: 2, flex: 1 }}
+                    />
+                </Box>
+            </Box>
        </Box>
+       <Divider sx={{ my: 2 }} />
        <StyledBox  sx={{ overflow: 'auto', flex: 1 }}>
            <List>
                {Object.values(filteredDocs).map(doc => (
@@ -342,7 +426,7 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                                     textOverflow: 'ellipsis',
                                 }}
                                 >
-                                {`Created: ${doc.created_date.substring(0, 19)}\n${doc.updated_date ? 'Updated: ' + doc.updated_date.substring(0, 19) : ''}`}
+                                {`Owner: ${doc.user_id}\nCreated: ${doc.created_date.substring(0, 19)}\n${doc.updated_date ? 'Updated: ' + doc.updated_date.substring(0, 19) : ''}`}
                                 </Typography>
                             ) : null
                             }                            

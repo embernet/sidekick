@@ -137,8 +137,8 @@ const Personas = ({onClose, persona, setPersona, setFocusOnPrompt, personasOpen,
     };
 
     const handlePersonaContextMenuClose = (event) => {
-        setPersonaContextMenu(null);
         event.stopPropagation();
+        setPersonaContextMenu(null);
     };
 
     const handleSelectPersona = (persona) => {
@@ -247,6 +247,7 @@ const Personas = ({onClose, persona, setPersona, setFocusOnPrompt, personasOpen,
                                         <Typography component="span" ml="auto">
                                             {!expanded && 
                                                 <Tooltip sx={{mr:1}} title={expandedPersona === persona.name ? "Hide details" : "Show details"}>
+                                                    <span>
                                                     {expandedPersona === persona.name
                                                         ? <CompressIcon
                                                             onClick={(event) => {
@@ -261,6 +262,7 @@ const Personas = ({onClose, persona, setPersona, setFocusOnPrompt, personasOpen,
                                                             }}
                                                         />
                                                     }
+                                                    </span>
                                                 </Tooltip>
                                             }
                                             <Tooltip title={persona.favourite ? "Remove from favourites" : "Add to favourites"}>

@@ -39,6 +39,7 @@ import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import MinimizeIcon from '@mui/icons-material/Minimize';
 import FolderIcon from '@mui/icons-material/Folder';
 import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
+import DeveloperModeIcon from '@mui/icons-material/DeveloperMode';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import RateReviewIcon from '@mui/icons-material/RateReview';
@@ -905,7 +906,7 @@ const App = () => {
 
   const appRender =
   <BrowserRouter>
-    <SystemProvider serverUrl={serverUrl}  setStatusUpdates={setStatusUpdates} setModalDialogInfo={setModalDialogInfo}
+    <SystemProvider serverUrl={serverUrl}  setStatusUpdates={setStatusUpdates} setModalDialogInfo={setModalDialogInfo} user={user}
     >
       <SidekickClipboardContext.Provider value={sidekickClipboard}>
         <ThemeProvider theme={theme}>
@@ -1004,6 +1005,13 @@ const App = () => {
                   </IconButton>
                 </Tooltip>
                   {isMobile ? null : extendedRightToolbar}
+                  { debugMode ? 
+                      <Tooltip title="Developer mode">
+                        <IconButton edge="end" color="inherit" aria-label="Developer mode">
+                          <DeveloperModeIcon/>
+                        </IconButton>
+                      </Tooltip>
+                    : null }
                   <Tooltip title="Logout">
                     <IconButton edge="end" color="inherit" aria-label="Logout" onClick={handleLogout}>
                       <LogoutIcon/>
@@ -1290,6 +1298,7 @@ const App = () => {
                   isMobile={isMobile}
                   language={language}
                   languagePrompt={languagePrompt}
+                  debugMode={debugMode}
                 />
               </Box>
               { notesOpen ? <Explorer
@@ -1334,7 +1343,7 @@ const App = () => {
 </BrowserRouter>
 
 const loginRender = 
-  <SystemProvider serverUrl={serverUrl} setStatusUpdates={setStatusUpdates} setModalDialogInfo={setModalDialogInfo}>
+  <SystemProvider serverUrl={serverUrl} setStatusUpdates={setStatusUpdates} setModalDialogInfo={setModalDialogInfo} user={user}>
     <BrowserRouter>
       <ThemeProvider theme={theme}>
         <CssBaseline />
