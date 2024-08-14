@@ -2531,23 +2531,20 @@ const Chat = ({
         try {
             if (chatPromptRef.current) {
                 chatPromptRef.current.focus();
-            }
-            // const chatPrompt = document.getElementById("chat-prompt");
-            // chatPrompt?.focus();
-        
-            // Position the cursor at the end of the text and scroll it into view
-            const range = document.createRange();
-            range.selectNodeContents(chatPromptRef.current);
-            range.collapse(false); // collapse to end
-        
-            const selection = window.getSelection();
-            if (selection) {
-                selection.removeAllRanges();
-                selection.addRange(range);
-            }
-            setTimeout(() => {
-                chatPromptRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-            }, 100);
+                // Position the cursor at the end of the text and scroll it into view
+                const range = document.createRange();
+                range.selectNodeContents(chatPromptRef.current);
+                range.collapse(false); // collapse to end
+            
+                const selection = window.getSelection();
+                if (selection) {
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+                setTimeout(() => {
+                    chatPromptRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }, 100);
+            }        
         } catch (error) {
             debugMode && console.error("Error setting prompt focus:", error);
             // Ignore scenarios where the cursor can't be set
