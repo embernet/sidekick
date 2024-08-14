@@ -17,7 +17,8 @@ import { StyledBox } from "./theme";
 import { SystemContext } from './SystemContext';
 import Explorer from './Explorer';
 
-const PromptEngineer = ({promptEngineerOpen, onClose, setNewPromptPart, setNewPromptTemplate, openPromptTemplateId,
+const PromptEngineer = ({promptEngineerOpen, onClose, setNewPromptPart, setFocusOnPrompt,
+    setNewPromptTemplate, openPromptTemplateId,
     promptTemplateNameChanged, refreshPromptTemplateExplorer, setRefreshPromptTemplateExplorer,
     setPromptTemplateOpen, promptTemplateOpen, settingsManager, serverUrl, token, setToken,
     windowPinnedOpen, setWindowPinnedOpen, darkMode, isMobile}) => {
@@ -55,6 +56,10 @@ const PromptEngineer = ({promptEngineerOpen, onClose, setNewPromptPart, setNewPr
         return () => observer.disconnect();
     }, [handleResize]);
 
+    useEffect(() => {
+        setFocusOnPrompt(true);
+    }, []);
+
     const [openSections, setOpenSections] = useState(() => {
         let newState = {};
         Object.keys(promptParts).forEach((key) => {
@@ -85,6 +90,7 @@ const PromptEngineer = ({promptEngineerOpen, onClose, setNewPromptPart, setNewPr
           ...prevState,
           [section]: !prevState[section],
         }));
+        setFocusOnPrompt(true);
     };
     
     const handleItemClick = (text) => {

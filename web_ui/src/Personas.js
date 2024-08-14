@@ -253,12 +253,14 @@ const Personas = ({onClose, persona, setPersona, setFocusOnPrompt, personasOpen,
                                                             onClick={(event) => {
                                                                 event.stopPropagation();
                                                                 setExpandedPersona(null);
+                                                                setFocusOnPrompt(true);
                                                             }}
                                                         />
                                                         : <ExpandIcon
                                                             onClick={(event) => {
                                                                 event.stopPropagation();
                                                                 setExpandedPersona(persona.name);
+                                                                setFocusOnPrompt(true);
                                                             }}
                                                         />
                                                     }
@@ -271,6 +273,7 @@ const Personas = ({onClose, persona, setPersona, setFocusOnPrompt, personasOpen,
                                                         onClick={(event) => {
                                                             event.stopPropagation();
                                                             handleToggleFavourite(persona);
+                                                            setFocusOnPrompt(true);
                                                         }}
                                                     />
                                                     ) : (
@@ -278,6 +281,7 @@ const Personas = ({onClose, persona, setPersona, setFocusOnPrompt, personasOpen,
                                                         onClick={(event) => {
                                                             event.stopPropagation();
                                                             handleToggleFavourite(persona);
+                                                            setFocusOnPrompt(true);
                                                         }}
                                                         />
                                                     )
@@ -360,7 +364,7 @@ const Personas = ({onClose, persona, setPersona, setFocusOnPrompt, personasOpen,
                     {
                         isMobile ? null :
                         <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
-                            <IconButton onClick={() => { setWindowPinnedOpen(state => !state); }}>
+                            <IconButton onClick={() => { setWindowPinnedOpen(state => !state); setFocusOnPrompt(true);}}>
                                 {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
                             </IconButton>
                         </Tooltip>

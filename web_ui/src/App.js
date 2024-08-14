@@ -988,7 +988,8 @@ const App = () => {
                     </IconButton>
                   </Tooltip>
                   <Tooltip title={chatOpen ? "Close Chat" : "New Chat"}>
-                    <IconButton edge="start" color="inherit" aria-label={ chatOpen ? "Close Chat" : "Open chat" } onClick={handleToggleChatOpen}>
+                    <IconButton edge="start" color="inherit" aria-label={ chatOpen ? "Close Chat" : "Open chat" }
+                      onClick={(event) => { event.target.blur(); handleToggleChatOpen(event);}}>
                       { chatOpen ? <ModeCommentIcon/> : <AddCommentIcon/> }
                     </IconButton>
                   </Tooltip>
@@ -1220,6 +1221,7 @@ const App = () => {
                     setNewPromptPart={setNewPromptPart}
                     setNewPrompt={setNewPrompt}
                     setNewPromptTemplate={setNewPromptTemplate}
+                    setFocusOnPrompt={setFocusOnPrompt}
                     openPromptTemplateId={openPromptTemplateId}
                     promptTemplateNameChanged={promptTemplateNameChanged}
                     refreshPromptTemplateExplorer={refreshPromptTemplateExplorer}

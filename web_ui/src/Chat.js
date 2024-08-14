@@ -124,6 +124,7 @@ const Chat = ({
     const userPromptReady = useRef(defaultUserPromptReady);
     const userPromptWaiting = "Waiting for response...";
     const chatPromptRef = useRef(null);
+    const [chatPromptEditable, setChatPromptEditable] = useState(true);
     const [chatPromptIsEmpty, setChatPromptIsEmpty] = useState(true);
     const [lastPrompt, setLastPrompt] = useState("");
     const [promptToSend, setPromptToSend] = useState(false);
@@ -159,6 +160,7 @@ const Chat = ({
     const [toolboxWidth, setToolboxWidth] = useState("250px");
     const [chatContextWidth, setChatContextWidth] = useState("300px");
     const [settingsLoaded, setSettingsLoaded] = useState(false);
+    const [componentLoaded, setComponentLoaded] = useState(false);
     const chatLoading = useRef(false);
     const chatCreating = useRef(false);
     const chatSaving = useRef(false);
@@ -2525,14 +2527,18 @@ const Chat = ({
         });
       }
         
-    const setPromptFocus = () => {
+    const _focusOnPrompt = () => {
         try {
-            const chatPrompt = document.getElementById("chat-prompt");
-            chatPrompt?.focus();
+            debugMode && console.log("Setting prompt focus", chatPromptRef.current);
+            if (chatPromptRef.current) {
+                chatPromptRef.current.focus();
+            }
+            // const chatPrompt = document.getElementById("chat-prompt");
+            // chatPrompt?.focus();
         
             // Position the cursor at the end of the text and scroll it into view
             const range = document.createRange();
-            range.selectNodeContents(chatPrompt);
+            range.selectNodeContents(chatPromptRef.current);
             range.collapse(false); // collapse to end
         
             const selection = window.getSelection();
@@ -2541,9 +2547,10 @@ const Chat = ({
                 selection.addRange(range);
             }
             setTimeout(() => {
-                chatPrompt?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                chatPromptRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
             }, 100);
         } catch (error) {
+            debugMode && console.error("Error setting prompt focus:", error);
             // Ignore scenarios where the cursor can't be set
         }
     }
@@ -2558,11 +2565,25 @@ const Chat = ({
             response.data.access_token && setToken(response.data.access_token);
             setSettings(response.data);
             setSettingsLoaded(true);
+            setComponentLoaded(true);
         }).catch(error => {
             system.error(`System Error loading chat settings.`, error, "/settings/chat_settings GET");
         });
         applyCustomSettings();
+        _focusOnPrompt();
     }, []);
+
+    useEffect(()=>{
+        _focusOnPrompt();
+    }, [chatPromptEditable]);
+
+    useEffect(()=>{
+        if (promptPlaceholder === userPromptWaiting) {
+            setChatPromptEditable(false);
+        } else {
+            setChatPromptEditable(true);
+        }
+    }, [promptPlaceholder]);
 
     useEffect(()=>{
         // onOpen
@@ -2574,6 +2595,7 @@ const Chat = ({
                 reset();
             }
             loadAiLibrary();
+            _focusOnPrompt();
         } else {
             closeChatWindow();
         }
@@ -2649,7 +2671,7 @@ const Chat = ({
     }, [settings]);
 
     useEffect(()=>{
-        setPromptFocus();
+        _focusOnPrompt();
         setFocusOnPrompt(false);
     }, [focusOnPrompt]);
 
@@ -2692,7 +2714,7 @@ const Chat = ({
     const appendToChatPrompt = (text) => {
         let newPrompt = chatPromptRef.current.innerText.trim() + " " + text.trim() + " ";
         setChatPrompt(newPrompt);
-        setPromptFocus();
+        _focusOnPrompt();
     }
 
     useEffect(()=>{
@@ -2724,7 +2746,7 @@ const Chat = ({
                     response.data.access_token && setToken(response.data.access_token);
                     setLastPrompt(chatPromptRef.current.innerText);
                     setChatPrompt("# " + response.data.metadata.name + "\n" + response.data.content.prompt_template);
-                    setPromptFocus();
+                    _focusOnPrompt();
                 }).catch(error => {
                     system.error(`System Error loading prompt_template`, error, "/docdb/prompt_templates GET");
                 });
@@ -2739,7 +2761,7 @@ const Chat = ({
         }
         if (newPrompt?.text) {
             setChatPrompt(newPrompt.text);
-            setPromptFocus();
+            _focusOnPrompt();
         }
     }, [newPrompt]);
 
@@ -2772,7 +2794,7 @@ const Chat = ({
 
     useEffect(()=>{
         if (promptPlaceholder === userPromptReady.current) {
-            setPromptFocus();
+            _focusOnPrompt();
         }
     }, [promptPlaceholder]);
 
@@ -2838,6 +2860,7 @@ const Chat = ({
                 panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
             }
             if (!chatOpen) { setChatOpen(Date.now()); }
+            _focusOnPrompt();
         }).catch(error => {
             system.error(`System Error loading chat.`, error, "/docdb/chat GET");
         });
@@ -3302,7 +3325,7 @@ const Chat = ({
 
     const handleReload = () => {
         setChatPrompt(lastPrompt);
-        setPromptFocus();
+        _focusOnPrompt();
     };
 
     const handleDeleteLastPromptResponse = () => {
@@ -3369,7 +3392,7 @@ const Chat = ({
 
     const handleNewChat = () => {
         reset();
-        setPromptFocus();
+        _focusOnPrompt();
     }
 
     const handleCloneChat = () => {
@@ -3388,7 +3411,7 @@ const Chat = ({
         }).then(response => {
             response.data.access_token && setToken(response.data.access_token);
             setPreviousName(name);
-            setPromptFocus();
+            _focusOnPrompt();
             onChange(id, name, "renamed", "");
             system.info(`Chat renamed to "${name}".`);
             system.debug("Chat renamed", response, url + " PUT");
@@ -3407,7 +3430,7 @@ const Chat = ({
         } else {
             setName(previousName);
         }
-        setPromptFocus();
+        _focusOnPrompt();
     }
 
     const expandMessage = (index) => {
@@ -3548,7 +3571,7 @@ const Chat = ({
         closeMenus();
         scrollMessagesToEnd();
         if (thenFocusOnPrompt) {
-            setFocusOnPrompt(Date.now());
+            _focusOnPrompt();
         }
         functionToRun && functionToRun();
     };
@@ -3737,14 +3760,14 @@ const Chat = ({
 
     const handleUseAsChatInput = () => {
         setChatPrompt(menuMessageContext.message.content);
-        setPromptFocus();
+        _focusOnPrompt();
         setMenuMessageContext(null);
     };
 
     const handleAppendToChatInput = () => {
         let newPrompt = chatPromptRef.current.innerText.trim() + " " + menuMessageContext.message.content.trim();
         setChatPrompt(newPrompt);
-        setPromptFocus();
+        _focusOnPrompt();
         setMenuMessageContext(null);
     };
 
@@ -4954,8 +4977,8 @@ const Chat = ({
                                     // For large text content, TextField lag in rendering individual key strokes is unacceptable
                                     id="chat-prompt"
                                     ref={chatPromptRef}
-                                    tabIndex="-1" // To allow the div to receive focus
-                                    contentEditable={promptPlaceholder === userPromptWaiting ? "false" : "true"}
+                                    tabIndex={0} // To allow the div to receive focus
+                                    contentEditable={chatPromptEditable ? "true" : "false"}
                                     onInput={handleChatPromptInput}
                                     onKeyDown={
                                         (event) => {
