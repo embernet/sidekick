@@ -2529,7 +2529,6 @@ const Chat = ({
         
     const _focusOnPrompt = () => {
         try {
-            debugMode && console.log("Setting prompt focus", chatPromptRef.current);
             if (chatPromptRef.current) {
                 chatPromptRef.current.focus();
             }
@@ -2607,22 +2606,18 @@ const Chat = ({
     }, [id]);
 
     useEffect(()=>{
-        if (!chatLoading.current && 
+        if (!chatLoading.current && // don't save if this hook was called as a result of loading a chat
                 (
-                    // anything has changed
+                    // anything has changed from initial state
                     messages.length > 0 || chatContext.length > 0 || chatGoal.length > 0 || starred || bookmarked
                     || visibility !== "private" || tags.length > 0
                 )
             ) {
-            // don't save if this hook was called as a result of loading a chat
             if (id !== "" && id !== null) {
                 save();
             } else {
                 create();
             }
-        } else {
-            // reset the loading state so that future changes will be saved
-            chatLoading.current = false;
         }
         // recalculate prompt and response counts
         let promptCount = 0;
@@ -2813,7 +2808,7 @@ const Chat = ({
 
     const load = (id) => {
         // prevent saves whilst we are updating state during load
-        chatLoading.current = true; // note: this will be reset in the [messages] useEffect hook
+        chatLoading.current = true;
         reset();
 
         axios.get(`${serverUrl}/docdb/${folder}/documents/${id}`, {
@@ -2830,13 +2825,13 @@ const Chat = ({
             setPreviousName(response.data.metadata.name);
             setChatContext(response.data.content?.context || "");
             setChatGoal(response.data.content?.goal || "");
-            setMessages(response.data.content.chat);
             setTags(response.data.metadata?.tags || []);
             setStarred(response.data.metadata?.properties?.starred || false);
             setBookmarked(response.data.metadata?.properties?.bookmarked || false);
             setToolboxOpen(response.data.metadata?.properties?.toolboxOpen || false);
             setSelectedToolbox(response.data.metadata?.properties?.selectedToolbox || "");
             setSelectedAiLibraryNotesMetadataDict(response.data.content?.selectedAiLibraryNotesMetadataDict || {});
+            setMessages(response.data.content.chat);
 
             setLastPrompt("");
             // set lastPrompt to the last user message
@@ -2861,6 +2856,10 @@ const Chat = ({
             }
             if (!chatOpen) { setChatOpen(Date.now()); }
             _focusOnPrompt();
+            // wait a second then set chatLoading to false so that future changes will be saved
+            setTimeout(() => {
+                chatLoading.current = false;
+            }, 1000);
         }).catch(error => {
             system.error(`System Error loading chat.`, error, "/docdb/chat GET");
         });
@@ -3060,7 +3059,7 @@ const Chat = ({
                 uploadedChat = JSON.parse(event.target.result);
                 reset();
                 // prevent saves whilst we are updating state during load
-                chatLoading.current = true; // note: this will be reset in the [messages] useEffect hook
+                chatLoading.current = true;
 
                 if (uploadedChat?.metdata && uploadedChat.metadata.hasOwnProperty("name")) {
                     setName(uploadedChat.metadata.name);
@@ -3094,6 +3093,11 @@ const Chat = ({
                     reset();
                     throw new Error("No chat found in chat file being uploaded.");
                 }
+
+                // wait a second then set chatLoading to false so that future changes will be saved
+                setTimeout(() => {
+                    chatLoading.current = false;
+                }, 1000);
             } catch (error) {
                 system.error("Error uploaded chat. Are you sure it is a Chat file?", error);
             }
@@ -4704,7 +4708,7 @@ const Chat = ({
                 : null
             }
             <Box sx={{ display:"flex", flexDirection: "column", width: "100%"}}>
-                <Box sx={{ display:"flex", flexDirection: "row" }}>
+                <Box sx={{ display:"flex", flexDirection: "row", borderBottom: "1px solid " + (darkMode ? "grey" : "black")}}>
                     <TextField
                         sx={{ mt: 2,  ml: 1,flexGrow: 1, paddingBottom: "6px" }}
                         id="chat-name"
