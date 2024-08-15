@@ -1,7 +1,7 @@
 import { debounce } from "lodash";
 import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Box, Divider, Toolbar, IconButton, Typography, TextField, List, ListItem, ListItemText,
-    Tooltip, FormControl, InputLabel, Select, MenuItem,
+    Tooltip, FormControl, InputLabel, Select, MenuItem, Stack,
     Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from '@mui/material';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
@@ -16,6 +16,9 @@ import BookmarkIcon from '@mui/icons-material/Bookmark';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
+import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
+import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
+import ShareIcon from '@mui/icons-material/Share';
 
 import { indigo, grey } from '@mui/material/colors';
 import { StyledBox } from "./theme";
@@ -24,6 +27,7 @@ import axios from 'axios';
 
 import { SystemContext } from './SystemContext';
 import SettingsManager from './SettingsManager';
+import { ShareOutlined } from "@mui/icons-material";
 
 const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, folder, openItemId, setLoadDoc,
      docNameChanged, refresh, setRefresh, itemOpen, hidePrimaryToolbar, deleteEnabled, darkMode,
@@ -48,6 +52,9 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
     const [userDefaultsLoaded, setUserDefaultsLoaded] = useState(false);
     const [filterBookmarked, setFilterBookmarked] = useState(false);
     const [filterStarred, setFilterStarred] = useState(false);
+    const [filterInAiLibrary, setFilterInAiLibrary] = useState(false);
+    const [filterSharedByMe, setFilterSharedByMe] = useState(false);
+    const [filterSharedByOther, setFilterSharedByOther] = useState(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [docsToDelete, setDocsToDelete] = useState([]);
 
@@ -193,7 +200,10 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
         const matches = 
             doc.name.toLowerCase().includes(filterText.toLowerCase()) &&
             (!filterBookmarked || doc?.properties?.bookmarked) &&
-            (!filterStarred || doc?.properties?.starred);
+            (!filterStarred || doc?.properties?.starred) &&
+            (!filterInAiLibrary || doc?.properties?.inAILibrary) &&
+            (!filterSharedByMe || (doc?.visibility !== "private" && doc.user_id === system.user.id)) &&
+            (!filterSharedByOther || (doc?.visibility !== "private" && doc.user_id !== system.user.id));
         return matches;
     });
 
@@ -346,25 +356,17 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                                 <MenuItem value="all">All</MenuItem>
                     </Select>
                 </FormControl>
-                <Tooltip title={ filterBookmarked ? "Don't filter on bookmarked" : "Filter to show only bookmarked items"}>
-                    <span>
-                        <IconButton edge="start" color="inherit" aria-label={ filterBookmarked ? "Don't filter on bookmarked" : "Filter to show only bookmarked items"}
-                            onClick={ () => {setFilterBookmarked(x=>!x)} }
-                        >
-                            {filterBookmarked ? <BookmarkIcon/> : <BookmarkBorderIcon/>}
-                        </IconButton>
-                    </span>
-                </Tooltip>
-                <Tooltip title={ filterStarred ? "Don't filter on starred" : "Show only starred items"}>
-                    <span>
-                        <IconButton edge="start" color="inherit"
-                            aria-label={ filterStarred ? "Don't filter on starred" : "Show only starred items"}
-                            onClick={ () => {setFilterStarred(x=>!x)} }
-                        >
-                            {filterStarred ? <StarIcon/> : <StarBorderIcon/>}
-                        </IconButton>
-                    </span>
-                </Tooltip>
+                <Box width={24} />
+                <TextField
+                        id={name + "-explorer-filter"}
+                        autoComplete='off'
+                        label="Filter"
+                        value={filterText}
+                        onChange={handleFilterTextChange}
+                        onKeyDown={handleFilterKeyDown}
+                        size="small"
+                        sx={{ flexGrow: 1 }}
+                    />
             </Box>
             <Box sx={{ display: "flex", flexDirection: "row"}}>
                 <FormControl sx={{ mt: 2, minWidth: 120 }} size="small">
@@ -382,23 +384,77 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                                 <MenuItem value="updated">Updated</MenuItem>
                     </Select>
                 </FormControl>
-                <Tooltip title="Change sort order">
-                    <IconButton onClick={handleToggleSortOrderDirection}>
-                        { sortOrderDirection === 1 ? <ArrowUpwardIcon/> : <ArrowDownwardIcon/> }
-                    </IconButton>
-                </Tooltip>
-                <Box sx={{ flexGrow: 1 }}>
-                    <TextField
-                        id={name + "-explorer-filter"}
-                        autoComplete='off'
-                        label="Filter"
-                        value={filterText}
-                        onChange={handleFilterTextChange}
-                        onKeyDown={handleFilterKeyDown}
-                        size="small"
-                        sx={{ mt: 2, flex: 1 }}
-                    />
-                </Box>
+                <FormControl sx={{ mt: 2, flexDirection: "row", width: "100%" }} size="small">
+                    <Tooltip title="Change sort order">
+                        <IconButton onClick={handleToggleSortOrderDirection}>
+                            { sortOrderDirection === 1 ? <ArrowUpwardIcon/> : <ArrowDownwardIcon/> }
+                        </IconButton>
+                    </Tooltip>
+                    <Box sx={{ 
+                        display: 'flex', 
+                        flexDirection: 'row',
+                        width: '100%',
+                        justifyContent: 'space-between', 
+                        alignItems: 'center', 
+                        border: '1px solid', 
+                        borderColor: 'grey.400', 
+                        borderRadius: 1, 
+                        p: 0, 
+                        flexGrow: 1,
+                        gap: 1
+
+                    }}>
+                        <Box width={8} />
+                        <Tooltip title={ filterBookmarked ? "Don't filter on bookmarked" : "Filter to show only bookmarked items"}>
+                            <span>
+                                <IconButton edge="start" color="inherit"
+                                    aria-label={ filterBookmarked ? "Don't filter on bookmarked" : "Filter to show only bookmarked items"}
+                                    onClick={ () => {setFilterBookmarked(x=>!x)} }
+                                >
+                                    {filterBookmarked ? <BookmarkIcon/> : <BookmarkBorderIcon/>}
+                                </IconButton>
+                            </span>
+                        </Tooltip>
+                        <Tooltip title={ filterStarred ? "Don't filter on starred" : "Show only starred items"}>
+                            <span>
+                                <IconButton edge="start" color="inherit"
+                                    aria-label={ filterStarred ? "Don't filter on starred" : "Show only starred items"}
+                                    onClick={ () => {setFilterStarred(x=>!x)} }
+                                >
+                                    {filterStarred ? <StarIcon/> : <StarBorderIcon/>}
+                                </IconButton>
+                            </span>
+                        </Tooltip>
+                        <Tooltip title={ filterInAiLibrary ? "Don't filter on whether in AI Library" : "Filter to show items in AI Library"}>
+                            <span>
+                                <IconButton edge="start" color="inherit" aria-label={ filterBookmarked ? "Don't filter on whether in AI Library" : "Filter to show items in AI Library"}
+                                    onClick={ () => {setFilterInAiLibrary(x=>!x)} }
+                                >
+                                    {filterInAiLibrary ? <LocalLibraryIcon/> : <LocalLibraryOutlinedIcon/>}
+                                </IconButton>
+                            </span>
+                        </Tooltip>
+                        <Tooltip title={ filterSharedByMe ? "Don't filter on whether it's shared by me" : "Filter to show items shared by me"}>
+                            <span>
+                                <IconButton edge="start" color="inherit" aria-label={ filterSharedByMe ? "Don't filter on whether it's shared by me" : "Filter to show items shared by me"}
+                                    onClick={ () => {setFilterSharedByMe(x=>!x)} }
+                                >
+                                    {filterSharedByMe ? <ShareIcon/> : <ShareOutlined/>}
+                                </IconButton>
+                            </span>
+                        </Tooltip>
+                        <Tooltip title={ filterSharedByOther ? "Don't filter on whether it's shared by others" : "Filter to show items shared by others"}>
+                            <span>
+                                <IconButton edge="start" color="inherit" aria-label={ filterSharedByOther ? "Don't filter on whether it's shared by others" : "Filter to show items shared by others"}
+                                    onClick={ () => {setFilterSharedByOther(x=>!x)} }
+                                >
+                                    {filterSharedByOther ? <ShareIcon sx={{ color:"orange" }}/> : <ShareOutlined sx={{ color:"orange" }}/>}
+                                </IconButton>
+                            </span>
+                        </Tooltip>
+                        <Box width={8} />
+                    </Box>
+                </FormControl>
             </Box>
        </Box>
        <Divider sx={{ my: 2 }} />
@@ -408,13 +464,49 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                    <ListItem sx={{ padding: 0, pl: 1, cursor: "pointer", backgroundColor: doc.id === openItemId && itemOpen ? (darkMode ? grey[600] : grey[300]) : "transparent" }} key={doc.id}>
                         {
                             showItemDetails ?
-                            <>
-                            { doc?.properties?.bookmarked ? <BookmarkIcon/> : <Box width={24} /> }
-                            { doc?.properties?.starred ? <StarIcon/> : <Box width={24} /> }
-                            </>
+                            <Stack direction="column" sx={{ mr: 1 }}>
+                                <Stack direction="row">
+                                    {
+                                        doc?.properties?.bookmarked ?
+                                            <Tooltip title="You bookmarked this">
+                                                <BookmarkIcon/>
+                                            </Tooltip>
+                                        : <Box width={24} />
+                                    }
+                                    {
+                                        doc?.properties?.starred ?
+                                            <Tooltip title="You starred this">
+                                                <StarIcon/>
+                                            </Tooltip>
+                                        : <Box width={24} />
+                                    }
+                                </Stack>
+                                <Stack direction="row">
+                                    {
+                                        doc?.visibility !== "private" ? 
+                                            doc.user_id !== system.user.id ?
+                                                <Tooltip title="Shared by someone else">
+                                                    <ShareIcon sx={{ color:"orange" }}/>
+                                                </Tooltip>
+                                            :
+                                            <Tooltip title="Shared by you">
+                                                <ShareIcon/>
+                                            </Tooltip>
+                                        : <Box width={24} />
+                                    }
+                                    {
+                                        doc?.properties?.inAILibrary ?
+                                            <Tooltip title="You added this to your AI library">
+                                                <LocalLibraryIcon/>
+                                            </Tooltip>
+                                        : <Box width={24} />
+                                    }
+                                </Stack>
+                            </Stack>
                             : null
                         }
                         <ListItemText primary={doc.name}
+                            primaryTypographyProps={{ typography: 'body2', fontWeight: (showItemDetails ? 'bold' : 'normal') }}
                             secondary={
                             showItemDetails ? (
                                 <Typography
@@ -432,7 +524,6 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                             }                            
                             selected={openItemId === doc.id}
                             onClick={() => { handleLoadDoc(doc.id); }}
-                            primaryTypographyProps={{ typography: 'body2' }}
                             sx={{ fontSize: '14px' }}
                         />
                    </ListItem>
