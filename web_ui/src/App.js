@@ -1180,6 +1180,7 @@ const App = () => {
                   languagePrompt={languagePrompt}
                   systemPrompts={systemPrompts}
                   debugMode={debugMode}
+                  refreshNotesExplorer={refreshNotesExplorer}
                 />
                 <ModelSettings 
                   setModelSettings={setModelSettings}

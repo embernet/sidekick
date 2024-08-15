@@ -76,7 +76,8 @@ const Chat = ({
     focusOnPrompt, setFocusOnPrompt, chatRequest, chatOpen, noteOpen, setChatOpen, darkMode,
     temperatureText, setTemperatureText, modelSettingsOpen, toggleModelSettingsOpen, togglePersonasOpen,
     onChange, personasOpen, promptEngineerOpen, togglePromptEngineerOpen, setOpenChatId, shouldAskAgainWithPersona, serverUrl, token, setToken,
-    streamingChatResponse, setStreamingChatResponse, chatStreamingOn, maxWidth, isMobile, language, languagePrompt, systemPrompts, debugMode }) => {
+    streamingChatResponse, setStreamingChatResponse, chatStreamingOn, maxWidth, isMobile,
+    language, languagePrompt, systemPrompts, debugMode, refreshNotesExplorer }) => {
     
     const sidekickClipboard = useContext(SidekickClipboardContext);
     const panelWindowRef = useRef(null);
@@ -2596,6 +2597,10 @@ const Chat = ({
             closeChatWindow();
         }
     }, [chatOpen]);
+
+    useEffect(()=>{
+        loadAiLibrary();
+    }, [refreshNotesExplorer])
 
     useEffect(()=>{
         setOpenChatId(id);
