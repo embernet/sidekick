@@ -3,17 +3,27 @@
         "name": "General Context",
         "description": "Provide some general context that you want to inform the AI about for all chat requests. E.g. Your background, skills, expertise, interests, work, values, goals, priorities.",
         "prePrompt": "Take the following general context into consideration if relevant and appropriate when responding",
-        "prompt": ""
+        "prompt": "",
+        "enabled": false
     },
-    "responseStylePrompt": {
-        "name": "Response Style",
-        "description": "Provide some guidelines for the AI to follow when responding to chat requests. E.g. Be concise, clear, friendly, professional, respectful, empathetic, supportive, encouraging, positive, constructive, informative, accurate, relevant, helpful, creative, original, engaging",
-        "prePrompt": "Respond in a style that follows these guidelines",
-        "prompt": ""
+    "responseGuidancePrompt": {
+        "name": "Response Guidance",
+        "description": "Provide some content guidelines for the AI to follow when responding to chat requests. E.g. The response should be concise, clear, factual, friendly, professional, respectful, empathetic, supportive, assertive, encouraging, positive, constructive, helpful, creative, original, engaging, include examples.",
+        "prePrompt": "The content of the response should follow these guidelines",
+        "prompt": "",
+        "enabled": false
+    },
+    "responseFormatPrompt": {
+        "name": "Response Format",
+        "description": "Provide some format guidelines for the AI to follow when responding to chat requests. E.g. provide the response as a plain text / markdown / as a chat with follow-up questions / as a formal report / if its a long answer always provide a summary first",
+        "prePrompt": "The response should follow these formatting guidelines",
+        "prompt": "",
+        "enabled": false
     },
     "customSystemPrompt": {
         "name": "Custom System Prompt",
         "description": "Provide an additional system prompt to be included with each chat request.",
-        "prompt": ""
+        "prompt": "",
+        "enabled": false
     }
 }

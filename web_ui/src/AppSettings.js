@@ -2,7 +2,7 @@ import { debounce } from "lodash";
 import axios from 'axios';
 import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
 import { SystemContext } from './SystemContext';
-import { Card, Toolbar, IconButton, Box, Paper, Tabs, Tab, TextField, Button, Typography } from '@mui/material';
+import { Card, Toolbar, IconButton, Box, Stack, Paper, Tabs, Tab, TextField, Button, Switch, Typography } from '@mui/material';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
 import CloseIcon from '@mui/icons-material/Close';
@@ -32,6 +32,8 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
     const [confirmUser, setConfirmUserId] = useState('');
     const [tabIndex, setTabIndex] = useState(0);
     const [appSettingsSystemSettings, setAppSettingsSystemSettings] = useState({});
+    const [localPrompts, setLocalPrompts] = useState({});
+    const [localPromptIsChanged, setLocalPromptIsChanged] = useState({});
 
     const [width, setWidth] = useState(0);
 
@@ -80,81 +82,162 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
         if (isMobile) {
             panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
         }
-}, [appSettingsOpen]);
+    }, [appSettingsOpen]);
+
+        useEffect(() => {
+            // onOpen
+            if (tabIndex === 2) {
+                setConfirmUserId('');
+            }
+        }, [tabIndex]);
+
+    const handleTabChange = (event, newValue) => {
+        setTabIndex(newValue);
+    };
+
+    const handleCurrentPasswordChange = (event) => {
+        setCurrentPassword(event.target.value);
+    };
+
+    const handleNewPasswordChange = (event) => {
+        setNewPassword(event.target.value);
+    };
+
+    const handleReEnteredNewPasswordChange = (event) => {
+        setReEnteredNewPassword(event.target.value);
+    };
+
+    const resetChangePasswordFields = () => {
+        setCurrentPassword('');
+        setNewPassword('');
+        setReEnteredNewPassword('');
+    };
+
+    const handleCancelPasswordChange = () => {
+        resetChangePasswordFields();
+        setTabIndex(0);
+    };
+
+    const handleCancelRenameAccount = () => {
+        setTabIndex(0);
+    };
+
+    const handleCancelDeleteAccount = () => {
+        setTabIndex(0);
+    };
+
+    const handleChangePassword = async () => {
+        if (newPassword !== reEnteredNewPassword) {
+            system.error('Failed to change passwords: New passwords do not match.');
+            resetChangePasswordFields();
+            return;
+        }
+        axios.post(`${serverUrl}/change_password`,
+            {
+                "user_id": user?.id,
+                "current_password": currentPassword,
+                "new_password": newPassword
+            },
+            {
+                headers: {
+                    Authorization: 'Bearer ' + token
+                }
+            }).then(response => {
+                resetChangePasswordFields();
+                console.log("handleChangePassword response: ", response);
+                response.data.access_token && setToken(response.data.access_token);
+                if (response.data.success) {
+                    system.info('Password changed successfully.');
+                } else {
+                    system.error(`Error changing password.`, response.data.message);
+                }
+            }).catch(error => {
+                resetChangePasswordFields();
+                system.error("System Error changing password.", error);
+            }
+        );
+    };
+
+    const validateSystemPromptObject = (systemPromptObject) => {
+        const validity = systemPromptObject &&
+            systemPromptObject.hasOwnProperty('name') &&
+            systemPromptObject.hasOwnProperty('description') &&
+            // prePrompt is optional so not tested
+            systemPromptObject.hasOwnProperty('prompt') &&
+            systemPromptObject.hasOwnProperty('enabled');
+        return validity;
+    }
 
     useEffect(() => {
-        // onOpen
-        if (tabIndex === 2) {
-            setConfirmUserId('');
+        if (systemPrompts) {
+            // Initialize local state with systemPrompts
+            const initialPrompts = {};
+            console.log("AppSettings system prompts:", systemPrompts);
+            Object.entries(systemPrompts).forEach(([key, systemPromptObject]) => {
+                console.log("AppSettings system prompt:", key, systemPromptObject);
+                if (!validateSystemPromptObject(systemPromptObject)) {
+                    console.error(`Invalid system prompt object: ${key}, ${systemPromptObject}`);
+                } else {
+                    initialPrompts[key] = { ...systemPromptObject, originalPrompt: systemPromptObject.prompt };
+                }
+            });
+            console.log("AppSettings initialPrompts:", initialPrompts);
+            setLocalPrompts(initialPrompts);
         }
-    }, [tabIndex]);
+    }, [systemPrompts]);
 
-  const handleTabChange = (event, newValue) => {
-    setTabIndex(newValue);
-  };
+    const handleLocalPromptChange = (key, newValue) => {
+        setLocalPrompts(prevPrompts => {
+            const updatedPrompts = {
+                ...prevPrompts,
+                [key]: { ...prevPrompts[key], prompt: newValue }
+            };
+            return updatedPrompts;
+        });
+        setLocalPromptIsChanged(prevIsChanged => ({
+            ...prevIsChanged,
+            [key]: true
+        }));
+    };
 
-  const handleCurrentPasswordChange = (event) => {
-    setCurrentPassword(event.target.value);
-  };
+    const handleSavePromptEdit = (key) => {
+        setSystemPrompts(prevPrompts => {
+            const updatedPrompts = { ...prevPrompts };
+            updatedPrompts[key].prompt = localPrompts[key].prompt;
+            setLocalPromptIsChanged(prevIsChanged => ({
+                ...prevIsChanged,
+                [key]: false
+            }));
+            return updatedPrompts;
+        });
+        setLocalPrompts(prevPrompts => ({
+            ...prevPrompts,
+            [key]: { ...prevPrompts[key], originalPrompt: prevPrompts[key].prompt }
+        }));
+    };
 
-  const handleNewPasswordChange = (event) => {
-    setNewPassword(event.target.value);
-  };
+    const handleTogglePromptEnabled = (key, newValue) => {
+        setSystemPrompts(prevPrompts => {
+            const updatedPrompts = { ...prevPrompts };
+            updatedPrompts[key].enabled = newValue;
+            return updatedPrompts;
+        });
+        setLocalPrompts(prevPrompts => ({
+            ...prevPrompts,
+            [key]: { ...prevPrompts[key], originalPrompt: prevPrompts[key].prompt }
+        }));
+    };
 
-  const handleReEnteredNewPasswordChange = (event) => {
-    setReEnteredNewPassword(event.target.value);
-  };
-
-  const resetChangePasswordFields = () => {
-    setCurrentPassword('');
-    setNewPassword('');
-    setReEnteredNewPassword('');
-  };
-
-  const handleCancelPasswordChange = () => {
-    resetChangePasswordFields();
-    setTabIndex(0);
-  };
-
-  const handleCancelRenameAccount = () => {
-    setTabIndex(0);
-  };
-
-  const handleCancelDeleteAccount = () => {
-    setTabIndex(0);
-  };
-
-  const handleChangePassword = async () => {
-    if (newPassword !== reEnteredNewPassword) {
-        system.error('Failed to change passwords: New passwords do not match.');
-        resetChangePasswordFields();
-        return;
-    }
-    axios.post(`${serverUrl}/change_password`,
-        {
-            "user_id": user?.id,
-            "current_password": currentPassword,
-            "new_password": newPassword
-        },
-        {
-            headers: {
-                Authorization: 'Bearer ' + token
-            }
-        }).then(response => {
-            resetChangePasswordFields();
-            console.log("handleChangePassword response: ", response);
-            response.data.access_token && setToken(response.data.access_token);
-            if (response.data.success) {
-                system.info('Password changed successfully.');
-            } else {
-                system.error(`Error changing password.`, response.data.message);
-            }
-        }).catch(error => {
-            resetChangePasswordFields();
-            system.error("System Error changing password.", error);
-        }
-    );
-  };
+    const handleCancelPromptEdit = (key) => {
+        setLocalPrompts(prevPrompts => ({
+            ...prevPrompts,
+            [key]: { ...prevPrompts[key], prompt: prevPrompts[key].originalPrompt }
+        }));
+        setLocalPromptIsChanged(prevIsChanged => ({
+            ...prevIsChanged,
+            [key]: false
+        }));
+    };
 
   const render = <Card id="app-settings-panel" ref={panelWindowRef}
     sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1,
@@ -218,28 +301,38 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
                         />
                         {
                             systemPrompts && Object.entries(systemPrompts).map(([key, systemPromptObject]) => {
-                                if (systemPromptObject &&
-                                    systemPromptObject.hasOwnProperty('name') &&
-                                    systemPromptObject.hasOwnProperty('description') &&
-                                    systemPromptObject.hasOwnProperty('prompt')) {
+                                if (validateSystemPromptObject(systemPromptObject)) {
                                     return (
                                         <Box key={systemPromptObject.name}
                                             sx={{ width: '100%' }}
                                             style={{ ...inputContainerStyle, textAlign: 'left' }} gap={2}>
                                             <Typography component="div" variant="subtitle1" sx={{ width: "100%", fontWeight: 'bold', ml:4 }}>{systemPromptObject.name}</Typography>
+                                            <Stack direction="row" alignItems="center" sx={{ width: "100%", ml:4 }}>
+                                                <Typography>Enabled: </Typography>
+                                                <Switch
+                                                    checked={localPrompts[key]?.enabled || false}
+                                                    onChange={(event) => handleTogglePromptEnabled(key, event.target.checked)}
+                                                    color="primary"
+                                                    sx={{ ml: 1 }}
+                                                />
+                                            </Stack>
                                             <Typography component="div" variant="subtitle2" sx={{ width: "calc(100% - 40px)", ml:2, mr:2, color:'grey' }}>{systemPromptObject.description}</Typography>
                                             {systemPromptObject.prePrompt && <Typography component="div" variant="subtitle2" sx={{ width: "calc(100% - 40px)", ml:2, mr:2, color:'grey' }} >Pre-prompt: {systemPromptObject.prePrompt}</Typography>}
-                                            <TextField label={systemPromptObject.name} value={systemPromptObject.prompt}
+                                            <TextField label={systemPromptObject.name}
+                                                value={localPrompts[key]?.prompt || ''}
                                                 sx={{ width: "calc(100% - 40px)", mt:2 }}
                                                 multiline
                                                 rows={4}
-                                                onChange={(event) => {
-                                                    setSystemPrompts(prevPrompts => {
-                                                        const updatedPrompts = { ...prevPrompts };
-                                                        updatedPrompts[key].prompt = event.target.value;
-                                                        return updatedPrompts;
-                                                    });
-                                                }} />
+                                                onChange={(event) => handleLocalPromptChange(key, event.target.value)}
+                                                />
+                                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                                                <Button variant="contained" color="primary" onClick={() => handleSavePromptEdit(key)} disabled={!localPromptIsChanged[key]} sx={{ mr: 1 }}>
+                                                    Save
+                                                </Button>
+                                                <Button variant="outlined" onClick={() => handleCancelPromptEdit(key)} disabled={!localPromptIsChanged[key]}>
+                                                    Cancel
+                                                </Button>
+                                            </Box>
                                         </Box>
                                     );
                                 }

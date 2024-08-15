@@ -3213,24 +3213,28 @@ const Chat = ({
             respond then say so and give your best response):\n\n`;
         }
         let contextPrompt = "";
-        if (systemPrompts?.generalContextPrompt?.prompt) {
+        if (systemPrompts?.generalContextPrompt?.prompt && systemPrompts?.generalContextPrompt?.enabled) {
             contextPrompt += "\n\n" + systemPrompts.generalContextPrompt.prePrompt + ":\n" + systemPrompts.generalContextPrompt.prompt;
         }
         if (chatContext) {
             contextPrompt += "\n\nChat context:\n\n" + chatContext;
         }
         let goal = chatGoal ? "\n\nGoal:\n\n" + chatGoal : "";
-        let responseStylePrompt = "";
-        if (systemPrompts?.responseStylePrompt?.prompt) {
-            responseStylePrompt += "\n\n" + systemPrompts.responseStylePrompt.prePrompt + ":\n" + systemPrompts.responseStylePrompt.prompt;
+        let responseGuidancePrompt = "";
+        if (systemPrompts?.responseGuidancePrompt?.prompt && systemPrompts?.responseGuidancePrompt?.enabled) {
+            responseGuidancePrompt += "\n\n" + systemPrompts.responseStylePrompt.prePrompt + ":\n" + systemPrompts.responseGuidancePrompt.prompt;
+        }
+        let responseFormatPrompt = "";
+        if (systemPrompts?.responseFormatPrompt?.prompt && systemPrompts?.responseFormatPrompt?.enabled) {
+            responseFormatPrompt += "\n\n" + systemPrompts.responseFormatPrompt.prePrompt + ":\n" + systemPrompts.responseFormatPrompt.prompt;
         }
         let customSystemPrompt = "";
-        if (systemPrompts?.customSystemPrompt?.prompt) {
+        if (systemPrompts?.customSystemPrompt?.prompt && systemPrompts?.customSystemPrompt?.enabled) {
             customSystemPrompt += "\n\n" + systemPrompts.customSystemPrompt.prompt;
         }
         let requestData = {
             model_settings: myModelSettings,
-            system_prompt: systemPrompt + contextPrompt + customSystemPrompt + goal + responseStylePrompt + languagePrompt,
+            system_prompt: systemPrompt + contextPrompt + customSystemPrompt + goal + responseGuidancePrompt + responseFormatPrompt + languagePrompt,
             prompt: knowledgePrompt + prompt,
             id: id,
             name: name,
