@@ -86,7 +86,7 @@ const FeedbackButton = ({icon, serverUrl, token, setToken}) => {
   return (
     <Box>
         <Tooltip title="Provide feedback">
-            <IconButton onClick={handleModalOpen}>{icon}</IconButton>
+            <IconButton color="inherit" onClick={handleModalOpen}>{icon}</IconButton>
         </Tooltip>
         {showModal && (
             <Modal
