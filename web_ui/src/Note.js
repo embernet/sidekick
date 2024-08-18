@@ -4,11 +4,10 @@ import { debounce } from "lodash";
 import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Box, Toolbar, IconButton, Typography, TextField, Menu,
     ListItemIcon, MenuItem, Tooltip } from '@mui/material';
-import { InputLabel, FormControl, Select } from '@mui/material';
 import { styled } from '@mui/system';
 import { ClassNames } from "@emotion/react";
 import { green, lightBlue, grey } from '@mui/material/colors';
-import { StyledBox, SecondaryToolbar } from './theme';
+import { StyledBox } from './theme';
 
 // Icons
 import CloseIcon from '@mui/icons-material/Close';
@@ -33,7 +32,8 @@ import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import { MuiFileInput } from 'mui-file-input';
 import SidekickMarkdown from './SidekickMarkdown';
 import NativeTextEditorEventHandlers from './NativeTextEditorEventHandlers';
-
+import ShareButton from './ShareButton';
+import SharedDocPanel from './SharedDocPanel';
 
 import { SystemContext } from './SystemContext';
 import { SidekickClipboardContext } from './SidekickClipboardContext';
@@ -132,6 +132,7 @@ You always do your best to generate text in the same style as the context text p
     const system = useContext(SystemContext);
     const [id, setId] = useState("");
     const [name, setName] = useState(newNoteName);
+    const [shareData, setShareData] = useState({});
     const [visibility, setVisibility] = useState("private");
     const [documentOwner, setDocumentOwner] = useState("");
     const [previousName, setPreviousName] = useState(newNoteName);
@@ -171,6 +172,7 @@ You always do your best to generate text in the same style as the context text p
                     inAILibrary: inAILibrary, // if its in the AI library then thats probbaly why you want to clone it, so keep it in there
                     starred: false, // don't clone the starred status
                     bookmarked: false, // don't clone the bookmarked status
+                    // shareData not cloned
                 }
             },
             content: { note: noteContentRef.current.innerText }
@@ -203,11 +205,13 @@ You always do your best to generate text in the same style as the context text p
                     inAILibrary: inAILibrary,
                     starred: starred,
                     bookmarked: bookmarked,
+                    shareData: shareData,
                 },
             },
             content: { note: noteContentRef.current.innerText },
         }
         let url = `${serverUrl}/docdb/${folder}/documents/${id}`;
+        debugMode && console.log("save request", request)
         axios.put(url, request, {
             headers: {
                 Authorization: 'Bearer ' + token
@@ -274,7 +278,7 @@ You always do your best to generate text in the same style as the context text p
             saveStatus.current = "changed";
         }
         save();
-    }, [inAILibrary, starred, bookmarked, visibility, tags]);
+    }, [inAILibrary, starred, bookmarked, visibility, tags, shareData]);
 
     useEffect(() => {
         if (noteOpen && userPromptEntered) {
@@ -360,6 +364,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 debugMode && console.log("loadNote Response", response);
                 setId(response.data.metadata.id);
                 setName(response.data.metadata.name);
+                setShareData(response.data.metadata?.properties?.shareData || {});
                 setDocumentOwner(response.data.metadata.user_id);
                 setVisibility(response.data.metadata.visibility);
                 setTags(response.data.metadata?.tags || []);
@@ -512,13 +517,13 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         noteInstantiated.current = false;
         setMarkdownRenderingOn(false);
         setName(newNoteName);
+        setShareData({});
         setPreviousName(newNoteName);
         setVisibility("private");
         setDocumentOwner(system.user.id); 
         setTags([]);
         setBookmarked(false);
         setStarred(false);
-        setVisibility("private");
         setContent("");
         setAIResponse('');
         setInAILibrary(false);
@@ -605,12 +610,6 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
 
     const handleNameChange = (event) => {
         setName(event.target.value);
-    }
-
-    const handleVisibilityChange = (event) => {
-        if (event.target.value) {
-            setVisibility(event.target.value);
-        }
     }
 
     const generateNoteName = async (text) => {
@@ -881,6 +880,12 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 </IconButton>
             </Tooltip>
         }
+        { isEditable() &&
+            <ShareButton
+                disabled={id === ""}
+                id={id} name={name} visibility={visibility} setVisibility={setVisibility}
+                shareData={shareData} setShareData={setShareData} />
+        }
         <Box ml="auto">
             { isEditable() &&
                 <Tooltip title={ "Delete note" }>
@@ -964,21 +969,6 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 onBlur={(event) => { handleNameBlur(event) }}
                 onChange={handleNameChange}
             />
-            <FormControl sx={{ ml:1, mt: 2, minWidth: 120 }}>
-                <InputLabel id={"chat-visibility-label"}>Visibility</InputLabel>
-                <Select
-                    id={"note-visibility"}
-                    name={"Visibility"}
-                    disabled={id === ""  || !isEditable()}
-                    labelId={"chat-visibility-label"}
-                    value={visibility}
-                    label="Visibility"
-                    onChange={handleVisibilityChange}
-                    >
-                            <MenuItem value="private">Private</MenuItem>
-                            <MenuItem value="shared">Shared</MenuItem>
-                </Select>
-            </FormControl>
             <Toolbar sx={{ paddingLeft: "0px" }}>
                 <Tooltip title={ "Regenerate note name" } sx={{ ml: "auto" }}>
                     <span>
@@ -1003,7 +993,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 id="note-content"
                 ref={noteContentRef}
                 label="Note content"
-                contentEditable={true}
+                contentEditable={isEditable()}
                 style={{
                     ...editorEventHandlers.style,
                     display: markdownRenderingOn ? "none" : "block",
@@ -1097,16 +1087,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     languagePrompt={languagePrompt}
                     />
             :
-                <Box>
-                    <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
-                        <Typography sx={{ flexGrow: 1 }}>Note shared by {documentOwner}.<br/>Shared notes are read only. Clone to edit.</Typography>
-                        <Tooltip title={ "Clone note" }>
-                            <IconButton edge="end" onClick={() => {handleMenuPanelClose(); handleCloneNote(); }}>
-                                <FileCopyIcon/>
-                            </IconButton>
-                        </Tooltip>
-                    </SecondaryToolbar>
-                </Box>
+                <SharedDocPanel type="Note" documentOwner={documentOwner} shareData={shareData} handleClone={handleCloneNote} />
         }
     </Box>
 </Card>

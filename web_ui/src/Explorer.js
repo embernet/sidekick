@@ -439,7 +439,7 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                                 <IconButton edge="start" color="inherit" aria-label={ filterSharedByMe ? "Don't filter on whether it's shared by me" : "Filter to show items shared by me"}
                                     onClick={ () => {setFilterSharedByMe(x=>!x)} }
                                 >
-                                    {filterSharedByMe ? <ShareIcon/> : <ShareOutlined/>}
+                                    {filterSharedByMe ? <ShareIcon sx={{ color: "purple" }}/> : <ShareOutlined/>}
                                 </IconButton>
                             </span>
                         </Tooltip>
@@ -490,7 +490,7 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                                                 </Tooltip>
                                             :
                                             <Tooltip title="Shared by you">
-                                                <ShareIcon/>
+                                                <ShareIcon sx={{ color:"purple" }}/>
                                             </Tooltip>
                                         : <Box width={24} />
                                     }
@@ -518,7 +518,8 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                                     textOverflow: 'ellipsis',
                                 }}
                                 >
-                                {`Owner: ${doc.user_id}\nCreated: ${doc.created_date.substring(0, 19)}\n${doc.updated_date ? 'Updated: ' + doc.updated_date.substring(0, 19) : ''}`}
+                                {(doc.user_id !== system.user.id) && `Shared by: ${doc.user_id}\n`}
+                                {`Created: ${doc.created_date.substring(0, 19)}\n${doc.updated_date ? 'Updated: ' + doc.updated_date.substring(0, 19) : ''}`}
                                 </Typography>
                             ) : null
                             }                            

@@ -11,7 +11,8 @@ import { ClassNames } from "@emotion/react";
 import { InputLabel, FormHelperText, FormControl, Select } from '@mui/material';
 import { lightBlue, grey, blueGrey } from '@mui/material/colors';
 import { MuiFileInput } from 'mui-file-input';
-import { MODEL_DEFAULT_LANGUAGE } from './LanguageSelector';
+import ShareButton from './ShareButton';
+import SharedDocPanel from './SharedDocPanel';
 
 // Icons
 import MenuIcon from '@mui/icons-material/Menu';
@@ -118,6 +119,7 @@ const Chat = ({
     const system = useContext(SystemContext);
     const [id, setId] = useState("");
     const [name, setName] = useState(newChatName);
+    const [shareData, setShareData] = useState({});
     const [visibility, setVisibility] = useState("private");
     const [documentOwner, setDocumentOwner] = useState("");
     const [previousName, setPreviousName] = useState(newChatName);
@@ -2638,7 +2640,7 @@ const Chat = ({
         setPromptCount(promptCount);
         setResponseCount(responseCount);
         setMessagesSize(messagesSize);
-    }, [messages, starred, bookmarked, visibility, tags]);
+    }, [messages, starred, bookmarked, visibility, tags, shareData]);
 
     useEffect(()=>{
         settings["rendered"] = markdownRenderingOn;
@@ -2812,6 +2814,7 @@ const Chat = ({
         // prevent saves whilst we are updating state during load
         chatLoading.current = true;
         reset();
+        setShareData({});
 
         axios.get(`${serverUrl}/docdb/${folder}/documents/${id}`, {
             headers: {
@@ -2822,6 +2825,7 @@ const Chat = ({
             debugMode && console.log("/docdb/chat GET Response:", response);
             setId(response.data.metadata.id);
             setName(response.data.metadata.name);
+            setShareData(response.data.metadata?.properties?.shareData || {});
             setDocumentOwner(response.data.metadata.user_id);
             setVisibility(response.data.metadata.visibility);
             setPreviousName(response.data.metadata.name);
@@ -2960,6 +2964,7 @@ const Chat = ({
                 properties: {
                     starred: false, // don't clone the starred status
                     bookmarked: false, // don't clone the bookmarked status
+                    // shareData not cloned
                 }
             },
             content: {
@@ -2995,6 +3000,7 @@ const Chat = ({
                     bookmarked: bookmarked,
                     toolboxOpen: toolboxOpen,
                     selectedToolbox: selectedToolbox,
+                    shareData: shareData,
                 },
             },
             content: {
@@ -3394,12 +3400,6 @@ const Chat = ({
             setName(newChatName);
         }    }
 
-    const handleVisibilityChange = (event) => {
-        if (event.target.value) {
-            setVisibility(event.target.value);
-        }
-    }
-
     const handleNewChat = () => {
         reset();
         _focusOnPrompt();
@@ -3684,6 +3684,7 @@ const Chat = ({
         chatLoading.current = true;
         setId("");
         setName(newChatName);
+        setShareData({});
         setPreviousName(newChatName);
         setVisibility("private");
 
@@ -4207,6 +4208,12 @@ const Chat = ({
                 { markdownRenderingOn ? <CodeOffIcon/> : <CodeIcon/> }
             </IconButton>
         </Tooltip>
+        { isEditable() &&
+            <ShareButton
+                disabled={messages.length === 0  || !isEditable()}
+                id={id} name={name} visibility={visibility} setVisibility={setVisibility}
+                shareData={shareData} setShareData={setShareData} />
+        }
         <Box sx={{ display: "flex", flexDirection: "row", ml: "auto" }}>
             { isEditable() &&
                 <Tooltip title={ "Delete chat" }>
@@ -4744,22 +4751,7 @@ const Chat = ({
                         onBlur={() => {handleRenameChat();}}
                         onChange={handleTitleChange}
                     />
-                    <FormControl sx={{ ml:1, mt: 2, minWidth: 120 }}>
-                        <InputLabel id={"chat-visibility-label"}>Visibility</InputLabel>
-                        <Select
-                            id={"chat-visibility"}
-                            name={"Visibility"}
-                            disabled={messages.length === 0 || !isEditable()}
-                            labelId={"chat-visibility-label"}
-                            value={visibility}
-                            label="Visibility"
-                            onChange={handleVisibilityChange}
-                            >
-                                    <MenuItem value="private">Private</MenuItem>
-                                    <MenuItem value="shared">Shared</MenuItem>
-                        </Select>
-                    </FormControl>
-                    <Toolbar sx={{ paddingLeft: "0px" }}>
+                    <Toolbar sx={{ pl: "0px" }}>
                         <Tooltip title={ "Regenerate chat name" } sx={{ ml: "auto" }}>
                             <span>
                                 <IconButton edge="end" color="inherit" aria-label="regenerate chat name" 
@@ -5119,16 +5111,7 @@ const Chat = ({
                             }
                         </Box>
                     :
-                        <Box>
-                            <SecondaryToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
-                                <Typography sx={{ flexGrow: 1 }}>Chat shared by {documentOwner}.<br/>Shared chats are read only. Clone to continue.</Typography>
-                                <Tooltip title={ "Clone chat" }>
-                                    <IconButton edge="end" onClick={() => {handleMenuPanelClose(); handleCloneChat();}}>
-                                        <FileCopyIcon/>
-                                    </IconButton>
-                                </Tooltip>
-                                </SecondaryToolbar>
-                        </Box>
+                        <SharedDocPanel type="Chat" documentOwner={documentOwner} shareData={shareData} handleClone={handleCloneChat} />
                 }
 
             </Box>
