@@ -20,6 +20,7 @@ import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
 import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
 import ShareIcon from '@mui/icons-material/Share';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 import { indigo, grey } from '@mui/material/colors';
 import { StyledBox } from "./theme";
@@ -105,7 +106,7 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
     }, [folder]);
 
     useEffect(()=>{
-        loadItems(mySettings.sortOrder, mySettings.sortOrderDirection);
+        loadItems();
         if (refresh?.reason === "showExplorer" && isMobile) {
             panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
         }
@@ -119,18 +120,18 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
             },
             (error) => {
                 console.log(`load ${folder}_explorer_settings:`, error);
-                loadItems(mySettings.sortOrder, mySettings.sortOrderDirection);
+                loadItems();
             }
         )
     }, [myFolder]);
 
     useEffect(()=>{
         if (docNameChanged !== "") {
-            loadItems(mySettings.sortOrder, mySettings.sortOrderDirection);
+            loadItems();
         }
     }, [docNameChanged]);
 
-    const loadItems = (sortOrder, sortOrderDirection) => {
+    const loadItems = (sortOrder=mySettings.sortOrder, sortOrderDirection=mySettings.sortOrderDirection) => {
         let url = `${serverUrl}/docdb/${myFolder}/${mySettings.scope}/documents`;
         axios.get(url, {
             headers: {
@@ -261,7 +262,7 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
         });
         Promise.all(deletePromises).then(() => {
             setFilterText("");
-            loadItems(mySettings.sortOrder, mySettings.sortOrderDirection);
+            loadItems();
             system.info(`${name} Explorer deleted ${count} items`);
         }).catch(error => {
             system.error(`System Error deleting filtered items in ${name} Explorer`, error, url + " DELETE");
@@ -314,6 +315,11 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                     <Tooltip title={mySettings.showItemDetails ? "Hide details" : "Show details"}>
                         <IconButton edge="start" onClick={() => { updateSetting("showItemDetails", !mySettings.showItemDetails); }}>
                             <ListAltIcon />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Refresh explorer, e.g. to show new items shared by others since last refresh.">
+                        <IconButton edge="start" onClick={() => { loadItems() }}>
+                            <RefreshIcon />
                         </IconButton>
                     </Tooltip>
                     <Box ml="auto">
