@@ -3235,7 +3235,7 @@ const Chat = ({
         let goal = chatGoal ? "\n\nGoal:\n\n" + chatGoal : "";
         let responseGuidancePrompt = "";
         if (systemPrompts?.responseGuidancePrompt?.prompt && systemPrompts?.responseGuidancePrompt?.enabled) {
-            responseGuidancePrompt += "\n\n" + systemPrompts.responseStylePrompt.prePrompt + ":\n" + systemPrompts.responseGuidancePrompt.prompt;
+            responseGuidancePrompt += "\n\n" + systemPrompts.responseGuidancePrompt.prePrompt + ":\n" + systemPrompts.responseGuidancePrompt.prompt;
         }
         let responseFormatPrompt = "";
         if (systemPrompts?.responseFormatPrompt?.prompt && systemPrompts?.responseFormatPrompt?.enabled) {

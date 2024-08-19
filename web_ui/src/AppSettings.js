@@ -172,7 +172,6 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
         if (systemPrompts) {
             // Initialize local state with systemPrompts
             const initialPrompts = {};
-            console.log("AppSettings system prompts:", systemPrompts);
             Object.entries(systemPrompts).forEach(([key, systemPromptObject]) => {
                 console.log("AppSettings system prompt:", key, systemPromptObject);
                 if (!validateSystemPromptObject(systemPromptObject)) {

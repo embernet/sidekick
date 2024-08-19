@@ -139,6 +139,7 @@ const App = () => {
   const [systemPrompts, setSystemPrompts] = useState({});
   const [generalContextPrompt, setGeneralContextPrompt] = useState(undefined);
   const [responseGuidancePrompt, setResponseGuidancePrompt] = useState(undefined);
+  const [responseFormatPrompt, setResponseFormatPrompt] = useState(undefined);
   const [customSystemPrompt, setCustomSystemPrompt] = useState(undefined);
   const [noteWindowMaximized, setNoteWindowMaximized] = useState(false);
   const [chatWindowMaximized, setChatWindowMaximized] = useState(false);
@@ -372,17 +373,28 @@ const App = () => {
   useEffect(() => {
     setGeneralContextPrompt(systemPrompts?.generalContextPrompt);
     setResponseGuidancePrompt(systemPrompts?.responseGuidancePrompt);
+    setResponseFormatPrompt(systemPrompts?.responseFormatPrompt);
     setCustomSystemPrompt(systemPrompts?.customSystemPrompt);
   }, [systemPrompts]);
 
   useEffect(() => {
-    setSystemPrompts({
-      ...systemPrompts,
-      generalContextPrompt: generalContextPrompt,
-      responseGuidancePrompt: responseGuidancePrompt,
-      customSystemPrompt: customSystemPrompt 
-    })
-  }, [generalContextPrompt, responseGuidancePrompt, customSystemPrompt]);
+    const updatedPrompts = { ...systemPrompts };
+
+    if (generalContextPrompt) {
+        updatedPrompts.generalContextPrompt = generalContextPrompt;
+    }
+    if (responseGuidancePrompt) {
+        updatedPrompts.responseGuidancePrompt = responseGuidancePrompt;
+    }
+    if (responseFormatPrompt) {
+        updatedPrompts.responseFormatPrompt = responseFormatPrompt;
+    }
+    if (customSystemPrompt) {
+        updatedPrompts.customSystemPrompt = customSystemPrompt;
+    }
+
+    setSystemPrompts(updatedPrompts);
+  }, [generalContextPrompt, responseGuidancePrompt, responseFormatPrompt, customSystemPrompt]);
 
   useEffect(() => {
     if (appLoaded && mySettingsManager.current) {
