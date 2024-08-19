@@ -43,7 +43,7 @@ const ShareButton = ({ id, name, visibility, setVisibility, shareData, setShareD
                     "Click to share this item"
                 }>
                 <span>
-                    <IconButton
+                    <IconButton edge="start"
                         color="inherit"
                         onClick={() => setOpen(x=>!x)}>
                         {visibility === 'shared' ? <ShareIcon sx={{ color: "purple" }} /> : <ShareOutlinedIcon />}
