@@ -26,8 +26,8 @@ app.config["OPENAI_API_KEY"] = os.environ["OPENAI_API_KEY"]
 # If this env var is not set, baseUrl from model_settings.json for the provider is used
 # TODO: Add ability for users to add their own providers, in which case the base URL
 # would only be taken from the provider settings in the model_settings.json
-app.config["OPENAI_BASE_URL"] = os.environ.get("OPENAI_BASE_URL", "")
-app.config["OLLAMA_BASE_URL"] = os.environ.get("OLLAMA_BASE_URL", "")
+app.config["OPENAI_BASE_URL"] = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
+app.config["OLLAMA_BASE_URL"] = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434/v1")
 app.config["SIDEKICK_UTILITY_MODEL"] = os.environ.get("SIDEKICK_UTILITY_MODEL", "gpt-4o")
 
 # Optionally count chat tokens if specified in the env var
