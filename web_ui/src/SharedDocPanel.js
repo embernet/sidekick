@@ -3,7 +3,7 @@ import { Box, Typography, Tooltip, IconButton, TextField } from '@mui/material';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
 import { SecondaryToolbar } from './theme';
 
-const SharedDocPanel = ({ type, documentOwner, shareData, handleClone }) => {
+const SharedDocPanel = ({ type, documentOwnerName, shareData, handleClone }) => {
     return (
         <Box sx={{ 
             border: '2px solid', 
@@ -25,14 +25,14 @@ const SharedDocPanel = ({ type, documentOwner, shareData, handleClone }) => {
                 <TextField 
                     label="Shared by" 
                     disabled 
-                    sx={{ width: 'calc(100% - 8px)', m: '4px', mt: '8px' }}
-                    value={documentOwner}
+                    sx={{ width: 'calc(100% - 8px)', m: '4px', mt: '10px' }}
+                    value={documentOwnerName}
                 />
                 {shareData && shareData.description && (
                     <TextField 
                         label="Description" 
                         disabled 
-                        sx={{ width: 'calc(100% - 8px)', m: '4px' }} 
+                        sx={{ width: 'calc(100% - 8px)', m: '4px', mt: '10px' }} 
                         multiline 
                         rows={4}
                         value={shareData.description}

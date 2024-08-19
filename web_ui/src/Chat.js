@@ -122,6 +122,7 @@ const Chat = ({
     const [shareData, setShareData] = useState({});
     const [visibility, setVisibility] = useState("private");
     const [documentOwner, setDocumentOwner] = useState("");
+    const [documentOwnerName, setDocumentOwnerName] = useState("");
     const [previousName, setPreviousName] = useState(newChatName);
     const defaultUserPromptReady = 'Enter prompt (or "/" for commands and prompt templates)...';
     const userPromptReady = useRef(defaultUserPromptReady);
@@ -2827,6 +2828,7 @@ const Chat = ({
             setName(response.data.metadata.name);
             setShareData(response.data.metadata?.properties?.shareData || {});
             setDocumentOwner(response.data.metadata.user_id);
+            setDocumentOwnerName(response.data.metadata.user_name);
             setVisibility(response.data.metadata.visibility);
             setPreviousName(response.data.metadata.name);
             setChatContext(response.data.content?.context || "");
@@ -3692,7 +3694,8 @@ const Chat = ({
         // Its use here is only for differentiating when loading a shared document
         // to be able to see if the owner is the current user
         // and hence whether its editable
-        setDocumentOwner(system.user.id); 
+        setDocumentOwner(system.user.id);
+        setDocumentOwnerName(system.user.name);
         
         setMessages([]);
         setTags([]);
@@ -5111,7 +5114,7 @@ const Chat = ({
                             }
                         </Box>
                     :
-                        <SharedDocPanel type="Chat" documentOwner={documentOwner} shareData={shareData} handleClone={handleCloneChat} />
+                        <SharedDocPanel type="Chat" documentOwnerName={documentOwnerName} shareData={shareData} handleClone={handleCloneChat} />
                 }
 
             </Box>

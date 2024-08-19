@@ -49,6 +49,10 @@ class Document(db.Model):
 
     def __init__(self, properties=None, content=None, **kwargs):
         super(Document, self).__init__(**kwargs)
+        
+        # Remove read-only fields from kwargs
+        kwargs.pop('user_name', None)
+
         if properties is not None:
             self.properties = json.dumps(properties)
         if content is not None:
@@ -62,6 +66,7 @@ class Document(db.Model):
             "metadata": {
                 "id": self.id,
                 "user_id": self.user_id,
+                "user_name": self.user.name, # return the name of the user for easy reference
                 "visibility": self.visibility,
                 "name": self.name,
                 "type": self.type,

@@ -543,22 +543,6 @@ def chat_v2():
         return result
 
 
-# @app.route('/docdb//documents', methods=['GET'])
-# @app.route('/docdb/<document_type>/documents', methods=['GET'])
-# @jwt_required()
-# def docdb_list_documents(document_type=""):
-#     with RequestLogger(request) as rl:
-#         acting_user_id = get_jwt_identity()    
-#         increment_server_stat(category="requests", stat_name=f"docdbList({document_type})")
-#         if DBUtils.user_isadmin(acting_user_id) and document_type == "feedback":
-#             documents = DBUtils.list_feedback()
-#         else:
-#             documents = DBUtils.list_documents(document_type=document_type,
-#                                         user_id=acting_user_id)
-#         document_count = len(documents["documents"])
-#         rl.push(action="listed documents", document_type=document_type, count=document_count)
-#         return jsonify(documents)
-
 @app.route('/docdb/<document_type>/<scope>/documents', methods=['GET'])
 @jwt_required()
 def docdb_list_documents(document_type, scope=""):

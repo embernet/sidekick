@@ -518,7 +518,7 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                                     textOverflow: 'ellipsis',
                                 }}
                                 >
-                                {(doc.user_id !== system.user.id) && `Shared by: ${doc.user_id}\n`}
+                                {(doc.user_id !== system.user.id) && `Shared by: ${doc.user_name}\n`}
                                 {`Created: ${doc.created_date.substring(0, 19)}\n${doc.updated_date ? 'Updated: ' + doc.updated_date.substring(0, 19) : ''}`}
                                 </Typography>
                             ) : null

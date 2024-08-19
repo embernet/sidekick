@@ -135,6 +135,7 @@ You always do your best to generate text in the same style as the context text p
     const [shareData, setShareData] = useState({});
     const [visibility, setVisibility] = useState("private");
     const [documentOwner, setDocumentOwner] = useState("");
+    const [documentOwnerName, setDocumentOwnerName] = useState("");
     const [previousName, setPreviousName] = useState(newNoteName);
     const defaultUserPromptReady = "What do you want to add to your note?";
     const userPromptReady = useRef(defaultUserPromptReady);
@@ -366,6 +367,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 setName(response.data.metadata.name);
                 setShareData(response.data.metadata?.properties?.shareData || {});
                 setDocumentOwner(response.data.metadata.user_id);
+                setDocumentOwnerName(response.data.metadata.user_name);
                 setVisibility(response.data.metadata.visibility);
                 setTags(response.data.metadata?.tags || []);
                 setBookmarked(response.data.metadata?.properties?.bookmarked || false);
@@ -520,7 +522,8 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
         setShareData({});
         setPreviousName(newNoteName);
         setVisibility("private");
-        setDocumentOwner(system.user.id); 
+        setDocumentOwner(system.user.id);
+        setDocumentOwnerName(system.user.name);
         setTags([]);
         setBookmarked(false);
         setStarred(false);
@@ -1087,7 +1090,7 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                     languagePrompt={languagePrompt}
                     />
             :
-                <SharedDocPanel type="Note" documentOwner={documentOwner} shareData={shareData} handleClone={handleCloneNote} />
+                <SharedDocPanel type="Note" documentOwnerName={documentOwnerName} shareData={shareData} handleClone={handleCloneNote} />
         }
     </Box>
 </Card>
