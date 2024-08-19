@@ -17,6 +17,7 @@ personasOpen, togglePersonasOpen, isMobile, language, setLanguage, languagePromp
     const [dateTimeString, setDateTimeString] = useState('');
     const [popoverOpen, setPopoverOpen] = useState(false);
     const statusRef = useRef();
+    const controlHeight = 44;
 
     const statusColor = (status) => {
         switch (status) {
@@ -82,18 +83,19 @@ personasOpen, togglePersonasOpen, isMobile, language, setLanguage, languagePromp
     };
 
     return (
-        <Paper sx={{ margin: "2px 0px", padding: "2px 6px", display:"flex", gap: 1,
+        <Paper sx={{ margin: "2px 0px", padding: "4px 6px", display:"flex", gap: 1,
             backgroundColor: darkMode ? grey[900] : grey[100] }}>
             {
                 statusUpdates.length ?
-                    <Button id="status-button-log" ref={statusRef} onClick={handleStatusClick} variant="outlined" size="small" sx={{ padding: 0, minWidth: 26 }}>
+                    <Button id="status-button-log" ref={statusRef} onClick={handleStatusClick} variant="outlined" size="small"
+                        sx={{ padding: 0, minWidth: controlHeight, height: controlHeight }}>
                         <HistoryIcon fontSize="small" style={{ color: statusColor(statusUpdates.length && statusUpdates[statusUpdates.length - 1].type) }} />
                     </Button>
                 : null
             }
             <Button id="status-button-time" variant={statusUpdates.length > 0 ? "outlined" : "text"}
                 size="small"
-                sx={{ fontSize: "0.8em", textTransform: 'none', width: isMobile ? "40px" : "auto", minWidth: 40 }}>
+                sx={{ fontSize: "0.8em", textTransform: 'none', width: isMobile ? "40px" : "auto", minWidth: 40, height: controlHeight }}>
                 <Typography component="span"
                 >
                     {dateTimeString}
@@ -154,7 +156,8 @@ personasOpen, togglePersonasOpen, isMobile, language, setLanguage, languagePromp
                         "Selected AI persona" + (personasOpen ? " (click to hide Persona Explorer)" : " (click to show Persona Explorer)")
                 }>
                     <span>
-                        <Button id="status-button-personas" variant="outlined" sx={{ textTransform: 'none' }} onClick={togglePersonasOpen}>
+                        <Button id="status-button-personas" variant="outlined"
+                            sx={{ textTransform: 'none', height: controlHeight }} onClick={togglePersonasOpen}>
                             <Typography component="span"
                                 sx={{ margin: '2px', padding: '2px', borderRadius: '4px', whiteSpace: 'nowrap', display: 'inline-block',
                                     overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -166,7 +169,7 @@ personasOpen, togglePersonasOpen, isMobile, language, setLanguage, languagePromp
             }
             { !isMobile && languageSettings &&
                 <Box style={{ color: "primary" }}>
-                    <LanguageSelector sx={{ color: theme.palette.primary.main}}
+                    <LanguageSelector sx={{ color: theme.palette.primary.main, height: controlHeight }}
                         darkMode={darkMode}
                         isMobile={isMobile}
                         languageSettings={languageSettings}
@@ -189,7 +192,8 @@ personasOpen, togglePersonasOpen, isMobile, language, setLanguage, languagePromp
                     </Fragment>
                     }>
                     <span>
-                        <Button id="status-button-model-settings" variant="outlined" size="small" color="primary" sx={{ fontSize: "0.8em", textTransform: 'none' }} onClick={toggleModelSettingsOpen}>
+                        <Button id="status-button-model-settings" variant="outlined" size="small" color="primary"
+                            sx={{ fontSize: "0.8em", textTransform: 'none', height: controlHeight }} onClick={toggleModelSettingsOpen}>
                             <Typography component="span"
                                 sx={{ margin: '2px', padding: '2px', borderRadius: '4px', whiteSpace: 'nowrap', display: 'inline-block', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                 {modelSettings.asShortText}

@@ -108,7 +108,7 @@ const LanguageSelector = memo(({ languageSettings, language, setLanguage, setLan
         <Box id={`language-selector-${myId}`} sx={{ ...customSx, display: "flex", flexDirection: "row" }}>
             <Autocomplete
                 id={`language-selector-${myId}`}
-                sx={{ width: '240px', minHeight: 'auto', maxHeight: "80px", }}
+                sx={{ ...customSx, width: '240px', maxHeight: "80px", }}
                 variant = 'outlined'
                 options={languagesArray}
                 getOptionLabel={(option) => option}
@@ -124,6 +124,7 @@ const LanguageSelector = memo(({ languageSettings, language, setLanguage, setLan
                         sx={{
                             '& .MuiInputBase-input': {
                             color: customSx?.color, // Set text color to theme's primary color
+                            height: 12
                             },
                         }}
                         label= {language ? "" : "Set Language"}
