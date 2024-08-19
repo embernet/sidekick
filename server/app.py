@@ -9,7 +9,7 @@ from sqlalchemy.engine.url import make_url
 import uuid
 from prometheus_flask_exporter import PrometheusMetrics
 
-VERSION = "0.3.6"
+VERSION = "0.4"
 server_instance_id = str(uuid.uuid4())
 
 app = Flask(__name__)

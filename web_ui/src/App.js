@@ -67,7 +67,7 @@ import Carousel from './Carousel';
 import SidekickModalDialog from './SidekickModalDialog';
 import { use } from 'marked';
 
-const VERSION = "0.3.6";
+const VERSION = "0.4";
 
 const ScriptIcon = SmartDisplayOutlinedIcon;
 const ScriptsExplorerIcon = SubscriptionsOutlinedIcon;
