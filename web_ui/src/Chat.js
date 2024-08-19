@@ -2644,6 +2644,23 @@ const Chat = ({
     }, [messages, starred, bookmarked, visibility, tags, shareData]);
 
     useEffect(()=>{
+        // If the chat has just been shared check visibility of each knowledge note and warn if any are private
+        if (visibility === "shared") {
+            // loop over selectedAiLibraryNotesMetadataDict and make a list of any that are private and add into warning message
+            let privateNotes = [];
+            for (const [id, note] of Object.entries(selectedAiLibraryNotesMetadataDict)) {
+                if (note.visibility === "private") {
+                    privateNotes.push(note.name);
+                }
+            }
+            if (privateNotes.length > 0) {
+                system.warning(`The AI Library for this shared chat contains private knowledge notes. Share them as well if you want others using this chat to have access to them: ${privateNotes.join(", ")}`);
+            }
+        }
+
+    }, [visibility]);
+
+    useEffect(()=>{
         settings["rendered"] = markdownRenderingOn;
         if (settingsLoaded) {
             axios.put(`${serverUrl}/settings/chat_settings`, settings, {
@@ -2972,6 +2989,7 @@ const Chat = ({
             content: {
                 context: chatContext,
                 goal: chatGoal,
+                selectedAiLibraryNotesMetadataDict: selectedAiLibraryNotesMetadataDict,
                 chat: messages,
             }
         };
@@ -3843,13 +3861,20 @@ const Chat = ({
         } catch (error) {
             console.log("Chat AI library note load error", error);
             // if the error is due to the note no longer existing, remove it from the selectedAiLibraryNotesMetadataDict
-            if (error.response?.request?.status === 404) {
+            if (error.response?.request?.status === 404) { // NOT FOUND
                 setSelectedAiLibraryNotesMetadataDict(prevState => {
                     const newDict = { ...prevState };
                     delete newDict[noteMetadata.id];
                     return newDict;
                 });
                 system.warning(`Removed reference from Chat AI library to Note that no longer exists: "${noteMetadata.name}"`);
+            } else if (error.response?.request?.status === 401) { // UNAUTHORIZED
+                setSelectedAiLibraryNotesMetadataDict(prevState => {
+                    const newDict = { ...prevState };
+                    delete newDict[noteMetadata.id];
+                    return newDict;
+                });
+                system.warning(`The following knowledge note was referenced by this shared chat but was not shared, so will not be accessible to you: "${noteMetadata.name}"`);
             } else {
                 system.error(`System Error loading Chat AI library note`, error, url);
             }
