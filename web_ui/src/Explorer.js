@@ -19,6 +19,7 @@ import StarBorderIcon from '@mui/icons-material/StarBorder';
 import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
 import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
 import ShareIcon from '@mui/icons-material/Share';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 
 import { indigo, grey } from '@mui/material/colors';
 import { StyledBox } from "./theme";
@@ -28,6 +29,7 @@ import axios from 'axios';
 import { SystemContext } from './SystemContext';
 import SettingsManager from './SettingsManager';
 import { ShareOutlined } from "@mui/icons-material";
+import { Form } from "react-router-dom";
 
 const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, folder, openItemId, setLoadDoc,
      docNameChanged, refresh, setRefresh, itemOpen, hidePrimaryToolbar, deleteEnabled, darkMode,
@@ -45,16 +47,18 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
     const [docs, setDocs] = useState([]);
     const [filterText, setFilterText] = useState('');
     const [myFolder, setMyFolder] = useState(folder);
-    const [sortOrder, setSortOrder] = useState("updated");
-    const [scope, setScope] = useState("mine");
-    const [sortOrderDirection, setSortOrderDirection] = useState(-1);
-    const [showItemDetails, setShowItemDetails] = useState(false);
+    const [mySettings, setMySettings] = useState({
+        sortOrder: "updated",
+        sortOrderDirection: -1,
+        scope: "mine",
+        showItemDetails: false,
+        filterBookmarked: false,
+        filterStarred: false,
+        filterInAiLibrary: false,
+        filterSharedByMe: false,
+        filterSharedByOther: false
+    });
     const [userDefaultsLoaded, setUserDefaultsLoaded] = useState(false);
-    const [filterBookmarked, setFilterBookmarked] = useState(false);
-    const [filterStarred, setFilterStarred] = useState(false);
-    const [filterInAiLibrary, setFilterInAiLibrary] = useState(false);
-    const [filterSharedByMe, setFilterSharedByMe] = useState(false);
-    const [filterSharedByOther, setFilterSharedByOther] = useState(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [docsToDelete, setDocsToDelete] = useState([]);
 
@@ -79,12 +83,16 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
     }, [handleResize]);
 
     useEffect(()=>{
-        sortDocs(sortOrder, sortOrderDirection);
+        sortDocs(mySettings.sortOrder, mySettings.sortOrderDirection);
     }, [docs]);
 
-    useEffect(()=>{
-        saveUserDefaults();
-    }, [sortOrder, sortOrderDirection]);
+    const updateSetting = (key, value) => {
+        setMySettings((prevState) => ({
+            ...prevState,
+            [key]: value,
+        }));
+        saveUserDefaults({ ...mySettings, [key]: value });
+    };
 
     useEffect(()=>{
         // onOpen
@@ -97,35 +105,33 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
     }, [folder]);
 
     useEffect(()=>{
-        loadItems(sortOrder, sortOrderDirection);
+        loadItems(mySettings.sortOrder, mySettings.sortOrderDirection);
         if (refresh?.reason === "showExplorer" && isMobile) {
             panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
         }
-    }, [refresh, scope]);
+    }, [refresh, mySettings.scope]);
 
     useEffect(()=>{
         mySettingsManager.loadSettings(`${folder}_explorer_settings`,
-            (data) => {
-                setSortOrder(data.sortOrder);
-                setSortOrderDirection(data.sortOrderDirection);
-                setUserDefaultsLoaded(true);
-                loadItems(data.sortOrder, data.sortOrderDirection);
+            (loadedSettings) => {
+                setMySettings({ ...mySettings, ...loadedSettings});
+                loadItems(loadedSettings.sortOrder, loadedSettings.sortOrderDirection);
             },
             (error) => {
                 console.log(`load ${folder}_explorer_settings:`, error);
-                loadItems(sortOrder, sortOrderDirection);
+                loadItems(mySettings.sortOrder, mySettings.sortOrderDirection);
             }
         )
     }, [myFolder]);
 
     useEffect(()=>{
         if (docNameChanged !== "") {
-            loadItems(sortOrder, sortOrderDirection);
+            loadItems(mySettings.sortOrder, mySettings.sortOrderDirection);
         }
     }, [docNameChanged]);
 
     const loadItems = (sortOrder, sortOrderDirection) => {
-        let url = `${serverUrl}/docdb/${myFolder}/${scope}/documents`;
+        let url = `${serverUrl}/docdb/${myFolder}/${mySettings.scope}/documents`;
         axios.get(url, {
             headers: {
                 Authorization: 'Bearer ' + token
@@ -137,6 +143,21 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
             system.error(`System Error loading items in ${name} Explorer`, error, url + " GET");
         });
     };
+
+    const clearFilters = () => {
+        setFilterText("");
+        const newSettings = ({
+            ...mySettings,
+            filterText: "",
+            filterBookmarked: false,
+            filterStarred: false,
+            filterInAiLibrary: false,
+            filterSharedByMe: false,
+            filterSharedByOther: false
+        });
+        setMySettings(newSettings);
+        saveUserDefaults(newSettings);
+    }
 
     const handleFilterTextChange = (event) => {
         setFilterText(event.target.value);
@@ -166,29 +187,25 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
         setDocs(sortedDocs);
     }
 
-    const saveUserDefaults = () => {
-        if (mySettingsManager && userDefaultsLoaded) {
-            mySettingsManager.setAll({
-                sortOrder: sortOrder,
-                sortOrderDirection: sortOrderDirection
-            }, (error) => {
+    const saveUserDefaults = (settings) => {
+        if (mySettingsManager) {
+            mySettingsManager.setAll(settings, (error) => {
                 console.log(`save ${name}_explorer_settings:`, error);
             });
         }
     }
 
     const handleSortOrderChange = (value) => {
-        setSortOrder(value);
-        sortDocs(value, sortOrderDirection);
+        updateSetting("sortOrder", value);
+        sortDocs(value, mySettings.sortOrderDirection);
     }
 
     const handleScopeChange = (event) => {
-        setScope(event.target.value);
+        updateSetting("scope", event.target.value);
     };
 
     const handleToggleSortOrderDirection = () => {
-        sortDocs(sortOrder, sortOrderDirection * -1);
-        setSortOrderDirection(x=>x*-1);
+        sortDocs(mySettings.sortOrder, mySettings.sortOrderDirection * -1);
     }
 
     const handleLoadDoc = (id) => {
@@ -199,11 +216,11 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
     const filteredDocs = docs.filter(doc => {
         const matches = 
             doc.name.toLowerCase().includes(filterText.toLowerCase()) &&
-            (!filterBookmarked || doc?.properties?.bookmarked) &&
-            (!filterStarred || doc?.properties?.starred) &&
-            (!filterInAiLibrary || doc?.properties?.inAILibrary) &&
-            (!filterSharedByMe || (doc?.visibility !== "private" && doc.user_id === system.user.id)) &&
-            (!filterSharedByOther || (doc?.visibility !== "private" && doc.user_id !== system.user.id));
+            (!mySettings.filterBookmarked || doc?.properties?.bookmarked) &&
+            (!mySettings.filterStarred || doc?.properties?.starred) &&
+            (!mySettings.filterInAiLibrary || doc?.properties?.inAILibrary) &&
+            (!mySettings.filterSharedByMe || (doc?.visibility !== "private" && doc.user_id === system.user.id)) &&
+            (!mySettings.filterSharedByOther || (doc?.visibility !== "private" && doc.user_id !== system.user.id));
         return matches;
     });
 
@@ -244,7 +261,7 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
         });
         Promise.all(deletePromises).then(() => {
             setFilterText("");
-            loadItems(sortOrder, sortOrderDirection);
+            loadItems(mySettings.sortOrder, mySettings.sortOrderDirection);
             system.info(`${name} Explorer deleted ${count} items`);
         }).catch(error => {
             system.error(`System Error deleting filtered items in ${name} Explorer`, error, url + " DELETE");
@@ -294,8 +311,8 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
                     {icon}
                     <Typography sx={{mr:2}}>{name}</Typography>
-                    <Tooltip title={showItemDetails ? "Hide details" : "Show details"}>
-                        <IconButton edge="start" onClick={() => { setShowItemDetails(state => !state); }}>
+                    <Tooltip title={mySettings.showItemDetails ? "Hide details" : "Show details"}>
+                        <IconButton edge="start" onClick={() => { updateSetting("showItemDetails", !mySettings.showItemDetails); }}>
                             <ListAltIcon />
                         </IconButton>
                     </Tooltip>
@@ -337,14 +354,14 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                </StyledToolbar>
         }
         <Box sx={{ width: "100%", paddingLeft: 0, paddingRight: 0, display: "flex", flexDirection: "column" }}>
-            <Box className={ClassNames.toolbar} sx={{ display: "flex", flexDirection: "row", gap: 1, mt: 2 }}>
+            <Box className={ClassNames.toolbar} sx={{ display: "flex", flexDirection: "row", mt: 2 }}>
                 <FormControl sx={{ minWidth: 120 }} size="small">
                     <InputLabel id={name + "-explorer-scope-label"}>Scope</InputLabel>
                     <Select
                         id={name + "-explorer-scope"}
                         name={"Scope"}
                         labelId={name + "-explorer-scope-label"}
-                        value={scope}
+                        value={mySettings.scope}
                         label="Scope"
                         onChange={handleScopeChange}
                         >
@@ -356,7 +373,13 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                                 <MenuItem value="all">All</MenuItem>
                     </Select>
                 </FormControl>
-                <Box width={24} />
+                <Tooltip title="Clear filters">
+                    <IconButton color="inherit" onClick={clearFilters} >
+                        { (mySettings.filterSharedByOther || mySettings.filterBookmarked || mySettings.filterInAiLibrary ||
+                            mySettings.filterSharedByMe || mySettings.filterStarred || filterText.length > 0
+                        ) ? <HighlightOffIcon/> : <HighlightOffIcon sx={{ color:"grey" }}/>}
+                    </IconButton>
+                </Tooltip>
                 <TextField
                         id={name + "-explorer-filter"}
                         autoComplete='off'
@@ -375,7 +398,7 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                         id={name + "-explorer-sort-order"}
                         name={name + " explorer sort order"}
                         labelId={name + "-explorer-sort-order-label"}
-                        value={sortOrder}
+                        value={mySettings.sortOrder}
                         label="Sort order"
                         onChange={(event) => { handleSortOrderChange(event.target.value); }}
                         >
@@ -387,7 +410,7 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                 <FormControl sx={{ mt: 2, flexDirection: "row", width: "100%" }} size="small">
                     <Tooltip title="Change sort order">
                         <IconButton onClick={handleToggleSortOrderDirection}>
-                            { sortOrderDirection === 1 ? <ArrowUpwardIcon/> : <ArrowDownwardIcon/> }
+                            { mySettings.sortOrderDirection === 1 ? <ArrowUpwardIcon/> : <ArrowDownwardIcon/> }
                         </IconButton>
                     </Tooltip>
                     <Box sx={{ 
@@ -405,50 +428,50 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
 
                     }}>
                         <Box width={8} />
-                        <Tooltip title={ filterBookmarked ? "Don't filter on bookmarked" : "Filter to show only bookmarked items"}>
+                        <Tooltip title={ mySettings.filterBookmarked ? "Don't filter on bookmarked" : "Filter to show only bookmarked items"}>
                             <span>
                                 <IconButton edge="start" color="inherit"
-                                    aria-label={ filterBookmarked ? "Don't filter on bookmarked" : "Filter to show only bookmarked items"}
-                                    onClick={ () => {setFilterBookmarked(x=>!x)} }
+                                    aria-label={ mySettings.filterBookmarked ? "Don't filter on bookmarked" : "Filter to show only bookmarked items"}
+                                    onClick={ () => { updateSetting("filterBookmarked", !mySettings.filterBookmarked); } }
                                 >
-                                    {filterBookmarked ? <BookmarkIcon/> : <BookmarkBorderIcon/>}
+                                    {mySettings.filterBookmarked ? <BookmarkIcon/> : <BookmarkBorderIcon/>}
                                 </IconButton>
                             </span>
                         </Tooltip>
-                        <Tooltip title={ filterStarred ? "Don't filter on starred" : "Show only starred items"}>
+                        <Tooltip title={ mySettings.filterStarred ? "Don't filter on starred" : "Show only starred items"}>
                             <span>
                                 <IconButton edge="start" color="inherit"
-                                    aria-label={ filterStarred ? "Don't filter on starred" : "Show only starred items"}
-                                    onClick={ () => {setFilterStarred(x=>!x)} }
+                                    aria-label={ mySettings.filterStarred ? "Don't filter on starred" : "Show only starred items"}
+                                    onClick={ () => { updateSetting("filterStarred", !mySettings.filterStarred); } }
                                 >
-                                    {filterStarred ? <StarIcon/> : <StarBorderIcon/>}
+                                    {mySettings.filterStarred ? <StarIcon/> : <StarBorderIcon/>}
                                 </IconButton>
                             </span>
                         </Tooltip>
-                        <Tooltip title={ filterInAiLibrary ? "Don't filter on whether in AI Library" : "Filter to show items in AI Library"}>
+                        <Tooltip title={ mySettings.filterInAiLibrary ? "Don't filter on whether in AI Library" : "Filter to show items in AI Library"}>
                             <span>
-                                <IconButton edge="start" color="inherit" aria-label={ filterBookmarked ? "Don't filter on whether in AI Library" : "Filter to show items in AI Library"}
-                                    onClick={ () => {setFilterInAiLibrary(x=>!x)} }
+                                <IconButton edge="start" color="inherit" aria-label={ mySettings.filterInAiLibrary ? "Don't filter on whether in AI Library" : "Filter to show items in AI Library"}
+                                    onClick={ () => { updateSetting("filterInAiLibrary", !mySettings.filterInAiLibrary); } }
                                 >
-                                    {filterInAiLibrary ? <LocalLibraryIcon/> : <LocalLibraryOutlinedIcon/>}
+                                    {mySettings.filterInAiLibrary ? <LocalLibraryIcon/> : <LocalLibraryOutlinedIcon/>}
                                 </IconButton>
                             </span>
                         </Tooltip>
-                        <Tooltip title={ filterSharedByMe ? "Don't filter on whether it's shared by me" : "Filter to show items shared by me"}>
+                        <Tooltip title={ mySettings.filterSharedByMe ? "Don't filter on whether it's shared by me" : "Filter to show items shared by me"}>
                             <span>
-                                <IconButton edge="start" color="inherit" aria-label={ filterSharedByMe ? "Don't filter on whether it's shared by me" : "Filter to show items shared by me"}
-                                    onClick={ () => {setFilterSharedByMe(x=>!x)} }
+                                <IconButton edge="start" color="inherit" aria-label={ mySettings.filterSharedByMe ? "Don't filter on whether it's shared by me" : "Filter to show items shared by me"}
+                                    onClick={ () => { updateSetting("filterSharedByMe", !mySettings.filterSharedByMe); } }
                                 >
-                                    {filterSharedByMe ? <ShareIcon sx={{ color: "purple" }}/> : <ShareOutlined/>}
+                                    {mySettings.filterSharedByMe ? <ShareIcon sx={{ color: "purple" }}/> : <ShareOutlined/>}
                                 </IconButton>
                             </span>
                         </Tooltip>
-                        <Tooltip title={ filterSharedByOther ? "Don't filter on whether it's shared by others" : "Filter to show items shared by others"}>
+                        <Tooltip title={ mySettings.filterSharedByOther ? "Don't filter on whether it's shared by others" : "Filter to show items shared by others"}>
                             <span>
-                                <IconButton edge="start" color="inherit" aria-label={ filterSharedByOther ? "Don't filter on whether it's shared by others" : "Filter to show items shared by others"}
-                                    onClick={ () => {setFilterSharedByOther(x=>!x)} }
+                                <IconButton edge="start" color="inherit" aria-label={ mySettings.filterSharedByOther ? "Don't filter on whether it's shared by others" : "Filter to show items shared by others"}
+                                    onClick={ () => { updateSetting("filterSharedByOther", !mySettings.filterSharedByOther); } }
                                 >
-                                    {filterSharedByOther ? <ShareIcon sx={{ color:"orange" }}/> : <ShareOutlined sx={{ color:"orange" }}/>}
+                                    {mySettings.filterSharedByOther ? <ShareIcon sx={{ color:"orange" }}/> : <ShareOutlined sx={{ color:"orange" }}/>}
                                 </IconButton>
                             </span>
                         </Tooltip>
@@ -463,7 +486,7 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                {Object.values(filteredDocs).map(doc => (
                    <ListItem sx={{ padding: 0, pl: 1, cursor: "pointer", backgroundColor: doc.id === openItemId && itemOpen ? (darkMode ? grey[600] : grey[300]) : "transparent" }} key={doc.id}>
                         {
-                            showItemDetails ?
+                            mySettings.showItemDetails ?
                             <Stack direction="column" sx={{ mr: 1 }}>
                                 <Stack direction="row">
                                     {
@@ -506,9 +529,9 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                             : null
                         }
                         <ListItemText primary={doc.name}
-                            primaryTypographyProps={{ typography: 'body2', fontWeight: (showItemDetails ? 'bold' : 'normal') }}
+                            primaryTypographyProps={{ typography: 'body2', fontWeight: (mySettings.showItemDetails ? 'bold' : 'normal') }}
                             secondary={
-                            showItemDetails ? (
+                                mySettings.showItemDetails ? (
                                 <Typography
                                 sx={{
                                     fontSize: '12px',
