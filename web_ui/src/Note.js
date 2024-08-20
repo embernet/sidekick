@@ -207,6 +207,7 @@ You always do your best to generate text in the same style as the context text p
                     starred: starred,
                     bookmarked: bookmarked,
                     shareData: shareData,
+                    size: noteContentRef.current.innerText.length,
                 },
             },
             content: { note: noteContentRef.current.innerText },

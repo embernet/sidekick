@@ -549,6 +549,7 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                                 >
                                 {(doc.user_id !== system.user.id) && `Shared by: ${doc.user_name}\n`}
                                 {`Created: ${doc.created_date.substring(0, 19)}\n${doc.updated_date ? 'Updated: ' + doc.updated_date.substring(0, 19) : ''}`}
+                                {doc?.properties?.size ? `\nSize: ${doc.properties.size} bytes` : ''}
                                 </Typography>
                             ) : null
                             }                            
