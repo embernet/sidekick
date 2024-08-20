@@ -24,15 +24,19 @@ import { Menu, MenuItem } from '@mui/material';
 
 // Import icons
 import MenuIcon from '@mui/icons-material/Menu';
-import ModeCommentIcon from '@mui/icons-material/ModeComment';
+import AddCommentOutlinedIcon from '@mui/icons-material/AddCommentOutlined';
 import AddCommentIcon from '@mui/icons-material/AddComment';
 
+import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
 import PersonIcon from '@mui/icons-material/Person';
 import TuneIcon from '@mui/icons-material/Tune';
+import QuestionAnswerOutlinedIcon from '@mui/icons-material/QuestionAnswerOutlined';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import SettingsIcon from '@mui/icons-material/Settings';
+import BuildOutlinedIcon from '@mui/icons-material/BuildOutlined';
 import BuildIcon from '@mui/icons-material/Build';
 import NotesIcon from '@mui/icons-material/Notes';
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
@@ -41,8 +45,11 @@ import FolderIcon from '@mui/icons-material/Folder';
 import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
 import DeveloperModeIcon from '@mui/icons-material/DeveloperMode';
 import LogoutIcon from '@mui/icons-material/Logout';
+import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import RateReviewOutlinedIcon from '@mui/icons-material/RateReviewOutlined';
 import RateReviewIcon from '@mui/icons-material/RateReview';
+import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 import HelpIcon from '@mui/icons-material/Help';
 import SmartDisplayOutlinedIcon from '@mui/icons-material/SmartDisplayOutlined';
 import SubscriptionsOutlinedIcon from '@mui/icons-material/SubscriptionsOutlined';
@@ -66,6 +73,7 @@ import StatusBar from './StatusBar';
 import Carousel from './Carousel';
 import SidekickModalDialog from './SidekickModalDialog';
 import { use } from 'marked';
+import { AdminPanelSettingsOutlined } from '@mui/icons-material';
 
 const VERSION = "0.4";
 
@@ -468,7 +476,7 @@ const App = () => {
     if (!adminOpen) {
       closeUnpinnedLeftSideWindows(event);
     }
-    setAdminOpen(Date.now());
+    setAdminOpen(x=>!x);
   }
 
   const handleLogout = () => {
@@ -864,7 +872,7 @@ const App = () => {
     <>
       <Tooltip title="Sidekick AI help">
         <IconButton edge="start" color="inherit" aria-label="Sidekick AI help" onClick={handleToggleSidekickAIOpen}>
-          <HelpIcon/>
+          { sidekickAIOpen ? <HelpIcon/> : <HelpOutlineOutlinedIcon/> }
         </IconButton>                  
       </Tooltip>
       <Tooltip title={ scriptsOpen ? "Close Scripts Explorer" : "Open Scripts Explorer" }>
@@ -884,12 +892,12 @@ const App = () => {
       </Tooltip>
       <Tooltip title={ personasOpen ? "Close AI personas" : "Open AI persons" }>
         <IconButton edge="start" color="inherit" aria-label="Personas" onClick={handleTogglePersonasOpen}>
-          <PersonIcon/>
+          { personasOpen ? <PersonIcon/> : <PersonOutlineOutlinedIcon/> }
         </IconButton>
       </Tooltip>
       <Tooltip title={ promptEngineerOpen ? "Close prompt engineer" : "Open prompt engineer" }>
         <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleTogglePromptEngineerOpen}>
-          <BuildIcon/>
+          { promptEngineerOpen ? <BuildIcon/> : <BuildOutlinedIcon/> }
         </IconButton>
       </Tooltip>
       <Tooltip title="Minimise windows">
@@ -906,12 +914,12 @@ const App = () => {
           { darkMode ? <LightModeIcon/> : <DarkModeIcon/> }
         </IconButton>
       </Tooltip>
-      <FeedbackButton icon={<RateReviewIcon/>} serverUrl={serverUrl} token={token} setToken={setToken}>
-          <RateReviewIcon/>
+      <FeedbackButton icon={<RateReviewOutlinedIcon/>} serverUrl={serverUrl} token={token} setToken={setToken}>
+          <RateReviewOutlinedIcon/>
       </FeedbackButton>
       <Tooltip title={ appSettingsOpen ? "Close App Settings" : "Open App Setings" }>
         <IconButton edge="end" color="inherit" aria-label="Settings" onClick={handleToggleAppSettingsOpen}>
-          <SettingsIcon/>
+          { appSettingsOpen ? <SettingsIcon/> : <SettingsOutlinedIcon/> }
         </IconButton>
       </Tooltip>
     </>
@@ -937,13 +945,13 @@ const App = () => {
                     onClose={handleAppMenuClose}
                   >
                     <MenuItem key="menuOpenCloseChats" onClick={() => { handleAppMenuClose(); handleToggleChatsOpen(); }}>
-                      <QuestionAnswerIcon/><Typography  sx={{ ml: 1 }}>{ "Chat Explorer" }</Typography>
+                      { chatsOpen ? <QuestionAnswerIcon/> : <QuestionAnswerOutlinedIcon/> }<Typography  sx={{ ml: 1 }}>{ "Chat Explorer" }</Typography>
                     </MenuItem>
                     <MenuItem key="menuOpenCloseChat" onClick={() => { handleAppMenuClose(); handleToggleChatOpen(); }}>
-                      <ModeCommentIcon/><Typography  sx={{ ml: 1 }}>{ "Chat" }</Typography>
+                      { chatOpen ? <AddCommentIcon/> : <AddCommentOutlinedIcon/> }<Typography  sx={{ ml: 1 }}>{ "Chat" }</Typography>
                     </MenuItem>
                     <MenuItem key="menuOpenCloseNotes" onClick={() => { handleAppMenuClose(); handleToggleNotesOpen(); }}>
-                      <FolderIcon/><Typography  sx={{ ml: 1 }}>{ "Note Explorer" }</Typography>
+                      { notesOpen ? <FolderIcon/> : <FolderOutlinedIcon/> }<Typography  sx={{ ml: 1 }}>{ "Note Explorer" }</Typography>
                     </MenuItem>
                     <MenuItem key="menuOpenCloseNote" onClick={() => { handleAppMenuClose(); handleToggleNoteOpen(); }}>
                       <NotesIcon/><Typography  sx={{ ml: 1 }}>{ "Note" }</Typography>
@@ -958,10 +966,10 @@ const App = () => {
                       <TuneIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Model Settings" : modelSettingsOpen ? "Model Settings - Close" : "Model Settings - Open" }</Typography>
                     </MenuItem>
                     <MenuItem key="menuOpenCloseAIPersonas" onClick={() => { handleAppMenuClose(); handleTogglePersonasOpen(); }}>
-                      <PersonIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Personas" : personasOpen ? "Personas - Close AI Personas" : "Personas - Open AI Personas" }</Typography>
+                      { personasOpen ? <PersonIcon/> : <PersonOutlineOutlinedIcon/> }<Typography  sx={{ ml: 1 }}>{ isMobile ? "Personas" : personasOpen ? "Personas - Close AI Personas" : "Personas - Open AI Personas" }</Typography>
                     </MenuItem>
                     <MenuItem key="menuOpenClosePromptEngineer" onClick={() => { handleAppMenuClose(); handleTogglePromptEngineerOpen(); }}>
-                      <BuildIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Prompt Engineer" : promptEngineerOpen ? "Prompt Engineer - Close" : "Prompt Engineer - Open" }</Typography>
+                      { promptEngineerOpen ? <BuildIcon/> : <BuildOutlinedIcon/> }<Typography  sx={{ ml: 1 }}>{ isMobile ? "Prompt Engineer" : promptEngineerOpen ? "Prompt Engineer - Close" : "Prompt Engineer - Open" }</Typography>
                     </MenuItem>
                     <MenuItem key="menuMinimiseWindows" onClick={() => { handleAppMenuClose(); minimiseWindows(); }}>
                       <MinimizeIcon/><Typography  sx={{ ml: 1 }}>Minimise Windows</Typography>
@@ -971,16 +979,16 @@ const App = () => {
                     </MenuItem>
                     { user?.is_oidc ? null :
                         <MenuItem key="menuAppSettings" onClick={() => { handleAppMenuClose(); handleToggleAppSettingsOpen(); }}>
-                          <SettingsIcon/><Typography  sx={{ ml: 1 }}>{ isMobile ? "Settings" : appSettingsOpen ? "Settings - Close App Settings" : "Settings - Open App Setings" }</Typography>
+                          { appSettingsOpen ? <SettingsIcon/> : <SettingsOutlinedIcon/> }<Typography  sx={{ ml: 1 }}>{ isMobile ? "Settings" : appSettingsOpen ? "Settings - Close App Settings" : "Settings - Open App Setings" }</Typography>
                         </MenuItem>
                     }
                     { user?.properties?.roles?.admin && 
                       <MenuItem key="menuAdmin" onClick={() => { handleAppMenuClose(); handleToggleAdminOpen(); }}>
-                        <AdminPanelSettingsIcon/><Typography sx={{ ml: 1 }}>Admin</Typography>
+                        { adminOpen ? <AdminPanelSettingsIcon/> : <AdminPanelSettingsOutlinedIcon/> }<Typography sx={{ ml: 1 }}>{ adminOpen ? "Admin panel - Close" : "Admin panel - Open" }</Typography>
                       </MenuItem>
                     }
                     <MenuItem key="menuOpenCloseSidekickAI" onClick={() => { handleAppMenuClose(); handleToggleSidekickAIOpen(); }}>
-                      <HelpIcon/><Typography sx={{ ml: 1 }}>{ sidekickAIOpen ? "Help - Close Sidekick AI Help" : "Help - Open Sidekick AI Help" }</Typography>
+                      { sidekickAIOpen ? <HelpIcon/> : <HelpOutlineOutlinedIcon/>}<Typography sx={{ ml: 1 }}>{ sidekickAIOpen ? "Help - Close Sidekick AI Help" : "Help - Open Sidekick AI Help" }</Typography>
                     </MenuItem>
                     <MenuItem onClick={ () => { handleAppMenuClose(); setAboutWindowOpen(Date.now());}}>
                       <InfoOutlinedIcon/><Typography sx={{ ml: 1 }}>About Sidekick</Typography>
@@ -996,13 +1004,13 @@ const App = () => {
                   {isMobile ? null : extendedLeftToolbar}
                   <Tooltip title={ chatsOpen ? "Close Chat Explorer" : "Open Chat Explorer" }>
                     <IconButton edge="start" color="inherit" aria-label="Chat Explorer" onClick={handleToggleChatsOpen}>
-                      <QuestionAnswerIcon/>
+                      { chatsOpen ? <QuestionAnswerIcon/> : <QuestionAnswerOutlinedIcon/> }
                     </IconButton>
                   </Tooltip>
                   <Tooltip title={chatOpen ? "Close Chat" : "New Chat"}>
                     <IconButton edge="start" color="inherit" aria-label={ chatOpen ? "Close Chat" : "Open chat" }
                       onClick={(event) => { event.target.blur(); handleToggleChatOpen(event);}}>
-                      { chatOpen ? <ModeCommentIcon/> : <AddCommentIcon/> }
+                      { chatOpen ? <AddCommentIcon/> : <AddCommentOutlinedIcon/> }
                     </IconButton>
                   </Tooltip>
                 </Box>
@@ -1014,7 +1022,7 @@ const App = () => {
                 </Tooltip>
                 <Tooltip title={ notesOpen ? "Close Notes" : "Open Notes" }>
                   <IconButton edge="end" color="inherit" aria-label="Hide/Show notes" onClick={handleToggleNotesOpen}>
-                    {notesOpen ? <FolderIcon/> : <FolderOutlinedIcon/>}
+                    { notesOpen ? <FolderIcon/> : <FolderOutlinedIcon/> }
                   </IconButton>
                 </Tooltip>
                   {isMobile ? null : extendedRightToolbar}
