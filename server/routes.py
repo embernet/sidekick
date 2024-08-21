@@ -579,13 +579,15 @@ def docdb_create_document(document_type=""):
         data = request.get_json()
         if not data['metadata'].get('visibility'):
             data['metadata']['visibility'] = "private"
-        data_size = len(json.dumps(data))
+        data_size = len(json.dumps(data['content']))
+        props = data['metadata']['properties'] if 'properties' in data['metadata'] else {}
+        props['size'] = data_size
         document = DBUtils.create_document(
             user_id=get_jwt_identity(), type=document_type,
             name=data['metadata']['name'],
             visibility=data['metadata']['visibility'],
             tags=data['metadata']['tags'] if 'tags' in data['metadata'] else [],
-            properties=data['metadata']['properties'] if 'properties' in data['metadata'] else {},
+            properties=props,
             content=data['content'] if 'content' in data else {}
         )
         rl.push(action="created document", size=data_size)
@@ -609,7 +611,7 @@ def docdb_load_document(document_id, document_type=""):
                            owning_user_id=document["metadata"]["user_id"])
                 return "Not authorized", 401
             
-            document_size = len(json.dumps(document))
+            document_size = len(json.dumps(document['content']))
             rl.push(action="got document", document_id=document_id, size=document_size)
             return jsonify(document)
         except Exception as e:
@@ -635,15 +637,17 @@ def docdb_save_document(document_id, document_type=""):
 
         increment_server_stat(category="requests", stat_name=f"docdbSave({document_type})")
         data = request.get_json()
-        document_size = len(json.dumps(data))
+        document_size = len(json.dumps(data['content']))
         if not data['metadata'].get('visibility'):
             data['metadata']['visibility'] = "private"
+        props = data['metadata']['properties'] if 'properties' in data['metadata'] else {}
+        props['size'] = document_size
         document = DBUtils.update_document(
             id=document_id,
             visibility=data['metadata']['visibility'],
             name=data['metadata']['name'],
             tags=data['metadata']['tags'] if 'tags' in data['metadata'] else [],
-            properties=data['metadata']['properties'] if 'properties' in data['metadata'] else {},
+            properties=props,
             content=data['content']
         )
         rl.push(action="updated document", size=document_size)

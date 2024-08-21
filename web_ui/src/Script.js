@@ -211,14 +211,12 @@ const Script = memo(({ scriptOpen, setScriptOpen, ScriptIcon, darkMode, maxWidth
                 name: name,
                 tags: tags,
                 properties: {
-                    size: 0,
                 }
             },
             content: {
                 cells: cells,
             }
         };
-        script.metadata.properties.size = JSON.stringify(script).length;
         return script;
     }
 

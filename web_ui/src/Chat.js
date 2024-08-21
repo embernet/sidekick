@@ -3021,7 +3021,6 @@ const Chat = ({
                     toolboxOpen: toolboxOpen,
                     selectedToolbox: selectedToolbox,
                     shareData: shareData,
-                    size: messagesSize,
                 },
             },
             content: {
