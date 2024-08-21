@@ -59,7 +59,6 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
         filterSharedByMe: false,
         filterSharedByOther: false
     });
-    const [userDefaultsLoaded, setUserDefaultsLoaded] = useState(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [docsToDelete, setDocsToDelete] = useState([]);
 
@@ -174,11 +173,22 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
     const sortedList = (list, sortBy, sortDirection) => {
         let sortedList = [];
         if (sortBy === "name") {
-            sortedList = list.sort((a, b) => (a.name > b.name) ? sortDirection : sortDirection * -1);
+            sortedList = list.sort((a, b) => {
+                const nameA = a.name.toLowerCase();
+                const nameB = b.name.toLowerCase();
+                return (nameA > nameB) ? sortDirection : (nameA < nameB) ? sortDirection * -1 : 0;
+            });
         } else if (sortBy === "created") {
-            sortedList = list.sort((a, b) => (a.created_date > b.created_date) ? sortDirection : sortDirection * -1);
+            sortedList = list.sort((a, b) => (a.created_date > b.created_date) ? sortDirection : (a.created_date < b.created_date) ? sortDirection * -1 : 0);
         } else if (sortBy === "updated") {
-            sortedList = list.sort((a, b) => (a.updated_date > b.updated_date) ? sortDirection : sortDirection * -1);
+            sortedList = list.sort((a, b) => (a.updated_date > b.updated_date) ? sortDirection : (a.updated_date < b.updated_date) ? sortDirection * -1 : 0);
+        } else if (sortBy === "size") {
+            sortedList = list.sort((a, b) => 
+                {
+                    const a_size = a?.properties?.size || 0;
+                    const b_size = b?.properties?.size || 0;
+                    return (a_size - b_size) * sortDirection;
+                });
         }
         return sortedList;
     }
@@ -206,7 +216,9 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
     };
 
     const handleToggleSortOrderDirection = () => {
-        sortDocs(mySettings.sortOrder, mySettings.sortOrderDirection * -1);
+        const newSortOrderDirection = mySettings.sortOrderDirection * -1;
+        updateSetting("sortOrderDirection", newSortOrderDirection);
+        sortDocs(mySettings.sortOrder, newSortOrderDirection);
     }
 
     const handleLoadDoc = (id) => {
@@ -411,6 +423,7 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                                 <MenuItem value="name">Name</MenuItem>
                                 <MenuItem value="created">Created</MenuItem>
                                 <MenuItem value="updated">Updated</MenuItem>
+                                <MenuItem value="size">Size</MenuItem>
                     </Select>
                 </FormControl>
                 <FormControl sx={{ mt: 2, flexDirection: "row", width: "100%" }} size="small">
