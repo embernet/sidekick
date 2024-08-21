@@ -581,7 +581,6 @@ def docdb_create_document(document_type=""):
             data['metadata']['visibility'] = "private"
         data_size = len(json.dumps(data['content']))
         props = data['metadata']['properties'] if 'properties' in data['metadata'] else {}
-        props['size'] = data_size
         document = DBUtils.create_document(
             user_id=get_jwt_identity(), type=document_type,
             name=data['metadata']['name'],
@@ -641,7 +640,6 @@ def docdb_save_document(document_id, document_type=""):
         if not data['metadata'].get('visibility'):
             data['metadata']['visibility'] = "private"
         props = data['metadata']['properties'] if 'properties' in data['metadata'] else {}
-        props['size'] = document_size
         document = DBUtils.update_document(
             id=document_id,
             visibility=data['metadata']['visibility'],

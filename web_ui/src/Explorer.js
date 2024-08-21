@@ -183,12 +183,7 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
         } else if (sortBy === "updated") {
             sortedList = list.sort((a, b) => (a.updated_date > b.updated_date) ? sortDirection : (a.updated_date < b.updated_date) ? sortDirection * -1 : 0);
         } else if (sortBy === "size") {
-            sortedList = list.sort((a, b) => 
-                {
-                    const a_size = a?.properties?.size || 0;
-                    const b_size = b?.properties?.size || 0;
-                    return (a_size - b_size) * sortDirection;
-                });
+            sortedList = list.sort((a, b) => (a.size - b.size) * sortDirection);
         }
         return sortedList;
     }
@@ -562,7 +557,7 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                                 >
                                 {(doc.user_id !== system.user.id) && `Shared by: ${doc.user_name}\n`}
                                 {`Created: ${doc.created_date.substring(0, 19)}\n${doc.updated_date ? 'Updated: ' + doc.updated_date.substring(0, 19) : ''}`}
-                                {doc?.properties?.size ? `\nSize: ${doc.properties.size} bytes` : ''}
+                                {`\nSize: ${doc.size} bytes`}
                                 </Typography>
                             ) : null
                             }                            

@@ -560,6 +560,7 @@ class DBUtils:
         document.visibility = visibility
         document.properties = json.dumps(properties)
         document.content = json.dumps(content)
+        document.size = len(json.dumps(content))
         document.updated_date = str(datetime.now())
         db.session.add(document)
 

@@ -44,6 +44,7 @@ class Document(db.Model):
     properties = db.Column(db.String, default="{}", nullable=False)
     content = db.Column(db.String, default="{}", nullable=False)
     visibility = db.Column(db.String, default="private", nullable=False)
+    size = db.Column(db.Integer, default=0, nullable=False)
 
     user = db.relationship("User", back_populates="documents")
 
@@ -72,6 +73,7 @@ class Document(db.Model):
                 "type": self.type,
                 "created_date": self.created_date,
                 "updated_date": self.updated_date,
+                "size": self.size,
                 "tags": [tag.tag_name for tag in self.tags],
                 "properties": json.loads(self.properties),
             },
