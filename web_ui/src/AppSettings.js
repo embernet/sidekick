@@ -175,7 +175,7 @@ const AppSettings = ({ appSettingsOpen, setAppSettingsOpen, user, setUser,
             Object.entries(systemPrompts).forEach(([key, systemPromptObject]) => {
                 console.log("AppSettings system prompt:", key, systemPromptObject);
                 if (!validateSystemPromptObject(systemPromptObject)) {
-                    console.error(`Invalid system prompt object: ${key}, ${systemPromptObject}`);
+                    console.log("WARNING: Invalid system prompt object will be ignored", key, systemPromptObject);
                 } else {
                     initialPrompts[key] = { ...systemPromptObject, originalPrompt: systemPromptObject.prompt };
                 }
