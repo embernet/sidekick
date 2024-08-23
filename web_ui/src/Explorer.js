@@ -1,6 +1,6 @@
 import { debounce } from "lodash";
 import { useEffect, useState, useContext, useCallback, useRef } from 'react';
-import { Card, Box, Divider, Toolbar, IconButton, Typography, TextField, List, ListItem, ListItemText,
+import { Card, CardActionArea, CardContent, Box, Divider, Toolbar, IconButton, Typography, TextField, List, ListItem, ListItemText,
     Tooltip, FormControl, InputLabel, Select, MenuItem, Stack,
     Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from '@mui/material';
 import { styled } from '@mui/system';
@@ -21,6 +21,9 @@ import LocalLibraryOutlinedIcon from '@mui/icons-material/LocalLibraryOutlined';
 import ShareIcon from '@mui/icons-material/Share';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import ViewHeadlineOutlinedIcon from '@mui/icons-material/ViewHeadlineOutlined';
+import GridViewOutlinedIcon from '@mui/icons-material/GridViewOutlined';
+import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 
 import { indigo, grey } from '@mui/material/colors';
 import { StyledBox } from "./theme";
@@ -35,7 +38,7 @@ import { Form } from "react-router-dom";
 const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, folder, openItemId, setLoadDoc,
      docNameChanged, refresh, setRefresh, itemOpen, hidePrimaryToolbar, deleteEnabled, darkMode,
     setItemOpen, // to be able to close the item editor if the item is deleted
-    serverUrl, token, setToken, isMobile
+    serverUrl, token, setToken, isMobile, maxWidth="600px"
     }) => {
 
     const panelWindowRef = useRef(null);
@@ -49,6 +52,8 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
     const [filterText, setFilterText] = useState('');
     const [myFolder, setMyFolder] = useState(folder);
     const [mySettings, setMySettings] = useState({
+        showFilters: true,
+        view: "list",
         sortOrder: "updated",
         sortOrderDirection: -1,
         scope: "mine",
@@ -63,6 +68,7 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
     const [docsToDelete, setDocsToDelete] = useState([]);
 
     const [width, setWidth] = useState(0);
+    const [myMaxWidth, setMyMaxWidth] = useState(maxWidth);
     const handleResize = useCallback(
         // Slow down resize events to avoid excessive re-rendering and avoid ResizeObserver loop limit exceeded error
         debounce((entries) => {
@@ -305,11 +311,51 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
             </DialogActions>
         </Dialog>;
 
+    const docIcons = (doc) => {
+        return (
+            <Stack direction="row">
+                {
+                    doc?.properties?.bookmarked ?
+                        <Tooltip title="You bookmarked this">
+                            <BookmarkIcon/>
+                        </Tooltip>
+                    : null
+                }
+                {
+                    doc?.properties?.starred ?
+                        <Tooltip title="You starred this">
+                            <StarIcon/>
+                        </Tooltip>
+                    : null
+                }
+                {
+                    doc?.visibility !== "private" ? 
+                        doc.user_id !== system.user.id ?
+                            <Tooltip title="Shared by someone else">
+                                <ShareIcon sx={{ color:"orange" }}/>
+                            </Tooltip>
+                        :
+                        <Tooltip title="Shared by you">
+                            <ShareIcon sx={{ color:"purple" }}/>
+                        </Tooltip>
+                    : null
+                }
+                {
+                    doc?.properties?.inAILibrary ?
+                        <Tooltip title="You added this to your AI library">
+                            <LocalLibraryIcon/>
+                        </Tooltip>
+                    : null
+                }
+            </Stack>
+        );
+    }
+
     const render = <Card id={{name}+"-explorer-panel"} ref={panelWindowRef}
                     sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1,
-                    width: isMobile ? `${window.innerWidth}px` : null,
+                    width: isMobile ? `${window.innerWidth}px` : "600px",
                     minWidth: isMobile ? `${window.innerWidth}px` : "380px",
-                    maxWidth: isMobile ? `${window.innerWidth}px` : "450px"
+                    maxWidth: isMobile ? `${window.innerWidth}px` : maxWidth,
                     }}
                     >
         {confirmDeleteDialog}
@@ -319,34 +365,7 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                <StyledToolbar className={ClassNames.toolbar} sx={{ gap: 1 }}>
                     {icon}
                     <Typography sx={{mr:2}}>{name}</Typography>
-                    <Tooltip title={mySettings.showItemDetails ? "Hide details" : "Show details"}>
-                        <IconButton edge="start" onClick={() => { updateSetting("showItemDetails", !mySettings.showItemDetails); }}>
-                            <ListAltIcon />
-                        </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Refresh explorer, e.g. to show new items shared by others since last refresh.">
-                        <IconButton edge="start" onClick={() => { loadItems() }}>
-                            <RefreshIcon />
-                        </IconButton>
-                    </Tooltip>
                     <Box ml="auto">
-                        {
-                            deleteEnabled ?
-                                <Tooltip title={ filterText.length === 0 
-                                    ? "Enter a filter to enable bulk delete" 
-                                    : "Bulk delete all notes matching filter" 
-                                }>
-                                    <span>
-                                        <IconButton edge="end" color="inherit" aria-label="delete notes matching filter"
-                                            onClick={handleDeleteFilteredItems}
-                                            disabled={filterText.length === 0}
-                                        >
-                                            <DeleteIcon/>
-                                        </IconButton>
-                                    </span>
-                                </Tooltip>
-                            : null
-                        }
                         {
                             isMobile ? null :
                                 <Tooltip title={windowPinnedOpen ? "Unpin window" : "Pin window open"}>
@@ -367,207 +386,256 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                </StyledToolbar>
         }
         <Box sx={{ width: "100%", paddingLeft: 0, paddingRight: 0, display: "flex", flexDirection: "column" }}>
-            <Box className={ClassNames.toolbar} sx={{ display: "flex", flexDirection: "row", mt: 2 }}>
-                <FormControl sx={{ minWidth: 120 }} size="small">
-                    <InputLabel id={name + "-explorer-scope-label"}>Scope</InputLabel>
-                    <Select
-                        id={name + "-explorer-scope"}
-                        name={"Scope"}
-                        labelId={name + "-explorer-scope-label"}
-                        value={mySettings.scope}
-                        label="Scope"
-                        onChange={handleScopeChange}
-                        >
-                                <MenuItem value="mine">Mine</MenuItem>
-                                <MenuItem value="my-shared">My shared</MenuItem>
-                                <MenuItem value="my-private">My private</MenuItem>
-                                <MenuItem value="all-shared">All shared</MenuItem>
-                                <MenuItem value="others-shared">Others' shared</MenuItem>
-                                <MenuItem value="all">All</MenuItem>
-                    </Select>
-                </FormControl>
-                <Tooltip title="Clear filters">
-                    <IconButton color="inherit" onClick={clearFilters} >
-                        { (mySettings.filterSharedByOther || mySettings.filterBookmarked || mySettings.filterInAiLibrary ||
-                            mySettings.filterSharedByMe || mySettings.filterStarred || filterText.length > 0
-                        ) ? <HighlightOffIcon/> : <HighlightOffIcon sx={{ color:"grey" }}/>}
+            <FormControl sx={{ ml:1, mt: 2, gap: 1, flexDirection: "row", width: "100%" }} size="small">
+                <Tooltip title={mySettings.showItemDetails ? "Hide details" : "Show details"}>
+                    <IconButton onClick={() => { updateSetting("showItemDetails", !mySettings.showItemDetails); }}
+                        sx={{
+                            backgroundColor: mySettings.showItemDetails ? 'lightgrey' : 'transparent'
+                        }}>
+                        <ListAltIcon />
                     </IconButton>
                 </Tooltip>
-                <TextField
-                        id={name + "-explorer-filter"}
-                        autoComplete='off'
-                        label="Filter"
-                        value={filterText}
-                        onChange={handleFilterTextChange}
-                        onKeyDown={handleFilterKeyDown}
-                        size="small"
-                        sx={{ flexGrow: 1 }}
-                    />
-            </Box>
-            <Box sx={{ display: "flex", flexDirection: "row"}}>
-                <FormControl sx={{ mt: 2, minWidth: 120 }} size="small">
-                    <InputLabel id={{name} + "-explorer-sort-order-label"}>Sort order</InputLabel>
-                    <Select
-                        id={name + "-explorer-sort-order"}
-                        name={name + " explorer sort order"}
-                        labelId={name + "-explorer-sort-order-label"}
-                        value={mySettings.sortOrder}
-                        label="Sort order"
-                        onChange={(event) => { handleSortOrderChange(event.target.value); }}
-                        >
-                                <MenuItem value="name">Name</MenuItem>
-                                <MenuItem value="created">Created</MenuItem>
-                                <MenuItem value="updated">Updated</MenuItem>
-                                <MenuItem value="size">Size</MenuItem>
-                    </Select>
-                </FormControl>
-                <FormControl sx={{ mt: 2, flexDirection: "row", width: "100%" }} size="small">
-                    <Tooltip title="Change sort order">
-                        <IconButton onClick={handleToggleSortOrderDirection}>
-                            { mySettings.sortOrderDirection === 1 ? <ArrowUpwardIcon/> : <ArrowDownwardIcon/> }
-                        </IconButton>
-                    </Tooltip>
-                    <Box sx={{ 
-                        display: 'flex', 
-                        flexDirection: 'row',
-                        width: '100%',
-                        justifyContent: 'space-between', 
-                        alignItems: 'center', 
-                        border: '1px solid', 
-                        borderColor: 'grey.400', 
-                        borderRadius: 1, 
-                        p: 0, 
-                        flexGrow: 1,
-                        gap: 1
+                <Tooltip title={mySettings.view === "list" ? "View is set to list" : "View items as list"}>
+                    <IconButton onClick={() => { updateSetting("view", "list"); }}
+                        sx={{
+                            backgroundColor: mySettings.view === "list" ? 'lightgrey' : 'transparent'
+                        }}>
+                        <ViewHeadlineOutlinedIcon />
+                    </IconButton>
+                </Tooltip>
+                <Tooltip title={mySettings.view === "cards" ? "View is set to cards" : "View items as cards"}>
+                    <IconButton onClick={() => { updateSetting("view", "cards"); }}
+                        sx={{
+                            backgroundColor: mySettings.view === "cards" ? 'lightgrey' : 'transparent'
+                        }}>
+                        <GridViewOutlinedIcon />
+                    </IconButton>
+                </Tooltip>
+                <Tooltip title={mySettings.showFilters ? "Hide filters" : "Show filters"}>
+                    <IconButton onClick={() => { updateSetting("showFilters", !mySettings.showFilters); }}
+                        sx={{
+                            backgroundColor: mySettings.showFilters ? 'lightgrey' : 'transparent'
+                        }}>
+                        <FilterAltOutlinedIcon />
+                    </IconButton>
+                </Tooltip>
+            </FormControl>
+            {
+                mySettings.showFilters ?
+                    <Box>
+                        <Box sx={{ display: "flex", flexDirection: "row", mt: 2, width: "100%" }}>
+                            <FormControl sx={{ minWidth: 120 }} size="small" >
+                                <InputLabel id={name + "-explorer-scope-label"}>Scope</InputLabel>
+                                <Select
+                                    id={name + "-explorer-scope"} name={"Scope"}
+                                    labelId={name + "-explorer-scope-label"}
+                                    value={mySettings.scope} label="Scope"
+                                    onChange={handleScopeChange}
+                                    >
+                                            <MenuItem value="mine">Mine</MenuItem>
+                                            <MenuItem value="my-shared">My shared</MenuItem>
+                                            <MenuItem value="my-private">My private</MenuItem>
+                                            <MenuItem value="all-shared">All shared</MenuItem>
+                                            <MenuItem value="others-shared">Others' shared</MenuItem>
+                                            <MenuItem value="all">All</MenuItem>
+                                </Select>
+                            </FormControl>
+                            <FormControl sx={{ display: 'flex', flexDirection: 'row', flexGrow: 1, width: "100%" }} size="small">
+                                <Tooltip title="Refresh explorer, e.g. to show new items shared by others since last refresh.">
+                                    <IconButton onClick={() => { loadItems() }}>
+                                        <RefreshIcon />
+                                    </IconButton>
+                                </Tooltip>
+                                <TextField
+                                    id={name + "-explorer-filter"}
+                                    sx={{ flexGrow: 1 }}
+                                    autoComplete='off' label="Filter"
+                                    value={filterText}
+                                    onChange={handleFilterTextChange}
+                                    onKeyDown={handleFilterKeyDown}
+                                    size="small"
+                                />
+                                {
+                                    deleteEnabled ?
+                                        <Tooltip title={ filterText.length === 0 
+                                            ? "Enter filter text to enable bulk delete" 
+                                            : "Bulk delete all notes matching filter" 
+                                        }>
+                                            <span>
+                                                <IconButton color="inherit" aria-label="delete notes matching filter"
+                                                    onClick={handleDeleteFilteredItems}
+                                                    disabled={filterText.length === 0}
+                                                >
+                                                    <DeleteIcon/>
+                                                </IconButton>
+                                            </span>
+                                        </Tooltip>
+                                    : null
+                                }
+                            </FormControl>
+                        </Box>
+                        <Box sx={{ display: "flex", flexDirection: "row" }}>
+                            <FormControl sx={{ mt: 2, minWidth: 120 }} size="small">
+                                <InputLabel id={{name} + "-explorer-sort-order-label"}>Sort order</InputLabel>
+                                <Select
+                                    id={name + "-explorer-sort-order"}
+                                    name={name + " explorer sort order"}
+                                    labelId={name + "-explorer-sort-order-label"}
+                                    value={mySettings.sortOrder}
+                                    label="Sort order"
+                                    onChange={(event) => { handleSortOrderChange(event.target.value); }}
+                                    >
+                                            <MenuItem value="name">Name</MenuItem>
+                                            <MenuItem value="created">Created</MenuItem>
+                                            <MenuItem value="updated">Updated</MenuItem>
+                                            <MenuItem value="size">Size</MenuItem>
+                                </Select>
+                            </FormControl>
+                            <FormControl sx={{ mt: 2, flexDirection: "row", width: "100%" }} size="small">
+                                <Tooltip title="Change sort order">
+                                    <IconButton onClick={handleToggleSortOrderDirection}>
+                                        { mySettings.sortOrderDirection === 1 ? <ArrowUpwardIcon/> : <ArrowDownwardIcon/> }
+                                    </IconButton>
+                                </Tooltip>
+                                <Box sx={{ 
+                                    display: 'flex', flexDirection: 'row', width: '100%',
+                                    justifyContent: 'space-between', alignItems: 'center', 
+                                    border: '1px solid', borderColor: 'grey.400', borderRadius: 1, 
+                                    p: 0, flexGrow: 1
 
-                    }}>
-                        <Box width={8} />
-                        <Tooltip title={ mySettings.filterBookmarked ? "Don't filter on bookmarked" : "Filter to show only bookmarked items"}>
-                            <span>
-                                <IconButton edge="start" color="inherit"
-                                    aria-label={ mySettings.filterBookmarked ? "Don't filter on bookmarked" : "Filter to show only bookmarked items"}
-                                    onClick={ () => { updateSetting("filterBookmarked", !mySettings.filterBookmarked); } }
-                                >
-                                    {mySettings.filterBookmarked ? <BookmarkIcon/> : <BookmarkBorderIcon/>}
-                                </IconButton>
-                            </span>
-                        </Tooltip>
-                        <Tooltip title={ mySettings.filterStarred ? "Don't filter on starred" : "Show only starred items"}>
-                            <span>
-                                <IconButton edge="start" color="inherit"
-                                    aria-label={ mySettings.filterStarred ? "Don't filter on starred" : "Show only starred items"}
-                                    onClick={ () => { updateSetting("filterStarred", !mySettings.filterStarred); } }
-                                >
-                                    {mySettings.filterStarred ? <StarIcon/> : <StarBorderIcon/>}
-                                </IconButton>
-                            </span>
-                        </Tooltip>
-                        <Tooltip title={ mySettings.filterInAiLibrary ? "Don't filter on whether in AI Library" : "Filter to show items in AI Library"}>
-                            <span>
-                                <IconButton edge="start" color="inherit" aria-label={ mySettings.filterInAiLibrary ? "Don't filter on whether in AI Library" : "Filter to show items in AI Library"}
-                                    onClick={ () => { updateSetting("filterInAiLibrary", !mySettings.filterInAiLibrary); } }
-                                >
-                                    {mySettings.filterInAiLibrary ? <LocalLibraryIcon/> : <LocalLibraryOutlinedIcon/>}
-                                </IconButton>
-                            </span>
-                        </Tooltip>
-                        <Tooltip title={ mySettings.filterSharedByMe ? "Don't filter on whether it's shared by me" : "Filter to show items shared by me"}>
-                            <span>
-                                <IconButton edge="start" color="inherit" aria-label={ mySettings.filterSharedByMe ? "Don't filter on whether it's shared by me" : "Filter to show items shared by me"}
-                                    onClick={ () => { updateSetting("filterSharedByMe", !mySettings.filterSharedByMe); } }
-                                >
-                                    {mySettings.filterSharedByMe ? <ShareIcon sx={{ color: "purple" }}/> : <ShareOutlined/>}
-                                </IconButton>
-                            </span>
-                        </Tooltip>
-                        <Tooltip title={ mySettings.filterSharedByOther ? "Don't filter on whether it's shared by others" : "Filter to show items shared by others"}>
-                            <span>
-                                <IconButton edge="start" color="inherit" aria-label={ mySettings.filterSharedByOther ? "Don't filter on whether it's shared by others" : "Filter to show items shared by others"}
-                                    onClick={ () => { updateSetting("filterSharedByOther", !mySettings.filterSharedByOther); } }
-                                >
-                                    {mySettings.filterSharedByOther ? <ShareIcon sx={{ color:"orange" }}/> : <ShareOutlined sx={{ color:"orange" }}/>}
-                                </IconButton>
-                            </span>
-                        </Tooltip>
-                        <Box width={8} />
+                                }}>
+                                    <Box width={8} />
+                                    <Tooltip title={ mySettings.filterBookmarked ? "Don't filter on bookmarked" : "Filter to show only bookmarked items"}>
+                                        <span>
+                                            <IconButton edge="start" color="inherit"
+                                                aria-label={ mySettings.filterBookmarked ? "Don't filter on bookmarked" : "Filter to show only bookmarked items"}
+                                                onClick={ () => { updateSetting("filterBookmarked", !mySettings.filterBookmarked); } }
+                                            >
+                                                {mySettings.filterBookmarked ? <BookmarkIcon/> : <BookmarkBorderIcon/>}
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
+                                    <Tooltip title={ mySettings.filterStarred ? "Don't filter on starred" : "Show only starred items"}>
+                                        <span>
+                                            <IconButton edge="start" color="inherit"
+                                                aria-label={ mySettings.filterStarred ? "Don't filter on starred" : "Show only starred items"}
+                                                onClick={ () => { updateSetting("filterStarred", !mySettings.filterStarred); } }
+                                            >
+                                                {mySettings.filterStarred ? <StarIcon/> : <StarBorderIcon/>}
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
+                                    <Tooltip title={ mySettings.filterInAiLibrary ? "Don't filter on whether in AI Library" : "Filter to show items in AI Library"}>
+                                        <span>
+                                            <IconButton edge="start" color="inherit" aria-label={ mySettings.filterInAiLibrary ? "Don't filter on whether in AI Library" : "Filter to show items in AI Library"}
+                                                onClick={ () => { updateSetting("filterInAiLibrary", !mySettings.filterInAiLibrary); } }
+                                            >
+                                                {mySettings.filterInAiLibrary ? <LocalLibraryIcon/> : <LocalLibraryOutlinedIcon/>}
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
+                                    <Tooltip title={ mySettings.filterSharedByMe ? "Don't filter on whether it's shared by me" : "Filter to show items shared by me"}>
+                                        <span>
+                                            <IconButton edge="start" color="inherit" aria-label={ mySettings.filterSharedByMe ? "Don't filter on whether it's shared by me" : "Filter to show items shared by me"}
+                                                onClick={ () => { updateSetting("filterSharedByMe", !mySettings.filterSharedByMe); } }
+                                            >
+                                                {mySettings.filterSharedByMe ? <ShareIcon sx={{ color: "purple" }}/> : <ShareOutlined/>}
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
+                                    <Tooltip title={ mySettings.filterSharedByOther ? "Don't filter on whether it's shared by others" : "Filter to show items shared by others"}>
+                                        <span>
+                                            <IconButton edge="start" color="inherit" aria-label={ mySettings.filterSharedByOther ? "Don't filter on whether it's shared by others" : "Filter to show items shared by others"}
+                                                onClick={ () => { updateSetting("filterSharedByOther", !mySettings.filterSharedByOther); } }
+                                            >
+                                                {mySettings.filterSharedByOther ? <ShareIcon sx={{ color:"orange" }}/> : <ShareOutlined sx={{ color:"orange" }}/>}
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
+                                    <Box width={8} />
+                                </Box>
+                                <Tooltip title="Clear filters">
+                                    <IconButton color="inherit"
+                                        onClick={(event) => {
+                                            event.stopPropagation(); clearFilters();
+                                        }}
+                                        >
+                                        { (mySettings.filterSharedByOther || mySettings.filterBookmarked || mySettings.filterInAiLibrary ||
+                                            mySettings.filterSharedByMe || mySettings.filterStarred || filterText.length > 0
+                                        ) ? <HighlightOffIcon/> : <HighlightOffIcon sx={{ color:"grey" }}/>}
+                                    </IconButton>
+                                </Tooltip>
+                            </FormControl>
+                        </Box>
                     </Box>
-                </FormControl>
-            </Box>
-       </Box>
-       <Divider sx={{ my: 2 }} />
-       <StyledBox  sx={{ overflow: 'auto', flex: 1 }}>
-           <List>
-               {Object.values(filteredDocs).map(doc => (
-                   <ListItem sx={{ padding: 0, pl: 1, cursor: "pointer", backgroundColor: doc.id === openItemId && itemOpen ? (darkMode ? grey[600] : grey[300]) : "transparent" }} key={doc.id}>
-                        {
-                            mySettings.showItemDetails ?
-                            <Stack direction="column" sx={{ mr: 1 }}>
-                                <Stack direction="row">
-                                    {
-                                        doc?.properties?.bookmarked ?
-                                            <Tooltip title="You bookmarked this">
-                                                <BookmarkIcon/>
-                                            </Tooltip>
-                                        : <Box width={24} />
-                                    }
-                                    {
-                                        doc?.properties?.starred ?
-                                            <Tooltip title="You starred this">
-                                                <StarIcon/>
-                                            </Tooltip>
-                                        : <Box width={24} />
-                                    }
-                                </Stack>
-                                <Stack direction="row">
-                                    {
-                                        doc?.visibility !== "private" ? 
-                                            doc.user_id !== system.user.id ?
-                                                <Tooltip title="Shared by someone else">
-                                                    <ShareIcon sx={{ color:"orange" }}/>
-                                                </Tooltip>
-                                            :
-                                            <Tooltip title="Shared by you">
-                                                <ShareIcon sx={{ color:"purple" }}/>
-                                            </Tooltip>
-                                        : <Box width={24} />
-                                    }
-                                    {
-                                        doc?.properties?.inAILibrary ?
-                                            <Tooltip title="You added this to your AI library">
-                                                <LocalLibraryIcon/>
-                                            </Tooltip>
-                                        : <Box width={24} />
-                                    }
-                                </Stack>
-                            </Stack>
-                            : null
-                        }
-                        <ListItemText primary={doc.name}
-                            primaryTypographyProps={{ typography: 'body2', fontWeight: (mySettings.showItemDetails ? 'bold' : 'normal') }}
-                            secondary={
-                                mySettings.showItemDetails ? (
-                                <Typography
-                                sx={{
-                                    fontSize: '12px',
-                                    color: 'text.secondary',
-                                    whiteSpace: 'pre-wrap',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                }}
-                                >
-                                {(doc.user_id !== system.user.id) && `Shared by: ${doc.user_name}\n`}
-                                {`Created: ${doc.created_date.substring(0, 19)}\n${doc.updated_date ? 'Updated: ' + doc.updated_date.substring(0, 19) : ''}`}
-                                {`\nSize: ${doc.size} bytes`}
-                                </Typography>
-                            ) : null
-                            }                            
-                            selected={openItemId === doc.id}
-                            onClick={() => { handleLoadDoc(doc.id); }}
-                            sx={{ fontSize: '14px' }}
-                        />
-                   </ListItem>
-               ))}
-           </List>
+                : null
+            }
+        </Box>
+        <Divider sx={{ my: 2 }} />
+        <StyledBox  sx={{ overflow: 'auto', flex: 1 }}>
+            {
+                mySettings.view === "cards" ?
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', overflow: 'auto', width: '100%' }}>
+                        {Object.values(filteredDocs).map(doc => (
+                            <Card sx={{ margin: '8px', flex: mySettings.showItemDetails ? '1 0 200px' : '1 0 100px' }} key={doc.id}>
+                                <CardActionArea sx={{ height: '100%' }} onClick={() => { handleLoadDoc(doc.id); }}>
+                                    <CardContent>
+                                        <Typography variant="h7" component="div" sx={{ fontWeight: (mySettings.showItemDetails ? 'bold' : 'normal') }}>
+                                            {doc.name}
+                                        </Typography>
+                                        {mySettings.showItemDetails && (
+                                            <Box
+                                                sx={{
+                                                    fontSize: '12px',
+                                                    color: 'text.secondary',
+                                                    whiteSpace: 'pre-wrap',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                }}
+                                            >
+                                                {(doc.user_id !== system.user.id) ? `Shared by: ${doc.user_name}\n` : "Owned by you\n"}
+                                                {`Created: ${doc.created_date.substring(0, 19)}\n${doc.updated_date ? 'Updated: ' + doc.updated_date.substring(0, 19) : ''}`}
+                                                {`\nSize: ${doc.size} bytes`}
+                                                {docIcons(doc)}
+                                            </Box>
+                                        )}
+                                    </CardContent>
+                                    </CardActionArea>
+                            </Card>
+                        ))}
+                    </Box>
+                :
+                    <List>
+                        {Object.values(filteredDocs).map(doc => (
+                            <ListItem sx={{ padding: 0, pl: 1, cursor: "pointer", backgroundColor: doc.id === openItemId && itemOpen ? (darkMode ? grey[600] : grey[300]) : "transparent" }} key={doc.id}>
+                                    <ListItemText primary={doc.name}
+                                        primaryTypographyProps={{ typography: 'body2', fontWeight: (mySettings.showItemDetails ? 'bold' : 'normal') }}
+                                        secondary={
+                                            mySettings.showItemDetails ? (
+                                            <Typography
+                                            sx={{
+                                                fontSize: '12px',
+                                                color: 'text.secondary',
+                                                whiteSpace: 'pre-wrap',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                            }}
+                                            >
+                                            {(doc.user_id !== system.user.id) && `Shared by: ${doc.user_name}\n`}
+                                            {`Created: ${doc.created_date.substring(0, 19)}\n${doc.updated_date ? 'Updated: ' + doc.updated_date.substring(0, 19) : ''}`}
+                                            {`\nSize: ${doc.size} bytes`}
+                                            { mySettings.showItemDetails ? docIcons(doc) : null }
+                                            </Typography>
+                                        ) : null
+                                        }                            
+                                        selected={openItemId === doc.id}
+                                        onClick={() => { handleLoadDoc(doc.id); }}
+                                        sx={{ fontSize: '14px' }}
+                                    />
+                            </ListItem>
+                        ))}
+                    </List>
+                }
        </StyledBox>
    </Card>;
     return (render);

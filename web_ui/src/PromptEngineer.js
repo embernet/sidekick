@@ -132,7 +132,11 @@ const PromptEngineer = ({promptEngineerOpen, onClose, setNewPromptPart, setFocus
         </StyledBox>
 
     const loadedRender = 
-        <StyledBox sx={{display:"flex", flexDirection:"column", height: "100%", overflow: "auto" }}>
+        <StyledBox sx={{display:"flex", flexDirection:"column", height: "100%", overflow: "auto",
+            width: isMobile ? `${window.innerWidth}px` : null,
+            minWidth: isMobile ? `${window.innerWidth}px` : "380px",
+            maxWidth: isMobile ? `${window.innerWidth}px` : "450px",
+            }}>
             <Accordion defaultExpanded>
                 <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
@@ -173,6 +177,7 @@ const PromptEngineer = ({promptEngineerOpen, onClose, setNewPromptPart, setFocus
                         serverUrl={serverUrl} token={token} setToken={setToken}
                         hidePrimaryToolbar={true}
                         deleteEnabled={true}
+                        maxWidth="410px"
                         />
                 </AccordionDetails>
             </Accordion>
