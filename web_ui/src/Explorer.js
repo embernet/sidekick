@@ -24,6 +24,8 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import ViewHeadlineOutlinedIcon from '@mui/icons-material/ViewHeadlineOutlined';
 import GridViewOutlinedIcon from '@mui/icons-material/GridViewOutlined';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
+import OpenInFullIcon from '@mui/icons-material/OpenInFull';
+import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 
 import { indigo, grey } from '@mui/material/colors';
 import { StyledBox } from "./theme";
@@ -38,7 +40,7 @@ import { Form } from "react-router-dom";
 const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, folder, openItemId, setLoadDoc,
      docNameChanged, refresh, setRefresh, itemOpen, hidePrimaryToolbar, deleteEnabled, darkMode,
     setItemOpen, // to be able to close the item editor if the item is deleted
-    serverUrl, token, setToken, isMobile, maxWidth="600px"
+    serverUrl, token, setToken, isMobile, maxWidth="1000px"
     }) => {
 
     const panelWindowRef = useRef(null);
@@ -53,6 +55,7 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
     const [myFolder, setMyFolder] = useState(folder);
     const [mySettings, setMySettings] = useState({
         showFilters: true,
+        expanded: false,
         view: "list",
         sortOrder: "updated",
         sortOrderDirection: -1,
@@ -109,6 +112,14 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
             panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
         }
     }, [folder]);
+
+    useEffect(()=>{
+        if (mySettings.expanded) {
+            setMyMaxWidth(maxWidth);
+        } else {
+            setMyMaxWidth("380px");
+        }
+    }, [mySettings.expanded]);
 
     useEffect(()=>{
         loadItems();
@@ -352,10 +363,11 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
     }
 
     const render = <Card id={{name}+"-explorer-panel"} ref={panelWindowRef}
-                    sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px", flex:1,
-                    width: isMobile ? `${window.innerWidth}px` : "600px",
+                    sx={{display:"flex", flexDirection:"column", padding:"6px", margin:"6px",
+                    flex: mySettings.expanded ? 'none' : 1,
+                    width: isMobile ? `${window.innerWidth}px` : myMaxWidth,
                     minWidth: isMobile ? `${window.innerWidth}px` : "380px",
-                    maxWidth: isMobile ? `${window.innerWidth}px` : maxWidth,
+                    maxWidth: isMobile ? `${window.innerWidth}px` : myMaxWidth,
                     }}
                     >
         {confirmDeleteDialog}
@@ -372,6 +384,16 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                                     <span>
                                         <IconButton edge="end" onClick={() => { setWindowPinnedOpen(state => !state); }}>
                                             {windowPinnedOpen ? <PushPinIcon /> : <PushPinOutlinedIcon/>}
+                                        </IconButton>
+                                    </span>
+                                </Tooltip>
+                        }
+                        {
+                            isMobile ? null :
+                                <Tooltip title={mySettings.expanded ? "Contract window" : "Expand window"}>
+                                    <span>
+                                        <IconButton edge="end" onClick={() => { updateSetting("expanded", !mySettings.expanded); }}>
+                                            {mySettings.expanded ? <CloseFullscreenIcon /> : <OpenInFullIcon/>}
                                         </IconButton>
                                     </span>
                                 </Tooltip>
@@ -580,7 +602,15 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                             <Card sx={{ margin: '8px', flex: mySettings.showItemDetails ? '1 0 200px' : '1 0 100px' }} key={doc.id}>
                                 <CardActionArea sx={{ height: '100%' }} onClick={() => { handleLoadDoc(doc.id); }}>
                                     <CardContent>
-                                        <Typography variant="h7" component="div" sx={{ fontWeight: (mySettings.showItemDetails ? 'bold' : 'normal') }}>
+                                        <Typography variant="h7" component="div"
+                                            sx={{ fontWeight: (mySettings.showItemDetails ? 'bold' : 'normal'),
+                                                overflow: 'hidden',
+                                                display: '-webkit-box',
+                                                WebkitLineClamp: 4,
+                                                WebkitBoxOrient: 'vertical',
+                                                textOverflow: 'ellipsis',
+                                             }}
+                                            >
                                             {doc.name}
                                         </Typography>
                                         {mySettings.showItemDetails && (
