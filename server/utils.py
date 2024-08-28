@@ -364,6 +364,14 @@ class DBUtils:
         return users
     
     @staticmethod
+    def get_users_stats():
+        users = User.query.all()
+        user_stats = {}
+        for user in users:
+            user_stats[user.id] = user.get_document_stats()
+        return user_stats
+    
+    @staticmethod
     def update_user(user_id, name=None, properties=None):
         if not name and not properties:
             return

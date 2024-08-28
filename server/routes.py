@@ -188,6 +188,27 @@ def get_users():
             )
 
 
+@app.route('/users/stats', methods=['GET'])
+@jwt_required()
+def get_users_stats():
+    with RequestLogger(request) as rl:
+        increment_server_stat(category="requests", stat_name="getUsersStats")
+        acting_user_id = get_jwt_identity()
+        if DBUtils.user_isadmin(acting_user_id):
+            try:
+                users_stats = DBUtils.get_users_stats()
+                return jsonify(users_stats)
+            except Exception as e:
+                rl.exception(e)
+                return jsonify({'success': False, 'message': str(e)})
+        else:
+            return app.response_class(
+                response=json.dumps({"success": False, "message": "Only admins can view users stats."}),
+                status=403,
+                mimetype='application/json'
+            )
+
+
 @app.route('/system_settings/<name>', methods=['GET'])
 def get_system_settings(name):
     with RequestLogger(request) as rl:

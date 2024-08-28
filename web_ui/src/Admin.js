@@ -150,6 +150,17 @@ const Admin = ({ adminOpen, setAdminOpen, user, setUser,
         }).catch(error => {
             system.error("Error getting Users.", error, getUsersUrl);
         });
+
+        const getUsersStatsUrl = `${serverUrl}/users/stats`;
+        axios.get(getUsersStatsUrl, {
+            headers: {
+                Authorization: 'Bearer ' + token
+            }
+        }).then(response => {
+            console.log("Users stats", response, `${getUsersStatsUrl} GET response`);
+        }).catch(error => {
+            system.error("Error getting Users stats.", error, getUsersStatsUrl);
+        });
     };
 
     const [width, setWidth] = useState(0);
