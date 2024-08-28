@@ -34,7 +34,6 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     const [modelSettingsOptionsLoaded, setModelSettingsOptionsLoaded] = useState(false);
     const [loadingModelSettingsOptionsMessage, setLoadingModelSettingsOptionsMessage] = useState("Loading model settings options...");
     const [selectedProvider, setSelectedProvider] = useState(null);
-    const [baseUrl, setBaseUrl] = useState(null);
     const [modelOptions, setModelOptions] = useState(null);
     const [temperature, setTemperature] = useState(null);
     const [selectedModel, setSelectedModel] = useState(null);
@@ -73,7 +72,6 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
         setSliders(data.sliders);
         const provider = data.model_settings.userDefault ? data.model_settings.userDefault : data.model_settings.default;
         setSelectedProvider(provider);
-        setBaseUrl(data.model_settings.providers[provider].baseUrl);
         setSelectedModel(data.model_settings.providers[provider].userDefault ? data.model_settings.providers[provider].userDefault : data.model_settings.providers[provider].default);
         setModelOptions(Object.keys(data.model_settings.providers[data.model_settings.userDefault ? data.model_settings.userDefault : data.model_settings.default].models));
         setTemperature(data.sliders.temperature.userDefault ? data.sliders.temperature.userDefault : data.sliders.temperature.default);
@@ -199,7 +197,6 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
             return;
         }
         setSelectedProvider(value);
-        setBaseUrl(modelSettingsOptions.providers[value].baseUrl);
         setModelOptions(Object.keys(modelSettingsOptions.providers[value].models));
         setSelectedModel(modelSettingsOptions.providers[value].default);
     };
@@ -241,7 +238,6 @@ const ModelSettings = ({setModelSettings, setFocusOnPrompt,
     const shareModelSettings = () => {
         let newModelSettings = {
             "provider": selectedProvider,
-            "baseUrl": baseUrl,
             "contextTokenSize": selectedModelContextTokenSize,
             "notes": selectedModelNotes,
             "asShortText": selectedProvider + " " + selectedModel,

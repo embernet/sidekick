@@ -304,7 +304,6 @@ const SidekickAI = ({
             let requestData = {
                 model_settings: {
                     provider: sidekickAiSettings.provider,
-                    baseUrl: sidekickAiSettings.baseUrl,
                     request: {
                         model: sidekickAiSettings.model,
                         temperature: sidekickAiSettings.temperature,

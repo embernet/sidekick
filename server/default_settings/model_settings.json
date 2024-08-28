@@ -3,9 +3,6 @@
     "model_settings": {
         "providers": {
             "OpenAI": {
-                "_overrides": ["baseUrl", "baseUrlOverrideEnvVar"],
-                "baseUrl": "https://api.openai.com/v1",
-                "baseUrlOverrideEnvVar": "OPENAI_BASE_URL",
                 "enabled": true,
                 "models": {
                     "gpt-4o": {
@@ -82,9 +79,6 @@
                 }
             },
             "Ollama": {
-                "_overrides": ["baseUrl", "baseUrlOverrideEnvVar"],
-                "baseUrl": "http://localhost:11434/v1",
-                "baseUrlOverrideEnvVar": "OLLAMA_BASE_URL",
                 "enabled": false,
                 "models": {
                     "llama3:70b": {
