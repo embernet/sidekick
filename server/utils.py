@@ -6,6 +6,7 @@ import string
 import bcrypt
 import traceback
 import time
+import ssl
 from datetime import datetime
 from sqlalchemy.exc import NoResultFound, OperationalError
 import tiktoken
@@ -288,13 +289,27 @@ def update_default_settings(user_id):
                                             content=filesystem_settings)
 
 
-def get_well_known_metadata():
+def get_jwks_client():
     """
-    Get the well known metadata from the OIDC well-known URL
+    Get a JWKS client that can be used to decode JWTs, with custom SSL context if needed.
     """
-    response = requests.get(app.config["OIDC_WELL_KNOWN_URL"])
-    response.raise_for_status()
-    return response.json()
+    well_known_metadata = get_well_known_metadata()
+    jwks_uri = well_known_metadata["jwks_uri"]
+
+    # Check if REQUESTS_CA_BUNDLE environment variable is set
+    requests_ca_bundle = os.getenv("REQUESTS_CA_BUNDLE")
+
+    if requests_ca_bundle:
+        # Create a custom SSL context
+        ssl_ctx = ssl.create_default_context()
+        ssl_ctx.load_verify_locations(cafile=requests_ca_bundle)
+        # Pass the custom SSL context to PyJWKClient
+        jwks_client = PyJWKClient(jwks_uri, ssl_context=ssl_ctx)
+    else:
+        # No custom SSL context needed
+        jwks_client = PyJWKClient(jwks_uri)
+        
+    return jwks_client
 
 
 def get_oauth2_session(**kwargs):
