@@ -34,14 +34,33 @@ export default class SidekickClipboard {
         return hashAsString;
     };
 
-    async writeText(text) {
+    writeText = async (text) => {
         return new Promise((resolve, reject) => {
-            navigator.clipboard.writeText(text).then(() => {
-                this.localChecksum = this._calculateChecksum(text);
-                resolve();
-            }).catch(err => {
+            try {
+                const textBlob = new Blob([text], { type: 'text/plain' });
+                let item = new ClipboardItem({ 'text/plain': textBlob });
+                navigator.clipboard.write([item]).then(() => {
+                    this.localChecksum = this._calculateChecksum(text);
+                    resolve();
+                }).catch(err => {
+                    reject(err);
+                });
+                navigator.clipboard.write([item]).then(() => {
+                    this._calculateChecksum(text).then((checksum) => {
+                        this.clipboardChecksum = checksum;
+                        this.sidekickClipboardObject = { text: text, markdown: text };
+                        resolve();
+                    }
+                    ).catch(err => {
+                        reject(err);
+                    });
+                }
+                ).catch(err => {
+                    reject(err);
+                });
+            } catch (err) {
                 reject(err);
-            });
+            }
         });
     }
 
@@ -103,8 +122,8 @@ export default class SidekickClipboard {
             navigator.clipboard.readText().then(text => {
                 this._calculateChecksum(text).then((systemClipboardChecksum) => {
                     if (systemClipboardChecksum !== this.clipboardChecksum) {
-                        this.sidekickClipboardObject = undefined;
-                        this.clipboardChecksum = undefined;
+                        this.sidekickClipboardObject = { text: text, markdown: text };
+                        this.clipboardChecksum = systemClipboardChecksum;
                     }
                     // the text representation is always stored in the system clipboard
                     // the sidekick object is returned if the checksums for the text representations match
