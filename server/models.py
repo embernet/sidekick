@@ -1,6 +1,7 @@
 import json
 import uuid
 from datetime import datetime
+from collections import Counter
 
 from app import db
 
@@ -28,6 +29,9 @@ class User(db.Model):
         return {"id": self.id, "name": self.name, "is_oidc": self.is_oidc,
                 "properties": json.loads(self.properties)}
 
+    def get_document_stats(self):
+        document_types = [doc.type for doc in self.documents]
+        return dict(Counter(document_types))
 
 class Document(db.Model):
     __tablename__ = "documents"
