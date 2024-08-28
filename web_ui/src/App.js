@@ -119,7 +119,6 @@ const App = () => {
   const [appendNoteContent, setAppendNoteContent] = useState({content: "", timestamp: Date.now()});
   const [chatNameChanged, setChatNameChanged] = useState("");
   const [scriptNameChanged, setScriptNameChanged] = useState("");
-  const [promptTemplateNameChanged, setPromptTemplateNameChanged] = useState("");
   const [noteNameChanged, setNoteNameChanged] = useState("");
   const [loadNote, setLoadNote] = useState("");
   const [focusOnPrompt, setFocusOnPrompt] = useState(false);
@@ -1244,7 +1243,6 @@ const App = () => {
                     setNewPromptTemplate={setNewPromptTemplate}
                     setFocusOnPrompt={setFocusOnPrompt}
                     openPromptTemplateId={openPromptTemplateId}
-                    promptTemplateNameChanged={promptTemplateNameChanged}
                     refreshPromptTemplateExplorer={refreshPromptTemplateExplorer}
                     setRefreshPromptTemplateExplorer={setRefreshPromptTemplateExplorer}
                     setPromptTemplateOpen={setPromptTemplateOpen}
@@ -1253,6 +1251,7 @@ const App = () => {
                     serverUrl={serverUrl} token={token} setToken={setToken}
                     darkMode={darkMode}
                     isMobile={isMobile}
+                    debugMode={debugMode}
                   />
                   : null }
                 { scriptsOpen ? <Explorer

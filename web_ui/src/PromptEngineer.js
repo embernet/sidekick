@@ -1,7 +1,7 @@
 import { debounce } from "lodash";
 import { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { Card, Box, IconButton, Typography, Collapse, Tooltip,
-     List, ListItem, ListItemText, 
+     List, ListItem, ListItemText, Tabs, Tab,
      Accordion, AccordionSummary, AccordionDetails, Toolbar } from '@mui/material';
 import { ClassNames } from "@emotion/react";
 import CloseIcon from '@mui/icons-material/Close';
@@ -11,17 +11,18 @@ import BuildIcon from '@mui/icons-material/Build';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import { styled } from '@mui/system';
-import { lightBlue } from '@mui/material/colors';
+import { lightBlue, grey } from '@mui/material/colors';
 import { StyledBox } from "./theme";
 
 import { SystemContext } from './SystemContext';
 import Explorer from './Explorer';
+import DocEditor from "./DocEditor";
 
 const PromptEngineer = ({promptEngineerOpen, onClose, setNewPromptPart, setFocusOnPrompt,
     setNewPromptTemplate, openPromptTemplateId,
-    promptTemplateNameChanged, refreshPromptTemplateExplorer, setRefreshPromptTemplateExplorer,
+    refreshPromptTemplateExplorer, setRefreshPromptTemplateExplorer,
     setPromptTemplateOpen, promptTemplateOpen, settingsManager, serverUrl, token, setToken,
-    windowPinnedOpen, setWindowPinnedOpen, darkMode, isMobile}) => {
+    windowPinnedOpen, setWindowPinnedOpen, darkMode, isMobile, debugMode}) => {
 
     const panelWindowRef = useRef(null);
 
@@ -35,6 +36,7 @@ const PromptEngineer = ({promptEngineerOpen, onClose, setNewPromptPart, setFocus
     const [promptPartsLoaded, setPromptPartsLoaded] = useState(false);
     const [loadingPromptPartsMessage, setLoadingPromptPartsMessage] = useState("Loading prompt parts...");
     const [mySettingsManager, setMySettingsManager] = useState(settingsManager);
+    const [loadPromptTemplate, setLoadPromptTemplate] = useState(null);
 
     const [width, setWidth] = useState(0);
     const handleResize = useCallback( 
@@ -44,6 +46,11 @@ const PromptEngineer = ({promptEngineerOpen, onClose, setNewPromptPart, setFocus
         }, 100),
         []
     );
+
+    const [activeTab, setActiveTab] = useState(0);
+    const handleTabChange = (event, newValue) => {
+        setActiveTab(newValue);
+    };
 
     useEffect(() => {
         const element = document.getElementById("prompt-engineer-panel");
@@ -97,6 +104,12 @@ const PromptEngineer = ({promptEngineerOpen, onClose, setNewPromptPart, setFocus
         setNewPromptPart({text: text, timestamp: Date.now()});
     };
 
+    const handlePromptTemplateChange = (id, name, reason, detail) => {
+        debugMode && console.log("handlePromptTemplateChange", id, name, reason, detail);
+        setRefreshPromptTemplateExplorer({"id": id, "name": name, "reason": reason, "detail": detail, timestamp: Date.now()});
+      }
+    
+
     const loadingRender = 
         <Card id="prompt-engineer-panel"
             sx={{display:"flex", flexDirection:"column", padding:"6px", flex:1,
@@ -131,56 +144,58 @@ const PromptEngineer = ({promptEngineerOpen, onClose, setNewPromptPart, setFocus
             </List>
         </StyledBox>
 
+    const promptTemplatesRender = (
+        <Box sx={{ display:"flex", flexDirection:"column", height: "100%", overflow: "hidden" }}>
+            <Box sx={{ position: 'sticky', top: 0, zIndex: 98, overflow: "none" }}>
+                <DocEditor folder="prompt_templates" type="Prompt Template"
+                    serverUrl={serverUrl} token={token} setToken={setToken}
+                    loadDoc={loadPromptTemplate} setLoadDoc={setLoadPromptTemplate}
+                    onChange={handlePromptTemplateChange} applyDoc={setNewPromptTemplate}
+                    darkMode={darkMode} debugMode={debugMode}
+                    />
+            </Box>
+            <Box sx={{display:"flex", flexDirection:"column", flexGrow:1, overflow:"auto"}}>
+                <Explorer 
+                    id="prompt-templates-explorer"
+                    sx={{flexGrow:1}}
+                    handleToggleExplorer={onClose}
+                    name="Prompt Templates"
+                    icon={<BuildIcon/>}
+                    folder="prompt_templates"
+                    openItemId={openPromptTemplateId}
+                    setLoadDoc={setLoadPromptTemplate}
+                    docNameChanged={null}
+                    refresh={refreshPromptTemplateExplorer}
+                    setRefresh={setRefreshPromptTemplateExplorer}
+                    itemOpen={promptTemplateOpen}
+                    setItemOpen={setPromptTemplateOpen}
+                    windowPinnedOpen = {windowPinnedOpen}
+                    setWindowPinnedOpen = {setWindowPinnedOpen}
+                    serverUrl={serverUrl} token={token} setToken={setToken}
+                    hidePrimaryToolbar={true}
+                    deleteEnabled={true}
+                    maxWidth="410px"
+                    />
+            </Box>
+        </Box>
+    );
+
     const loadedRender = 
-        <StyledBox sx={{display:"flex", flexDirection:"column", height: "100%", overflow: "auto",
+        <StyledBox sx={{display:"flex", flexDirection:"column", height: "100%", overflow: "none",
             width: isMobile ? `${window.innerWidth}px` : null,
             minWidth: isMobile ? `${window.innerWidth}px` : "380px",
             maxWidth: isMobile ? `${window.innerWidth}px` : "450px",
             }}>
-            <Accordion defaultExpanded>
-                <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-                aria-controls="prompt-fragments-content"
-                id="prompt-fragments-header"
-                >
-                    <Typography>Prompt Fragments</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                    {promptFragmentsRender}
-                </AccordionDetails>
-            </Accordion>
-            <Accordion defaultExpanded>
-                <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-                aria-controls="prompt-templates-content"
-                id="prompt-templtes-header"
-                >
-                    <Typography>Prompt Templates</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                    <Explorer 
-                        id="prompt-templates-explorer"
-                        sx={{flexGrow:1}}
-                        handleToggleExplorer={onClose}
-                        name="Prompt Templates"
-                        icon={<BuildIcon/>}
-                        folder="prompt_templates"
-                        openItemId={openPromptTemplateId}
-                        setLoadDoc={setNewPromptTemplate}
-                        docNameChanged={promptTemplateNameChanged}
-                        refresh={refreshPromptTemplateExplorer}
-                        setRefresh={setRefreshPromptTemplateExplorer}
-                        itemOpen={promptTemplateOpen}
-                        setItemOpen={setPromptTemplateOpen}
-                        windowPinnedOpen = {windowPinnedOpen}
-                        setWindowPinnedOpen = {setWindowPinnedOpen}
-                        serverUrl={serverUrl} token={token} setToken={setToken}
-                        hidePrimaryToolbar={true}
-                        deleteEnabled={true}
-                        maxWidth="410px"
-                        />
-                </AccordionDetails>
-            </Accordion>
+            <Box sx={{ position: 'sticky', top: 0, zIndex: 99, backgroundColor: darkMode ? 'black' : 'white' }}>
+                <Tabs value={activeTab} onChange={handleTabChange} aria-label="prompt engineer tabs">
+                    <Tab label="Templates" />
+                    <Tab label="Fragments" />
+                </Tabs>
+            </Box>
+            <Box sx={{ height: "100%", overflow: 'none', flexGrow: 1 }}>
+                {activeTab === 0 && promptTemplatesRender}
+                {activeTab === 1 && promptFragmentsRender}
+            </Box>
         </StyledBox>
 
     const render = 

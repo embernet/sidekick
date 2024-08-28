@@ -3,7 +3,7 @@ import { Box, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, But
 import ShareIcon from '@mui/icons-material/Share';
 import ShareOutlinedIcon from '@mui/icons-material/ShareOutlined';
 
-const ShareButton = ({ id, name, visibility, setVisibility, shareData, setShareData }) => {
+const ShareButton = ({ id, name, visibility, setVisibility, shareData, setShareData, setShareStatusChanged }) => {
     const [isShared, setIsShared] = useState(visibility === 'shared');
     const [open, setOpen] = useState(false);
 
@@ -32,6 +32,7 @@ const ShareButton = ({ id, name, visibility, setVisibility, shareData, setShareD
         setLocalShareData(updatedShareData);
         setShareData(updatedShareData); 
         setVisibility(formVisibility);
+        setShareStatusChanged(Date.now());
         setOpen(false);
     };
 
