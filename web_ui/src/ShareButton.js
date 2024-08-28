@@ -32,7 +32,7 @@ const ShareButton = ({ id, name, visibility, setVisibility, shareData, setShareD
         setLocalShareData(updatedShareData);
         setShareData(updatedShareData); 
         setVisibility(formVisibility);
-        setShareStatusChanged(Date.now());
+        setShareStatusChanged && setShareStatusChanged(Date.now());
         setOpen(false);
     };
 
