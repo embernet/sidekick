@@ -289,6 +289,23 @@ def update_default_settings(user_id):
                                             content=filesystem_settings)
 
 
+def get_well_known_metadata():
+    """
+    Get the well known metadata from the OIDC well-known URL
+    """
+    response = requests.get(app.config["OIDC_WELL_KNOWN_URL"])
+    response.raise_for_status()
+    return response.json()
+
+
+def get_oauth2_session(**kwargs):
+    """
+    Return an OAuth2Session that is configured with the OIDC client and redirect URI
+    """
+    return OAuth2Session(app.config["OIDC_CLIENT_ID"], scope=["profile", "email", "openid"],
+                         redirect_uri=app.config["OIDC_REDIRECT_URL"], **kwargs)
+
+
 def get_jwks_client():
     """
     Get a JWKS client that can be used to decode JWTs, with custom SSL context if needed.
@@ -309,23 +326,6 @@ def get_jwks_client():
         # No custom SSL context needed
         jwks_client = PyJWKClient(jwks_uri)
         
-    return jwks_client
-
-
-def get_oauth2_session(**kwargs):
-    """
-    Return an OAuth2Session that is configured with the OIDC client and redirect URI
-    """
-    return OAuth2Session(app.config["OIDC_CLIENT_ID"], scope=["profile", "email", "openid"],
-                         redirect_uri=app.config["OIDC_REDIRECT_URL"], **kwargs)
-
-
-def get_jwks_client():
-    """
-    Get a JWKS client that can be used to decode JWTs
-    """
-    well_known_metadata = get_well_known_metadata()
-    jwks_client = PyJWKClient(well_known_metadata["jwks_uri"])
     return jwks_client
 
 
