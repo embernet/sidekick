@@ -27,7 +27,7 @@ export const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 }));
 
 export const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
-    backgroundColor: theme.palette.mode === 'dark' ? grey[900] : grey[300],
+    backgroundColor: theme.palette.mode === 'dark' ? grey[800] : grey[300],
 }));
 
 export const StyledBox = styled(Box)(({ theme }) => ({
