@@ -322,6 +322,25 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
             </DialogActions>
         </Dialog>;
 
+    const shareStatusIcon = (doc) => {
+        return (
+            <Box>
+                {
+                    doc?.visibility !== "private" ? 
+                        doc.user_id !== system.user.id ?
+                            <Tooltip title="Shared by someone else">
+                                <ShareIcon sx={{ color:"orange" }}/>
+                            </Tooltip>
+                        :
+                        <Tooltip title="Shared by you">
+                            <ShareIcon sx={{ color:"purple" }}/>
+                        </Tooltip>
+                    : null
+                }
+            </Box>
+        );
+    }
+
     const docIcons = (doc) => {
         return (
             <Stack direction="row">
@@ -339,18 +358,7 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                         </Tooltip>
                     : null
                 }
-                {
-                    doc?.visibility !== "private" ? 
-                        doc.user_id !== system.user.id ?
-                            <Tooltip title="Shared by someone else">
-                                <ShareIcon sx={{ color:"orange" }}/>
-                            </Tooltip>
-                        :
-                        <Tooltip title="Shared by you">
-                            <ShareIcon sx={{ color:"purple" }}/>
-                        </Tooltip>
-                    : null
-                }
+                { shareStatusIcon(doc) }
                 {
                     doc?.properties?.inAILibrary ?
                         <Tooltip title="You added this to your AI library">
@@ -638,6 +646,7 @@ const Explorer = ({onClose, windowPinnedOpen, setWindowPinnedOpen, name, icon, f
                     <List>
                         {Object.values(filteredDocs).map(doc => (
                             <ListItem sx={{ padding: 0, pl: 1, cursor: "pointer", backgroundColor: doc.id === openItemId && itemOpen ? (darkMode ? grey[600] : grey[300]) : "transparent" }} key={doc.id}>
+                                    { !mySettings.showItemDetails ? <Box width={32}>{shareStatusIcon(doc)}</Box> : null }
                                     <ListItemText primary={doc.name}
                                         primaryTypographyProps={{ typography: 'body2', fontWeight: (mySettings.showItemDetails ? 'bold' : 'normal') }}
                                         secondary={
