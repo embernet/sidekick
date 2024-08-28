@@ -190,7 +190,7 @@ You always do your best to generate text in the same style as the context text p
             system.debug("Note cloned", response, url + " POST");
             load(response.data.metadata.id);
         }).catch(error => {
-            system.error(`System Error cloning chat`, error, url + " POST");
+            system.error(`System Error cloning Note`, error, url + " POST");
         });
     }
 
