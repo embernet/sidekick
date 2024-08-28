@@ -54,7 +54,7 @@ const AIPromptResponse = ({modelSettings, serverUrl, token, setToken, customUser
     controlName, toolbarButtons, sendButtonTooltip, language, languagePrompt, interactiveMode=true, showPrompt=true, passiveUserPromptToSend=null}) => {
 
     const SecondaryToolbar = styled(Toolbar)(({ theme }) => ({
-        backgroundColor: darkMode ? grey[900] : grey[300],
+        backgroundColor: darkMode ? grey[800] : grey[300],
     }));
                 
     const system = useContext(SystemContext);
