@@ -119,7 +119,7 @@ When clicking on the prompt editor menu and selecting a prompt, you can press an
 
 ### Sidekick Toolboxes
 
-![alt text](docs/images/Sidekick_Toolboxes.png)
+![Sidekick Toolboxes](docs/images/Sidekick_Toolboxes.png)
 
 Sidekick includes a range of prompt collections presented as a Toolbox that sits alongside the Chat. These prompts are designed to get the AI to apply deeper and more structured, or more creative, techniques. The toolbox has multiple 'trays' of prompt collections around specific themes.
 
