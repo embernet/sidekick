@@ -579,16 +579,45 @@ You can access diagram prompts from the prompt editor menu or by pressing "/" in
 - Chats are automatically named. New empty chats are named "New Chat" until you interact with it to create some content. If this is their name when you enter a prompt, they will be automatically given a name based on the text in the prompt.
 - Chat's can change course over time. Click the regenerate name button next to the chat name if you want to update the name to reflect the current content of the chat.
 
+## Explorers
+
+Explorers provide filterable sortable lists of different kinds of Sidekick documents such as chats, pronpt templates, notes, and scripts.
+
+### Explorer Features
+
+**Title bar controls**
+
+- Pin: Usually utility panels close when others are opened to reduce clutter but you can pin this panel in place so it remains open
+- Expand/Contract: You can make the explorer wider so that in card view mode you can fit more on the screen
+
+**Main Toolbar Controls**
+
+- Show/hide Details
+- View items as list
+- View items as cards
+- Show/hide filters
+
+**Filters**
+
+- Scope: Select whether you see just your items (‘Mine’), My shared, My private, All shared, Others’ shared, or All items visible to you
+- Refresh Explorer: Changes you make are reflected automatically but if you want to see new items shared by others recently, use refresh
+- Filter: filter based on text in the name of the item
+- Bulk delete: Bulk delete chats by filtering and clicking the trashcan button next to the filter text
+- Sort by: Sort by name, created, updated, or size ascending or descending
+- Filter by Tags: Bookmarked, starred, in AI library, shared by you, and shared by others.
+- Clear filters: clears all filters
+
+**Explorer Items**
+
+Clicking on an item in an explorer will open it in its respective editor.
+  
+Return to [Sidekick Tools](#sidekick-tools)
+
 ## Chat Explorer
 
 **How to access Chat Explorer:** The chat explorer is open by default. If you close it you can click on the Chat Explorer button, which is the double chat bubble icon in the Sidekick toolbar.
 
-### Chat Explorer Features
-
-- Lists the chats you have created
-- Filter chats by name, bookmarked, starred, in AI library, or shared by or with you
-- Click on a chat to open it
-- Bulk delete chats by filtering and clicking the trashcan button next to the filter text
+See [Explorers](#explorers) for more information on explorer features.
 
 ## Scripts Explorer
 
@@ -596,15 +625,7 @@ You can access diagram prompts from the prompt editor menu or by pressing "/" in
 
 **How to access Scripts Explorer:** Click on the Scripts Explorer button, which is in the Sidekick toolbar next to the play button.
 
-### Scripts Explorer Features
-
-- Lists the scripts you have created
-- Filter scripts by name, bookmarked, or starred
-- Sort scripts by name, date created, date modified, or size
-- Click on a script to open it
-- Bulk delete scripts by filtering and clicking the trashcan button next to the filter text
-
-Return to [Sidekick Tools](#sidekick-tools)
+See [Explorers](#explorers) for more information on explorer features.
 
 ## Script
 
@@ -776,7 +797,7 @@ Provide an additional system prompt to be included with each chat request.
   - Provide some general context that you want to inform the AI about for all chat requests. E.g. Your background, skills, expertise, interests, work, values, goals, priorities.
   - Provide some content guidelines for the AI to follow when responding to chat requests. E.g. The response should be concise, clear, factual, friendly, professional, respectful, empathetic, supportive, assertive, encouraging, positive, constructive, helpful, creative, original, engaging, include examples.
   - Provide some format guidelines for the AI to follow when responding to chat requests. E.g. provide the response as a plain text / markdown / as a chat with follow-up questions / as a formal report / if its a long answer always provide a summary first.
-  - Provide an additional system prompt to be included with each chat request.
+  - Provide an additional custom system prompt to be included with each chat request.
 
 # What can I use Sidekick for?
 

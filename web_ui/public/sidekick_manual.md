@@ -15,6 +15,7 @@ Sidekick provides a chat interface to OpenAI's GPT models along with pre-canned 
 Sidekick has the following Tools:
 
 - **[Sidekick AI Help](#sidekick-ai-help):** This tool. An AI that helps you use the Sidekick app. Ask questions about the Sidekick app to get simple instructions on how and why to use app features. Ask more general questions and it will suggest approaches to using the app to answer those questions.
+- **[Explorers](#explorers):** Explorers provide filterable, sortable lists of different Sidekick documents such as chats, prompt templates, scripts, and notes.
 - **[Chat Explorer](#chat-explorer):** A filterable list of available chats.
 - **[Chat](#chat):** A window that lets you talk to OpenAI's GPT-3.5-turbo and GPT-4 models, curate the message content, resubmit prompts, and copy responses of interest to notes.
 - **[Sidekick Prompt collections and Toolboxes](#sidekick-prompt-collections-and-toolboxes):** A library of prompts to help elicit deeper expertise on techniques for creativity, analysis, problem solving, and structured thinking out of the AI. Toolboxes that let you access related prompts from palates of buttons designed to apply to specific scenarios.
@@ -52,21 +53,42 @@ Each of these is described in more detail below.
 
 Return to [Sidekick Tools](#sidekick-tools)
 
+## Explorers
+
+Explorers provide filterable sortable lists of different kinds of Sidekick documents such as chats, pronpt templates, notes, and scripts.
+
+### Explorer Features
+
+**Title bar controls**
+
+- Pin: Usually utility panels close when others are opened to reduce clutter but you can pin this panel in place so it remains open
+- Expand/Contract: You can make the explorer wider so that in card view mode you can fit more on the screen
+
+**Main Toolbar Controls**
+
+- Show/hide Details
+- View items as list
+- View items as cards
+- Show/hide filters
+
+**Filters**
+
+- Scope: Select whether you see just your items (‘Mine’), My shared, My private, All shared, Others’ shared, or All items visible to you
+- Refresh Explorer: Changes you make are reflected automatically but if you want to see new items shared by others recently, use refresh
+- Filter: filter based on text in the name of the item
+- Sort by: Sort by name, created, updated, or size ascending or descending
+- Filter by Tags: Bookmarked, starred, in AI library, shared by you, and shared by others.
+- Clear filters: clears all filters
+  
+Return to [Sidekick Tools](#sidekick-tools)
+
 ## Chat Explorer
 
 **What is Chat Explorer?** Chat Explorer is a window that lets you explore the chat history. Click on a chat to open it.
 
 **How to access Chat Explorer:** The chat explorer is open by default. If you close it you can click on the Chat Explorer button, which is the double chat bubble icon in the Sidekick toolbar.
 
-### Chat Explorer Features
-
-- Lists the chats you have created
-- Filter chats by name
-- Sort chats by name, date created, or date last modified
-- Click on a chat to open it
-- Bulk delete chats by filtering and clicking the trashcan button next to the filter text
-
-Return to [Sidekick Tools](#sidekick-tools)
+See [Explorers](#explorers) for more information on explorer features.
 
 ## Chat
 
@@ -700,15 +722,7 @@ Return to [Sidekick Tools](#sidekick-tools)
 
 **How to access Scripts Explorer:** Click on the Scripts Explorer button, which is in the Sidekick toolbar next to the play button.
 
-### Scripts Explorer Features
-
-- Lists the scripts you have created
-- Filter scripts by name
-- Sort scripts by name, date created, or date last modified
-- Click on a script to open it
-- Bulk delete scripts by filtering and clicking the trashcan button next to the filter text
-
-Return to [Sidekick Tools](#sidekick-tools)
+See [Explorers](#explorers) for more information on explorer features.
 
 ## Script
 
@@ -856,14 +870,7 @@ Return to [Sidekick Tools](#sidekick-tools)
 
 **Why use Notes Explorer?** You can end up with a lot of notes over time, and the Notes Explorer lets you filter the list of notes by name.
 
-### Notes Explorer Features
-
-- Lists the notes you have created
-- Filter notes by name
-- Click on a note to open it
-- Bulk delete notes by filtering and clicking the trashcan button next to the filter text
-
-Return to [Sidekick Tools](#sidekick-tools)
+See [Explorers](#explorers) for more information on explorer features.
 
 ## Sharing
 
@@ -912,7 +919,7 @@ Provide an additional system prompt to be included with each chat request.
   - Provide some general context that you want to inform the AI about for all chat requests. E.g. Your background, skills, expertise, interests, work, values, goals, priorities.
   - Provide some content guidelines for the AI to follow when responding to chat requests. E.g. The response should be concise, clear, factual, friendly, professional, respectful, empathetic, supportive, assertive, encouraging, positive, constructive, helpful, creative, original, engaging, include examples.
   - Provide some format guidelines for the AI to follow when responding to chat requests. E.g. provide the response as a plain text / markdown / as a chat with follow-up questions / as a formal report / if its a long answer always provide a summary first.
-  - Provide an additional system prompt to be included with each chat request.
+  - Provide an additional custom system prompt to be included with each chat request.
 
 
 Return to [Sidekick Tools](#sidekick-tools)
