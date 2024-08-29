@@ -75,7 +75,7 @@ import SidekickModalDialog from './SidekickModalDialog';
 import { use } from 'marked';
 import { AdminPanelSettingsOutlined } from '@mui/icons-material';
 
-const VERSION = "0.4.1";
+const VERSION = "0.4.2";
 
 const ScriptIcon = SmartDisplayOutlinedIcon;
 const ScriptsExplorerIcon = SubscriptionsOutlinedIcon;
