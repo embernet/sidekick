@@ -375,7 +375,9 @@ Don't repeat the CONTEXT_TEXT or the REQUEST in your response. Create a response
                 setInAILibrary(response.data.metadata?.properties?.inAILibrary || false);
                 setPreviousName(response.data.metadata.name);
                 setContent(response.data.content.note);
-                saveStatus.current = "saved";// we know its saved because we just loaded it!
+                setTimeout(() => { // allow time for state changes to apply
+                    saveStatus.current = "saved";// then change state; we know its saved because we just loaded it
+                }, 200);
                 if (isMobile) {
                     panelWindowRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'start' });
                 }
