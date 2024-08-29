@@ -869,6 +869,11 @@ const App = () => {
 
   const extendedLeftToolbar =
     <>
+      <Tooltip title="Minimise windows">
+        <IconButton edge="start" color="inherit" aria-label="Minimise windows" onClick={minimiseWindows}>
+          <MinimizeIcon/>
+        </IconButton>
+      </Tooltip>
       <Tooltip title="Sidekick AI help">
         <IconButton edge="start" color="inherit" aria-label="Sidekick AI help" onClick={handleToggleSidekickAIOpen}>
           { sidekickAIOpen ? <HelpIcon/> : <HelpOutlineOutlinedIcon/> }
@@ -897,11 +902,6 @@ const App = () => {
       <Tooltip title={ promptEngineerOpen ? "Close prompt engineer" : "Open prompt engineer" }>
         <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleTogglePromptEngineerOpen}>
           { promptEngineerOpen ? <BuildIcon/> : <BuildOutlinedIcon/> }
-        </IconButton>
-      </Tooltip>
-      <Tooltip title="Minimise windows">
-        <IconButton edge="start" color="inherit" aria-label="Minimise windows" onClick={minimiseWindows}>
-          <MinimizeIcon/>
         </IconButton>
       </Tooltip>
     </>
