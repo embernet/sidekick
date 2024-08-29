@@ -34,7 +34,8 @@ Sidekick provides a chat interface to OpenAI's GPT models along with pre-canned 
 
 ### Chat Features
 
-- Enter a prompt in the prompt box and press Enter, or click on the Send button in the Chat prompt Toolbar
+- Chat Context and Chat Goal: Click 'Open Chat Context and Goal' in the Chat title bar to show a panel to the right of the chat where you can provide more information to guide the AI for this specific chat. These will be added to the system prompt each time you prompt the AI from within this chat. Enter these before you start your chat to give the AI more to go on. They will be saved with the chat and applied if you continue the chat later.
+- Enter a prompt in the prompt box and press Enter, or click on the Send button in the Chat prompt Toolbar. Press Shift and return in the prompt box to add a line break without sending the prompt.
 - To ask the same question again / send the same prompt again: Click the "Ask again" button in the Chat prompt Toolbar
 - To reload your last prompt for editing: Click the "Reload last prompt for editing" button in the Chat prompt Toolbar
 - To clear the prompt box: When in the prompt box, press the Escape key
@@ -774,15 +775,19 @@ System prompts set in App Settings will be applied to all AI requests.
 
 #### Language
 
-Select the language you would like the AI to respond in. Select "Model Default Language" to let the model decide based on the chat context, pick a language from the list, or enter one yourself. Note that this is simply adding a system prompt to request the AI to respond in that language. What languages are supported and to what extent depends on the model you are using.
+Select the language you would like the AI to respond in. Select "Model Default Language" to let the model decide based on the chat content, pick a language from the list, or enter one yourself. Note that this is simply adding a system prompt to request the AI to respond in that language. What languages are supported and to what extent depends on the model you are using.
 
 #### General Context System Prompt
 
-Provide some general context that you want to inform the AI about for all chat requests. E.g. Your background, skills, expertise, interests, work, values, goals, priorities.
+Provide some general context that you want to inform the AI about for all chat requests. E.g. Your background, skills, expertise, interests, work, values, goals, priorities. Note: You can also add a more specific "Chat Context" to individual Chats.
 
 #### Response Style System Prompt
 
 Provide some guidelines for the AI to follow when responding to chat requests. E.g. Be concise, clear, friendly, professional, respectful, empathetic, supportive, encouraging, positive, constructive, informative, accurate, relevant, helpful, creative, original, engaging
+
+#### Format Guidelines System Prompt
+
+Provide some format guidelines for the AI to follow when responding to chat requests. E.g. provide the response as a plain text / markdown / as a chat with follow-up questions / as a formal report / if its a long answer always provide a summary first.
 
 #### Custom System Prompt
 
@@ -793,11 +798,6 @@ Provide an additional system prompt to be included with each chat request.
 - Change your password
 - Delete your account
 - Rename your account
-- Turn on or off system prompts added to AI requests sent by Chat or Note Writer
-  - Provide some general context that you want to inform the AI about for all chat requests. E.g. Your background, skills, expertise, interests, work, values, goals, priorities.
-  - Provide some content guidelines for the AI to follow when responding to chat requests. E.g. The response should be concise, clear, factual, friendly, professional, respectful, empathetic, supportive, assertive, encouraging, positive, constructive, helpful, creative, original, engaging, include examples.
-  - Provide some format guidelines for the AI to follow when responding to chat requests. E.g. provide the response as a plain text / markdown / as a chat with follow-up questions / as a formal report / if its a long answer always provide a summary first.
-  - Provide an additional custom system prompt to be included with each chat request.
 
 # What can I use Sidekick for?
 
