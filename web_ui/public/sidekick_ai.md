@@ -9,9 +9,10 @@ Sidekick provides a chat interface to OpenAI's GPT models along with pre-canned 
 - **Chat Explorer:** List historical chats. Click on a chat to open it.
 - **Model Settings:** Model Settings include which AI model to use and values for various parameters that affect the way that model responds to your prompts.
 - **AI Personas:** Select from a library of pre-canned AI personas to change the perspective from which the AI responds to your prompts. Favourite the personas you like, filter by name and keywords.
-- **Prompt Engineer:** Create prompts by selecting from a library of prompt fragments and prompt templates.
+- **Prompt Engineer:** Create prompts by selecting from a library of prompt fragments and prompt templates. Also view and edit the prompt templates you have created and others have shared.
 - **Note:** Create and edit notes to gather your thoughts, plan your work, collate the best AI responses from your chats into something more meaninful.
 - **Notes Explorer:** A filterable list of the notes you have created.
+- **Sharing:** Share your notes, chats, and prompt templates with others.
 - **App Settings:** Set the default language the AI responds in and create general system prompts to give the AI more context and guidance for every request.
 - **Status Bar:** The status bar at the bottom of the Sidekick window shows the current persona, response language, and the model being used. Click on any of these to change them.
 
@@ -585,7 +586,7 @@ You can access diagram prompts from the prompt editor menu or by pressing "/" in
 ### Chat Explorer Features
 
 - Lists the chats you have created
-- Filter chats by name, bookmarked, or starred
+- Filter chats by name, bookmarked, starred, in AI library, or shared by or with you
 - Click on a chat to open it
 - Bulk delete chats by filtering and clicking the trashcan button next to the filter text
 
@@ -598,8 +599,8 @@ You can access diagram prompts from the prompt editor menu or by pressing "/" in
 ### Scripts Explorer Features
 
 - Lists the scripts you have created
-- Filter scripts by name
-- Sort scripts by name, date created, or date last modified
+- Filter scripts by name, bookmarked, or starred
+- Sort scripts by name, date created, date modified, or size
 - Click on a script to open it
 - Bulk delete scripts by filtering and clicking the trashcan button next to the filter text
 
@@ -670,16 +671,17 @@ To favorite or unfavorite an AI Persona, click the heart icon next to the person
 
 ## Prompt Engineer
 
-**What is Prompt Engineer?** Prompt Engineer is a tool that lets you create prompts by selecting from a library of prompt fragments.
+**What is Prompt Engineer?** Prompt Engineer is a tool that lets you create prompts by selecting from a library of prompt fragments or prompt templates including prompt templates you have created or others have created and shared.
 
 **How to access Prompt Engineer:** Click on the Prompt Engineer button, which is the spanner icon in the Sidekick toolbar.
 
-**Why use Prompt Engineer?** Prompt Engineer lets you create prompts by selecting from a library of prompt fragments. The library is broken down into categories of intent, detail, voice, perspective, and format. You will get responses from the AI that are better suited to your needs if you provide prompts that are well crafted. You can include criteria in your prompt about what you want to know, what format you want it in, how much detail, whether you want explanations or examples, and more. Think of the Prompt Engineer as containing a checklist of things to consider when crafting your prompt.
+**Why use Prompt Engineer?** Prompt Engineer lets you create prompts by selecting from a library of prompt fragments. The library is broken down into categories of intent, detail, voice, perspective, and format. You will get responses from the AI that are better suited to your needs if you provide prompts that are well crafted. You can include criteria in your prompt templates about what you want to know, what format you want it in, how much detail, whether you want explanations or examples, and more. Think of the Prompt Engineer as containing a checklist of things to consider when crafting your prompt.
 
 ### Prompt Engineer Features
 
 - Click on the category name to expand or collapse the category of prompt fragment.
 - Click on the prompt fragment to add it to the prompt.
+- Clicking on a prompt template will open it in the Prompt Template Editor. From here you can copy it to the clipboard and use it in Chat or Note Writer. You can click the share button in the editor to share prompt templates with others. If you change the Scope of the Prompt Template Explorer to All, All Shared or Others' Shared, you can see prompt templates shared by others and use them in your Chat.
 
 ## Note
 
@@ -725,9 +727,17 @@ To favorite or unfavorite an AI Persona, click the heart icon next to the person
 ### Notes Explorer Features
 
 - Lists the notes you have created
-- Filter notes by name, bookmarked, or starred
+- Filter notes by name, bookmarked, starred, in AI library, or shared by or with you
 - Click on a note to open it
 - Bulk delete notes by filtering and clicking the trashcan button next to the filter text
+
+## Sharing
+
+Clicking the share Icon when editing a Chat, Note, or Prompt Template will open a dialogue where you can turn sharing on or off and provide a short description of what you are sharing and why and how it could be useful to others.
+
+You can see items others have shared in the respective Explorer by setting the Scope to All, All Shared, or Others' shared. You can also click on the filters to show items shared by you or others. Turning on the details view will show you who shared an item.
+
+You can view shared items and use shared knowledge notes and shared prompt templates in Chat but cannot edit them. If you want to edit the item that was shared, you can clone it. The clone button that appears on a shared item editor creates a copy of the item in your own workspace that you can edit. Prompt Templates can be edited and cloned from within the Templates tab of the Prompt Engineer tool.
 
 ## App Settings
 
@@ -762,6 +772,11 @@ Provide an additional system prompt to be included with each chat request.
 - Change your password
 - Delete your account
 - Rename your account
+- Turn on or off system prompts added to AI requests sent by Chat or Note Writer
+  - Provide some general context that you want to inform the AI about for all chat requests. E.g. Your background, skills, expertise, interests, work, values, goals, priorities.
+  - Provide some content guidelines for the AI to follow when responding to chat requests. E.g. The response should be concise, clear, factual, friendly, professional, respectful, empathetic, supportive, assertive, encouraging, positive, constructive, helpful, creative, original, engaging, include examples.
+  - Provide some format guidelines for the AI to follow when responding to chat requests. E.g. provide the response as a plain text / markdown / as a chat with follow-up questions / as a formal report / if its a long answer always provide a summary first.
+  - Provide an additional system prompt to be included with each chat request.
 
 # What can I use Sidekick for?
 
